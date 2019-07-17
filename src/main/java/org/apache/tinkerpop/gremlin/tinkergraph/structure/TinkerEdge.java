@@ -45,7 +45,7 @@ public class TinkerEdge extends TinkerElement implements Edge {
         this.graph = graph;
         this.outVertex = outVertex;
         this.inVertex = inVertex;
-        TinkerHelper.autoUpdateIndex(this, T.label.getAccessor(), this.label, null);
+//        TinkerHelper.autoUpdateIndex(this, T.label.getAccessor(), this.label, null);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class TinkerEdge extends TinkerElement implements Edge {
         final Property<V> newProperty = new TinkerProperty<>(this, key, value);
         if (null == this.properties) this.properties = new HashMap<>();
         this.properties.put(key, newProperty);
-        TinkerHelper.autoUpdateIndex(this, key, value, oldProperty.isPresent() ? oldProperty.value() : null);
+//        TinkerHelper.autoUpdateIndex(this, key, value, oldProperty.isPresent() ? oldProperty.value() : null);
         return newProperty;
 
     }
@@ -97,12 +97,7 @@ public class TinkerEdge extends TinkerElement implements Edge {
                 edges.remove(this);
         }
 
-        TinkerHelper.removeElementIndex(this);
-        graph.edges.remove((long)id);
-        graph.getElementsByLabel(graph.edgesByLabel, label).remove(this);
-        if (graph.ondiskOverflowEnabled) {
-            graph.ondiskOverflow.removeEdge((Long) id);
-        }
+//        TinkerHelper.removeElementIndex(this);
 
         this.properties = null;
         this.removed = true;

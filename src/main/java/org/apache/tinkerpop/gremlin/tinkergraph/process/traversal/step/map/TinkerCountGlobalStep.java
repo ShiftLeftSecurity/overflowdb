@@ -19,6 +19,7 @@
 
 package org.apache.tinkerpop.gremlin.tinkergraph.process.traversal.step.map;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
@@ -50,10 +51,11 @@ public final class TinkerCountGlobalStep<S extends Element> extends AbstractStep
         if (!this.done) {
             this.done = true;
             final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
-            return this.getTraversal().getTraverserGenerator().generate(Vertex.class.isAssignableFrom(this.elementClass) ?
-                            (long) TinkerHelper.getVertices(graph).size() :
-                            (long) TinkerHelper.getEdges(graph).size(),
-                    (Step) this, 1L);
+            final long size;
+            if (Vertex.class.isAssignableFrom(this.elementClass)) {
+                size = TinkerHelper.getVertices(graph).size();
+            } else throw new NotImplementedException("");
+            return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
         } else
             throw FastNoSuchElementException.instance();
     }

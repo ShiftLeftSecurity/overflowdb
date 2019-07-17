@@ -85,7 +85,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
       if (clearingProcessCount > 0) {
         logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
       } else if (clearableRefs.isEmpty()) {
-        logger.debug("clearableRefs queue is empty - nothing to clear at the moment");
+        logger.info("no refs to clear at the moment. heapUsage=" + heapUsage);
       } else {
         int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
         logger.info("heap usage (after GC) was " + heapUsage + " -> scheduled to clear " + releaseCount + " references (asynchronously)");

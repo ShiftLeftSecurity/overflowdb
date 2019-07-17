@@ -18,30 +18,101 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.process.traversal.P;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
-//import org.apache.tinkerpop.gremlin.tinkergraph.structure.specialized.gratefuldead.*;
-import org.apache.tinkerpop.gremlin.util.TimeUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
-/** copy of `SpecializedElementsTest`, only difference being that an on disk cache is used
- * TODO refactor for code reuse */
-public class SpecializedElementsWithOndiskTest {
+public class OverflowDbNodeTest {
+
+    @Test
+    public void simpleTest() {
+        TinkerGraph graph = newGraph();
+
+        Vertex v0 = graph.addVertex(
+            T.label, OverflowDbTestNode.label,
+            OverflowDbTestNode.STRING_PROPERTY, "node 1",
+            OverflowDbTestNode.INT_PROPERTY, 42,
+            OverflowDbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
+            OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43));
+        Vertex v1 = graph.addVertex(
+            T.label, OverflowDbTestNode.label,
+            OverflowDbTestNode.STRING_PROPERTY, "node 2",
+            OverflowDbTestNode.INT_PROPERTY, 52,
+            OverflowDbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
+            OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
+        Edge e = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
+
+        // vertex traversals
+        assertEquals(1, __(v0).out().toList().size());
+        assertEquals(0, __(v0).out("otherLabel").toList().size());
+        assertEquals(0, __(v1).out().toList().size());
+        assertEquals(0, __(v0).in().toList().size());
+        assertEquals(1, __(v1).in().toList().size());
+        assertEquals(1, __(v0).both().toList().size());
+        assertEquals(1, __(v1).both().toList().size());
+
+        // edge traversals
+        assertEquals(1, __(v0).outE().toList().size());
+        assertEquals(OverflowDbTestEdge.label, __(v0).outE().label().next());
+        assertEquals(0, __(v0).outE("otherLabel").toList().size());
+        assertEquals(0, __(v1).outE().toList().size());
+        assertEquals(1, __(v1).inE().toList().size());
+        assertEquals(1, __(v0).bothE().toList().size());
+        assertEquals(1, __(v0).bothE(OverflowDbTestEdge.label).toList().size());
+        assertEquals(0, __(v0).bothE("otherLabel").toList().size());
+
+        // vertex properties
+        Set stringProperties = graph.traversal().V().values(OverflowDbTestNode.STRING_PROPERTY).toSet();
+        assertTrue(stringProperties.contains("node 1"));
+        assertTrue(stringProperties.contains("node 2"));
+        assertEquals(Integer.valueOf(42), __(e).outV().values(OverflowDbTestNode.INT_PROPERTY).next());
+        assertEquals(Integer.valueOf(52), __(e).inV().values(OverflowDbTestNode.INT_PROPERTY).next());
+
+        // edge properties
+        assertTrue(e instanceof OverflowDbTestEdge);
+        assertEquals(Long.valueOf(99l), ((OverflowDbTestEdge) e).longProperty());
+        assertEquals(Long.valueOf(99l), e.value(OverflowDbTestEdge.LONG_PROPERTY));
+        assertEquals(Long.valueOf(99l), __(v0).outE().values(OverflowDbTestEdge.LONG_PROPERTY).next());
+        assertEquals(Long.valueOf(99l), __(v1).inE().values(OverflowDbTestEdge.LONG_PROPERTY).next());
+        assertEquals(Long.valueOf(99l), __(v1).inE().values().next());
+    }
+
+    @Test
+    public void testEdgeEquality() {
+        TinkerGraph graph = newGraph();
+
+        Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
+        Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
+
+        Edge e0 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
+
+
+        Edge e0FromOut = v0.edges(Direction.OUT).next();
+        Edge e0FromIn = v1.edges(Direction.IN).next();
+
+        assertEquals(e0, e0FromOut);
+        assertEquals(e0, e0FromIn);
+        assertEquals(e0FromOut, e0FromIn);
+    }
+
+    private TinkerGraph newGraph() {
+        return TinkerGraph.open(
+            Arrays.asList(OverflowDbTestNode.factory),
+            Arrays.asList(OverflowDbTestEdge.factory)
+        );
+    }
 
 //    @Test
 //    public void simpleTest() {
@@ -65,7 +136,7 @@ public class SpecializedElementsWithOndiskTest {
 //        assertEquals(1, __(v0).both().toList().size());
 //        assertEquals(1, __(v2).both().toList().size());
 //    }
-//
+
 //    @Test
 //    public void shouldAllowToSpecifyIds() {
 //        TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
@@ -87,8 +158,8 @@ public class SpecializedElementsWithOndiskTest {
 //        Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
 //        Edge e4 = v0.addEdge(FollowedBy.label, v2);
 //        assertTrue(v0 instanceof VertexRef);
-//        assertTrue(e4 instanceof EdgeRef);
-//        assertTrue(v0.edges(Direction.OUT).next() instanceof EdgeRef);
+////        assertTrue(e4 instanceof EdgeRef); TODO
+////        assertTrue(v0.edges(Direction.OUT).next() instanceof EdgeRef);
 //        assertTrue(v0.vertices(Direction.OUT).next() instanceof VertexRef);
 //    }
 //
@@ -324,8 +395,8 @@ public class SpecializedElementsWithOndiskTest {
 //            avgTimeWithIndex < avgTimeWithoutIndex);
 //    }
 //
-//     @Test
-//     @Ignore // only run manually since the timings vary depending on the environment
+//    @Test
+//    @Ignore // only run manually since the timings vary depending on the environment
 //    public void shouldUseIndicesCreatedBeforeLoadingData() throws IOException {
 //        int loops = 100;
 //        Double avgTimeWithIndex = null;
@@ -367,7 +438,7 @@ public class SpecializedElementsWithOndiskTest {
 //        graph.close();
 //    }
 //
-////     @Test
+//    //     @Test
 //    // only run manually since the timings vary depending on the environment
 //    public void propertyLookupPerformanceComparison() throws IOException {
 //        int loops = 1000;
@@ -400,7 +471,7 @@ public class SpecializedElementsWithOndiskTest {
 //            avgTimeWithSpecializedElements < avgTimeWithGenericElements);
 //    }
 //
-////    @Test
+//    //    @Test
 //    // only run manually since the timings vary depending on the environment
 //    public void traversalPerformanceComparison() throws IOException {
 //        int loops = 1000;
@@ -428,43 +499,14 @@ public class SpecializedElementsWithOndiskTest {
 //        System.out.println("performance enhancement of specialized elements = " + diffPercent);
 //    }
 //
-
-//    @Test
-    /** Run manually with the following jvm options: `-XX:+UseG1GC -Xms1g -Xmx1g`
-     * Without overflow it can hold 250k vertices in 1G memory, with overflow that number should be tremendously larger.
-     * It'll be slower due to the serialization to disk, but should not crash
-     * Please use all  and optionally `-XX:+HeapDumpOnOutOfMemoryError` */
-    public void shouldAllowGraphsLargerThanMemory() {
-        int vertexCount = 500000;
-        Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
-//        configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, false);
-        configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
-      try (TinkerGraph graph = TinkerGraph.open(
-          configuration,
-          Arrays.asList(OverflowDbTestNode.factory),
-          Arrays.asList(OverflowDbTestEdge.factory)
-      )) {
-        for (long i = 0; i < vertexCount; i++) {
-            if (i % 10000 == 0) {
-                System.out.println(i + " vertices created");
-            }
-          graph.addVertex(
-              T.label, OverflowDbTestNode.label,
-              OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(new Integer[1000])
-          );
-        }
-      }
-    }
-
 //    private TinkerGraph newGratefulDeadGraphWithSpecializedElements() {
 //        Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
-//        configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
-////        return TinkerGraph.open(
-////            configuration,
-////            Arrays.asList(Song.factory, Artist.factory),
-////            Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
-////        );
-//        throw new NotImplementedException("TODO");
+//        configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, false);
+//        return TinkerGraph.open(
+//            configuration,
+//            Arrays.asList(Song.factory, Artist.factory),
+//            Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
+//        );
 //    }
 //
 //    private TinkerGraph newGratefulDeadGraphWithSpecializedElementsWithData() throws IOException {
@@ -472,16 +514,5 @@ public class SpecializedElementsWithOndiskTest {
 //        loadGraphMl(graph);
 //        return graph;
 //    }
-//
-//    private TinkerGraph newGratefulDeadGraphWithGenericElementsWithData() throws IOException {
-//        TinkerGraph graph = TinkerGraph.open();
-//        loadGraphMl(graph);
-//        return graph;
-//    }
-//
-//
-//    private void loadGraphMl(TinkerGraph graph) throws IOException {
-//        graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
-//    }
-//
+
 }

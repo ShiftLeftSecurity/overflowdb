@@ -18,7 +18,11 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
-import org.apache.tinkerpop.gremlin.structure.*;
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -130,12 +134,14 @@ final class TinkerIndex<T extends Element> {
             return;
         this.indexedKeys.add(key);
 
-        (Vertex.class.isAssignableFrom(this.indexClass) ?
-          this.graph.vertices.valueCollection().<T>parallelStream() :
-          this.graph.edges.valueCollection().<T>parallelStream())
-          .map(e -> new Object[]{((T) e).property(key), e})
-          .filter(a -> ((Property) a[0]).isPresent())
-          .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
+        if (Vertex.class.isAssignableFrom(this.indexClass)) {
+            this.graph.vertices.valueCollection().<T>parallelStream()
+                .map(e -> new Object[]{((T) e).property(key), e})
+                .filter(a -> ((Property) a[0]).isPresent())
+                .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
+        } else {
+            throw new NotImplementedException("");
+        }
     }
 
     public void dropKeyIndex(final String key) {

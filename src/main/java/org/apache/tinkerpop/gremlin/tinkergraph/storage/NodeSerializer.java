@@ -18,10 +18,9 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.storage;
 
-import gnu.trove.iterator.TLongIterator;
-import gnu.trove.set.TLongSet;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowDbNode;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.VertexRef;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.slf4j.Logger;
@@ -32,29 +31,25 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public abstract class Serializer<A> {
+public class NodeSerializer {
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private int serializedCount = 0;
   private long serializationTimeSpentMillis = 0;
 
-  protected abstract long getId(A a);
-  protected abstract String getLabel(A a);
-  protected abstract Map<String, Object> getProperties(A a);
-  protected abstract Map<String, TLongSet> getEdgeIds(A a, Direction direction);
-
-  public byte[] serialize(A a) throws IOException {
+  public byte[] serialize(OverflowDbNode node) throws IOException {
     long start = System.currentTimeMillis();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
-      packer.packLong(getId(a));
-      packer.packString(getLabel(a));
+      packer.packLong((Long) node.id());
+      packer.packString(node.label());
 
-      packEdgeIds(packer, getEdgeIds(a, Direction.IN));
-      packEdgeIds(packer, getEdgeIds(a, Direction.OUT));
-      packProperties(packer, getProperties(a));
+      packProperties(packer, node.valueMap());
+      packEdgeOffsets(packer, node.getEdgeOffsets());
+      packAdjacentVerticesWithProperties(packer, node.getAdjacentVerticesWithProperties());
 
       serializedCount++;
       serializationTimeSpentMillis += System.currentTimeMillis() - start;
-      if (serializedCount % 100000 == 0) {
+      if (serializedCount % 131072 == 0) { //2^17
         float avgSerializationTime = serializationTimeSpentMillis / (float) serializedCount;
         logger.debug("stats: serialized " + serializedCount + " instances in total (avg time: " + avgSerializationTime + "ms)");
       }
@@ -70,16 +65,36 @@ public abstract class Serializer<A> {
     packer.packMapHeader(properties.size());
     for (Map.Entry<String, Object> property : properties.entrySet()) {
       packer.packString(property.getKey());
-      packPropertyValue(packer, property.getValue());
+      packTypedValue(packer, property.getValue());
+    }
+  }
+
+  private void packEdgeOffsets(MessageBufferPacker packer, int[] edgeOffsets) throws IOException {
+    packer.packArrayHeader(edgeOffsets.length);
+    for (int i = 0; i < edgeOffsets.length; i++) {
+      packer.packInt(edgeOffsets[i]);
+    }
+  }
+
+  private void packAdjacentVerticesWithProperties(MessageBufferPacker packer, Object[] adjacentVerticesWithProperties) throws IOException {
+    packer.packArrayHeader(adjacentVerticesWithProperties.length);
+    for (int i = 0; i < adjacentVerticesWithProperties.length; i++) {
+      packTypedValue(packer, adjacentVerticesWithProperties[i]);
     }
   }
 
   /**
    * format: `[ValueType.id, value]`
    */
-  private void packPropertyValue(final MessageBufferPacker packer, final Object value) throws IOException {
+  private void packTypedValue(final MessageBufferPacker packer, final Object value) throws IOException {
     packer.packArrayHeader(2);
-    if (value instanceof Boolean) {
+    if (value == null) {
+      packer.packByte(ValueTypes.UNKNOWN.id);
+      packer.packNil();
+    } else if (value instanceof VertexRef) {
+      packer.packByte(ValueTypes.VERTEX_REF.id);
+      packer.packLong(((VertexRef) value).id);
+    } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);
     } else if (value instanceof String) {
@@ -109,28 +124,10 @@ public abstract class Serializer<A> {
       packer.packArrayHeader(listValue.size());
       final Iterator listIter = listValue.iterator();
       while (listIter.hasNext()) {
-        packPropertyValue(packer, listIter.next());
+        packTypedValue(packer, listIter.next());
       }
     } else {
       throw new NotImplementedException("id type `" + value.getClass() + "` not yet supported");
-    }
-  }
-
-  /**
-   * format: two `Map<Label, Array<EdgeId>>`, i.e. one Map for `IN` and one for `OUT` edges
-   */
-  private void packEdgeIds(final MessageBufferPacker packer,
-                           final Map<String, TLongSet> edgeIdsByLabel) throws IOException {
-    packer.packMapHeader(edgeIdsByLabel.size());
-    for (Map.Entry<String, TLongSet> entry : edgeIdsByLabel.entrySet()) {
-      final String label = entry.getKey();
-      packer.packString(label);
-      final TLongSet edgeIds = entry.getValue();
-      packer.packArrayHeader(edgeIds.size());
-      final TLongIterator edgeIdIter = edgeIds.iterator();
-      while (edgeIdIter.hasNext()) {
-        packer.packLong(edgeIdIter.next());
-      }
     }
   }
 

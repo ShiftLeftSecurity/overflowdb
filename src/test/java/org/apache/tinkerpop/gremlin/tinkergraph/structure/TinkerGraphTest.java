@@ -619,7 +619,7 @@ public class TinkerGraphTest {
         assertEquals("cloned graph should contain new property", new Long(3), clone.traversal().V().has("newProperty").count().next());
         assertEquals("cloned graph should contain new property", new Long(3), clone.traversal().E().has("newProperty").count().next());
 
-        assertNotSame("cloned elements should reference to different objects",
+        assertNotSame("cloned elements should element to different objects",
             original.traversal().V().has("name", "stephen").next(),
             clone.traversal().V().has("name", "stephen").next());
     }

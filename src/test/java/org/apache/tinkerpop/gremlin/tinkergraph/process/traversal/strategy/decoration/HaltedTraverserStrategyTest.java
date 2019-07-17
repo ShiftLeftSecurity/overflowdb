@@ -94,7 +94,7 @@ public class HaltedTraverserStrategyTest {
         g.V().out().out().path().forEachRemaining(path -> assertEquals(ReferencePath.class, path.getClass()));
         g.V().out().pageRank().forEachRemaining(vertex -> assertEquals(ReferenceVertex.class, vertex.getClass()));
         g.V().out().pageRank().out().forEachRemaining(vertex -> assertEquals(ReferenceVertex.class, vertex.getClass()));
-        // the default should be reference elements
+        // the default should be element elements
         g = graph.traversal().withComputer();
         g.V().out().forEachRemaining(vertex -> assertEquals(ReferenceVertex.class, vertex.getClass()));
         g.V().out().properties("name").forEachRemaining(vertexProperty -> assertEquals(ReferenceVertexProperty.class, vertexProperty.getClass()));
