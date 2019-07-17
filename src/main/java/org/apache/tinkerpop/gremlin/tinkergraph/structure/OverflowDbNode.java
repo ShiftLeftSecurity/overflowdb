@@ -18,7 +18,6 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
-import gnu.trove.set.hash.THashSet;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -193,14 +192,6 @@ public abstract class OverflowDbNode implements Vertex {
 
   protected abstract void removeSpecificProperty(String key);
 
-  private void storeEdge(final Edge edge, final Map<String, List<Edge>> edgesByLabel) {
-    if (!edgesByLabel.containsKey(edge.label())) {
-      // TODO ArrayLists aren't good for concurrent modification, use memory-light concurrency safe list
-      edgesByLabel.put(edge.label(), new ArrayList<>());
-    }
-    edgesByLabel.get(edge.label()).add(edge);
-  }
-
   @Override
   public void remove() {
     TinkerGraph graph = ref.graph;
@@ -359,27 +350,42 @@ public abstract class OverflowDbNode implements Vertex {
     return multiIterator;
   }
 
+  /**
+   * If there are multiple edges between the same two nodes with the same label, we use the
+   * `occurrence` to differentiate between those edges. Both nodes use the same occurrence
+   * index for the same edge.
+   *
+   * @return the occurrence for a given edge, calculated by counting the number times the given
+   *         adjacent vertex occurred between the start of the edge-specific block and the blockOffset
+   */
   public int blockOffsetToOccurrence(Direction direction,
                                      String label,
                                      VertexRef<OverflowDbNode> otherVertex,
                                      int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
-    int length = blockLength(offsetPos);
     int strideSize = getEdgeKeyCount(label) + 1;
 
-    int currentOccurrence = -1;
-    for (int i = start; i < start + length; i += strideSize) {
+    int occurrenceCount = -1;
+    for (int i = start; i <= start + blockOffset; i += strideSize) {
       if (((VertexRef)adjacentVerticesWithProperties[i]).id().equals(otherVertex.id())) {
-        currentOccurrence++;
+        occurrenceCount++;
       }
     }
-    return currentOccurrence;
+    return occurrenceCount;
   }
 
+  /**
+   * @param direction OUT or IN
+   * @param label the edge label
+   * @param occurrence if there are multiple edges between the same two nodes with the same label,
+   *                   this is used to differentiate between those edges.
+   *                   Both nodes use the same occurrence index for the same edge.
+   * @return the index into `adjacentVerticesWithProperties`
+   */
   public int occurrenceToBlockOffset(Direction direction,
                                      String label,
-                                     VertexRef<OverflowDbNode> otherVertex,
+                                     VertexRef<OverflowDbNode> adjacentVertex,
                                      int occurrence) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
@@ -388,7 +394,7 @@ public abstract class OverflowDbNode implements Vertex {
 
     int currentOccurrence = 0;
     for (int i = start; i < start + length; i += strideSize) {
-      if (((VertexRef)adjacentVerticesWithProperties[i]).id().equals(otherVertex.id())) {
+      if (((VertexRef)adjacentVerticesWithProperties[i]).id().equals(adjacentVertex.id())) {
         if (currentOccurrence == occurrence) {
           int adjacentVertexIndex = i - start;
           return adjacentVertexIndex;
@@ -398,8 +404,12 @@ public abstract class OverflowDbNode implements Vertex {
       }
     }
     throw new RuntimeException("Unable to find occurrence " + occurrence + " of "
-        + label + " edge to vertex " + otherVertex.id());
+        + label + " edge to vertex " + adjacentVertex.id());
   }
+
+
+//  public void removeEdge(Direction direction, String label, VertexRef<OverflowDbNode> adjacentVertex, int blockOffset) {
+//  }
 
   private Iterator<Edge> createDummyEdgeIterator(Direction direction,
                                                  String label) {
@@ -504,6 +514,7 @@ public abstract class OverflowDbNode implements Vertex {
                                 Object... edgeKeyValues) {
     int blockOffset = storeAdjacentNode(direction, edgeLabel, nodeRef);
 
+    /* set edge properties */
     for (int i = 0; i < edgeKeyValues.length; i = i + 2) {
       if (!edgeKeyValues[i].equals(T.id) && !edgeKeyValues[i].equals(T.label)) {
         String key = (String) edgeKeyValues[i];

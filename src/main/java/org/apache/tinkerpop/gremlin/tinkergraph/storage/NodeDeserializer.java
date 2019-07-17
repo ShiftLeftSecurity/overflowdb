@@ -40,7 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class NodeDeserializer extends Deserializer<Vertex> {
+public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final TinkerGraph graph;
   protected final Map<String, OverflowElementFactory.ForVertex> vertexFactoryByLabel;
