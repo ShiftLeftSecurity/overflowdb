@@ -23,10 +23,15 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.tinkergraph.storage.NodeDeserializer;
+import org.apache.tinkerpop.gremlin.tinkergraph.storage.NodeSerializer;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
@@ -214,11 +219,79 @@ public class OverflowDbNodeTest {
     assertEquals(Long.valueOf(2L), e1ViaIn.property(OverflowDbTestEdge.LONG_PROPERTY).value());
   }
 
+  @Test
+  public void removeEdgeSimple() {
+    try (TinkerGraph graph = newGraph()) {
+      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
+      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
+      Edge edge = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+
+      edge.remove();
+
+      assertFalse(v0.edges(Direction.OUT).hasNext());
+      assertFalse(v1.edges(Direction.IN).hasNext());
+    }
+  }
+
+  @Test
+  public void removeEdgeComplex() {
+    try (TinkerGraph graph = newGraph()) {
+      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
+      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
+      Edge edge0 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
+      Edge edge1 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+
+      edge0.remove();
+
+      Iterator<Edge> v0outEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(1), v0outEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v0outEdges.hasNext());
+      Iterator<Edge> v1inEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(1), v1inEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v1inEdges.hasNext());
+    }
+  }
+
+  @Test
+  public void removeEdgeComplexAfterSerialization() throws IOException {
+    try (TinkerGraph graph = newGraph()) {
+      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
+      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
+      v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
+      v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+
+      // round trip serialization
+      byte[] serialized = new NodeSerializer().serialize(((VertexRef<OverflowDbNode>) v0).get());
+      OverflowDbNode v0AfterSerialization = newDeserializer(graph).deserialize(serialized);
+
+      // remove edge with longProperty == 0l
+      for (Iterator<Edge> it = v0.edges(Direction.OUT); it.hasNext();) {
+        Edge e = it.next();
+        if (e.value(OverflowDbTestEdge.LONG_PROPERTY).equals(0l)) {
+          e.remove();
+        }
+      }
+
+      Iterator<Edge> v0outEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(1), v0outEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v0outEdges.hasNext());
+      Iterator<Edge> v1inEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(1), v1inEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v1inEdges.hasNext());
+    }
+  }
+
   private TinkerGraph newGraph() {
     return TinkerGraph.open(
         Arrays.asList(OverflowDbTestNode.factory),
         Arrays.asList(OverflowDbTestEdge.factory)
     );
+  }
+
+  private NodeDeserializer newDeserializer(TinkerGraph graph) {
+    Map<String, OverflowElementFactory.ForVertex> vertexFactories = new HashMap();
+    vertexFactories.put(OverflowDbTestNode.label, OverflowDbTestNode.factory);
+    return new NodeDeserializer(graph, vertexFactories);
   }
 
 //    @Test

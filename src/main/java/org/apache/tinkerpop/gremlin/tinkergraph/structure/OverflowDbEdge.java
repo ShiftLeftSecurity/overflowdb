@@ -34,12 +34,21 @@ public abstract class OverflowDbEdge implements Edge {
   private final String label;
   private final VertexRef<OverflowDbNode> outVertex;
   private final VertexRef<OverflowDbNode> inVertex;
-  private int outBlockOffset = UNITIALIZED_BLOCK_OFFSET;
-  private int inBlockOffset = UNITIALIZED_BLOCK_OFFSET;
+
+  /* When storing the inVertex in the outVertex' adjacent node array, there may be multiple edges
+   * with the same (direction, label), i.e. they are stored in the same block. To be able to
+   * identify this edge, we store it's offset into that block */
+  private int outBlockOffset = UNINITIALIZED_BLOCK_OFFSET;
+
+  /** When storing the outVertex in the inVertex' adjacent node array, there may be multiple edges
+   * with the same (direction, label), i.e. they are stored in the same block. To be able to
+   * identify this edge, we store it's offset into that block */
+  private int inBlockOffset = UNINITIALIZED_BLOCK_OFFSET;
+
   private final Set<String> specificKeys;
   private boolean removed = false;
 
-  private static final int UNITIALIZED_BLOCK_OFFSET = -1;
+  private static final int UNINITIALIZED_BLOCK_OFFSET = -1;
 
   public OverflowDbEdge(TinkerGraph graph,
                         String label,
@@ -103,12 +112,12 @@ public abstract class OverflowDbEdge implements Edge {
   @Override
   public <V> Property<V> property(String key, V value) {
     // TODO check if it's an allowed property key
-    if (inBlockOffset != UNITIALIZED_BLOCK_OFFSET) {
-      if (outBlockOffset == UNITIALIZED_BLOCK_OFFSET) {
+    if (inBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
+      if (outBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
         initializeOutFromInOffset();
       }
-    } else if (outBlockOffset != UNITIALIZED_BLOCK_OFFSET) {
-      if (inBlockOffset == UNITIALIZED_BLOCK_OFFSET) {
+    } else if (outBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
+      if (inBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
         initializeInFromOutOffset();
       }
     } else {
@@ -126,7 +135,9 @@ public abstract class OverflowDbEdge implements Edge {
 
   @Override
   public void remove() {
-    throw new RuntimeException("Not supported.");
+    fixupBlockOffsets();
+    outVertex.get().removeEdge(Direction.OUT, label(), inVertex, outBlockOffset);
+    inVertex.get().removeEdge(Direction.IN, label(), outVertex, inBlockOffset);
   }
 
   @Override
@@ -162,17 +173,16 @@ public abstract class OverflowDbEdge implements Edge {
     }
 
     OverflowDbEdge otherEdge = (OverflowDbEdge)other;
-
     fixupBlockOffsetsIfNecessary(otherEdge);
 
     return this.inVertex.id().equals(otherEdge.inVertex.id()) &&
         this.outVertex.id().equals(otherEdge.outVertex.id()) &&
         this.label.equals(otherEdge.label) &&
-        (this.inBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
-            otherEdge.inBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
+        (this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
+            otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
             this.inBlockOffset == otherEdge.inBlockOffset) &&
-        (this.outBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
-            otherEdge.outBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
+        (this.outBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
+            otherEdge.outBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
             this.outBlockOffset == otherEdge.outBlockOffset);
   }
 
@@ -186,16 +196,20 @@ public abstract class OverflowDbEdge implements Edge {
   }
 
   private void fixupBlockOffsetsIfNecessary(OverflowDbEdge otherEdge) {
-    if ((this.inBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
-        otherEdge.inBlockOffset == UNITIALIZED_BLOCK_OFFSET) &&
-        (this.outBlockOffset == UNITIALIZED_BLOCK_OFFSET ||
-            otherEdge.outBlockOffset == UNITIALIZED_BLOCK_OFFSET)) {
-      if (this.inBlockOffset == UNITIALIZED_BLOCK_OFFSET) {
-        initializeInFromOutOffset();
-      } else {
-        initializeOutFromInOffset();
-      }
+    if ((this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
+        otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET) &&
+        (this.outBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
+            otherEdge.outBlockOffset == UNINITIALIZED_BLOCK_OFFSET)) {
+      fixupBlockOffsets();
+    }
+  }
 
+  private void fixupBlockOffsets() {
+    if (inBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
+      initializeInFromOutOffset();
+    }
+    if (outBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
+      initializeOutFromInOffset();
     }
   }
 

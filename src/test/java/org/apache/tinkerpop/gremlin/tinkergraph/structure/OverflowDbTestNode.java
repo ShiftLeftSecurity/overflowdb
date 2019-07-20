@@ -46,7 +46,6 @@ public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
   public static final String[] ALLOWED_IN_EDGE_LABELS = {OverflowDbTestEdge.label};
   public static final String[] ALLOWED_OUT_EDGE_LABELS = {OverflowDbTestEdge.label};
 
-
   private static final Map<String, Integer> outEdgeToPosition = new HashMap<>();
   private static final Map<String, Integer> inEdgeToPosition = new HashMap<>();
   private static final Map<String, Integer> edgeLabelAndKeyToPosition = new HashMap<>();
@@ -62,7 +61,7 @@ public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
     outEdgeToPosition.put(OverflowDbTestEdge.label, 0);
     inEdgeToPosition.put(OverflowDbTestEdge.label, 1);
     edgeLabelAndKeyToPosition.put(OverflowDbTestEdge.label + OverflowDbTestEdge.LONG_PROPERTY, 1);
-    edgeKeyCount.put(OverflowDbTestEdge.label, 4);
+    edgeKeyCount.put(OverflowDbTestEdge.label, OverflowDbTestEdge.SPECIFIC_KEYS.size());
   }
 
   protected OverflowDbTestNode(VertexRef ref) {

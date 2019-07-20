@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -182,13 +183,6 @@ public abstract class OverflowDbNode implements Vertex {
 
   protected abstract <V> VertexProperty<V> updateSpecificProperty(
       VertexProperty.Cardinality cardinality, String key, V value);
-
-  public void removeProperty(String key) {
-    synchronized (this) {
-//            modifiedSinceLastSerialization = true;
-      removeSpecificProperty(key);
-    }
-  }
 
   protected abstract void removeSpecificProperty(String key);
 
@@ -407,9 +401,22 @@ public abstract class OverflowDbNode implements Vertex {
         + label + " edge to vertex " + adjacentVertex.id());
   }
 
+  /**
+   * Removes an 'edge', i.e. in reality it removes the information about the adjacent node from
+   * `adjacentVerticesWithProperties`. The corresponding elements will be set to `null`, i.e. we'll have holes.
+   * Note: this decrements the `offset` of the following edges in the same block by one, but that's ok because the only
+   * thing that matters is that the offset is identical for both connected nodes (assuming thread safety).
+   * @param blockOffset must have been initialized
+   */
+  protected void removeEdge(Direction direction, String label, VertexRef<OverflowDbNode> adjacentVertex, int blockOffset) {
+    int offsetPos = getPositionInEdgeOffsets(direction, label);
+    int start = startIndex(offsetPos) + blockOffset;
+    int strideSize = getEdgeKeyCount(label) + 1;
 
-//  public void removeEdge(Direction direction, String label, VertexRef<OverflowDbNode> adjacentVertex, int blockOffset) {
-//  }
+    for (int i = start; i < start + strideSize; i++) {
+      adjacentVerticesWithProperties[i] = null;
+    }
+  }
 
   private Iterator<Edge> createDummyEdgeIterator(Direction direction,
                                                  String label) {
@@ -450,11 +457,17 @@ public abstract class OverflowDbNode implements Vertex {
 
     @Override
     public boolean hasNext() {
+      /* there may be holes, e.g. if an edge was removed */
+      while (current < exclusiveEnd && array[current] == null) {
+        current += strideSize;
+      }
       return current < exclusiveEnd;
     }
 
     @Override
     public Edge next() {
+      if (!hasNext()) throw new NoSuchElementException();
+
       VertexRef<OverflowDbNode> otherRef = (VertexRef<OverflowDbNode>) array[current];
       OverflowDbEdge dummyEdge;
       if (direction == Direction.OUT) {
