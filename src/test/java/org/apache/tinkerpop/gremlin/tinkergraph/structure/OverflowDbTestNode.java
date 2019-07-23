@@ -22,7 +22,6 @@ import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
+public class OverflowDbTestNode extends OverflowDbNode {
   public static final String label = "testNode";
 
   public static final String STRING_PROPERTY = "StringProperty";
@@ -46,23 +45,23 @@ public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
   public static final String[] ALLOWED_IN_EDGE_LABELS = {OverflowDbTestEdge.label};
   public static final String[] ALLOWED_OUT_EDGE_LABELS = {OverflowDbTestEdge.label};
 
+  private static final Map<String, Integer> edgeKeyCount = new HashMap<>();
+  private static final Map<String, Integer> edgeLabelAndKeyToPosition = new HashMap<>();
   private static final Map<String, Integer> outEdgeToPosition = new HashMap<>();
   private static final Map<String, Integer> inEdgeToPosition = new HashMap<>();
-  private static final Map<String, Integer> edgeLabelAndKeyToPosition = new HashMap<>();
-  private static final Map<String, Integer> edgeKeyCount = new HashMap<>();
 
-  // properties
+  static {
+    edgeKeyCount.put(OverflowDbTestEdge.label, OverflowDbTestEdge.SPECIFIC_KEYS.size());
+    edgeLabelAndKeyToPosition.put(OverflowDbTestEdge.label + OverflowDbTestEdge.LONG_PROPERTY, 1);
+    outEdgeToPosition.put(OverflowDbTestEdge.label, 0);
+    inEdgeToPosition.put(OverflowDbTestEdge.label, 1);
+  }
+
+  /* properties */
   private String stringProperty;
   private Integer intProperty;
   private List<String> stringListProperty;
   private List<Integer> intListProperty;
-
-  static {
-    outEdgeToPosition.put(OverflowDbTestEdge.label, 0);
-    inEdgeToPosition.put(OverflowDbTestEdge.label, 1);
-    edgeLabelAndKeyToPosition.put(OverflowDbTestEdge.label + OverflowDbTestEdge.LONG_PROPERTY, 1);
-    edgeKeyCount.put(OverflowDbTestEdge.label, OverflowDbTestEdge.SPECIFIC_KEYS.size());
-  }
 
   protected OverflowDbTestNode(VertexRef ref) {
     super(outEdgeToPosition.size() + inEdgeToPosition.size(), ref);
@@ -112,31 +111,6 @@ public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
   protected Set<String> specificKeys() {
     return SPECIFIC_KEYS;
   }
-
-  public static OverflowElementFactory.ForVertex<OverflowDbTestNode> factory = new OverflowElementFactory.ForVertex<OverflowDbTestNode>() {
-    @Override
-    public String forLabel() {
-      return OverflowDbTestNode.label;
-    }
-
-    @Override
-    public OverflowDbTestNode createVertex(VertexRef<OverflowDbTestNode> ref) {
-      return new OverflowDbTestNode(ref);
-    }
-
-    @Override
-    public OverflowDbTestNode createVertex(Long id, TinkerGraph graph) {
-      final VertexRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
-      final OverflowDbTestNode node = createVertex(ref);
-      ref.setElement(node);
-      return node;
-    }
-
-    @Override
-    public VertexRef<OverflowDbTestNode> createVertexRef(Long id, TinkerGraph graph) {
-      return new VertexRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
-    }
-  };
 
   @Override
   public String label() {
@@ -211,12 +185,39 @@ public class OverflowDbTestNode extends OverflowDbNode implements Serializable {
     }
   }
 
+  @Override
   public String[] allowedOutEdgeLabels() {
     return ALLOWED_OUT_EDGE_LABELS;
   }
 
+  @Override
   public String[] allowedInEdgeLabels() {
     return ALLOWED_IN_EDGE_LABELS;
   }
+
+  public static OverflowElementFactory.ForVertex<OverflowDbTestNode> factory = new OverflowElementFactory.ForVertex<OverflowDbTestNode>() {
+    @Override
+    public String forLabel() {
+      return OverflowDbTestNode.label;
+    }
+
+    @Override
+    public OverflowDbTestNode createVertex(VertexRef<OverflowDbTestNode> ref) {
+      return new OverflowDbTestNode(ref);
+    }
+
+    @Override
+    public OverflowDbTestNode createVertex(Long id, TinkerGraph graph) {
+      final VertexRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
+      final OverflowDbTestNode node = createVertex(ref);
+      ref.setElement(node);
+      return node;
+    }
+
+    @Override
+    public VertexRef<OverflowDbTestNode> createVertexRef(Long id, TinkerGraph graph) {
+      return new VertexRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
+    }
+  };
 
 }

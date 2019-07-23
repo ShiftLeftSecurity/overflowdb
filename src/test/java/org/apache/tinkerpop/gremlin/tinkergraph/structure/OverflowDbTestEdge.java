@@ -43,7 +43,7 @@ public class OverflowDbTestEdge extends OverflowDbEdge {
         }
 
         @Override
-        public OverflowDbTestEdge createEdge(Long id, TinkerGraph graph, VertexRef outVertex, VertexRef inVertex) {
+        public OverflowDbTestEdge createEdge(TinkerGraph graph, VertexRef outVertex, VertexRef inVertex) {
             return new OverflowDbTestEdge(graph, outVertex, inVertex);
         }
     };

@@ -64,9 +64,6 @@ public abstract class OverflowDbNode implements Vertex {
    * i.e. each outgoing edge type has two entries in this array. */
   private int[] edgeOffsets;
 
-  /* determines how many spaces for adjacent vertices will be left free, so we don't need to grow the array for every additional edge */
-  private static final int growthEmptyFactor = 2; // TODO make configurable
-
   /**
    * @param numberOfDifferentAdjacentTypes The number fo different IN|OUT edge relations. E.g. a node has AST edges in
    *                                       and out, then we would have 2. If in addition it has incoming
@@ -567,12 +564,19 @@ public abstract class OverflowDbNode implements Vertex {
    * grow the adjacentVerticesWithProperties array
    *
    * preallocates more space than immediately necessary, so we don't need to grow the array every time
-   * (tradeoff between performance and memory)
+   * (tradeoff between performance and memory).
+   * grows with the square root of the double of the current capacity.
    */
   private Object[] growAdjacentVerticesWithProperties(int offsetPos,
                                                       int strideSize,
                                                       int insertAt,
                                                       int currentLength) {
+    // TODO optimize growth function - optimizing has potential to save a lot of memory, but the below slowed down processing massively
+//    int currentCapacity = currentLength / strideSize;
+//    double additionalCapacity = Math.sqrt(currentCapacity) + 1;
+//    int additionalCapacityInt = (int) Math.ceil(additionalCapacity);
+//    int additionalEntriesCount = additionalCapacityInt * strideSize;
+    int growthEmptyFactor = 2;
     int additionalEntriesCount = (currentLength + strideSize) * growthEmptyFactor;
     int newSize = adjacentVerticesWithProperties.length + additionalEntriesCount;
     Object[] newArray = new Object[newSize];
@@ -620,6 +624,6 @@ public abstract class OverflowDbNode implements Vertex {
                                                 VertexRef<OverflowDbNode> inVertex) {
     final OverflowElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null) throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
-    return edgeFactory.createEdge(-1l, ref.graph, outVertex, inVertex);
+    return edgeFactory.createEdge(ref.graph, outVertex, inVertex);
   }
 }
