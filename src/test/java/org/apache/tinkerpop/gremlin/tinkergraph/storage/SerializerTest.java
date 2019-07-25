@@ -64,20 +64,20 @@ public class SerializerTest {
 
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
-      Edge edge = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
+      Edge edge = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
       OverflowDbTestNode v0Underlying = ((VertexRef<OverflowDbTestNode>) v0).get();
       OverflowDbTestNode v1Underlying = ((VertexRef<OverflowDbTestNode>) v1).get();
       Vertex v0Deserialized = deserializer.deserialize(serializer.serialize(v0Underlying));
       Vertex v1Deserialized = deserializer.deserialize(serializer.serialize(v1Underlying));
 
-      Edge edgeViaV0Deserialized = v0Deserialized.edges(Direction.OUT, OverflowDbTestEdge.label).next();
-      Edge edgeViaV1Deserialized = v1Deserialized.edges(Direction.IN, OverflowDbTestEdge.label).next();
+      Edge edgeViaV0Deserialized = v0Deserialized.edges(Direction.OUT, OverflowDbTestEdge.LABEL).next();
+      Edge edgeViaV1Deserialized = v1Deserialized.edges(Direction.IN, OverflowDbTestEdge.LABEL).next();
 
       assertEquals(edge.id(), edgeViaV0Deserialized.id());
       assertEquals(edge.id(), edgeViaV1Deserialized.id());
-      assertEquals(OverflowDbTestEdge.label, edgeViaV0Deserialized.label());
-      assertEquals(OverflowDbTestEdge.label, edgeViaV1Deserialized.label());
+      assertEquals(OverflowDbTestEdge.LABEL, edgeViaV0Deserialized.label());
+      assertEquals(OverflowDbTestEdge.LABEL, edgeViaV1Deserialized.label());
       assertEquals(Long.MAX_VALUE, (long) edgeViaV0Deserialized.value(OverflowDbTestEdge.LONG_PROPERTY));
       assertEquals(Long.MAX_VALUE, (long) edgeViaV1Deserialized.value(OverflowDbTestEdge.LONG_PROPERTY));
 
@@ -89,7 +89,7 @@ public class SerializerTest {
   }
 
   private NodeDeserializer newDeserializer(TinkerGraph graph) {
-    Map<String, OverflowElementFactory.ForVertex> vertexFactories = new HashMap();
+    Map<String, OverflowElementFactory.ForNode> vertexFactories = new HashMap();
     vertexFactories.put(OverflowDbTestNode.label, OverflowDbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }

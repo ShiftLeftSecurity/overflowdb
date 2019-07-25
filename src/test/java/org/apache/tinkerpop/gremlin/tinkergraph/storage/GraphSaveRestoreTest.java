@@ -56,7 +56,7 @@ public class GraphSaveRestoreTest {
     try (TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements(overflowDb)) {
       Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
       Vertex v1 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
-      Edge edge = v0.addEdge(FollowedBy.label, v1, FollowedBy.WEIGHT, 42);
+      Edge edge = v0.addEdge(FollowedBy.LABEL, v1, FollowedBy.WEIGHT, 42);
       vertex0Id = (Long) v0.id();
       vertex1Id = (Long) v1.id();
     } // ARM auto-close will trigger saving to disk because we specified a location
@@ -67,13 +67,13 @@ public class GraphSaveRestoreTest {
       assertEquals(Long.valueOf(1), graph.traversal().V().outE().count().next());
       assertEquals("Song 1", graph.vertex(vertex0Id).value(Song.NAME));
       assertEquals("Song 2", graph.vertex(vertex1Id).value(Song.NAME));
-      assertEquals("Song 2", graph.traversal().V(vertex0Id).out(FollowedBy.label).values(Song.NAME).next());
+      assertEquals("Song 2", graph.traversal().V(vertex0Id).out(FollowedBy.LABEL).values(Song.NAME).next());
 
       // ensure we can add more elements
       Vertex v1 = graph.vertex(vertex1Id);
       Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 3");
-      v1.addEdge(FollowedBy.label, v2, FollowedBy.WEIGHT, 43);
-      assertEquals("Song 3", graph.traversal().V(vertex0Id).out().out(FollowedBy.label).values(Song.NAME).next());
+      v1.addEdge(FollowedBy.LABEL, v2, FollowedBy.WEIGHT, 43);
+      assertEquals("Song 3", graph.traversal().V(vertex0Id).out().out(FollowedBy.LABEL).values(Song.NAME).next());
     }
   }
 

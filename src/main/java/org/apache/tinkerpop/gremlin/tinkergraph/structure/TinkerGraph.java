@@ -126,7 +126,7 @@ public final class TinkerGraph implements Graph {
     protected final VertexProperty.Cardinality defaultVertexPropertyCardinality;
 
     protected final boolean usesSpecializedElements;
-    protected final Map<String, OverflowElementFactory.ForVertex> vertexFactoryByLabel;
+    protected final Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel;
     protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
 
     private final Configuration configuration;
@@ -141,7 +141,7 @@ public final class TinkerGraph implements Graph {
     protected ReferenceManager referenceManager;
 
     private TinkerGraph(final Configuration configuration, boolean usesSpecializedElements,
-                        Map<String, OverflowElementFactory.ForVertex> vertexFactoryByLabel,
+                        Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel,
                         Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
         this.configuration = configuration;
         this.usesSpecializedElements = usesSpecializedElements;
@@ -244,16 +244,16 @@ public final class TinkerGraph implements Graph {
     }
 
 
-    public static TinkerGraph open(List<OverflowElementFactory.ForVertex<?>> vertexFactories,
+    public static TinkerGraph open(List<OverflowElementFactory.ForNode<?>> vertexFactories,
                                    List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
         return open(EMPTY_CONFIGURATION(), vertexFactories, edgeFactories);
     }
 
     public static TinkerGraph open(final Configuration configuration,
-                                   List<OverflowElementFactory.ForVertex<?>> vertexFactories,
+                                   List<OverflowElementFactory.ForNode<?>> vertexFactories,
                                    List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
         boolean usesSpecializedElements = !vertexFactories.isEmpty() || !edgeFactories.isEmpty();
-        Map<String, OverflowElementFactory.ForVertex> specializedVertexFactoryByLabel = new HashMap<>();
+        Map<String, OverflowElementFactory.ForNode> specializedVertexFactoryByLabel = new HashMap<>();
         Map<String, OverflowElementFactory.ForEdge> specializedEdgeFactoryByLabel = new HashMap<>();
         vertexFactories.forEach(factory -> specializedVertexFactoryByLabel.put(factory.forLabel(), factory));
         edgeFactories.forEach(factory -> specializedEdgeFactoryByLabel.put(factory.forLabel(), factory));
@@ -288,7 +288,7 @@ public final class TinkerGraph implements Graph {
     private Vertex createVertex(final long idValue, final String label, final Object... keyValues) {
         final Vertex vertex;
         if (vertexFactoryByLabel.containsKey(label)) {
-            final OverflowElementFactory.ForVertex factory = vertexFactoryByLabel.get(label);
+            final OverflowElementFactory.ForNode factory = vertexFactoryByLabel.get(label);
             final OverflowDbNode underlying = factory.createVertex(idValue, this);
             this.referenceManager.registerRef(underlying.ref);
             vertex = underlying.ref;

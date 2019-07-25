@@ -18,6 +18,7 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure.specialized.gratefuldead;
 
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.EdgeLayoutInformation;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowDbEdge;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowDbNode;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowElementFactory;
@@ -27,21 +28,21 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.VertexRef;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 public class WrittenBy extends OverflowDbEdge implements Serializable {
-  public static final String label = "writtenBy";
-
-  public static final Set<String> SPECIFIC_KEYS = new HashSet<>(Arrays.asList());
+  public static final String LABEL = "writtenBy";
+  public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
   public WrittenBy(TinkerGraph graph, VertexRef<OverflowDbNode> outVertex, VertexRef<OverflowDbNode> inVertex) {
-    super(graph, label, outVertex, inVertex, SPECIFIC_KEYS);
+    super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
+
+  public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
   public static OverflowElementFactory.ForEdge<WrittenBy> factory = new OverflowElementFactory.ForEdge<WrittenBy>() {
     @Override
     public String forLabel() {
-      return WrittenBy.label;
+      return WrittenBy.LABEL;
     }
 
     @Override

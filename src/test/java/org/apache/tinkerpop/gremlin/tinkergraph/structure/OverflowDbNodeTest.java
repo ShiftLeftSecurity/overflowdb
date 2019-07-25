@@ -53,7 +53,7 @@ public class OverflowDbNodeTest {
         OverflowDbTestNode.INT_PROPERTY, 52,
         OverflowDbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
         OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
-    Edge e = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
+    Edge e = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
 
     // vertex traversals
     assertEquals(1, __(v0).out().toList().size());
@@ -66,12 +66,12 @@ public class OverflowDbNodeTest {
 
     // edge traversals
     assertEquals(1, __(v0).outE().toList().size());
-    assertEquals(OverflowDbTestEdge.label, __(v0).outE().label().next());
+    assertEquals(OverflowDbTestEdge.LABEL, __(v0).outE().label().next());
     assertEquals(0, __(v0).outE("otherLabel").toList().size());
     assertEquals(0, __(v1).outE().toList().size());
     assertEquals(1, __(v1).inE().toList().size());
     assertEquals(1, __(v0).bothE().toList().size());
-    assertEquals(1, __(v0).bothE(OverflowDbTestEdge.label).toList().size());
+    assertEquals(1, __(v0).bothE(OverflowDbTestEdge.LABEL).toList().size());
     assertEquals(0, __(v0).bothE("otherLabel").toList().size());
 
     // vertex properties
@@ -97,7 +97,7 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    Edge e0 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
+    Edge e0 = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 99l);
 
 
     Edge e0FromOut = v0.edges(Direction.OUT).next();
@@ -115,7 +115,7 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    Edge e0 = v0.addEdge(OverflowDbTestEdge.label, v1);
+    Edge e0 = v0.addEdge(OverflowDbTestEdge.LABEL, v1);
     e0.property(OverflowDbTestEdge.LONG_PROPERTY, 1L);
     assertEquals(Long.valueOf(1L), e0.property(OverflowDbTestEdge.LONG_PROPERTY).value());
   }
@@ -127,9 +127,9 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    v0.addEdge(OverflowDbTestEdge.label, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
 
-    Edge e0 = v0.edges(Direction.OUT, OverflowDbTestEdge.label).next();
+    Edge e0 = v0.edges(Direction.OUT, OverflowDbTestEdge.LABEL).next();
     e0.property(OverflowDbTestEdge.LONG_PROPERTY, 1L);
     assertEquals(Long.valueOf(1L), e0.property(OverflowDbTestEdge.LONG_PROPERTY).value());
   }
@@ -141,12 +141,12 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    v0.addEdge(OverflowDbTestEdge.label, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
 
-    Edge e0ViaOut = v0.edges(Direction.OUT, OverflowDbTestEdge.label).next();
+    Edge e0ViaOut = v0.edges(Direction.OUT, OverflowDbTestEdge.LABEL).next();
     e0ViaOut.property(OverflowDbTestEdge.LONG_PROPERTY, 1L);
 
-    Edge e0ViaIn = v1.edges(Direction.IN, OverflowDbTestEdge.label).next();
+    Edge e0ViaIn = v1.edges(Direction.IN, OverflowDbTestEdge.LABEL).next();
     assertEquals(Long.valueOf(1L), e0ViaIn.property(OverflowDbTestEdge.LONG_PROPERTY).value());
   }
 
@@ -157,8 +157,8 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    Edge e0 = v0.addEdge(OverflowDbTestEdge.label, v1);
-    Edge e1 = v0.addEdge(OverflowDbTestEdge.label, v1);
+    Edge e0 = v0.addEdge(OverflowDbTestEdge.LABEL, v1);
+    Edge e1 = v0.addEdge(OverflowDbTestEdge.LABEL, v1);
 
     e0.property(OverflowDbTestEdge.LONG_PROPERTY, 1L);
     e1.property(OverflowDbTestEdge.LONG_PROPERTY, 2L);
@@ -174,10 +174,10 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    v0.addEdge(OverflowDbTestEdge.label, v1);
-    v0.addEdge(OverflowDbTestEdge.label, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
 
-    Iterator<Edge> edgeIt = v0.edges(Direction.OUT, OverflowDbTestEdge.label);
+    Iterator<Edge> edgeIt = v0.edges(Direction.OUT, OverflowDbTestEdge.LABEL);
 
     Edge e0 = edgeIt.next();
     Edge e1 = edgeIt.next();
@@ -196,11 +196,11 @@ public class OverflowDbNodeTest {
     Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
     Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
 
-    v0.addEdge(OverflowDbTestEdge.label, v1);
-    v0.addEdge(OverflowDbTestEdge.label, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
+    v0.addEdge(OverflowDbTestEdge.LABEL, v1);
 
-    Iterator<Edge> outEdgeIt = v0.edges(Direction.OUT, OverflowDbTestEdge.label);
-    Iterator<Edge> inEdgeIt = v1.edges(Direction.IN, OverflowDbTestEdge.label);
+    Iterator<Edge> outEdgeIt = v0.edges(Direction.OUT, OverflowDbTestEdge.LABEL);
+    Iterator<Edge> inEdgeIt = v1.edges(Direction.IN, OverflowDbTestEdge.LABEL);
 
     Edge e0ViaOut = outEdgeIt.next();
     Edge e1ViaOut = outEdgeIt.next();
@@ -219,7 +219,7 @@ public class OverflowDbNodeTest {
     try (TinkerGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
-      Edge edge = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+      Edge edge = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
 
       edge.remove();
 
@@ -233,8 +233,8 @@ public class OverflowDbNodeTest {
     try (TinkerGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
-      Edge edge0 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
-      Edge edge1 = v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+      Edge edge0 = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
+      Edge edge1 = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
 
       edge0.remove();
 
@@ -252,8 +252,8 @@ public class OverflowDbNodeTest {
     try (TinkerGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
-      v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
-      v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+      v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
+      v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
 
       // round trip serialization, delete edge with longProperty=0;
       graph.referenceManager.clearAllReferences();
@@ -273,7 +273,7 @@ public class OverflowDbNodeTest {
     try (TinkerGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
-      v0.addEdge(OverflowDbTestEdge.label, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+      v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
 
       v0.remove();
 

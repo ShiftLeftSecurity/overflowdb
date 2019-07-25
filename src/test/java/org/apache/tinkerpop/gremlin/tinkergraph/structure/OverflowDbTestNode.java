@@ -18,7 +18,6 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
@@ -30,7 +29,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class OverflowDbTestNode extends OverflowDbNode {
   public static final String label = "testNode";
@@ -40,23 +38,6 @@ public class OverflowDbTestNode extends OverflowDbNode {
   public static final String STRING_LIST_PROPERTY = "StringListProperty";
   public static final String INT_LIST_PROPERTY = "IntListProperty";
 
-  public static final Set<String> SPECIFIC_KEYS = new HashSet<>(Arrays.asList(STRING_PROPERTY, INT_PROPERTY, STRING_LIST_PROPERTY, INT_LIST_PROPERTY));
-
-  public static final String[] ALLOWED_IN_EDGE_LABELS = {OverflowDbTestEdge.label};
-  public static final String[] ALLOWED_OUT_EDGE_LABELS = {OverflowDbTestEdge.label};
-
-  private static final Map<String, Integer> edgeKeyCount = new HashMap<>();
-  private static final Map<String, Integer> edgeLabelAndKeyToPosition = new HashMap<>();
-  private static final Map<String, Integer> outEdgeToPosition = new HashMap<>();
-  private static final Map<String, Integer> inEdgeToPosition = new HashMap<>();
-
-  static {
-    edgeKeyCount.put(OverflowDbTestEdge.label, OverflowDbTestEdge.SPECIFIC_KEYS.size());
-    edgeLabelAndKeyToPosition.put(OverflowDbTestEdge.label + OverflowDbTestEdge.LONG_PROPERTY, 1);
-    outEdgeToPosition.put(OverflowDbTestEdge.label, 0);
-    inEdgeToPosition.put(OverflowDbTestEdge.label, 1);
-  }
-
   /* properties */
   private String stringProperty;
   private Integer intProperty;
@@ -64,57 +45,17 @@ public class OverflowDbTestNode extends OverflowDbNode {
   private List<Integer> intListProperty;
 
   protected OverflowDbTestNode(VertexRef ref) {
-    super(outEdgeToPosition.size() + inEdgeToPosition.size(), ref);
-  }
-
-  @Override
-  protected int getPositionInEdgeOffsets(Direction direction, String label) {
-    final Integer positionOrNull;
-    if (direction == Direction.OUT) {
-      positionOrNull = outEdgeToPosition.get(label);
-    } else {
-      positionOrNull = inEdgeToPosition.get(label);
-    }
-    if (positionOrNull != null) {
-      return positionOrNull;
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  protected int getOffsetRelativeToAdjacentVertexRef(String edgeLabel, String key) {
-    final Integer offsetOrNull = edgeLabelAndKeyToPosition.get(edgeLabel + key);
-    if (offsetOrNull != null) {
-      return offsetOrNull;
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  protected int getEdgeKeyCount(String edgeLabel) {
-    // TODO handle if it's not allowed
-    return edgeKeyCount.get(edgeLabel);
-  }
-
-  @Override
-  protected List<String> allowedEdgeKeys(String edgeLabel) {
-    List<String> allowedEdgeKeys = new ArrayList<>();
-    if (edgeLabel.equals(OverflowDbTestEdge.label)) {
-      allowedEdgeKeys.add(OverflowDbTestEdge.LONG_PROPERTY);
-    }
-    return allowedEdgeKeys;
-  }
-
-  @Override
-  protected Set<String> specificKeys() {
-    return SPECIFIC_KEYS;
+    super(ref);
   }
 
   @Override
   public String label() {
     return OverflowDbTestNode.label;
+  }
+
+  @Override
+  protected NodeLayoutInformation layoutInformation() {
+    return layoutInformation;
   }
 
   /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
@@ -185,17 +126,13 @@ public class OverflowDbTestNode extends OverflowDbNode {
     }
   }
 
-  @Override
-  public String[] allowedOutEdgeLabels() {
-    return ALLOWED_OUT_EDGE_LABELS;
-  }
+  private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+      new HashSet<>(Arrays.asList(STRING_PROPERTY, INT_PROPERTY, STRING_LIST_PROPERTY, INT_LIST_PROPERTY)),
+      Arrays.asList(OverflowDbTestEdge.layoutInformation),
+      Arrays.asList(OverflowDbTestEdge.layoutInformation));
 
-  @Override
-  public String[] allowedInEdgeLabels() {
-    return ALLOWED_IN_EDGE_LABELS;
-  }
+  public static OverflowElementFactory.ForNode<OverflowDbTestNode> factory = new OverflowElementFactory.ForNode<OverflowDbTestNode>() {
 
-  public static OverflowElementFactory.ForVertex<OverflowDbTestNode> factory = new OverflowElementFactory.ForVertex<OverflowDbTestNode>() {
     @Override
     public String forLabel() {
       return OverflowDbTestNode.label;

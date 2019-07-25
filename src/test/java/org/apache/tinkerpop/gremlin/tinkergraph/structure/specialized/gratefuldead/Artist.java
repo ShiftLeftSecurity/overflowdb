@@ -18,8 +18,8 @@
  */
 package org.apache.tinkerpop.gremlin.tinkergraph.structure.specialized.gratefuldead;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.NodeLayoutInformation;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowDbNode;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowElementFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.OverflowNodeProperty;
@@ -28,100 +28,39 @@ import org.apache.tinkerpop.gremlin.tinkergraph.structure.VertexRef;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.VertexRefWithLabel;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Artist extends OverflowDbNode {
   public static final String label = "artist";
-
   public static final String NAME = "name";
-  public static final Set<String> SPECIFIC_KEYS = new HashSet<>(Arrays.asList(NAME));
-  public static final String[] ALLOWED_IN_EDGE_LABELS = {SungBy.label, WrittenBy.label};
-  public static final String[] ALLOWED_OUT_EDGE_LABELS = {};
-
-  private static final Map<String, Integer> edgeKeyCount = new HashMap<>();
-  private static final Map<String, Integer> edgeLabelAndKeyToPosition = new HashMap<>();
-  private static final Map<String, Integer> outEdgeToPosition = new HashMap<>();
-  private static final Map<String, Integer> inEdgeToPosition = new HashMap<>();
-
-  static {
-    edgeKeyCount.put(SungBy.label, SungBy.SPECIFIC_KEYS.size());
-    edgeKeyCount.put(WrittenBy.label, WrittenBy.SPECIFIC_KEYS.size());
-    inEdgeToPosition.put(SungBy.label, 0);
-    inEdgeToPosition.put(WrittenBy.label, 1);
-  }
 
   /* properties */
   private String name;
 
   protected Artist(VertexRef ref) {
-    super(outEdgeToPosition.size() + inEdgeToPosition.size(), ref);
+    super(ref);
+  }
+
+  @Override
+  public String label() {
+    return Artist.label;
+  }
+
+  @Override
+  protected NodeLayoutInformation layoutInformation() {
+    return layoutInformation;
   }
 
   public String getName() {
     return name;
   }
 
-
-  @Override
-  protected Set<String> specificKeys() {
-    return SPECIFIC_KEYS;
-  }
-
-  @Override
-  public String[] allowedOutEdgeLabels() {
-    return ALLOWED_OUT_EDGE_LABELS;
-  }
-
-  @Override
-  public String[] allowedInEdgeLabels() {
-    return ALLOWED_IN_EDGE_LABELS;
-  }
-
-  @Override
-  protected int getPositionInEdgeOffsets(Direction direction, String label) {
-    final Integer positionOrNull;
-    if (direction == Direction.OUT) {
-      positionOrNull = outEdgeToPosition.get(label);
-    } else {
-      positionOrNull = inEdgeToPosition.get(label);
-    }
-    if (positionOrNull != null) {
-      return positionOrNull;
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  protected int getOffsetRelativeToAdjacentVertexRef(String edgeLabel, String key) {
-    final Integer offsetOrNull = edgeLabelAndKeyToPosition.get(edgeLabel + key);
-    if (offsetOrNull != null) {
-      return offsetOrNull;
-    } else {
-      return -1;
-    }
-  }
-
-  @Override
-  protected int getEdgeKeyCount(String edgeLabel) {
-    // TODO handle if it's not allowed
-    return edgeKeyCount.get(edgeLabel);
-  }
-
-  @Override
-  protected List<String> allowedEdgeKeys(String edgeLabel) {
-    return new ArrayList<>();
-  }
-
-  /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
   @Override
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
     final VertexProperty<V> ret;
@@ -159,7 +98,12 @@ public class Artist extends OverflowDbNode {
     }
   }
 
-  public static OverflowElementFactory.ForVertex<Artist> factory = new OverflowElementFactory.ForVertex<Artist>() {
+  private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+      new HashSet<>(Arrays.asList(NAME)),
+      Arrays.asList(),
+      Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation));
+
+  public static OverflowElementFactory.ForNode<Artist> factory = new OverflowElementFactory.ForNode<Artist>() {
 
     @Override
     public String forLabel() {
@@ -184,9 +128,4 @@ public class Artist extends OverflowDbNode {
       return new VertexRefWithLabel<>(id, graph, null, Artist.label);
     }
   };
-
-  @Override
-  public String label() {
-    return Artist.label;
-  }
 }

@@ -49,14 +49,14 @@ public class GratefulGraphTest {
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
-    v0.addEdge(FollowedBy.label, v2);
+    v0.addEdge(FollowedBy.LABEL, v2);
 
     Set<Object> songNames = graph.traversal().V().values(Song.NAME).toSet();
     assertTrue(songNames.contains("Song 1"));
     assertTrue(songNames.contains("Song 2"));
 
     assertEquals(1, __(v0).bothE().toList().size());
-    assertEquals(1, __(v0).bothE(FollowedBy.label).toList().size());
+    assertEquals(1, __(v0).bothE(FollowedBy.LABEL).toList().size());
     assertEquals(0, __(v0).bothE("otherLabel").toList().size());
     assertEquals(1, __(v0).out().toList().size());
     assertEquals(0, __(v2).out().toList().size());
@@ -72,10 +72,10 @@ public class GratefulGraphTest {
 
     Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
     Vertex v20 = graph.addVertex(T.id, 20l, T.label, Song.label, Song.NAME, "Song 20");
-    v10.addEdge(FollowedBy.label, v20, FollowedBy.WEIGHT, 5);
+    v10.addEdge(FollowedBy.LABEL, v20, FollowedBy.WEIGHT, 5);
 
-    assertEquals(5, graph.traversal().V(10l).outE(FollowedBy.label).values(FollowedBy.WEIGHT).next());
-    assertEquals(5, graph.traversal().V(20l).inE(FollowedBy.label).values(FollowedBy.WEIGHT).next());
+    assertEquals(5, graph.traversal().V(10l).outE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
+    assertEquals(5, graph.traversal().V(20l).inE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
   }
 
   @Test
@@ -84,7 +84,7 @@ public class GratefulGraphTest {
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
-    Edge e4 = v0.addEdge(FollowedBy.label, v2);
+    Edge e4 = v0.addEdge(FollowedBy.LABEL, v2);
     assertTrue(v0 instanceof VertexRef);
     assertTrue(v0.vertices(Direction.OUT).next() instanceof VertexRef);
   }
@@ -104,17 +104,17 @@ public class GratefulGraphTest {
     assertEquals(5, graph.traversal().V(1l).out().hasLabel(Song.label).toList().size());
     assertEquals(0, graph.traversal().V().hasLabel(Song.label).hasLabel(Artist.label).toList().size());
     assertEquals(808, graph.traversal().V().hasLabel(Song.label, Artist.label).toList().size());
-    assertEquals(501, graph.traversal().V().outE().hasLabel(WrittenBy.label).toList().size());
-    assertEquals(501, graph.traversal().V().hasLabel(Song.label).outE().hasLabel(WrittenBy.label).toList().size());
+    assertEquals(501, graph.traversal().V().outE().hasLabel(WrittenBy.LABEL).toList().size());
+    assertEquals(501, graph.traversal().V().hasLabel(Song.label).outE().hasLabel(WrittenBy.LABEL).toList().size());
 
     // using `g.E().hasLabel(lbl)` optimization
     assertEquals(8049, graph.traversal().E().toList().size());
-    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.label).toList().size());
+    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).toList().size());
     assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).toList().size());
-    assertEquals(3564, graph.traversal().E().hasLabel(FollowedBy.label).has(FollowedBy.WEIGHT, 1).toList().size());
-    assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).hasLabel(FollowedBy.label).toList().size());
-    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.label).outV().hasLabel(Song.label).toList().size());
-    assertEquals(7548, graph.traversal().E().hasLabel(FollowedBy.label, SungBy.label).toList().size());
+    assertEquals(3564, graph.traversal().E().hasLabel(FollowedBy.LABEL).has(FollowedBy.WEIGHT, 1).toList().size());
+    assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).hasLabel(FollowedBy.LABEL).toList().size());
+    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).outV().hasLabel(Song.label).toList().size());
+    assertEquals(7548, graph.traversal().E().hasLabel(FollowedBy.LABEL, SungBy.LABEL).toList().size());
 
     graph.close();
   }
@@ -137,31 +137,31 @@ public class GratefulGraphTest {
     Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
     // inE
-    assertEquals(4, __(garcia).inE(WrittenBy.label).toList().size());
-    assertEquals(4, __(garcia).inE(WrittenBy.label).outV().toList().size());
+    assertEquals(4, __(garcia).inE(WrittenBy.LABEL).toList().size());
+    assertEquals(4, __(garcia).inE(WrittenBy.LABEL).outV().toList().size());
 
     // in
-    assertEquals(4, __(garcia).in(WrittenBy.label).toList().size());
-    List<Vertex> songsWritten = __(garcia).in(WrittenBy.label).has("name", "CREAM PUFF WAR").toList();
+    assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
+    List<Vertex> songsWritten = __(garcia).in(WrittenBy.LABEL).has("name", "CREAM PUFF WAR").toList();
     assertEquals(songsWritten.size(), 1);
     VertexRef<Song> songRef = (VertexRef) songsWritten.get(0); //it's actually of type `VertexRef<Song>`, but we can't infer that since it's behind the tinkerpop api
     Song song = songRef.get();
     assertEquals("CREAM PUFF WAR", song.getName());
 
     // outE
-    assertEquals(1, __(song).outE(WrittenBy.label).toList().size());
+    assertEquals(1, __(song).outE(WrittenBy.LABEL).toList().size());
 
     // out
-    List<Vertex> songOut = __(song).out(WrittenBy.label).toList();
+    List<Vertex> songOut = __(song).out(WrittenBy.LABEL).toList();
     assertEquals(1, songOut.size());
     assertEquals(garcia, songOut.get(0));
 
     // bothE
-    List<Edge> songBothE = __(song).bothE(WrittenBy.label).toList();
+    List<Edge> songBothE = __(song).bothE(WrittenBy.LABEL).toList();
     assertEquals(1, songBothE.size());
 
     // both
-    List<Vertex> songBoth = __(song).both(WrittenBy.label).toList();
+    List<Vertex> songBoth = __(song).both(WrittenBy.LABEL).toList();
     assertEquals(1, songBoth.size());
     assertEquals(garcia, songBoth.get(0));
     graph.close();
@@ -182,7 +182,7 @@ public class GratefulGraphTest {
     assertTrue(names.contains("song 1"));
     assertTrue(names.contains("song 2"));
 
-    song1.addEdge(FollowedBy.label, song2, FollowedBy.WEIGHT, new Integer(42));
+    song1.addEdge(FollowedBy.LABEL, song2, FollowedBy.WEIGHT, new Integer(42));
     assertEquals(42, graph.traversal().E().values(FollowedBy.WEIGHT).next());
     assertEquals(42, __(song1).outE().values(FollowedBy.WEIGHT).next());
 
@@ -194,7 +194,7 @@ public class GratefulGraphTest {
     TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
-    Edge followedBy = song1.addEdge(FollowedBy.label, song2);
+    Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
     assertEquals(2, graph.traversal().V().toList().size());
     assertEquals(1, graph.traversal().E().toList().size());
 
@@ -210,7 +210,7 @@ public class GratefulGraphTest {
     TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
-    song1.addEdge(FollowedBy.label, song2);
+    song1.addEdge(FollowedBy.LABEL, song2);
     assertEquals(2, graph.traversal().V().toList().size());
     assertEquals(1, graph.traversal().E().toList().size());
 
@@ -229,7 +229,7 @@ public class GratefulGraphTest {
     TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
-    song1.addEdge(FollowedBy.label, song2);
+    song1.addEdge(FollowedBy.LABEL, song2);
     assertEquals(2, graph.traversal().V().toList().size());
     assertEquals(1, graph.traversal().E().toList().size());
 
