@@ -25,6 +25,7 @@ import gnu.trove.procedure.TObjectProcedure;
 import gnu.trove.set.hash.THashSet;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
@@ -42,8 +43,6 @@ import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import org.apache.tinkerpop.gremlin.tinkergraph.process.computer.TinkerGraphComputer;
-import org.apache.tinkerpop.gremlin.tinkergraph.process.computer.TinkerGraphComputerView;
 import org.apache.tinkerpop.gremlin.tinkergraph.process.traversal.strategy.optimization.TinkerGraphCountStrategy;
 import org.apache.tinkerpop.gremlin.tinkergraph.process.traversal.strategy.optimization.TinkerGraphStepStrategy;
 import org.apache.tinkerpop.gremlin.tinkergraph.storage.OndiskOverflow;
@@ -68,17 +67,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-/**
- * A fork of the in-memory element implementation TinkerGraph featuring:
- * - using ~70% less memory (depending on your domain)
- * - strict schema enforcement (optional)
- * - on-disk overflow, i.e. elements are serialized to disk if (and only if) they don't fit into memory (optional)
- *
- * TODO MP: remove complexity in implementation by removing option to use standard elements
- */
-@Graph.OptIn(Graph.OptIn.SUITE_STRUCTURE_STANDARD)
-@Graph.OptIn(Graph.OptIn.SUITE_STRUCTURE_INTEGRATE)
-@Graph.OptIn(Graph.OptIn.SUITE_PROCESS_STANDARD)
 public final class TinkerGraph implements Graph {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -96,10 +84,6 @@ public final class TinkerGraph implements Graph {
         }};
     }
 
-    public static final String GREMLIN_TINKERGRAPH_VERTEX_ID_MANAGER = "gremlin.tinkergraph.vertexIdManager";
-    public static final String GREMLIN_TINKERGRAPH_EDGE_ID_MANAGER = "gremlin.tinkergraph.edgeIdManager";
-    public static final String GREMLIN_TINKERGRAPH_VERTEX_PROPERTY_ID_MANAGER = "gremlin.tinkergraph.vertexPropertyIdManager";
-    public static final String GREMLIN_TINKERGRAPH_DEFAULT_VERTEX_PROPERTY_CARDINALITY = "gremlin.tinkergraph.defaultVertexPropertyCardinality";
     public static final String GREMLIN_TINKERGRAPH_GRAPH_LOCATION = "gremlin.tinkergraph.graphLocation";
     public static final String GREMLIN_TINKERGRAPH_GRAPH_FORMAT = "gremlin.tinkergraph.graphFormat";
     public static final String GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED = "gremlin.tinkergraph.ondiskOverflow.enabled";
@@ -118,15 +102,11 @@ public final class TinkerGraph implements Graph {
     protected THashMap<String, Set<Vertex>> verticesByLabel;
 
     protected TinkerGraphVariables variables = null;
-    protected TinkerGraphComputerView graphComputerView = null;
     protected TinkerIndex<Vertex> vertexIndex = null;
-
-    protected final IdManager<?> vertexIdManager;
-    protected final IdManager<?> vertexPropertyIdManager;
-    protected final VertexProperty.Cardinality defaultVertexPropertyCardinality;
+    protected final IdManager vertexIdManager;
 
     protected final boolean usesSpecializedElements;
-    protected final Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel;
+    protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
     protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
 
     private final Configuration configuration;
@@ -141,16 +121,13 @@ public final class TinkerGraph implements Graph {
     protected ReferenceManager referenceManager;
 
     private TinkerGraph(final Configuration configuration, boolean usesSpecializedElements,
-                        Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel,
+                        Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
                         Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
         this.configuration = configuration;
         this.usesSpecializedElements = usesSpecializedElements;
-        this.vertexFactoryByLabel = vertexFactoryByLabel;
+        this.nodeFactoryByLabel = nodeFactoryByLabel;
         this.edgeFactoryByLabel = edgeFactoryByLabel;
-        vertexIdManager = selectIdManager(configuration, GREMLIN_TINKERGRAPH_VERTEX_ID_MANAGER, Vertex.class);
-        vertexPropertyIdManager = selectIdManager(configuration, GREMLIN_TINKERGRAPH_VERTEX_PROPERTY_ID_MANAGER, VertexProperty.class);
-        defaultVertexPropertyCardinality = VertexProperty.Cardinality.valueOf(
-          configuration.getString(GREMLIN_TINKERGRAPH_DEFAULT_VERTEX_PROPERTY_CARDINALITY, VertexProperty.Cardinality.single.name()));
+        vertexIdManager = new IdManager();
 
         graphLocation = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_LOCATION, null);
         // ondiskOverflowEnabled = configuration.getBoolean(GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
@@ -158,7 +135,7 @@ public final class TinkerGraph implements Graph {
         if (ondiskOverflowEnabled) {
             graphFormat = GRAPH_FORMAT_MVSTORE;
             referenceManager = new ReferenceManagerImpl(configuration.getInt(GREMLIN_TINKERGRAPH_OVERFLOW_HEAP_PERCENTAGE_THRESHOLD));
-            NodeDeserializer nodeDeserializer = new NodeDeserializer(this, vertexFactoryByLabel);
+            NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
             if (graphLocation == null) {
                 ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);
                 initEmptyElementCollections();
@@ -244,20 +221,20 @@ public final class TinkerGraph implements Graph {
     }
 
 
-    public static TinkerGraph open(List<OverflowElementFactory.ForNode<?>> vertexFactories,
+    public static TinkerGraph open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
                                    List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
-        return open(EMPTY_CONFIGURATION(), vertexFactories, edgeFactories);
+        return open(EMPTY_CONFIGURATION(), nodeFactories, edgeFactories);
     }
 
     public static TinkerGraph open(final Configuration configuration,
-                                   List<OverflowElementFactory.ForNode<?>> vertexFactories,
+                                   List<OverflowElementFactory.ForNode<?>> nodeFactories,
                                    List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
-        boolean usesSpecializedElements = !vertexFactories.isEmpty() || !edgeFactories.isEmpty();
-        Map<String, OverflowElementFactory.ForNode> specializedVertexFactoryByLabel = new HashMap<>();
-        Map<String, OverflowElementFactory.ForEdge> specializedEdgeFactoryByLabel = new HashMap<>();
-        vertexFactories.forEach(factory -> specializedVertexFactoryByLabel.put(factory.forLabel(), factory));
-        edgeFactories.forEach(factory -> specializedEdgeFactoryByLabel.put(factory.forLabel(), factory));
-        return new TinkerGraph(configuration, usesSpecializedElements, specializedVertexFactoryByLabel, specializedEdgeFactoryByLabel);
+        boolean usesSpecializedElements = !nodeFactories.isEmpty() || !edgeFactories.isEmpty();
+        Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
+        Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
+        nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
+        edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
+        return new TinkerGraph(configuration, usesSpecializedElements, nodeFactoryByLabel, edgeFactoryByLabel);
     }
 
     ////////////// STRUCTURE API METHODS //////////////////
@@ -287,8 +264,8 @@ public final class TinkerGraph implements Graph {
 
     private Vertex createVertex(final long idValue, final String label, final Object... keyValues) {
         final Vertex vertex;
-        if (vertexFactoryByLabel.containsKey(label)) {
-            final OverflowElementFactory.ForNode factory = vertexFactoryByLabel.get(label);
+        if (nodeFactoryByLabel.containsKey(label)) {
+            final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
             final OverflowDbNode underlying = factory.createVertex(idValue, this);
             this.referenceManager.registerRef(underlying.ref);
             vertex = underlying.ref;
@@ -306,14 +283,12 @@ public final class TinkerGraph implements Graph {
 
     @Override
     public <C extends GraphComputer> C compute(final Class<C> graphComputerClass) {
-        if (!graphComputerClass.equals(TinkerGraphComputer.class))
-            throw Graph.Exceptions.graphDoesNotSupportProvidedGraphComputer(graphComputerClass);
-        return (C) new TinkerGraphComputer(this);
+        throw Graph.Exceptions.graphDoesNotSupportProvidedGraphComputer(graphComputerClass);
     }
 
     @Override
     public GraphComputer compute() {
-        return new TinkerGraphComputer(this);
+        throw Graph.Exceptions.graphComputerNotSupported();
     }
 
     @Override
@@ -378,15 +353,7 @@ public final class TinkerGraph implements Graph {
 
     @Override
     public Iterator<Edge> edges(final Object... ids) {
-        MultiIterator2 multiIterator = new MultiIterator2();
-        vertices.forEachValue(new TObjectProcedure<Vertex>() {
-            @Override
-            public boolean execute(Vertex vertex) {
-                multiIterator.addIterator(vertex.edges(Direction.OUT));
-                return true;
-            }
-        });
-        return multiIterator;
+        throw new NotImplementedException("");
     }
 
     /**
@@ -474,11 +441,7 @@ public final class TinkerGraph implements Graph {
                     IteratorUtils.filter(IteratorUtils.map(idList, id -> elements.get((long)clazz.cast(id).id())).iterator(), Objects::nonNull)
                     : IteratorUtils.filter(IteratorUtils.map(idList, id -> elements.get((long)idManager.convert(id))).iterator(), Objects::nonNull);
         }
-        return TinkerHelper.inComputerMode(this) ?
-                (Iterator<T>) (clazz.equals(Vertex.class) ?
-                        IteratorUtils.filter((Iterator<Vertex>) iterator, t -> this.graphComputerView.legalVertex(t)) :
-                        IteratorUtils.filter((Iterator<Edge>) iterator, t -> this.graphComputerView.legalEdge(t.outVertex(), t))) :
-                iterator;
+        return iterator;
     }
 
     /**
@@ -555,7 +518,7 @@ public final class TinkerGraph implements Graph {
 
         @Override
         public boolean supportsCustomIds() {
-            return false;
+            return true;
         }
 
         @Override
@@ -565,7 +528,7 @@ public final class TinkerGraph implements Graph {
 
         @Override
         public VertexProperty.Cardinality getCardinality(final String key) {
-            return defaultVertexPropertyCardinality;
+            return VertexProperty.Cardinality.single;
         }
     }
 
@@ -674,151 +637,39 @@ public final class TinkerGraph implements Graph {
     }
 
     /**
-     * Construct an {@link TinkerGraph.IdManager} from the TinkerGraph {@code Configuration}.
-     */
-    private static IdManager<?> selectIdManager(final Configuration config, final String configKey, final Class<? extends Element> clazz) {
-        return DefaultIdManager.LONG;
-    }
-
-    /**
      * TinkerGraph will use an implementation of this interface to generate identifiers when a user does not supply
      * them and to handle identifier conversions when querying to provide better flexibility with respect to
-     * handling different data types that mean the same thing.  For example, the
-     * {@link DefaultIdManager#LONG} implementation will allow {@code g.vertices(1l, 2l)} and
-     * {@code g.vertices(1, 2)} to both return values.
-     *
-     * @param <T> the id type
+     * handling different data types that mean the same thing.
      */
-    public interface IdManager<T> {
+    class IdManager {
         /**
          * Generate an identifier which should be unique to the {@link TinkerGraph} instance.
          */
-        T getNextId(final TinkerGraph graph);
+        public Long getNextId(final TinkerGraph graph) {
+            return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
+        }
 
         /**
          * Convert an identifier to the type required by the manager.
          */
-        T convert(final Object id);
+        public Object convert(final Object id) {
+            if (null == id)
+                return null;
+            else if (id instanceof Long)
+                return id;
+            else if (id instanceof Number)
+                return ((Number) id).longValue();
+            else if (id instanceof String)
+                return Long.parseLong((String) id);
+            else
+                throw new IllegalArgumentException(String.format("Expected an id that is convertible to Long but received %s", id.getClass()));
+        }
 
         /**
          * Determine if an identifier is allowed by this manager given its type.
          */
-        boolean allow(final Object id);
-    }
-
-    /**
-     * A default set of {@link IdManager} implementations for common identifier types.
-     */
-    public enum DefaultIdManager implements IdManager {
-        /**
-         * Manages identifiers of type {@code Long}. Will convert any class that extends from {@link Number} to a
-         * {@link Long} and will also attempt to convert {@code String} values
-         */
-        LONG {
-            @Override
-            public Long getNextId(final TinkerGraph graph) {
-                return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
-            }
-
-            @Override
-            public Object convert(final Object id) {
-                if (null == id)
-                    return null;
-                else if (id instanceof Long)
-                    return id;
-                else if (id instanceof Number)
-                    return ((Number) id).longValue();
-                else if (id instanceof String)
-                    return Long.parseLong((String) id);
-                else
-                    throw new IllegalArgumentException(String.format("Expected an id that is convertible to Long but received %s", id.getClass()));
-            }
-
-            @Override
-            public boolean allow(final Object id) {
-                return id instanceof Number || id instanceof String;
-            }
-        },
-
-        /**
-         * Manages identifiers of type {@code Integer}. Will convert any class that extends from {@link Number} to a
-         * {@link Integer} and will also attempt to convert {@code String} values
-         */
-        INTEGER {
-            @Override
-            public Integer getNextId(final TinkerGraph graph) {
-                return Stream.generate(() -> (graph.currentId.incrementAndGet())).map(Long::intValue).findAny().get();
-            }
-
-            @Override
-            public Object convert(final Object id) {
-                if (null == id)
-                    return null;
-                else if (id instanceof Integer)
-                    return id;
-                else if (id instanceof Number)
-                    return ((Number) id).intValue();
-                else if (id instanceof String)
-                    return Integer.parseInt((String) id);
-                else
-                    throw new IllegalArgumentException(String.format("Expected an id that is convertible to Integer but received %s", id.getClass()));
-            }
-
-            @Override
-            public boolean allow(final Object id) {
-                return id instanceof Number || id instanceof String;
-            }
-        },
-
-        /**
-         * Manages identifiers of type {@link java.util.UUID}. Will convert {@code String} values to
-         * {@link java.util.UUID}.
-         */
-        UUID {
-            @Override
-            public UUID getNextId(final TinkerGraph graph) {
-                return java.util.UUID.randomUUID();
-            }
-
-            @Override
-            public Object convert(final Object id) {
-                if (null == id)
-                    return null;
-                else if (id instanceof java.util.UUID)
-                    return id;
-                else if (id instanceof String)
-                    return java.util.UUID.fromString((String) id);
-                else
-                    throw new IllegalArgumentException(String.format("Expected an id that is convertible to UUID but received %s", id.getClass()));
-            }
-
-            @Override
-            public boolean allow(final Object id) {
-                return id instanceof UUID || id instanceof String;
-            }
-        },
-
-        /**
-         * Manages identifiers of any type.  This represents the default way {@link TinkerGraph} has always worked.
-         * In other words, there is no identifier conversion so if the identifier of a vertex is a {@code Long}, then
-         * trying to request it with an {@code Integer} will have no effect. Also, like the original
-         * {@link TinkerGraph}, it will generate {@link Long} values for identifiers.
-         */
-        ANY {
-            @Override
-            public Long getNextId(final TinkerGraph graph) {
-                return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
-            }
-
-            @Override
-            public Object convert(final Object id) {
-                return id;
-            }
-
-            @Override
-            public boolean allow(final Object id) {
-                return true;
-            }
+        public boolean allow(final Object id) {
+            return id instanceof Number || id instanceof String;
         }
     }
 }
