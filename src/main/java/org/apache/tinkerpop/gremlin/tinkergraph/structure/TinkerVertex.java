@@ -60,24 +60,14 @@ public class TinkerVertex extends TinkerElement implements Vertex {
     @Override
     public <V> VertexProperty<V> property(final String key) {
         if (this.removed) return VertexProperty.empty();
-        if (TinkerHelper.inComputerMode(this.graph)) {
-            final List<VertexProperty> list = (List) this.graph.graphComputerView.getProperty(this, key);
-            if (list.size() == 0)
-                return VertexProperty.<V>empty();
-            else if (list.size() == 1)
-                return list.get(0);
-            else
+        if (this.properties != null && this.properties.containsKey(key)) {
+            final List<VertexProperty> list = (List) this.properties.get(key);
+            if (list.size() > 1)
                 throw Vertex.Exceptions.multiplePropertiesExistForProvidedKey(key);
-        } else {
-            if (this.properties != null && this.properties.containsKey(key)) {
-                final List<VertexProperty> list = (List) this.properties.get(key);
-                if (list.size() > 1)
-                    throw Vertex.Exceptions.multiplePropertiesExistForProvidedKey(key);
-                else
-                    return list.get(0);
-            } else
-                return VertexProperty.<V>empty();
-        }
+            else
+                return list.get(0);
+        } else
+            return VertexProperty.<V>empty();
     }
 
     @Override
@@ -89,33 +79,25 @@ public class TinkerVertex extends TinkerElement implements Vertex {
         final Optional<VertexProperty<V>> optionalVertexProperty = ElementHelper.stageVertexProperty(this, cardinality, key, value, keyValues);
         if (optionalVertexProperty.isPresent()) return optionalVertexProperty.get();
 
-        if (TinkerHelper.inComputerMode(this.graph)) {
-            final VertexProperty<V> vertexProperty = (VertexProperty<V>) this.graph.graphComputerView.addProperty(this, key, value);
-            ElementHelper.attachProperties(vertexProperty, keyValues);
-            return vertexProperty;
-        } else {
-            final Object idValue = optionalId.isPresent() ?
-                    graph.vertexPropertyIdManager.convert(optionalId.get()) :
-                    graph.vertexPropertyIdManager.getNextId(graph);
+        final Object idValue = optionalId.isPresent() ?
+                graph.vertexPropertyIdManager.convert(optionalId.get()) :
+                graph.vertexPropertyIdManager.getNextId(graph);
 
-            final VertexProperty<V> vertexProperty = new TinkerVertexProperty<V>(idValue, this, key, value);
+        final VertexProperty<V> vertexProperty = new TinkerVertexProperty<V>(idValue, this, key, value);
 
-            if (null == this.properties) this.properties = new HashMap<>();
-            final List<VertexProperty> list = this.properties.getOrDefault(key, new ArrayList<>());
-            list.add(vertexProperty);
-            this.properties.put(key, list);
-            TinkerHelper.autoUpdateIndex(this, key, value, null);
-            ElementHelper.attachProperties(vertexProperty, keyValues);
-            return vertexProperty;
-        }
+        if (null == this.properties) this.properties = new HashMap<>();
+        final List<VertexProperty> list = this.properties.getOrDefault(key, new ArrayList<>());
+        list.add(vertexProperty);
+        this.properties.put(key, list);
+        TinkerHelper.autoUpdateIndex(this, key, value, null);
+        ElementHelper.attachProperties(vertexProperty, keyValues);
+        return vertexProperty;
     }
 
     @Override
     public Set<String> keys() {
         if (null == this.properties) return Collections.emptySet();
-        return TinkerHelper.inComputerMode((TinkerGraph) graph()) ?
-                Vertex.super.keys() :
-                this.properties.keySet();
+        return this.properties.keySet();
     }
 
     @Override
@@ -154,41 +136,28 @@ public class TinkerVertex extends TinkerElement implements Vertex {
 
     @Override
     public Iterator<Edge> edges(final Direction direction, final String... edgeLabels) {
-        final Iterator<Edge> edgeIterator = (Iterator) TinkerHelper.getEdges(this, direction, edgeLabels);
-        return TinkerHelper.inComputerMode(this.graph) ?
-                IteratorUtils.filter(edgeIterator, edge -> this.graph.graphComputerView.legalEdge(this, edge)) :
-                edgeIterator;
+        return (Iterator) TinkerHelper.getEdges(this, direction, edgeLabels);
     }
 
     @Override
     public Iterator<Vertex> vertices(final Direction direction, final String... edgeLabels) {
-        return TinkerHelper.inComputerMode(this.graph) ?
-                direction.equals(Direction.BOTH) ?
-                        IteratorUtils.concat(
-                                IteratorUtils.map(this.edges(Direction.OUT, edgeLabels), Edge::inVertex),
-                                IteratorUtils.map(this.edges(Direction.IN, edgeLabels), Edge::outVertex)) :
-                        IteratorUtils.map(this.edges(direction, edgeLabels), edge -> edge.vertices(direction.opposite()).next()) :
-                (Iterator) TinkerHelper.getVertices(this, direction, edgeLabels);
+        return (Iterator) TinkerHelper.getVertices(this, direction, edgeLabels);
     }
 
     @Override
     public <V> Iterator<VertexProperty<V>> properties(final String... propertyKeys) {
         if (this.removed) return Collections.emptyIterator();
-        if (TinkerHelper.inComputerMode((TinkerGraph) graph()))
-            return (Iterator) ((TinkerGraph) graph()).graphComputerView.getProperties(TinkerVertex.this).stream().filter(p -> ElementHelper.keyExists(p.key(), propertyKeys)).iterator();
-        else {
-            if (null == this.properties) return Collections.emptyIterator();
-            if (propertyKeys.length == 1) {
-                final List<VertexProperty> properties = this.properties.getOrDefault(propertyKeys[0], Collections.emptyList());
-                if (properties.size() == 1) {
-                    return IteratorUtils.of(properties.get(0));
-                } else if (properties.isEmpty()) {
-                    return Collections.emptyIterator();
-                } else {
-                    return (Iterator) new ArrayList<>(properties).iterator();
-                }
-            } else
-                return (Iterator) this.properties.entrySet().stream().filter(entry -> ElementHelper.keyExists(entry.getKey(), propertyKeys)).flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList()).iterator();
-        }
+        if (null == this.properties) return Collections.emptyIterator();
+        if (propertyKeys.length == 1) {
+            final List<VertexProperty> properties = this.properties.getOrDefault(propertyKeys[0], Collections.emptyList());
+            if (properties.size() == 1) {
+                return IteratorUtils.of(properties.get(0));
+            } else if (properties.isEmpty()) {
+                return Collections.emptyIterator();
+            } else {
+                return (Iterator) new ArrayList<>(properties).iterator();
+            }
+        } else
+            return (Iterator) this.properties.entrySet().stream().filter(entry -> ElementHelper.keyExists(entry.getKey(), propertyKeys)).flatMap(entry -> entry.getValue().stream()).collect(Collectors.toList()).iterator();
     }
 }

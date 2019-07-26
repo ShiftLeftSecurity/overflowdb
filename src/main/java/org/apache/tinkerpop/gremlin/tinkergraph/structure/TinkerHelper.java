@@ -19,15 +19,12 @@
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
 import gnu.trove.map.TLongObjectMap;
-import org.apache.tinkerpop.gremlin.process.computer.GraphFilter;
-import org.apache.tinkerpop.gremlin.process.computer.VertexComputeKey;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.apache.tinkerpop.gremlin.tinkergraph.process.computer.TinkerGraphComputerView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,14 +49,14 @@ public final class TinkerHelper {
         ElementHelper.validateLabel(label);
         ElementHelper.legalPropertyKeyValueArray(keyValues);
 
-        Object idValue = graph.edgeIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
+        Object idValue = null;// graph.edgeIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
 
         final Edge edge;
         if (null != idValue) {
             if (graph.edges.containsKey((long)idValue))
                 throw Graph.Exceptions.edgeWithIdAlreadyExists(idValue);
         } else {
-            idValue = graph.edgeIdManager.getNextId(graph);
+            idValue = null;//graph.edgeIdManager.getNextId(graph);
         }
 
         edge = new TinkerEdge(graph, idValue, outVertex, label, inVertex);
@@ -97,22 +94,6 @@ public final class TinkerHelper {
 
     public static List<Edge> queryEdgeIndex(final TinkerGraph graph, final String key, final Object value) {
         return null == graph.edgeIndex ? Collections.emptyList() : graph.edgeIndex.get(key, value);
-    }
-
-    public static boolean inComputerMode(final TinkerGraph graph) {
-        return null != graph.graphComputerView;
-    }
-
-    public static TinkerGraphComputerView createGraphComputerView(final TinkerGraph graph, final GraphFilter graphFilter, final Set<VertexComputeKey> computeKeys) {
-        return graph.graphComputerView = new TinkerGraphComputerView(graph, graphFilter, computeKeys);
-    }
-
-    public static TinkerGraphComputerView getGraphComputerView(final TinkerGraph graph) {
-        return graph.graphComputerView;
-    }
-
-    public static void dropGraphComputerView(final TinkerGraph graph) {
-        graph.graphComputerView = null;
     }
 
     public static Map<String, List<VertexProperty>> getProperties(final TinkerVertex vertex) {
