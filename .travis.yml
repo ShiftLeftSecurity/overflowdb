@@ -7,18 +7,4 @@ env:
   global:
   - SONATYPE_USER=shiftleft_davy
   - GPG_KEY_NAME=services@shiftleft.io
-  - secure: "KXGotW6ISDHH9VBRq0VJwilU+Vn+EZwI2m3Ui4vAB/YWzeH8b+0a7cb01CxL3wZcRRM1fPnED01bkhfwAjx0FiKowX36K1DqfNoKAvdkj3RRcG8yWg/KVhCNWK/lSFg8OArQB1wB5d/6Q4hpSFiCGhVHXeusoZG0wcPPwjJa24CcVOZaUbTTgrC2xdGCHMepOlRFoQt2s37zwW6dG1mnT44nORNdZvVAap45ckMkCiEPqRghuEETIeCBYX9vcn9tIwT9oC51D9xGjC/IuxnL/PvgwLN+CngwEDdGJdOSSKv3OCW4ykIrn84tW90hb7ARGlntPsGoggjp3k3m5QrQ9F4BPtUAYigFKsGPhQMAo7mStvB04EM0m9rQrUqfrYNbSdRomQFn377goKEAFrS8PCk5HpKHEmeb3BkOvdYVTC6rDLyRV9C86NftBcOM+bi6zGjrTbBj/fGfmu553hGr3kfUKLTAE9NokyfQ53xzHbyJ8drcEDKhorkTevriOcn+tZMtxD3Et8fKc+chRafNrQAibZM4n7jNlIv+gWYXNn5jE0rXyFBMgS8UvHBgkWDXhJgaDvags0z6kRD9iYn/3d02fCvUvIbsB0iXt1eAeTh6UkzjAdBWxVwiDEFqvVu28gg/Ff+xITvJXnmCMKV+4RwnewGS+xMA9Drh4BKnbu8="
-  - secure: "EHFR32uQ+IdZDHo3vb2ha+ow0c7UH1EYWofT7PUIZ8HRcQxXm/fFrmm00Z1tZaC8bTcI//Lrdd6k7lBnNGpb80y+LfxR4ZMD06qoqzTKULYxWEInNsjLSk89T/SUcwnfqJIRgi+LT/vx7OYEKGsDL0mLG8fns47ScGAJO+Kpk2pcAgHn2z1N5o1leD0ZhvmoD3i8C9Rd/N0MgZ0Em/+ERHN2Gioz9s/g7hRMbdHPwhGcxUK0F9z3xGuSxswVPsMAMakJJ0gKHm6cD6mtkyq501+3G8JufCqZ4xR+H60ePOMWPmKDD4ome4v5/8nnm/AwMCQKVLCJuYAs1eZK3fvgqt8WIw8AF2RZbVA9H2bS+n/4xE5yWiEYnNkm5kiTmduzW/F+jjIidIRp8UGSyAJkjWvIZc+9H/hFcH1xurvGRKXQbtWtzV/55bfonvdjYGKNftJsVtisYaFI95qdjP1+xoq9PbIy/SDjx5MD6khOYn6gqllM6BFWNobvzQcwyLr9uMsyzINR3Cq+Ny1PYY17aXiyagMN4EjznadbRxToqnY+bY5M8KLtnAN6oXUKzeLia9uZq/GixzTPL6FfuJkztOMLiIdlP6rO0wx2bi3fl6TnVZiuj7VhdCqnYdjr4ciAz2ZnR45k+s2ZmAOwLX8tYyjK+w56uE/ViJnN8zVyJzU="
 
-install: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
-
-script: mvn -Dtest=SpecializedElementsTest,SpecializedElementsWithOnDiskTest,SerializerTest,GraphSaveRestoreTest test
-# TODO reenable standard tests
-#script: mvn test -B
-
-cache:
-  directories:
-    - ~/.m2/repository
-
-after_success:
-  - ./travis/deploy.sh

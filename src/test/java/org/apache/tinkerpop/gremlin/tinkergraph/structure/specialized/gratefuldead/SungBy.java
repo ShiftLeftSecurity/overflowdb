@@ -21,7 +21,6 @@ package org.apache.tinkerpop.gremlin.tinkergraph.structure.specialized.gratefuld
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.*;
-import sun.security.provider.Sun;
 
 import java.io.Serializable;
 import java.util.*;
