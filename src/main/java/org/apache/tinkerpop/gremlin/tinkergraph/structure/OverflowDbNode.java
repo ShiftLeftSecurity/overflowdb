@@ -173,9 +173,7 @@ public abstract class OverflowDbNode implements Vertex {
     graph.vertices.remove((long) id());
     graph.getElementsByLabel(graph.verticesByLabel, label()).remove(this);
 
-    if (graph.ondiskOverflowEnabled) {
-      graph.ondiskOverflow.removeVertex((Long) id());
-    }
+    graph.ondiskOverflow.removeVertex((Long) id());
 //        this.modifiedSinceLastSerialization = true;
   }
 

@@ -79,24 +79,24 @@ public final class TinkerGraph implements Graph {
     public static final Configuration EMPTY_CONFIGURATION() {
         return new BaseConfiguration() {{
             this.setProperty(Graph.GRAPH, TinkerGraph.class.getName());
-            this.setProperty(GREMLIN_TINKERGRAPH_OVERFLOW_HEAP_PERCENTAGE_THRESHOLD, 80);
-            this.setProperty(GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
+            this.setProperty(SWAPPING_HEAP_PERCENTAGE_THRESHOLD, 80);
+            this.setProperty(SWAPPING_ENABLED, true);
         }};
     }
 
     public static final String GREMLIN_TINKERGRAPH_GRAPH_LOCATION = "gremlin.tinkergraph.graphLocation";
     public static final String GREMLIN_TINKERGRAPH_GRAPH_FORMAT = "gremlin.tinkergraph.graphFormat";
-    public static final String GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED = "gremlin.tinkergraph.ondiskOverflow.enabled";
+    public static final String SWAPPING_ENABLED = "overflow.swapping.enabled";
 
-    /** when heap (after GC run) is above this threshold (e.g. 80 for 80%), @see ReferenceManager will start to clear some references, i.e. write them to storage and set them to `null` */
-    public static final String GREMLIN_TINKERGRAPH_OVERFLOW_HEAP_PERCENTAGE_THRESHOLD = "gremlin.tinkergraph.ondiskOverflow.heapPercentageThreshold";
+    /** when heap (after GC run) is above this threshold (e.g. 80 for 80%), `ReferenceManager` will
+     * start to clear some references, i.e. write them to storage and set them to `null` */
+    public static final String SWAPPING_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.swapping.heapPercentageThreshold";
 
     public static final String GRAPH_FORMAT_MVSTORE = "overflowdb.graphFormat.mvstore";
 
     private final TinkerGraphFeatures features = new TinkerGraphFeatures();
 
     protected AtomicLong currentId = new AtomicLong(-1L);
-    // TODO: replace with the more memory efficient `TLongHashMap`
     // note: if on-disk overflow enabled, these [Vertex|Edge] values are [VertexRef|ElementRef]
     protected TLongObjectMap<Vertex> vertices;
     protected THashMap<String, Set<Vertex>> verticesByLabel;
@@ -105,7 +105,6 @@ public final class TinkerGraph implements Graph {
     protected TinkerIndex<Vertex> vertexIndex = null;
     protected final IdManager vertexIdManager;
 
-    protected final boolean usesSpecializedElements;
     protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
     protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
 
@@ -114,43 +113,27 @@ public final class TinkerGraph implements Graph {
     private final String graphFormat;
     private boolean closed = false;
 
-    /* overflow to disk: elements are serialized on eviction from on-heap cache - off by default */
-    // TODO: also allow using for generic elements
-    public final boolean ondiskOverflowEnabled;
     protected OndiskOverflow ondiskOverflow;
     protected ReferenceManager referenceManager;
 
-    private TinkerGraph(final Configuration configuration, boolean usesSpecializedElements,
+    private TinkerGraph(final Configuration configuration,
                         Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
                         Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
         this.configuration = configuration;
-        this.usesSpecializedElements = usesSpecializedElements;
         this.nodeFactoryByLabel = nodeFactoryByLabel;
         this.edgeFactoryByLabel = edgeFactoryByLabel;
         vertexIdManager = new IdManager();
 
         graphLocation = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_LOCATION, null);
-        // ondiskOverflowEnabled = configuration.getBoolean(GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
-        ondiskOverflowEnabled = false;
-        if (ondiskOverflowEnabled) {
-            graphFormat = GRAPH_FORMAT_MVSTORE;
-            referenceManager = new ReferenceManagerImpl(configuration.getInt(GREMLIN_TINKERGRAPH_OVERFLOW_HEAP_PERCENTAGE_THRESHOLD));
-            NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
-            if (graphLocation == null) {
-                ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);
-                initEmptyElementCollections();
-            } else {
-                ondiskOverflow = OndiskOverflow.createWithSpecificLocation(nodeDeserializer, new File(graphLocation));
-                initElementCollections(ondiskOverflow);
-            }
-        } else {
-            graphFormat = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_FORMAT, null);
-            if ((graphLocation != null && null == graphFormat) || (null == graphLocation && graphFormat != null))
-                throw new IllegalStateException(String.format("The %s and %s must both be specified if either is present",
-                    GREMLIN_TINKERGRAPH_GRAPH_LOCATION, GREMLIN_TINKERGRAPH_GRAPH_FORMAT));
+        graphFormat = GRAPH_FORMAT_MVSTORE;
+        referenceManager = new ReferenceManagerImpl(configuration.getInt(SWAPPING_HEAP_PERCENTAGE_THRESHOLD));
+        NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
+        if (graphLocation == null) {
+            ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);
             initEmptyElementCollections();
-            referenceManager = new NoOpReferenceManager();
-            if (graphLocation != null) loadGraph();
+        } else {
+            ondiskOverflow = OndiskOverflow.createWithSpecificLocation(nodeDeserializer, new File(graphLocation));
+            initElementCollections(ondiskOverflow);
         }
     }
 
@@ -217,7 +200,7 @@ public final class TinkerGraph implements Graph {
      * @return a newly opened {@link Graph}
      */
     public static TinkerGraph open(final Configuration configuration) {
-        return new TinkerGraph(configuration, false, new HashMap<>(), new HashMap<>());
+        return new TinkerGraph(configuration, new HashMap<>(), new HashMap<>());
     }
 
 
@@ -229,12 +212,11 @@ public final class TinkerGraph implements Graph {
     public static TinkerGraph open(final Configuration configuration,
                                    List<OverflowElementFactory.ForNode<?>> nodeFactories,
                                    List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
-        boolean usesSpecializedElements = !nodeFactories.isEmpty() || !edgeFactories.isEmpty();
         Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
         Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
         nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
         edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-        return new TinkerGraph(configuration, usesSpecializedElements, nodeFactoryByLabel, edgeFactoryByLabel);
+        return new TinkerGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
     }
 
     ////////////// STRUCTURE API METHODS //////////////////
@@ -315,13 +297,9 @@ public final class TinkerGraph implements Graph {
     @Override
     public void close() {
         this.closed = true;
-        if (ondiskOverflowEnabled) {
-            if (graphLocation != null) referenceManager.clearAllReferences();
-            referenceManager.close();
-            ondiskOverflow.close();
-        } else {
-            if (graphLocation != null) saveGraph();
-        }
+        if (graphLocation != null) referenceManager.clearAllReferences();
+        referenceManager.close();
+        ondiskOverflow.close();
     }
 
     @Override

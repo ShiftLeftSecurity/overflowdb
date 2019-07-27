@@ -317,7 +317,7 @@ public class GratefulGraphTest {
 
   private TinkerGraph newGratefulDeadGraphWithSpecializedElements() {
     Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, false);
+    configuration.setProperty(TinkerGraph.SWAPPING_ENABLED, false);
     return TinkerGraph.open(
         configuration,
         Arrays.asList(Song.factory, Artist.factory),

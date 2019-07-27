@@ -96,7 +96,7 @@ public class GraphSaveRestoreTest {
 
   private TinkerGraph newGratefulDeadGraphWithSpecializedElements(File overflowDb) {
     Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_ONDISK_OVERFLOW_ENABLED, true);
+    configuration.setProperty(TinkerGraph.SWAPPING_ENABLED, true);
     configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_GRAPH_LOCATION, overflowDb.getAbsolutePath());
     return TinkerGraph.open(
         configuration,
