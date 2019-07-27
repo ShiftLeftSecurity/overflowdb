@@ -21,7 +21,6 @@ package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
-import gnu.trove.procedure.TObjectProcedure;
 import gnu.trove.set.hash.THashSet;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -29,7 +28,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -47,7 +45,6 @@ import org.apache.tinkerpop.gremlin.tinkergraph.process.traversal.strategy.optim
 import org.apache.tinkerpop.gremlin.tinkergraph.process.traversal.strategy.optimization.TinkerGraphStepStrategy;
 import org.apache.tinkerpop.gremlin.tinkergraph.storage.OndiskOverflow;
 import org.apache.tinkerpop.gremlin.tinkergraph.storage.NodeDeserializer;
-import org.apache.tinkerpop.gremlin.tinkergraph.storage.iterator.MultiIterator2;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.apache.tinkerpop.gremlin.util.iterator.MultiIterator;
 import org.slf4j.Logger;
@@ -63,7 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
@@ -84,18 +80,14 @@ public final class TinkerGraph implements Graph {
         }};
     }
 
-    public static final String GREMLIN_TINKERGRAPH_GRAPH_LOCATION = "gremlin.tinkergraph.graphLocation";
-    public static final String GREMLIN_TINKERGRAPH_GRAPH_FORMAT = "gremlin.tinkergraph.graphFormat";
-    public static final String SWAPPING_ENABLED = "overflow.swapping.enabled";
+    public static final String GRAPH_LOCATION = "overflowdb.graphLocation";
+    public static final String SWAPPING_ENABLED = "overflowdb.swapping.enabled";
 
     /** when heap (after GC run) is above this threshold (e.g. 80 for 80%), `ReferenceManager` will
      * start to clear some references, i.e. write them to storage and set them to `null` */
     public static final String SWAPPING_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.swapping.heapPercentageThreshold";
 
-    public static final String GRAPH_FORMAT_MVSTORE = "overflowdb.graphFormat.mvstore";
-
     private final TinkerGraphFeatures features = new TinkerGraphFeatures();
-
     protected AtomicLong currentId = new AtomicLong(-1L);
     // note: if on-disk overflow enabled, these [Vertex|Edge] values are [VertexRef|ElementRef]
     protected TLongObjectMap<Vertex> vertices;
@@ -110,7 +102,6 @@ public final class TinkerGraph implements Graph {
 
     private final Configuration configuration;
     private final String graphLocation;
-    private final String graphFormat;
     private boolean closed = false;
 
     protected OndiskOverflow ondiskOverflow;
@@ -124,8 +115,7 @@ public final class TinkerGraph implements Graph {
         this.edgeFactoryByLabel = edgeFactoryByLabel;
         vertexIdManager = new IdManager();
 
-        graphLocation = configuration.getString(GREMLIN_TINKERGRAPH_GRAPH_LOCATION, null);
-        graphFormat = GRAPH_FORMAT_MVSTORE;
+        graphLocation = configuration.getString(GRAPH_LOCATION, null);
         referenceManager = new ReferenceManagerImpl(configuration.getInt(SWAPPING_HEAP_PERCENTAGE_THRESHOLD));
         NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
         if (graphLocation == null) {
@@ -292,7 +282,7 @@ public final class TinkerGraph implements Graph {
     }
 
     /**
-     * if the {@link #GREMLIN_TINKERGRAPH_GRAPH_LOCATION} is set, data in the graph is persisted to that location.
+     * if the {@link #GRAPH_LOCATION} is set, data in the graph is persisted to that location.
      */
     @Override
     public void close() {
@@ -351,53 +341,6 @@ public final class TinkerGraph implements Graph {
             }
         }
         return multiIterator;
-    }
-
-    private void loadGraph() {
-        final File f = new File(graphLocation);
-        if (f.exists() && f.isFile()) {
-            try {
-                if (graphFormat.equals("graphml")) {
-                    io(IoCore.graphml()).readGraph(graphLocation);
-                } else if (graphFormat.equals("graphson")) {
-                    io(IoCore.graphson()).readGraph(graphLocation);
-                } else if (graphFormat.equals("gryo")) {
-                    io(IoCore.gryo()).readGraph(graphLocation);
-                } else {
-                    io(IoCore.createIoBuilder(graphFormat)).readGraph(graphLocation);
-                }
-            } catch (Exception ex) {
-                throw new RuntimeException(String.format("Could not load graph at %s with %s", graphLocation, graphFormat), ex);
-            }
-        }
-    }
-
-    private void saveGraph() {
-        final File f = new File(graphLocation);
-        if (f.exists()) {
-            f.delete();
-        } else {
-            final File parent = f.getParentFile();
-
-            // the parent would be null in the case of an relative path if the graphLocation was simply: "f.gryo"
-            if (parent != null && !parent.exists()) {
-                parent.mkdirs();
-            }
-        }
-
-        try {
-            if (graphFormat.equals("graphml")) {
-                io(IoCore.graphml()).writeGraph(graphLocation);
-            } else if (graphFormat.equals("graphson")) {
-                io(IoCore.graphson()).writeGraph(graphLocation);
-            } else if (graphFormat.equals("gryo")) {
-                io(IoCore.gryo()).writeGraph(graphLocation);
-            } else {
-                io(IoCore.createIoBuilder(graphFormat)).writeGraph(graphLocation);
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException(String.format("Could not save graph at %s with %s", graphLocation, graphFormat), ex);
-        }
     }
 
     private <T extends Element> Iterator<T> createElementIterator(final Class<T> clazz,

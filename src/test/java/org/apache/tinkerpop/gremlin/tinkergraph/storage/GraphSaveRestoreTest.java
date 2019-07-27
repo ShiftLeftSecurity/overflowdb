@@ -97,7 +97,7 @@ public class GraphSaveRestoreTest {
   private TinkerGraph newGratefulDeadGraphWithSpecializedElements(File overflowDb) {
     Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
     configuration.setProperty(TinkerGraph.SWAPPING_ENABLED, true);
-    configuration.setProperty(TinkerGraph.GREMLIN_TINKERGRAPH_GRAPH_LOCATION, overflowDb.getAbsolutePath());
+    configuration.setProperty(TinkerGraph.GRAPH_LOCATION, overflowDb.getAbsolutePath());
     return TinkerGraph.open(
         configuration,
         Arrays.asList(Song.factory, Artist.factory),
