@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.NodeRef;
 import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -9,7 +10,6 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import io.shiftleft.overflowdb.structure.TinkerGraph;
-import io.shiftleft.overflowdb.structure.VertexRef;
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -67,8 +67,8 @@ public class GratefulGraphTest {
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
     Edge e4 = v0.addEdge(FollowedBy.LABEL, v2);
-    assertTrue(v0 instanceof VertexRef);
-    assertTrue(v0.vertices(Direction.OUT).next() instanceof VertexRef);
+    assertTrue(v0 instanceof NodeRef);
+    assertTrue(v0.vertices(Direction.OUT).next() instanceof NodeRef);
   }
 
   @Test
@@ -107,8 +107,8 @@ public class GratefulGraphTest {
 
     List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
     assertEquals(garcias.size(), 1);
-    VertexRef vertexRef = (VertexRef) garcias.get(0); // Tinkergraph returns VertexRefs for overflow
-    Artist garcia = (Artist) vertexRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
+    NodeRef nodeRef = (NodeRef) garcias.get(0); // Tinkergraph returns VertexRefs for overflow
+    Artist garcia = (Artist) nodeRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
     assertEquals("Garcia", garcia.getName());
     graph.close();
   }
@@ -126,7 +126,7 @@ public class GratefulGraphTest {
     assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
     List<Vertex> songsWritten = __(garcia).in(WrittenBy.LABEL).has("name", "CREAM PUFF WAR").toList();
     assertEquals(songsWritten.size(), 1);
-    VertexRef<Song> songRef = (VertexRef) songsWritten.get(0); //it's actually of type `VertexRef<Song>`, but we can't infer that since it's behind the tinkerpop api
+    NodeRef<Song> songRef = (NodeRef) songsWritten.get(0); //it's actually of type `NodeRef<Song>`, but we can't infer that since it's behind the tinkerpop api
     Song song = songRef.get();
     assertEquals("CREAM PUFF WAR", song.getName());
 

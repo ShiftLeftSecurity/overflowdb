@@ -1,3 +1,21 @@
+package io.shiftleft.overflowdb.structure;
+
+import org.apache.tinkerpop.gremlin.structure.*;
+import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+
+import java.io.IOException;
+import java.util.Iterator;
+
+public abstract class NodeRef<V extends Vertex> extends ElementRef<V> implements Vertex {
+
+  public NodeRef(final Object vertexId, final Graph graph, V vertex) {
+    super(vertexId, graph, vertex);
+  }
+
+  @Override
+  protected V readFromDisk(final long vertexId) throws IOException {
+    return graph.ondiskOverflow.readVertex(vertexId);
+  }
 
   @Override
   public String toString() {

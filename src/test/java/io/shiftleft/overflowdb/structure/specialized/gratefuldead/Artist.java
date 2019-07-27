@@ -1,13 +1,13 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.NodeRefWithLabel;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
 import io.shiftleft.overflowdb.structure.TinkerGraph;
-import io.shiftleft.overflowdb.structure.VertexRef;
-import io.shiftleft.overflowdb.structure.VertexRefWithLabel;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.Arrays;
@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 public class Artist extends OverflowDbNode {
   public static final String label = "artist";
@@ -25,7 +24,7 @@ public class Artist extends OverflowDbNode {
   /* properties */
   private String name;
 
-  protected Artist(VertexRef ref) {
+  protected Artist(NodeRef ref) {
     super(ref);
   }
 
@@ -93,21 +92,21 @@ public class Artist extends OverflowDbNode {
     }
 
     @Override
-    public Artist createVertex(VertexRef<Artist> ref) {
+    public Artist createVertex(NodeRef<Artist> ref) {
       return new Artist(ref);
     }
 
     @Override
     public Artist createVertex(Long id, TinkerGraph graph) {
-      final VertexRef<Artist> ref = createVertexRef(id, graph);
+      final NodeRef<Artist> ref = createVertexRef(id, graph);
       final Artist node = createVertex(ref);
       ref.setElement(node);
       return node;
     }
 
     @Override
-    public VertexRef<Artist> createVertexRef(Long id, TinkerGraph graph) {
-      return new VertexRefWithLabel<>(id, graph, null, Artist.label);
+    public NodeRef<Artist> createVertexRef(Long id, TinkerGraph graph) {
+      return new NodeRefWithLabel<>(id, graph, null, Artist.label);
     }
   };
 }

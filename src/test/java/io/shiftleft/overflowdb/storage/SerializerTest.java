@@ -24,7 +24,7 @@ public class SerializerTest {
           OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43)
       );
 
-      OverflowDbTestNode underlyingVertexDb = ((VertexRef<OverflowDbTestNode>) vertexRef).get();
+      OverflowDbTestNode underlyingVertexDb = ((NodeRef<OverflowDbTestNode>) vertexRef).get();
       byte[] bytes = serializer.serialize(underlyingVertexDb);
       Vertex deserialized = deserializer.deserialize(bytes);
 
@@ -48,8 +48,8 @@ public class SerializerTest {
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
       Edge edge = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
-      OverflowDbTestNode v0Underlying = ((VertexRef<OverflowDbTestNode>) v0).get();
-      OverflowDbTestNode v1Underlying = ((VertexRef<OverflowDbTestNode>) v1).get();
+      OverflowDbTestNode v0Underlying = ((NodeRef<OverflowDbTestNode>) v0).get();
+      OverflowDbTestNode v1Underlying = ((NodeRef<OverflowDbTestNode>) v1).get();
       Vertex v0Deserialized = deserializer.deserialize(serializer.serialize(v0Underlying));
       Vertex v1Deserialized = deserializer.deserialize(serializer.serialize(v1Underlying));
 

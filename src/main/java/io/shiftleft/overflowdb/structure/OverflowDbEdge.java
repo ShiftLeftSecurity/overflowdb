@@ -14,8 +14,8 @@ import java.util.Set;
 public abstract class OverflowDbEdge implements Edge {
   private final TinkerGraph graph;
   private final String label;
-  private final VertexRef<OverflowDbNode> outVertex;
-  private final VertexRef<OverflowDbNode> inVertex;
+  private final NodeRef<OverflowDbNode> outVertex;
+  private final NodeRef<OverflowDbNode> inVertex;
 
   /* When storing the inVertex in the outVertex' adjacent node array, there may be multiple edges
    * with the same (direction, label), i.e. they are stored in the same block. To be able to
@@ -34,8 +34,8 @@ public abstract class OverflowDbEdge implements Edge {
 
   public OverflowDbEdge(TinkerGraph graph,
                         String label,
-                        VertexRef<OverflowDbNode> outVertex,
-                        VertexRef<OverflowDbNode> inVertex,
+                        NodeRef<OverflowDbNode> outVertex,
+                        NodeRef<OverflowDbNode> inVertex,
                         Set<String> specificKeys) {
     this.graph = graph;
     this.label = label;

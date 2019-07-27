@@ -26,7 +26,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
   private List<String> stringListProperty;
   private List<Integer> intListProperty;
 
-  protected OverflowDbTestNode(VertexRef ref) {
+  protected OverflowDbTestNode(NodeRef ref) {
     super(ref);
   }
 
@@ -121,21 +121,21 @@ public class OverflowDbTestNode extends OverflowDbNode {
     }
 
     @Override
-    public OverflowDbTestNode createVertex(VertexRef<OverflowDbTestNode> ref) {
+    public OverflowDbTestNode createVertex(NodeRef<OverflowDbTestNode> ref) {
       return new OverflowDbTestNode(ref);
     }
 
     @Override
     public OverflowDbTestNode createVertex(Long id, TinkerGraph graph) {
-      final VertexRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
+      final NodeRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
       final OverflowDbTestNode node = createVertex(ref);
       ref.setElement(node);
       return node;
     }
 
     @Override
-    public VertexRef<OverflowDbTestNode> createVertexRef(Long id, TinkerGraph graph) {
-      return new VertexRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
+    public NodeRef<OverflowDbTestNode> createVertexRef(Long id, TinkerGraph graph) {
+      return new NodeRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
     }
   };
 

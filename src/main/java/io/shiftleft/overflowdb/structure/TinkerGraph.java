@@ -17,7 +17,6 @@ import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.io.Io;
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
@@ -71,7 +70,7 @@ public final class TinkerGraph implements Graph {
 
     private final TinkerGraphFeatures features = new TinkerGraphFeatures();
     protected AtomicLong currentId = new AtomicLong(-1L);
-    // note: if on-disk overflow enabled, these [Vertex|Edge] values are [VertexRef|ElementRef]
+    // note: if on-disk overflow enabled, these [Vertex|Edge] values are [NodeRef|ElementRef]
     protected TLongObjectMap<Vertex> vertices;
     protected THashMap<String, Set<Vertex>> verticesByLabel;
 
@@ -128,14 +127,14 @@ public final class TinkerGraph implements Graph {
         while (serializedVertexIter.hasNext()) {
             final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
             try {
-                final VertexRef vertexRef = (VertexRef) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
-                vertices.put(vertexRef.id, vertexRef);
-                getElementsByLabel(verticesByLabel, vertexRef.label()).add(vertexRef);
+                final NodeRef nodeRef = (NodeRef) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
+                vertices.put(nodeRef.id, nodeRef);
+                getElementsByLabel(verticesByLabel, nodeRef.label()).add(nodeRef);
                 importCount++;
                 if (importCount % 131072 == 0) {
                     logger.debug("imported " + importCount + " elements - still running...");
                 }
-                if (vertexRef.id > maxId) maxId = vertexRef.id;
+                if (nodeRef.id > maxId) maxId = nodeRef.id;
             } catch (IOException e) {
                 throw new RuntimeException("error while initializing vertex from storage: id=" + entry.getKey(), e);
             }

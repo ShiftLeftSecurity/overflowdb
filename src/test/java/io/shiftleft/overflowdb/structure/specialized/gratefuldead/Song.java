@@ -1,14 +1,13 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.NodeRef;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.OverflowDbTestEdge;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
 import io.shiftleft.overflowdb.structure.TinkerGraph;
-import io.shiftleft.overflowdb.structure.VertexRef;
-import io.shiftleft.overflowdb.structure.VertexRefWithLabel;
+import io.shiftleft.overflowdb.structure.NodeRefWithLabel;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.Arrays;
@@ -17,7 +16,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 public class Song extends OverflowDbNode {
   public static final String label = "song";
@@ -32,7 +30,7 @@ public class Song extends OverflowDbNode {
   private Integer performances;
   private int[] testProp;
 
-  protected Song(VertexRef ref) {
+  protected Song(NodeRef ref) {
     super(ref);
   }
 
@@ -129,21 +127,21 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public Song createVertex(VertexRef<Song> ref) {
+    public Song createVertex(NodeRef<Song> ref) {
       return new Song(ref);
     }
 
     @Override
     public Song createVertex(Long id, TinkerGraph graph) {
-      final VertexRef<Song> ref = createVertexRef(id, graph);
+      final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
       ref.setElement(node);
       return node;
     }
 
     @Override
-    public VertexRef<Song> createVertexRef(Long id, TinkerGraph graph) {
-      return new VertexRefWithLabel<>(id, graph, null, Song.label);
+    public NodeRef<Song> createVertexRef(Long id, TinkerGraph graph) {
+      return new NodeRefWithLabel<>(id, graph, null, Song.label);
     }
   };
 

@@ -9,16 +9,16 @@ public class OverflowElementFactory {
 
     V createVertex(Long id, TinkerGraph graph);
 
-    V createVertex(VertexRef<V> ref);
+    V createVertex(NodeRef<V> ref);
 
-    VertexRef<V> createVertexRef(Long id, TinkerGraph graph);
+    NodeRef<V> createVertexRef(Long id, TinkerGraph graph);
   }
 
 
   public interface ForEdge<E extends OverflowDbEdge> {
     String forLabel();
 
-    E createEdge(TinkerGraph graph, VertexRef outVertex, VertexRef inVertex);
+    E createEdge(TinkerGraph graph, NodeRef outVertex, NodeRef inVertex);
   }
 
 }

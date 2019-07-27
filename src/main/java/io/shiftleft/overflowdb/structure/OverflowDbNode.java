@@ -29,7 +29,7 @@ import java.util.stream.StreamSupport;
  */
 public abstract class OverflowDbNode implements Vertex {
 
-  public final VertexRef<Vertex> ref;
+  public final NodeRef<Vertex> ref;
 
   /**
    * holds refs to all adjacent nodes (a.k.a. dummy edges) and the edge properties
@@ -40,7 +40,7 @@ public abstract class OverflowDbNode implements Vertex {
    * i.e. each outgoing edge type has two entries in this array. */
   private int[] edgeOffsets;
 
-  protected OverflowDbNode(VertexRef<Vertex> ref) {
+  protected OverflowDbNode(NodeRef<Vertex> ref) {
     this.ref = ref;
 
     ref.setElement(this);
@@ -243,16 +243,16 @@ public abstract class OverflowDbNode implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    final VertexRef<OverflowDbNode> inVertexRef;
-    if (inVertex instanceof VertexRef) inVertexRef = (VertexRef<OverflowDbNode>) inVertex;
-    else inVertexRef = (VertexRef<OverflowDbNode>) ref.graph.vertex((Long) inVertex.id());
-    OverflowDbNode inVertexOdb = inVertexRef.get();
-    VertexRef<OverflowDbNode> thisVertexRef = (VertexRef) ref.graph.vertex((Long) id());
+    final NodeRef<OverflowDbNode> inNodeRef;
+    if (inVertex instanceof NodeRef) inNodeRef = (NodeRef<OverflowDbNode>) inVertex;
+    else inNodeRef = (NodeRef<OverflowDbNode>) ref.graph.vertex((Long) inVertex.id());
+    OverflowDbNode inVertexOdb = inNodeRef.get();
+    NodeRef<OverflowDbNode> thisNodeRef = (NodeRef) ref.graph.vertex((Long) id());
 
-    int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inVertexRef, keyValues);
-    int inBlockOffset = inVertexOdb.storeAdjacentNode(Direction.IN, label, thisVertexRef, keyValues);
+    int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
+    int inBlockOffset = inVertexOdb.storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
-    OverflowDbEdge dummyEdge = instantiateDummyEdge(label, thisVertexRef, inVertexRef);
+    OverflowDbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
     dummyEdge.setOutBlockOffset(outBlockOffset);
     dummyEdge.setInBlockOffset(inBlockOffset);
 
@@ -305,7 +305,7 @@ public abstract class OverflowDbNode implements Vertex {
    */
   public int blockOffsetToOccurrence(Direction direction,
                                      String label,
-                                     VertexRef<OverflowDbNode> otherVertex,
+                                     NodeRef<OverflowDbNode> otherVertex,
                                      int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
@@ -313,7 +313,7 @@ public abstract class OverflowDbNode implements Vertex {
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
-      if (((VertexRef) adjacentVerticesWithProperties[i]).id().equals(otherVertex.id())) {
+      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(otherVertex.id())) {
         occurrenceCount++;
       }
     }
@@ -330,7 +330,7 @@ public abstract class OverflowDbNode implements Vertex {
    */
   public int occurrenceToBlockOffset(Direction direction,
                                      String label,
-                                     VertexRef<OverflowDbNode> adjacentVertex,
+                                     NodeRef<OverflowDbNode> adjacentVertex,
                                      int occurrence) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
@@ -339,7 +339,7 @@ public abstract class OverflowDbNode implements Vertex {
 
     int currentOccurrence = 0;
     for (int i = start; i < start + length; i += strideSize) {
-      if (((VertexRef) adjacentVerticesWithProperties[i]).id().equals(adjacentVertex.id())) {
+      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(adjacentVertex.id())) {
         if (currentOccurrence == occurrence) {
           int adjacentVertexIndex = i - start;
           return adjacentVertexIndex;
@@ -360,7 +360,7 @@ public abstract class OverflowDbNode implements Vertex {
    *
    * @param blockOffset must have been initialized
    */
-  protected void removeEdge(Direction direction, String label, VertexRef<OverflowDbNode> adjacentVertex, int blockOffset) {
+  protected void removeEdge(Direction direction, String label, NodeRef<OverflowDbNode> adjacentVertex, int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos) + blockOffset;
     int strideSize = getStrideSize(label);
@@ -379,13 +379,13 @@ public abstract class OverflowDbNode implements Vertex {
       int strideSize = getStrideSize(label);
 
       return new DummyEdgeIterator(adjacentVerticesWithProperties, start, start + length, strideSize,
-          direction, label, (VertexRef) ref);
+          direction, label, (NodeRef) ref);
     } else {
       return Collections.emptyIterator();
     }
   }
 
-  private Iterator<VertexRef> createAdjacentVertexIterator(Direction direction, String label) {
+  private Iterator<NodeRef> createAdjacentVertexIterator(Direction direction, String label) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
@@ -400,7 +400,7 @@ public abstract class OverflowDbNode implements Vertex {
 
   private int storeAdjacentNode(Direction direction,
                                 String edgeLabel,
-                                VertexRef<OverflowDbNode> nodeRef,
+                                NodeRef<OverflowDbNode> nodeRef,
                                 Object... edgeKeyValues) {
     int blockOffset = storeAdjacentNode(direction, edgeLabel, nodeRef);
 
@@ -416,7 +416,7 @@ public abstract class OverflowDbNode implements Vertex {
     return blockOffset;
   }
 
-  private int storeAdjacentNode(Direction direction, String edgeLabel, VertexRef<OverflowDbNode> nodeRef) {
+  private int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef<OverflowDbNode> nodeRef) {
     int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
     if (offsetPos == -1) {
       throw new RuntimeException("Edge of type " + edgeLabel + " with direction " + direction +
@@ -529,8 +529,8 @@ public abstract class OverflowDbNode implements Vertex {
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
   protected OverflowDbEdge instantiateDummyEdge(String label,
-                                                VertexRef<OverflowDbNode> outVertex,
-                                                VertexRef<OverflowDbNode> inVertex) {
+                                                NodeRef<OverflowDbNode> outVertex,
+                                                NodeRef<OverflowDbNode> inVertex) {
     final OverflowElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");

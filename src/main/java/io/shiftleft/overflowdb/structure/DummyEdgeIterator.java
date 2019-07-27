@@ -14,10 +14,10 @@ class DummyEdgeIterator implements Iterator<Edge> {
   private final int strideSize;
   private final Direction direction;
   private final String label;
-  private final VertexRef<OverflowDbNode> thisRef;
+  private final NodeRef<OverflowDbNode> thisRef;
 
   public DummyEdgeIterator(Object[] array, int begin, int exclusiveEnd, int strideSize,
-                    Direction direction, String label, VertexRef<OverflowDbNode> thisRef) {
+                    Direction direction, String label, NodeRef<OverflowDbNode> thisRef) {
     this.array = array;
     this.begin = begin;
     this.current = begin;
@@ -41,7 +41,7 @@ class DummyEdgeIterator implements Iterator<Edge> {
   public Edge next() {
     if (!hasNext()) throw new NoSuchElementException();
 
-    VertexRef<OverflowDbNode> otherRef = (VertexRef<OverflowDbNode>) array[current];
+    NodeRef<OverflowDbNode> otherRef = (NodeRef<OverflowDbNode>) array[current];
     OverflowDbEdge dummyEdge;
     if (direction == Direction.OUT) {
       dummyEdge = thisRef.element.instantiateDummyEdge(label, thisRef, otherRef);

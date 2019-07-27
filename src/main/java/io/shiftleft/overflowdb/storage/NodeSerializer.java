@@ -1,8 +1,8 @@
 package io.shiftleft.overflowdb.storage;
 
+import io.shiftleft.overflowdb.structure.NodeRef;
 import org.apache.commons.lang3.NotImplementedException;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.VertexRef;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.slf4j.Logger;
@@ -73,9 +73,9 @@ public class NodeSerializer {
     if (value == null) {
       packer.packByte(ValueTypes.UNKNOWN.id);
       packer.packNil();
-    } else if (value instanceof VertexRef) {
+    } else if (value instanceof NodeRef) {
       packer.packByte(ValueTypes.VERTEX_REF.id);
-      packer.packLong(((VertexRef) value).id);
+      packer.packLong(((NodeRef) value).id);
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);
