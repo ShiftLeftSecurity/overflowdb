@@ -8,7 +8,7 @@ public class OverflowDbTestEdge extends OverflowDbEdge {
     public static final String LONG_PROPERTY = "longProperty";
     public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(LONG_PROPERTY));
 
-    public OverflowDbTestEdge(TinkerGraph graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
+    public OverflowDbTestEdge(OverflowDb graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
         super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
     }
 
@@ -25,7 +25,7 @@ public class OverflowDbTestEdge extends OverflowDbEdge {
         }
 
         @Override
-        public OverflowDbTestEdge createEdge(TinkerGraph graph, NodeRef outVertex, NodeRef inVertex) {
+        public OverflowDbTestEdge createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
             return new OverflowDbTestEdge(graph, outVertex, inVertex);
         }
     };

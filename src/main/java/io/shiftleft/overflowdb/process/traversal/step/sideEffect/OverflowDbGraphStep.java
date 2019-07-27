@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.process.traversal.step.sideEffect;
 
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -12,21 +13,15 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * @author Marko A. Rodriguez (http://markorodriguez.com)
- * @author Pieter Martin
- */
-public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E> implements HasContainerHolder {
+public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S, E> implements HasContainerHolder {
 
     private final List<HasContainer> hasContainers = new ArrayList<>();
 
-    public TinkerGraphStep(final GraphStep<S, E> originalGraphStep) {
+    public OverflowDbGraphStep(final GraphStep<S, E> originalGraphStep) {
         super(originalGraphStep.getTraversal(), originalGraphStep.getReturnClass(), originalGraphStep.isStartStep(), originalGraphStep.getIds());
         originalGraphStep.getLabels().forEach(this::addLabel);
 
@@ -38,7 +33,7 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
     }
 
     private Iterator<? extends Edge> edges() {
-        final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
+        final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
         final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
         // ids are present, filter on them first
         if (null == this.ids)
@@ -50,7 +45,7 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
     }
 
     private Iterator<? extends Vertex> vertices() {
-        final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
+        final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
         final HasContainer indexedContainer = getIndexKey(Vertex.class);
         final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
         // ids are present, filter on them first
@@ -83,7 +78,7 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
     }
 
     private HasContainer getIndexKey(final Class<? extends Element> indexedClass) {
-        final Set<String> indexedKeys = ((TinkerGraph) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
+        final Set<String> indexedKeys = ((OverflowDb) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
 
         final Iterator<HasContainer> itty = IteratorUtils.filter(hasContainers.iterator(),
                 c -> c.getPredicate().getBiPredicate() == Compare.eq && indexedKeys.contains(c.getKey()));

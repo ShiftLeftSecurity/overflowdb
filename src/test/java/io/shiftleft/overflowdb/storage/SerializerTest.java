@@ -13,7 +13,7 @@ public class SerializerTest {
 
   @Test
   public void serializeVertex() throws IOException {
-    try (TinkerGraph graph = newGraph()) {
+    try (OverflowDb graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
       Vertex vertexRef = graph.addVertex(
@@ -40,7 +40,7 @@ public class SerializerTest {
 
   @Test
   public void serializeWithEdge() throws IOException {
-    try (TinkerGraph graph = newGraph()) {
+    try (OverflowDb graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
 
@@ -70,14 +70,14 @@ public class SerializerTest {
     }
   }
 
-  private NodeDeserializer newDeserializer(TinkerGraph graph) {
+  private NodeDeserializer newDeserializer(OverflowDb graph) {
     Map<String, OverflowElementFactory.ForNode> vertexFactories = new HashMap();
     vertexFactories.put(OverflowDbTestNode.label, OverflowDbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }
 
-  private TinkerGraph newGraph() {
-    return TinkerGraph.open(
+  private OverflowDb newGraph() {
+    return OverflowDb.open(
         Arrays.asList(OverflowDbTestNode.factory),
         Arrays.asList(OverflowDbTestEdge.factory)
     );

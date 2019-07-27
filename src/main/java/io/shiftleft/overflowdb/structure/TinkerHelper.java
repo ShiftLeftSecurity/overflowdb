@@ -27,11 +27,11 @@ public final class TinkerHelper {
 //        edges.add(edge);
 //    }
 //
-//    public static List<Vertex> queryVertexIndex(final TinkerGraph graph, final String key, final Object value) {
+//    public static List<Vertex> queryVertexIndex(final OverflowDb graph, final String key, final Object value) {
 //        return null == graph.vertexIndex ? Collections.emptyList() : graph.vertexIndex.get(key, value);
 //    }
 //
-//    public static List<Edge> queryEdgeIndex(final TinkerGraph graph, final String key, final Object value) {
+//    public static List<Edge> queryEdgeIndex(final OverflowDb graph, final String key, final Object value) {
 //        return Collections.emptyList();
 //    }
 //
@@ -40,38 +40,38 @@ public final class TinkerHelper {
 //    }
 
 //    public static void autoUpdateIndex(final Edge edge, final String key, final Object newValue, final Object oldValue) {
-//        final TinkerGraph graph = (TinkerGraph) edge.graph();
+//        final OverflowDb graph = (OverflowDb) edge.graph();
 //
 //        if (graph.edgeIndex != null)
 //            graph.edgeIndex.autoUpdate(key, newValue, oldValue, edge);
 //    }
 
     public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
-        final TinkerGraph graph = (TinkerGraph) vertex.graph();
+        final OverflowDb graph = (OverflowDb) vertex.graph();
         if (graph.vertexIndex != null)
             graph.vertexIndex.autoUpdate(key, newValue, oldValue, vertex);
     }
 
     public static void removeElementIndex(final Vertex vertex) {
-        final TinkerGraph graph = (TinkerGraph) vertex.graph();
+        final OverflowDb graph = (OverflowDb) vertex.graph();
         if (graph.vertexIndex != null)
             graph.vertexIndex.removeElement(vertex);
     }
 
 //    public static void removeElementIndex(final Edge edge) {
-//        final TinkerGraph graph = (TinkerGraph) edge.graph();
+//        final OverflowDb graph = (OverflowDb) edge.graph();
 //        if (graph.edgeIndex != null)
 //            graph.edgeIndex.removeElement(edge);
 //    }
 //
 //    public static void removeIndex(final TinkerVertex vertex, final String key, final Object value) {
-//        final TinkerGraph graph = (TinkerGraph) vertex.graph();
+//        final OverflowDb graph = (OverflowDb) vertex.graph();
 //        if (graph.vertexIndex != null)
 //            graph.vertexIndex.remove(key, value, vertex);
 //    }
 
 //    public static void removeIndex(final TinkerEdge edge, final String key, final Object value) {
-//        final TinkerGraph graph = (TinkerGraph) edge.graph();
+//        final OverflowDb graph = (OverflowDb) edge.graph();
 //        if (graph.edgeIndex != null)
 //            graph.edgeIndex.remove(key, value, edge);
 //    }

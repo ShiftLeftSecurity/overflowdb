@@ -1,13 +1,13 @@
 package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import io.shiftleft.overflowdb.structure.ElementRef;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
@@ -23,12 +23,12 @@ import java.util.Map;
 
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  protected final TinkerGraph graph;
+  protected final OverflowDb graph;
   protected final Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(TinkerGraph graph, Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel) {
+  public NodeDeserializer(OverflowDb graph, Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel) {
     this.graph = graph;
     this.vertexFactoryByLabel = vertexFactoryByLabel;
   }

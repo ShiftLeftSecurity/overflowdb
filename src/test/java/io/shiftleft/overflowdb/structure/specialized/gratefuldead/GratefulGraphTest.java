@@ -1,6 +1,7 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
@@ -9,7 +10,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class GratefulGraphTest {
 
   @Test
   public void simpleTest() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
@@ -50,7 +50,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldAllowToSpecifyIds() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
 
     Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
     Vertex v20 = graph.addVertex(T.id, 20l, T.label, Song.label, Song.NAME, "Song 20");
@@ -62,7 +62,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldReturnElementRefs() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
@@ -74,7 +74,7 @@ public class GratefulGraphTest {
   @Test
   /* ensure these are identical for both ondisk overflow enabled/disabled */
   public void optimizationStrategyAffectedSteps() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
 
     // using `g.V().hasLabel(lbl)` optimization
     assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
@@ -103,11 +103,11 @@ public class GratefulGraphTest {
 
   @Test
   public void gratefulDeadGraph() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
 
     List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
     assertEquals(garcias.size(), 1);
-    NodeRef nodeRef = (NodeRef) garcias.get(0); // Tinkergraph returns VertexRefs for overflow
+    NodeRef nodeRef = (NodeRef) garcias.get(0);
     Artist garcia = (Artist) nodeRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
     assertEquals("Garcia", garcia.getName());
     graph.close();
@@ -115,7 +115,7 @@ public class GratefulGraphTest {
 
   @Test
   public void testBasicSteps() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
     Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
     // inE
@@ -151,7 +151,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldAllowAddingElementsAndSettingProperties() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
 
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
@@ -173,7 +173,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportEdgeRemoval() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
@@ -189,7 +189,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportVertexRemoval1() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     song1.addEdge(FollowedBy.LABEL, song2);
@@ -208,7 +208,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportVertexRemoval2() {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     song1.addEdge(FollowedBy.LABEL, song2);
@@ -234,7 +234,7 @@ public class GratefulGraphTest {
     Double avgTimeWithoutIndex = null;
 
     { // tests with index
-      TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
       graph.createIndex("weight", Edge.class);
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
@@ -243,7 +243,7 @@ public class GratefulGraphTest {
     }
 
     { // tests without index
-      TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
@@ -264,7 +264,7 @@ public class GratefulGraphTest {
     Double avgTimeWithoutIndex = null;
 
     { // tests with index
-      TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+      OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
       graph.createIndex("weight", Edge.class);
       loadGraphMl(graph);
       GraphTraversalSource g = graph.traversal();
@@ -274,7 +274,7 @@ public class GratefulGraphTest {
     }
 
     { // tests without index
-      TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
@@ -289,7 +289,7 @@ public class GratefulGraphTest {
 
   @Test
   public void handleEmptyProperties() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElementsWithData();
 
     List<Object> props1 = graph.traversal().V().values("foo").toList();
     // results will be empty, but it should't crash. see https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/issues/12
@@ -297,10 +297,10 @@ public class GratefulGraphTest {
     graph.close();
   }
 
-  private TinkerGraph newGratefulDeadGraphWithSpecializedElements() {
-    Configuration configuration = TinkerGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(TinkerGraph.SWAPPING_ENABLED, false);
-    return TinkerGraph.open(
+  private OverflowDb newGratefulDeadGraphWithSpecializedElements() {
+    Configuration configuration = OverflowDb.EMPTY_CONFIGURATION();
+    configuration.setProperty(OverflowDb.SWAPPING_ENABLED, false);
+    return OverflowDb.open(
         configuration,
         Arrays.asList(Song.factory, Artist.factory),
         Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
@@ -308,13 +308,13 @@ public class GratefulGraphTest {
   }
 
   //
-  private TinkerGraph newGratefulDeadGraphWithSpecializedElementsWithData() throws IOException {
-    TinkerGraph graph = newGratefulDeadGraphWithSpecializedElements();
+  private OverflowDb newGratefulDeadGraphWithSpecializedElementsWithData() throws IOException {
+    OverflowDb graph = newGratefulDeadGraphWithSpecializedElements();
     loadGraphMl(graph);
     return graph;
   }
 
-  private void loadGraphMl(TinkerGraph graph) throws IOException {
+  private void loadGraphMl(OverflowDb graph) throws IOException {
     graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
   }
 

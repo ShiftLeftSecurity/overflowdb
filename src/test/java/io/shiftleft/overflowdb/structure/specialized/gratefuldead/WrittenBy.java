@@ -2,10 +2,10 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import io.shiftleft.overflowdb.structure.OverflowDbEdge;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -15,7 +15,7 @@ public class WrittenBy extends OverflowDbEdge implements Serializable {
   public static final String LABEL = "writtenBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
-  public WrittenBy(TinkerGraph graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
+  public WrittenBy(OverflowDb graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -28,7 +28,7 @@ public class WrittenBy extends OverflowDbEdge implements Serializable {
     }
 
     @Override
-    public WrittenBy createEdge(TinkerGraph graph, NodeRef outVertex, NodeRef inVertex) {
+    public WrittenBy createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
       return new WrittenBy(graph, outVertex, inVertex);
     }
   };

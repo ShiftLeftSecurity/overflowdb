@@ -7,7 +7,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategy;
 import org.apache.tinkerpop.gremlin.process.traversal.step.TraversalParent;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.CountGlobalStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.GraphStep;
-import org.apache.tinkerpop.gremlin.process.traversal.step.map.MapStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.map.NoOpBarrierStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.AggregateStep;
 import org.apache.tinkerpop.gremlin.process.traversal.step.sideEffect.IdentityStep;
@@ -34,11 +33,11 @@ import java.util.Set;
  * g.E().label().count()       // is replaced by TinkerCountGlobalStep
  * </pre>
  */
-public final class TinkerGraphCountStrategy extends AbstractTraversalStrategy<TraversalStrategy.ProviderOptimizationStrategy> implements TraversalStrategy.ProviderOptimizationStrategy {
+public final class CountStrategy extends AbstractTraversalStrategy<TraversalStrategy.ProviderOptimizationStrategy> implements TraversalStrategy.ProviderOptimizationStrategy {
 
-    private static final TinkerGraphCountStrategy INSTANCE = new TinkerGraphCountStrategy();
+    private static final CountStrategy INSTANCE = new CountStrategy();
 
-    private TinkerGraphCountStrategy() {
+    private CountStrategy() {
     }
 
     @Override
@@ -68,10 +67,10 @@ public final class TinkerGraphCountStrategy extends AbstractTraversalStrategy<Tr
 
     @Override
     public Set<Class<? extends ProviderOptimizationStrategy>> applyPost() {
-        return Collections.singleton(TinkerGraphStepStrategy.class);
+        return Collections.singleton(OverflowDbGraphStepStrategy.class);
     }
 
-    public static TinkerGraphCountStrategy instance() {
+    public static CountStrategy instance() {
         return INSTANCE;
     }
 }

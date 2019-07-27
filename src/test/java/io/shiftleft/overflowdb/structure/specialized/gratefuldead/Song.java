@@ -1,12 +1,12 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 import io.shiftleft.overflowdb.structure.NodeRefWithLabel;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
@@ -132,7 +132,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public Song createVertex(Long id, TinkerGraph graph) {
+    public Song createVertex(Long id, OverflowDb graph) {
       final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
       ref.setElement(node);
@@ -140,7 +140,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Song> createVertexRef(Long id, TinkerGraph graph) {
+    public NodeRef<Song> createVertexRef(Long id, OverflowDb graph) {
       return new NodeRefWithLabel<>(id, graph, null, Song.label);
     }
   };

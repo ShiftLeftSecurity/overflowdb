@@ -12,11 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
-public final class TinkerGraphVariables implements Graph.Variables {
+public final class GraphVariables implements Graph.Variables {
 
     private final Map<String, Object> variables = new ConcurrentHashMap<>();
 
-    public TinkerGraphVariables() {
+    public GraphVariables() {
 
     }
 

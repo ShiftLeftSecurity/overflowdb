@@ -13,7 +13,7 @@ public class FollowedBy extends OverflowDbEdge {
     return (Integer) property(WEIGHT).value();
   }
 
-  public FollowedBy(TinkerGraph graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
+  public FollowedBy(OverflowDb graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -26,7 +26,7 @@ public class FollowedBy extends OverflowDbEdge {
     }
 
     @Override
-    public FollowedBy createEdge(TinkerGraph graph, NodeRef outVertex, NodeRef inVertex) {
+    public FollowedBy createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
       return new FollowedBy(graph, outVertex, inVertex);
     }
   };

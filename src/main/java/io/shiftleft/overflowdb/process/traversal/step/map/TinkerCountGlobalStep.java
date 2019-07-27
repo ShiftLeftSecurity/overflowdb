@@ -1,6 +1,7 @@
 
 package io.shiftleft.overflowdb.process.traversal.step.map;
 
+import io.shiftleft.overflowdb.structure.OverflowDb;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
@@ -10,7 +11,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementExce
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import io.shiftleft.overflowdb.structure.TinkerGraph;
 
 import java.util.NoSuchElementException;
 
@@ -31,7 +31,7 @@ public final class TinkerCountGlobalStep<S extends Element> extends AbstractStep
     protected Traverser.Admin<Long> processNextStart() throws NoSuchElementException {
         if (!this.done) {
             this.done = true;
-            final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
+            final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
             final long size;
             if (Vertex.class.isAssignableFrom(this.elementClass)) {
                 size = graph.vertexCount();

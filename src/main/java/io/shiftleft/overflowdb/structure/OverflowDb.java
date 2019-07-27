@@ -22,8 +22,8 @@ import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import io.shiftleft.overflowdb.process.traversal.strategy.optimization.TinkerGraphCountStrategy;
-import io.shiftleft.overflowdb.process.traversal.strategy.optimization.TinkerGraphStepStrategy;
+import io.shiftleft.overflowdb.process.traversal.strategy.optimization.CountStrategy;
+import io.shiftleft.overflowdb.process.traversal.strategy.optimization.OverflowDbGraphStepStrategy;
 import io.shiftleft.overflowdb.storage.OndiskOverflow;
 import io.shiftleft.overflowdb.storage.NodeDeserializer;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -44,18 +44,18 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-public final class TinkerGraph implements Graph {
+public final class OverflowDb implements Graph {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     static {
-        TraversalStrategies.GlobalCache.registerStrategies(TinkerGraph.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
-                TinkerGraphStepStrategy.instance(),
-                TinkerGraphCountStrategy.instance()));
+        TraversalStrategies.GlobalCache.registerStrategies(OverflowDb.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
+                OverflowDbGraphStepStrategy.instance(),
+                CountStrategy.instance()));
     }
 
     public static final Configuration EMPTY_CONFIGURATION() {
         return new BaseConfiguration() {{
-            this.setProperty(Graph.GRAPH, TinkerGraph.class.getName());
+            this.setProperty(Graph.GRAPH, OverflowDb.class.getName());
             this.setProperty(SWAPPING_HEAP_PERCENTAGE_THRESHOLD, 80);
             this.setProperty(SWAPPING_ENABLED, true);
         }};
@@ -68,13 +68,13 @@ public final class TinkerGraph implements Graph {
      * start to clear some references, i.e. write them to storage and set them to `null` */
     public static final String SWAPPING_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.swapping.heapPercentageThreshold";
 
-    private final TinkerGraphFeatures features = new TinkerGraphFeatures();
+    private final GraphFeatures features = new GraphFeatures();
     protected AtomicLong currentId = new AtomicLong(-1L);
     // note: if on-disk overflow enabled, these [Vertex|Edge] values are [NodeRef|ElementRef]
     protected TLongObjectMap<Vertex> vertices;
     protected THashMap<String, Set<Vertex>> verticesByLabel;
 
-    protected TinkerGraphVariables variables = null;
+    protected GraphVariables variables = null;
     protected TinkerIndex<Vertex> vertexIndex = null;
     protected final IdManager vertexIdManager;
 
@@ -88,9 +88,9 @@ public final class TinkerGraph implements Graph {
     protected OndiskOverflow ondiskOverflow;
     protected ReferenceManager referenceManager;
 
-    private TinkerGraph(final Configuration configuration,
-                        Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
-                        Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
+    private OverflowDb(final Configuration configuration,
+                       Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
+                       Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
         this.configuration = configuration;
         this.nodeFactoryByLabel = nodeFactoryByLabel;
         this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -146,19 +146,19 @@ public final class TinkerGraph implements Graph {
     }
 
     /**
-     * Open a new {@link TinkerGraph} instance.
+     * Open a new {@link OverflowDb} instance.
      * <p/>
      * <b>Reference Implementation Help:</b> If a {@link Graph} implementation does not require a {@code Configuration}
      * (or perhaps has a default configuration) it can choose to implement a zero argument
-     * {@code open()} method. This is an optional constructor method for TinkerGraph. It is not enforced by the Gremlin
+     * {@code open()} method. This is an optional constructor method for OverflowDb. It is not enforced by the Gremlin
      * Test Suite.
      */
-    public static TinkerGraph open() {
+    public static OverflowDb open() {
         return open(EMPTY_CONFIGURATION());
     }
 
     /**
-     * Open a new {@code TinkerGraph} instance.
+     * Open a new {@code OverflowDb} instance.
      * <p/>
      * <b>Reference Implementation Help:</b> This method is the one use by the {@link GraphFactory} to instantiate
      * {@link Graph} instances.  This method must be overridden for the Structure Test Suite to pass. Implementers have
@@ -170,24 +170,24 @@ public final class TinkerGraph implements Graph {
      * @param configuration the configuration for the instance
      * @return a newly opened {@link Graph}
      */
-    public static TinkerGraph open(final Configuration configuration) {
-        return new TinkerGraph(configuration, new HashMap<>(), new HashMap<>());
+    public static OverflowDb open(final Configuration configuration) {
+        return new OverflowDb(configuration, new HashMap<>(), new HashMap<>());
     }
 
 
-    public static TinkerGraph open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                   List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
+    public static OverflowDb open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
+                                  List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
         return open(EMPTY_CONFIGURATION(), nodeFactories, edgeFactories);
     }
 
-    public static TinkerGraph open(final Configuration configuration,
-                                   List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                   List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
+    public static OverflowDb open(final Configuration configuration,
+                                  List<OverflowElementFactory.ForNode<?>> nodeFactories,
+                                  List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
         Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
         Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
         nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
         edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-        return new TinkerGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+        return new OverflowDb(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
     }
 
     ////////////// STRUCTURE API METHODS //////////////////
@@ -219,7 +219,7 @@ public final class TinkerGraph implements Graph {
         final Vertex vertex;
         if (!nodeFactoryByLabel.containsKey(label)) {
             throw new IllegalArgumentException(
-                "this instance of TinkerGraph uses specialized elements, but doesn't have a factory for label " + label
+                "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
                     + ". Mixing specialized and generic elements is not (yet) supported");
         }
         final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
@@ -243,7 +243,7 @@ public final class TinkerGraph implements Graph {
     @Override
     public Variables variables() {
         if (null == this.variables)
-            this.variables = new TinkerGraphVariables();
+            this.variables = new GraphVariables();
         return this.variables;
     }
 
@@ -347,7 +347,7 @@ public final class TinkerGraph implements Graph {
     }
 
     /**
-     * Return TinkerGraph feature set.
+     * Return OverflowDb feature set.
      * <p/>
      * <b>Reference Implementation Help:</b> Implementers only need to implement features for which there are
      * negative or instance configured features.  By default, all
@@ -375,13 +375,13 @@ public final class TinkerGraph implements Graph {
         return closed;
     }
 
-    public class TinkerGraphFeatures implements Features {
+    public class GraphFeatures implements Features {
 
-        private final TinkerGraphGraphFeatures graphFeatures = new TinkerGraphGraphFeatures();
-        private final TinkerGraphEdgeFeatures edgeFeatures = new TinkerGraphEdgeFeatures();
-        private final TinkerGraphVertexFeatures vertexFeatures = new TinkerGraphVertexFeatures();
+        private final OdbGraphFeatures graphFeatures = new OdbGraphFeatures();
+        private final OdbEdgeFeatures edgeFeatures = new OdbEdgeFeatures();
+        private final OdbVertexFeatures vertexFeatures = new OdbVertexFeatures();
 
-        private TinkerGraphFeatures() {
+        private GraphFeatures() {
         }
 
         @Override
@@ -406,11 +406,11 @@ public final class TinkerGraph implements Graph {
 
     }
 
-    public class TinkerGraphVertexFeatures implements Features.VertexFeatures {
+    public class OdbVertexFeatures implements Features.VertexFeatures {
 
-        private final TinkerGraphVertexPropertyFeatures vertexPropertyFeatures = new TinkerGraphVertexPropertyFeatures();
+        private final OdbVertexPropertyFeatures vertexPropertyFeatures = new OdbVertexPropertyFeatures();
 
-        private TinkerGraphVertexFeatures() {
+        private OdbVertexFeatures() {
         }
 
         @Override
@@ -434,9 +434,9 @@ public final class TinkerGraph implements Graph {
         }
     }
 
-    public class TinkerGraphEdgeFeatures implements Features.EdgeFeatures {
+    public class OdbEdgeFeatures implements Features.EdgeFeatures {
 
-        private TinkerGraphEdgeFeatures() {
+        private OdbEdgeFeatures() {
         }
 
         @Override
@@ -450,9 +450,9 @@ public final class TinkerGraph implements Graph {
         }
     }
 
-    public class TinkerGraphGraphFeatures implements Features.GraphFeatures {
+    public class OdbGraphFeatures implements Features.GraphFeatures {
 
-        private TinkerGraphGraphFeatures() {
+        private OdbGraphFeatures() {
         }
 
         @Override
@@ -472,9 +472,9 @@ public final class TinkerGraph implements Graph {
 
     }
 
-    public class TinkerGraphVertexPropertyFeatures implements Features.VertexPropertyFeatures {
+    public class OdbVertexPropertyFeatures implements Features.VertexPropertyFeatures {
 
-        private TinkerGraphVertexPropertyFeatures() {
+        private OdbVertexPropertyFeatures() {
         }
 
         @Override
@@ -539,15 +539,15 @@ public final class TinkerGraph implements Graph {
     }
 
     /**
-     * TinkerGraph will use an implementation of this interface to generate identifiers when a user does not supply
+     * OverflowDb will use an implementation of this interface to generate identifiers when a user does not supply
      * them and to handle identifier conversions when querying to provide better flexibility with respect to
      * handling different data types that mean the same thing.
      */
     class IdManager {
         /**
-         * Generate an identifier which should be unique to the {@link TinkerGraph} instance.
+         * Generate an identifier which should be unique to the {@link OverflowDb} instance.
          */
-        public Long getNextId(final TinkerGraph graph) {
+        public Long getNextId(final OverflowDb graph) {
             return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
         }
 

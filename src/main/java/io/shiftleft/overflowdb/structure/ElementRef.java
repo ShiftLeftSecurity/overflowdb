@@ -12,7 +12,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 public abstract class ElementRef<E extends Element> implements Element {
   public final long id;
 
-  protected final TinkerGraph graph;
+  protected final OverflowDb graph;
   protected E element;
   private boolean removed = false;
 
@@ -20,7 +20,7 @@ public abstract class ElementRef<E extends Element> implements Element {
    *  and please ensure it's available on disk */
   public ElementRef(final Object id, final Graph graph, E element) {
     this.id = (long)id;
-    this.graph = (TinkerGraph)graph;
+    this.graph = (OverflowDb)graph;
     this.element = element;
   }
 

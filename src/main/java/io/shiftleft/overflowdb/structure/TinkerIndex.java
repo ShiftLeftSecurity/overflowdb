@@ -22,9 +22,9 @@ final class TinkerIndex<T extends Element> {
     protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
     protected final Class<T> indexClass;
     private final Set<String> indexedKeys = new HashSet<>();
-    private final TinkerGraph graph;
+    private final OverflowDb graph;
 
-    public TinkerIndex(final TinkerGraph graph, final Class<T> indexClass) {
+    public TinkerIndex(final OverflowDb graph, final Class<T> indexClass) {
         this.graph = graph;
         this.indexClass = indexClass;
     }

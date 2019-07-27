@@ -141,7 +141,7 @@ public abstract class OverflowDbNode implements Vertex {
 
   @Override
   public void remove() {
-    TinkerGraph graph = ref.graph;
+    OverflowDb graph = ref.graph;
     final List<Edge> edges = new ArrayList<>();
     this.edges(Direction.BOTH).forEachRemaining(edges::add);
     edges.stream().filter(edge -> {
