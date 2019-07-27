@@ -29,7 +29,6 @@ import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
-import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerHelper;
 
 import java.util.NoSuchElementException;
 
@@ -53,7 +52,7 @@ public final class TinkerCountGlobalStep<S extends Element> extends AbstractStep
             final TinkerGraph graph = (TinkerGraph) this.getTraversal().getGraph().get();
             final long size;
             if (Vertex.class.isAssignableFrom(this.elementClass)) {
-                size = TinkerHelper.getVertices(graph).size();
+                size = graph.vertexCount();
             } else throw new NotImplementedException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
             return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
         } else

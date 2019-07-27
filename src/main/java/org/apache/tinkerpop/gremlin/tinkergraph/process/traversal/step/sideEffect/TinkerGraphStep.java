@@ -31,7 +31,6 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
-import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerHelper;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.*;
@@ -79,11 +78,15 @@ public final class TinkerGraphStep<S, E extends Element> extends GraphStep<S, E>
             return this.iteratorList(graph.vertices(this.ids));
         else if (graph.ondiskOverflowEnabled && hasLabelContainer.isPresent())
             return graph.verticesByLabel((P<String>) hasLabelContainer.get().getPredicate());
-        else
-            return null == indexedContainer ?
-                    this.iteratorList(graph.vertices()) :
-                    IteratorUtils.filter(TinkerHelper.queryVertexIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
-                            vertex -> HasContainer.testAll(vertex, this.hasContainers));
+        else {
+            if (indexedContainer == null) return this.iteratorList(graph.vertices());
+            else throw new NotImplementedException("");
+        }
+//            return null == indexedContainer ?
+//                    this.iteratorList(graph.vertices()) :
+//                      throw new NotImplementedException("");
+//                    IteratorUtils.filter(TinkerHelper.queryVertexIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
+//                            vertex -> HasContainer.testAll(vertex, this.hasContainers));
     }
 
     // only optimize if hasLabel is the _only_ hasContainer, since that's the simplest case

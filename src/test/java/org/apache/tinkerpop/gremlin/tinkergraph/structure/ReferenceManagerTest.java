@@ -19,6 +19,7 @@
 package org.apache.tinkerpop.gremlin.tinkergraph.structure;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.junit.Test;
 
@@ -47,13 +48,13 @@ public class ReferenceManagerTest {
     private class DummyElementRef extends ElementRef {
         private final String label;
 
-        public DummyElementRef(TinkerElement element) {
+        public DummyElementRef(Element element) {
             super(element.id(), element.graph(), element);
-            this.label = element.label;
+            this.label = element.label();
         }
 
         @Override
-        protected TinkerElement readFromDisk(long elementId) throws IOException {
+        protected Element readFromDisk(long elementId) throws IOException {
             throw new NotImplementedException("");
         }
 

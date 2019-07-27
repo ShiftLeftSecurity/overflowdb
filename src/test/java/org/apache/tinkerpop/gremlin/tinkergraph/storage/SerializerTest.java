@@ -50,7 +50,7 @@ public class SerializerTest {
       assertEquals(underlyingVertexDb.label(), deserialized.label());
       assertEquals(underlyingVertexDb.valueMap(), ((OverflowDbTestNode) deserialized).valueMap());
 
-      final ElementRef<TinkerVertex> deserializedRef = deserializer.deserializeRef(bytes);
+      final ElementRef<Vertex> deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(vertexRef.id(), deserializedRef.id);
       assertEquals(OverflowDbTestNode.label, deserializedRef.label());
     }

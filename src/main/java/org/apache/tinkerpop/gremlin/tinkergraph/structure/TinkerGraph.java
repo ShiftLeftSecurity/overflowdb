@@ -173,7 +173,7 @@ public final class TinkerGraph implements Graph {
         while (serializedVertexIter.hasNext()) {
             final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
             try {
-                final VertexRef<TinkerVertex> vertexRef = (VertexRef<TinkerVertex>) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
+                final VertexRef vertexRef = (VertexRef) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
                 vertices.put(vertexRef.id, vertexRef);
                 getElementsByLabel(verticesByLabel, vertexRef.label()).add(vertexRef);
                 importCount++;
@@ -264,19 +264,15 @@ public final class TinkerGraph implements Graph {
 
     private Vertex createVertex(final long idValue, final String label, final Object... keyValues) {
         final Vertex vertex;
-        if (nodeFactoryByLabel.containsKey(label)) {
-            final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
-            final OverflowDbNode underlying = factory.createVertex(idValue, this);
-            this.referenceManager.registerRef(underlying.ref);
-            vertex = underlying.ref;
-        } else { // vertex label not registered for a specialized factory, treating as generic vertex
-            if (this.usesSpecializedElements) {
-                throw new IllegalArgumentException(
-                  "this instance of TinkerGraph uses specialized elements, but doesn't have a factory for label " + label
+        if (!nodeFactoryByLabel.containsKey(label)) {
+            throw new IllegalArgumentException(
+                "this instance of TinkerGraph uses specialized elements, but doesn't have a factory for label " + label
                     + ". Mixing specialized and generic elements is not (yet) supported");
-            }
-            vertex = new TinkerVertex(idValue, label, this);
         }
+        final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
+        final OverflowDbNode underlying = factory.createVertex(idValue, this);
+        this.referenceManager.registerRef(underlying.ref);
+        vertex = underlying.ref;
         ElementHelper.attachProperties(vertex, VertexProperty.Cardinality.list, keyValues);
         return vertex;
     }
@@ -345,6 +341,10 @@ public final class TinkerGraph implements Graph {
     @Override
     public Iterator<Vertex> vertices(final Object... ids) {
         return createElementIterator(Vertex.class, vertices, vertexIdManager, ids);
+    }
+
+    public int vertexCount() {
+        return vertices.size();
     }
 
     public Iterator<Vertex> verticesByLabel(final P<String> labelPredicate) {
