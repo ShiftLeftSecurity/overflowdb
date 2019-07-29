@@ -78,7 +78,7 @@ public final class OverflowDb implements Graph {
   protected THashMap<String, Set<Vertex>> verticesByLabel;
 
   protected GraphVariables variables = null;
-  protected TinkerIndex<Vertex> vertexIndex = null;
+  protected Index<Vertex> vertexIndex = null;
   protected final IdManager vertexIdManager;
 
   protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
@@ -511,7 +511,7 @@ public final class OverflowDb implements Graph {
    */
   public <E extends Element> void createIndex(final String key, final Class<E> elementClass) {
     if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null == this.vertexIndex) this.vertexIndex = new TinkerIndex<>(this, Vertex.class);
+      if (null == this.vertexIndex) this.vertexIndex = new Index<>(this, Vertex.class);
       this.vertexIndex.createKeyIndex(key);
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);

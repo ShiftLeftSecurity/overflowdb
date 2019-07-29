@@ -129,7 +129,7 @@ public abstract class OverflowDbNode implements Vertex {
     synchronized (this) {
 //            this.modifiedSinceLastSerialization = true;
       final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
-      TinkerHelper.autoUpdateIndex(this, key, value, null);
+      Index.autoUpdateIndex(this, key, value, null);
       return vp;
     }
   }
@@ -151,7 +151,7 @@ public abstract class OverflowDbNode implements Vertex {
         return !((OverflowDbEdge) edge).isRemoved();
       }
     }).forEach(Edge::remove);
-    TinkerHelper.removeElementIndex(this);
+    Index.removeElementIndex(this);
     graph.vertices.remove((long) id());
     graph.getElementsByLabel(graph.verticesByLabel, label()).remove(this);
 
