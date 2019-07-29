@@ -315,7 +315,7 @@ public class GratefulGraphTest {
   }
 
   private void loadGraphMl(OverflowDb graph) throws IOException {
-    graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
+    graph.io(IoCore.graphml()).readGraph("tinkerpop3/src/test/resources/grateful-dead.xml");
   }
 
 }
