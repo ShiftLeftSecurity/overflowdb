@@ -12,12 +12,16 @@ public class SerializationStats {
     this.edgeGroupCount = edgeGroupCount;
   }
 
-  /** Key: serializationCount; Value: number of elements */
+  /**
+   * Key: serializationCount; Value: number of elements
+   */
   public Map<Integer, Integer> getVertexGroupCount() {
     return vertexGroupCount;
   }
 
-  /** Key: serializationCount; Value: number of elements */
+  /**
+   * Key: serializationCount; Value: number of elements
+   */
   public Map<Integer, Integer> getEdgeGroupCount() {
     return edgeGroupCount;
   }

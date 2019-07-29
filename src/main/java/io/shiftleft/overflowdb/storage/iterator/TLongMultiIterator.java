@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Analogous to `MultiIterator`, but specific for TLongIterators
  * This wouldn't be necessary if only java/trove iterators had `flatMap` :(
- * */
+ */
 public class TLongMultiIterator implements TLongIterator {
 
   private final List<TLongIterator> iterators;

@@ -2,15 +2,12 @@ package io.shiftleft.overflowdb.storage.iterator;
 
 import gnu.trove.iterator.TLongIterator;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
-
-import java.util.List;
 
 /**
  * A TLongIterator backed by an Array.
  * Technically this is nonsense - why would you use an Iterator it holds a element to all the data?
  * Since java arrays don't implement `Iterator`, I didn't find a better way.
- * */
+ */
 public class ArrayBackedTLongIterator implements TLongIterator {
 
   private final long[] array;

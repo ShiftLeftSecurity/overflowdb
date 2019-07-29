@@ -18,24 +18,37 @@ public enum ValueTypes {
   UNKNOWN((byte) 10);
 
   public final byte id;
+
   ValueTypes(byte id) {
     this.id = id;
   }
 
   public static ValueTypes lookup(byte id) {
     switch (id) {
-      case 0: return BOOLEAN;
-      case 1: return STRING;
-      case 2: return BYTE;
-      case 3: return SHORT;
-      case 4: return INTEGER;
-      case 5: return LONG;
-      case 6: return FLOAT;
-      case 7: return DOUBLE;
-      case 8: return LIST;
-      case 9: return VERTEX_REF;
-      case 10: return UNKNOWN;
-      default: throw new IllegalArgumentException("unknown id type " + id);
+      case 0:
+        return BOOLEAN;
+      case 1:
+        return STRING;
+      case 2:
+        return BYTE;
+      case 3:
+        return SHORT;
+      case 4:
+        return INTEGER;
+      case 5:
+        return LONG;
+      case 6:
+        return FLOAT;
+      case 7:
+        return DOUBLE;
+      case 8:
+        return LIST;
+      case 9:
+        return VERTEX_REF;
+      case 10:
+        return UNKNOWN;
+      default:
+        throw new IllegalArgumentException("unknown id type " + id);
     }
   }
 }

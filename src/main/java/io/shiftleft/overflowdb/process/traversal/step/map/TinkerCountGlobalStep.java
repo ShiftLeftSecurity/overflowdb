@@ -1,4 +1,3 @@
-
 package io.shiftleft.overflowdb.process.traversal.step.map;
 
 import io.shiftleft.overflowdb.structure.OverflowDb;
@@ -19,40 +18,40 @@ import java.util.NoSuchElementException;
  */
 public final class TinkerCountGlobalStep<S extends Element> extends AbstractStep<S, Long> {
 
-    private final Class<S> elementClass;
-    private boolean done = false;
+  private final Class<S> elementClass;
+  private boolean done = false;
 
-    public TinkerCountGlobalStep(final Traversal.Admin traversal, final Class<S> elementClass) {
-        super(traversal);
-        this.elementClass = elementClass;
-    }
+  public TinkerCountGlobalStep(final Traversal.Admin traversal, final Class<S> elementClass) {
+    super(traversal);
+    this.elementClass = elementClass;
+  }
 
-    @Override
-    protected Traverser.Admin<Long> processNextStart() throws NoSuchElementException {
-        if (!this.done) {
-            this.done = true;
-            final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
-            final long size;
-            if (Vertex.class.isAssignableFrom(this.elementClass)) {
-                size = graph.vertexCount();
-            } else throw new NotImplementedException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
-            return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
-        } else
-            throw FastNoSuchElementException.instance();
-    }
+  @Override
+  protected Traverser.Admin<Long> processNextStart() throws NoSuchElementException {
+    if (!this.done) {
+      this.done = true;
+      final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
+      final long size;
+      if (Vertex.class.isAssignableFrom(this.elementClass)) {
+        size = graph.vertexCount();
+      } else throw new NotImplementedException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
+      return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
+    } else
+      throw FastNoSuchElementException.instance();
+  }
 
-    @Override
-    public String toString() {
-        return StringFactory.stepString(this, this.elementClass.getSimpleName().toLowerCase());
-    }
+  @Override
+  public String toString() {
+    return StringFactory.stepString(this, this.elementClass.getSimpleName().toLowerCase());
+  }
 
-    @Override
-    public int hashCode() {
-        return super.hashCode() ^ this.elementClass.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return super.hashCode() ^ this.elementClass.hashCode();
+  }
 
-    @Override
-    public void reset() {
-        this.done = false;
-    }
+  @Override
+  public void reset() {
+    this.done = false;
+  }
 }

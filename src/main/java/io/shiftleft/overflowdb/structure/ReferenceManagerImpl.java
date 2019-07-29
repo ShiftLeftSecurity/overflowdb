@@ -1,6 +1,8 @@
 package io.shiftleft.overflowdb.structure;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.management.ListenerNotFoundException;
 import javax.management.NotificationEmitter;
@@ -9,16 +11,25 @@ import javax.management.openmbean.CompositeData;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-/** watches GC activity, and when we're low on available heap space,
+/**
+ * watches GC activity, and when we're low on available heap space,
  * it sets some references in the `[Vertex|Edge]Refs` to `null`, to avoid OOM
- * */
+ */
 public class ReferenceManagerImpl implements ReferenceManager {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private Map<NotificationEmitter, NotificationListener> gcNotificationListeners = new HashMap<>(2);
@@ -36,7 +47,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
     if (heapPercentageThreshold < 0 || heapPercentageThreshold > 100) {
       throw new IllegalArgumentException("heapPercentageThreshold must be between 0 and 100, but is " + heapPercentageThreshold);
     }
-    heapUsageThreshold =  (float) heapPercentageThreshold / 100f;
+    heapUsageThreshold = (float) heapPercentageThreshold / 100f;
     installGCMonitoring();
   }
 
@@ -45,8 +56,10 @@ public class ReferenceManagerImpl implements ReferenceManager {
     clearableRefs.add(ref);
   }
 
-  /** when we're running low on heap memory we'll serialize some elements to disk. to ensure we're not creating new ones
-   * faster than old ones are serialized away, we're applying some backpressure in those situation */
+  /**
+   * when we're running low on heap memory we'll serialize some elements to disk. to ensure we're not creating new ones
+   * faster than old ones are serialized away, we're applying some backpressure in those situation
+   */
   @Override
   public void applyBackpressureMaybe() {
     synchronized (backPressureSyncObject) {
@@ -76,7 +89,8 @@ public class ReferenceManagerImpl implements ReferenceManager {
     }
   }
 
-  /** run clearing of references asynchronously to not block the gc notification thread
+  /**
+   * run clearing of references asynchronously to not block the gc notification thread
    * using executor with one thread and capacity=1, drop `clearingInProgress` flag
    */
   protected List<Future> asynchronouslyClearReferences(final int releaseCount) {
@@ -137,7 +151,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
   }
 
   protected void clearReferences(final List<ElementRef> refsToClear) throws IOException {
-    logger.info("attempting to clear "+ refsToClear.size() + " references");
+    logger.info("attempting to clear " + refsToClear.size() + " references");
     final Iterator<ElementRef> refsIterator = refsToClear.iterator();
     while (refsIterator.hasNext()) {
       final ElementRef ref = refsIterator.next();
@@ -148,7 +162,9 @@ public class ReferenceManagerImpl implements ReferenceManager {
     }
   }
 
-  /** monitor GC, and should the heap grow above 80% usage, clear some strong references */
+  /**
+   * monitor GC, and should the heap grow above 80% usage, clear some strong references
+   */
   protected void installGCMonitoring() {
     List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
     for (GarbageCollectorMXBean gcbean : gcbeans) {
@@ -164,31 +180,33 @@ public class ReferenceManagerImpl implements ReferenceManager {
   private NotificationListener createNotificationListener() {
     Set<String> ignoredMemoryAreas = new HashSet<>(Arrays.asList("Code Cache", "Compressed Class Space", "Metaspace"));
     return (notification, handback) -> {
-        if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
-          GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
+      if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
+        GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
 
-          //sum up used and max memory across relevant memory areas
-          long totalMemUsed = 0;
-          long totalMemMax = 0;
-          for (Map.Entry<String, MemoryUsage> entry : info.getGcInfo().getMemoryUsageAfterGc().entrySet()) {
-            String name = entry.getKey();
-            if (!ignoredMemoryAreas.contains(name)) {
-              MemoryUsage detail = entry.getValue();
-              totalMemUsed += detail.getUsed();
-              totalMemMax += detail.getMax();
-            }
+        //sum up used and max memory across relevant memory areas
+        long totalMemUsed = 0;
+        long totalMemMax = 0;
+        for (Map.Entry<String, MemoryUsage> entry : info.getGcInfo().getMemoryUsageAfterGc().entrySet()) {
+          String name = entry.getKey();
+          if (!ignoredMemoryAreas.contains(name)) {
+            MemoryUsage detail = entry.getValue();
+            totalMemUsed += detail.getUsed();
+            totalMemMax += detail.getMax();
           }
-          float heapUsage = (float) totalMemUsed / (float) totalMemMax;
-          int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
-          logger.trace("heap usage after GC: " + heapUsagePercent + "%");
-          maybeClearReferences(heapUsage);
         }
-      };
+        float heapUsage = (float) totalMemUsed / (float) totalMemMax;
+        int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
+        logger.trace("heap usage after GC: " + heapUsagePercent + "%");
+        maybeClearReferences(heapUsage);
+      }
+    };
   }
 
 
-  /** writes all references to disk overflow, blocks until complete.
-   * useful when saving the graph */
+  /**
+   * writes all references to disk overflow, blocks until complete.
+   * useful when saving the graph
+   */
   @Override
   public void clearAllReferences() {
     while (!clearableRefs.isEmpty()) {

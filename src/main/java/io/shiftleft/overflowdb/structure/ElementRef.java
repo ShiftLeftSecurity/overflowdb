@@ -1,9 +1,9 @@
 package io.shiftleft.overflowdb.structure;
 
-import java.io.IOException;
-
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+
+import java.io.IOException;
 
 /**
  * Wrapper for an element element, which may be set to `null` by @ReferenceManager to avoid OutOfMemory errors.
@@ -16,11 +16,13 @@ public abstract class ElementRef<E extends Element> implements Element {
   protected E element;
   private boolean removed = false;
 
-  /** used when creating a element without the underlying element at hand, set element to null
-   *  and please ensure it's available on disk */
+  /**
+   * used when creating a element without the underlying element at hand, set element to null
+   * and please ensure it's available on disk
+   */
   public ElementRef(final Object id, final Graph graph, E element) {
-    this.id = (long)id;
-    this.graph = (OverflowDb)graph;
+    this.id = (long) id;
+    this.graph = (OverflowDb) graph;
     this.element = element;
   }
 

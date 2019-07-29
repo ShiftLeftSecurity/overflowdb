@@ -1,11 +1,21 @@
 package io.shiftleft.overflowdb.storage;
 
-import org.apache.tinkerpop.gremlin.structure.*;
-import io.shiftleft.overflowdb.structure.*;
+import io.shiftleft.overflowdb.structure.ElementRef;
+import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbTestEdge;
+import io.shiftleft.overflowdb.structure.OverflowDbTestNode;
+import io.shiftleft.overflowdb.structure.OverflowElementFactory;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 

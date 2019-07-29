@@ -14,34 +14,34 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class GraphVariables implements Graph.Variables {
 
-    private final Map<String, Object> variables = new ConcurrentHashMap<>();
+  private final Map<String, Object> variables = new ConcurrentHashMap<>();
 
-    public GraphVariables() {
+  public GraphVariables() {
 
-    }
+  }
 
-    @Override
-    public Set<String> keys() {
-        return this.variables.keySet();
-    }
+  @Override
+  public Set<String> keys() {
+    return this.variables.keySet();
+  }
 
-    @Override
-    public <R> Optional<R> get(final String key) {
-        return Optional.ofNullable((R) this.variables.get(key));
-    }
+  @Override
+  public <R> Optional<R> get(final String key) {
+    return Optional.ofNullable((R) this.variables.get(key));
+  }
 
-    @Override
-    public void remove(final String key) {
-        this.variables.remove(key);
-    }
+  @Override
+  public void remove(final String key) {
+    this.variables.remove(key);
+  }
 
-    @Override
-    public void set(final String key, final Object value) {
-        GraphVariableHelper.validateVariable(key, value);
-        this.variables.put(key, value);
-    }
+  @Override
+  public void set(final String key, final Object value) {
+    GraphVariableHelper.validateVariable(key, value);
+    this.variables.put(key, value);
+  }
 
-    public String toString() {
-        return StringFactory.graphVariablesString(this);
-    }
+  public String toString() {
+    return StringFactory.graphVariablesString(this);
+  }
 }

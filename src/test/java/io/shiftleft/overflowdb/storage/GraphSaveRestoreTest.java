@@ -1,16 +1,16 @@
 package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.OverflowDb;
-import org.apache.commons.configuration.Configuration;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import io.shiftleft.overflowdb.structure.specialized.gratefuldead.Artist;
 import io.shiftleft.overflowdb.structure.specialized.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.structure.specialized.gratefuldead.Song;
 import io.shiftleft.overflowdb.structure.specialized.gratefuldead.SungBy;
 import io.shiftleft.overflowdb.structure.specialized.gratefuldead.WrittenBy;
+import org.apache.commons.configuration.Configuration;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.junit.Ignore;
 import org.junit.Test;
 

@@ -22,9 +22,11 @@ public abstract class OverflowDbEdge implements Edge {
    * identify this edge, we store it's offset into that block */
   private int outBlockOffset = UNINITIALIZED_BLOCK_OFFSET;
 
-  /** When storing the outVertex in the inVertex' adjacent node array, there may be multiple edges
+  /**
+   * When storing the outVertex in the inVertex' adjacent node array, there may be multiple edges
    * with the same (direction, label), i.e. they are stored in the same block. To be able to
-   * identify this edge, we store it's offset into that block */
+   * identify this edge, we store it's offset into that block
+   */
   private int inBlockOffset = UNINITIALIZED_BLOCK_OFFSET;
 
   private final Set<String> specificKeys;
@@ -154,7 +156,7 @@ public abstract class OverflowDbEdge implements Edge {
       return false;
     }
 
-    OverflowDbEdge otherEdge = (OverflowDbEdge)other;
+    OverflowDbEdge otherEdge = (OverflowDbEdge) other;
     fixupBlockOffsetsIfNecessary(otherEdge);
 
     return this.inVertex.id().equals(otherEdge.inVertex.id()) &&

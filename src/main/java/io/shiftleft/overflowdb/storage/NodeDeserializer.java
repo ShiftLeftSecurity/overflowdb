@@ -1,13 +1,13 @@
 package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
+import io.shiftleft.overflowdb.structure.ElementRef;
 import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbNode;
+import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import io.shiftleft.overflowdb.structure.ElementRef;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;

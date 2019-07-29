@@ -1,8 +1,14 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
-import io.shiftleft.overflowdb.structure.*;
+import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbEdge;
+import io.shiftleft.overflowdb.structure.OverflowDbNode;
+import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class FollowedBy extends OverflowDbEdge {
   public static final String LABEL = "followedBy";

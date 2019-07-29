@@ -1,8 +1,8 @@
 package io.shiftleft.overflowdb.storage;
 
+import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -27,15 +27,19 @@ public class OndiskOverflow implements AutoCloseable {
     return new OndiskOverflow(Optional.empty(), Optional.ofNullable(nodeDeserializer));
   }
 
-  /** create with specific mvstore file - which may or may not yet exist.
-   * mvstoreFile won't be deleted at the end (unlike temp file constructors above) */
+  /**
+   * create with specific mvstore file - which may or may not yet exist.
+   * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
+   */
   public static OndiskOverflow createWithSpecificLocation(
       final NodeDeserializer nodeDeserializer, final File mvstoreFile) {
     return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
   }
 
-  /** create with specific mvstore file - which may or may not yet exist.
-   * mvstoreFile won't be deleted at the end (unlike temp file constructors above) */
+  /**
+   * create with specific mvstore file - which may or may not yet exist.
+   * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
+   */
   public static OndiskOverflow createWithSpecificLocation(final File mvstoreFile) {
     return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.empty());
   }

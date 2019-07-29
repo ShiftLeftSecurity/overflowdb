@@ -4,8 +4,8 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public final class TinkerHelper {
 
-    private TinkerHelper() {
-    }
+  private TinkerHelper() {
+  }
 
 //    protected static void addOutEdge(final TinkerVertex vertex, final String label, final Edge edge) {
 //        if (null == vertex.outEdges) vertex.outEdges = new HashMap<>();
@@ -46,17 +46,17 @@ public final class TinkerHelper {
 //            graph.edgeIndex.autoUpdate(key, newValue, oldValue, edge);
 //    }
 
-    public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
-        final OverflowDb graph = (OverflowDb) vertex.graph();
-        if (graph.vertexIndex != null)
-            graph.vertexIndex.autoUpdate(key, newValue, oldValue, vertex);
-    }
+  public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
+    final OverflowDb graph = (OverflowDb) vertex.graph();
+    if (graph.vertexIndex != null)
+      graph.vertexIndex.autoUpdate(key, newValue, oldValue, vertex);
+  }
 
-    public static void removeElementIndex(final Vertex vertex) {
-        final OverflowDb graph = (OverflowDb) vertex.graph();
-        if (graph.vertexIndex != null)
-            graph.vertexIndex.removeElement(vertex);
-    }
+  public static void removeElementIndex(final Vertex vertex) {
+    final OverflowDb graph = (OverflowDb) vertex.graph();
+    if (graph.vertexIndex != null)
+      graph.vertexIndex.removeElement(vertex);
+  }
 
 //    public static void removeElementIndex(final Edge edge) {
 //        final OverflowDb graph = (OverflowDb) edge.graph();

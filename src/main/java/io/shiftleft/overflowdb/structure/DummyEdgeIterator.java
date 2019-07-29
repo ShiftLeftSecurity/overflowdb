@@ -17,7 +17,7 @@ class DummyEdgeIterator implements Iterator<Edge> {
   private final NodeRef<OverflowDbNode> thisRef;
 
   public DummyEdgeIterator(Object[] array, int begin, int exclusiveEnd, int strideSize,
-                    Direction direction, String label, NodeRef<OverflowDbNode> thisRef) {
+                           Direction direction, String label, NodeRef<OverflowDbNode> thisRef) {
     this.array = array;
     this.begin = begin;
     this.current = begin;
