@@ -1,6 +1,5 @@
 package io.shiftleft.overflowdb.storage;
 
-import io.shiftleft.overflowdb.structure.ElementRef;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OverflowDb;
 import io.shiftleft.overflowdb.structure.OverflowDbTestEdge;
@@ -42,7 +41,7 @@ public class SerializerTest {
       assertEquals(underlyingVertexDb.label(), deserialized.label());
       assertEquals(underlyingVertexDb.valueMap(), ((OverflowDbTestNode) deserialized).valueMap());
 
-      final ElementRef<Vertex> deserializedRef = deserializer.deserializeRef(bytes);
+      final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(vertexRef.id(), deserializedRef.id);
       assertEquals(OverflowDbTestNode.label, deserializedRef.label());
     }

@@ -135,7 +135,7 @@ public class Song extends OverflowDbNode {
     public Song createVertex(Long id, OverflowDb graph) {
       final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
-      ref.setElement(node);
+      ref.setNode(node);
       return node;
     }
 

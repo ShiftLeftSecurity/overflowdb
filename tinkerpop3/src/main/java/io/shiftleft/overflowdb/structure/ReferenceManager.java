@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.structure;
 
 public interface ReferenceManager {
-  void registerRef(ElementRef ref);
+  void registerRef(NodeRef ref);
 
   void applyBackpressureMaybe();
 

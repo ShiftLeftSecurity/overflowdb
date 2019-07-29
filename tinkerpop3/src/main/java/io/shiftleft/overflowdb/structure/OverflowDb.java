@@ -37,10 +37,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -73,13 +73,12 @@ public final class OverflowDb implements Graph {
 
   private final GraphFeatures features = new GraphFeatures();
   protected AtomicLong currentId = new AtomicLong(-1L);
-  // note: if on-disk overflow enabled, these [Vertex|Edge] values are [NodeRef|ElementRef]
-  protected TLongObjectMap<Vertex> vertices;
-  protected THashMap<String, Set<Vertex>> verticesByLabel;
+  protected TLongObjectMap<NodeRef> nodes;
+  protected THashMap<String, Set<NodeRef>> nodesByLabel;
 
   protected GraphVariables variables = null;
-  protected Index<Vertex> vertexIndex = null;
-  protected final IdManager vertexIdManager;
+  protected Index<Vertex> nodeIndex = null;
+  protected final IdManager nodeIdManager;
 
   protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
   protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
@@ -97,7 +96,7 @@ public final class OverflowDb implements Graph {
     this.configuration = configuration;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
-    vertexIdManager = new IdManager();
+    nodeIdManager = new IdManager();
 
     graphLocation = configuration.getString(GRAPH_LOCATION, null);
     referenceManager = new ReferenceManagerImpl(configuration.getInt(SWAPPING_HEAP_PERCENTAGE_THRESHOLD));
@@ -112,8 +111,8 @@ public final class OverflowDb implements Graph {
   }
 
   private void initEmptyElementCollections() {
-    vertices = new TLongObjectHashMap<>();
-    verticesByLabel = new THashMap<>(100);
+    nodes = new TLongObjectHashMap<>();
+    nodesByLabel = new THashMap<>(100);
   }
 
   /**
@@ -126,15 +125,15 @@ public final class OverflowDb implements Graph {
     int importCount = 0;
     long maxId = currentId.get();
 
-    vertices = new TLongObjectHashMap<>(serializedVertices.size());
-    verticesByLabel = new THashMap<>(serializedVertices.size());
+    nodes = new TLongObjectHashMap<>(serializedVertices.size());
+    nodesByLabel = new THashMap<>(serializedVertices.size());
     final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedVertices.iterator();
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
         final NodeRef nodeRef = (NodeRef) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
-        vertices.put(nodeRef.id, nodeRef);
-        getElementsByLabel(verticesByLabel, nodeRef.label()).add(nodeRef);
+        nodes.put(nodeRef.id, nodeRef);
+        getElementsByLabel(nodesByLabel, nodeRef.label()).add(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) {
           logger.debug("imported " + importCount + " elements - still running...");
@@ -205,23 +204,23 @@ public final class OverflowDb implements Graph {
     ElementHelper.legalPropertyKeyValueArray(keyValues);
     final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
 
-    Long idValue = (Long) vertexIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
+    Long idValue = (Long) nodeIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
     if (null != idValue) {
-      if (vertices.containsKey(idValue))
+      if (nodes.containsKey(idValue))
         throw Exceptions.vertexWithIdAlreadyExists(idValue);
     } else {
-      idValue = (Long) vertexIdManager.getNextId(this);
+      idValue = nodeIdManager.getNextId(this);
     }
     currentId.set(Long.max(idValue, currentId.get()));
 
-    final Vertex vertex = createVertex(idValue, label, keyValues);
-    vertices.put((long) vertex.id(), vertex);
-    getElementsByLabel(verticesByLabel, label).add(vertex);
-    return vertex;
+    final NodeRef node = createNode(idValue, label, keyValues);
+    nodes.put(node.id, node);
+    getElementsByLabel(nodesByLabel, label).add(node);
+    return node;
   }
 
-  private Vertex createVertex(final long idValue, final String label, final Object... keyValues) {
-    final Vertex vertex;
+  private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
+    final NodeRef node;
     if (!nodeFactoryByLabel.containsKey(label)) {
       throw new IllegalArgumentException(
           "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
@@ -230,9 +229,9 @@ public final class OverflowDb implements Graph {
     final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
     final OverflowDbNode underlying = factory.createVertex(idValue, this);
     this.referenceManager.registerRef(underlying.ref);
-    vertex = underlying.ref;
-    ElementHelper.attachProperties(vertex, VertexProperty.Cardinality.list, keyValues);
-    return vertex;
+    node = underlying.ref;
+    ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);
+    return node;
   }
 
   @Override
@@ -264,7 +263,7 @@ public final class OverflowDb implements Graph {
 
   @Override
   public String toString() {
-    return StringFactory.graphString(this, "vertices: " + vertices.size());
+    return StringFactory.graphString(this, "vertices: " + nodes.size());
   }
 
   /**
@@ -289,27 +288,34 @@ public final class OverflowDb implements Graph {
   }
 
   public Vertex vertex(final Long id) {
-    return vertices.get(id);
+    return nodes.get(id);
   }
 
   @Override
   public Iterator<Vertex> vertices(final Object... ids) {
-    return createElementIterator(Vertex.class, vertices, vertexIdManager, ids);
+    final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
+    final Iterator<Vertex> vertexIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+    if (0 == ids.length) {
+      return vertexIter;
+    } else {
+      final Set idsSet = new HashSet(Arrays.asList(ids));
+      return IteratorUtils.filter(vertexIter, ref -> idsSet.contains(ref.id()));
+    }
   }
 
   public int vertexCount() {
-    return vertices.size();
+    return nodes.size();
   }
 
-  public Iterator<Vertex> verticesByLabel(final P<String> labelPredicate) {
-    return elementsByLabel(verticesByLabel, labelPredicate);
+  public Iterator<NodeRef> verticesByLabel(final P<String> labelPredicate) {
+    return elementsByLabel(nodesByLabel, labelPredicate);
   }
 
   @Override
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
     MultiIterator2 multiIterator = new MultiIterator2();
-    vertices.forEachValue(vertex -> {
+    nodes.forEachValue(vertex -> {
       multiIterator.addIterator(vertex.edges(Direction.OUT));
       return true;
     });
@@ -333,28 +339,6 @@ public final class OverflowDb implements Graph {
       }
     }
     return multiIterator;
-  }
-
-  private <T extends Element> Iterator<T> createElementIterator(final Class<T> clazz,
-                                                                final TLongObjectMap<T> elements,
-                                                                final IdManager idManager,
-                                                                final Object... ids) {
-    final Iterator<T> iterator;
-    if (0 == ids.length) {
-      iterator = elements.valueCollection().iterator();
-    } else {
-      final List<Object> idList = Arrays.asList(ids);
-      validateHomogenousIds(idList);
-
-      // if the type is of Element - have to look each up because it might be an Attachable instance or
-      // other implementation. the assumption is that id conversion is not required for detached
-      // stuff - doesn't seem likely someone would detach a Titan vertex then try to expect that
-      // vertex to be findable in OrientDB
-      return clazz.isAssignableFrom(ids[0].getClass()) ?
-          IteratorUtils.filter(IteratorUtils.map(idList, id -> elements.get((long) clazz.cast(id).id())).iterator(), Objects::nonNull)
-          : IteratorUtils.filter(IteratorUtils.map(idList, id -> elements.get((long) idManager.convert(id))).iterator(), Objects::nonNull);
-    }
-    return iterator;
   }
 
   /**
@@ -434,7 +418,7 @@ public final class OverflowDb implements Graph {
 
     @Override
     public boolean willAllowId(final Object id) {
-      return vertexIdManager.allow(id);
+      return nodeIdManager.allow(id);
     }
 
     @Override
@@ -493,7 +477,7 @@ public final class OverflowDb implements Graph {
 
     @Override
     public boolean willAllowId(final Object id) {
-      return vertexIdManager.allow(id);
+      return nodeIdManager.allow(id);
     }
   }
 
@@ -510,8 +494,8 @@ public final class OverflowDb implements Graph {
    */
   public <E extends Element> void createIndex(final String key, final Class<E> elementClass) {
     if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null == this.vertexIndex) this.vertexIndex = new Index<>(this, Vertex.class);
-      this.vertexIndex.createKeyIndex(key);
+      if (null == this.nodeIndex) this.nodeIndex = new Index<>(this, Vertex.class);
+      this.nodeIndex.createKeyIndex(key);
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);
     }
@@ -526,7 +510,7 @@ public final class OverflowDb implements Graph {
    */
   public <E extends Element> void dropIndex(final String key, final Class<E> elementClass) {
     if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null != this.vertexIndex) this.vertexIndex.dropKeyIndex(key);
+      if (null != this.nodeIndex) this.nodeIndex.dropKeyIndex(key);
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);
     }
@@ -541,7 +525,7 @@ public final class OverflowDb implements Graph {
    */
   public <E extends Element> Set<String> getIndexedKeys(final Class<E> elementClass) {
     if (Vertex.class.isAssignableFrom(elementClass)) {
-      return null == this.vertexIndex ? Collections.emptySet() : this.vertexIndex.getIndexedKeys();
+      return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);
     }

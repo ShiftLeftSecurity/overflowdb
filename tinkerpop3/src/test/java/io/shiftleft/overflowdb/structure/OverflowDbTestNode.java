@@ -129,7 +129,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
     public OverflowDbTestNode createVertex(Long id, OverflowDb graph) {
       final NodeRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
       final OverflowDbTestNode node = createVertex(ref);
-      ref.setElement(node);
+      ref.setNode(node);
       return node;
     }
 

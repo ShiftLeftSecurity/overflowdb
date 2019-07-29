@@ -114,7 +114,7 @@ final class Index<T extends Element> {
     this.indexedKeys.add(key);
 
     if (Vertex.class.isAssignableFrom(this.indexClass)) {
-      this.graph.vertices.valueCollection().<T>parallelStream()
+      this.graph.nodes.valueCollection().<T>parallelStream()
           .map(e -> new Object[]{((T) e).property(key), e})
           .filter(a -> ((Property) a[0]).isPresent())
           .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
@@ -156,14 +156,14 @@ final class Index<T extends Element> {
 
   public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
     final OverflowDb graph = (OverflowDb) vertex.graph();
-    if (graph.vertexIndex != null)
-      graph.vertexIndex.autoUpdate(key, newValue, oldValue, vertex);
+    if (graph.nodeIndex != null)
+      graph.nodeIndex.autoUpdate(key, newValue, oldValue, vertex);
   }
 
   public static void removeElementIndex(final Vertex vertex) {
     final OverflowDb graph = (OverflowDb) vertex.graph();
-    if (graph.vertexIndex != null)
-      graph.vertexIndex.removeElement(vertex);
+    if (graph.nodeIndex != null)
+      graph.nodeIndex.removeElement(vertex);
   }
 
 //    public static void removeElementIndex(final Edge edge) {

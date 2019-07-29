@@ -4,7 +4,6 @@ import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OverflowDb;
 import io.shiftleft.overflowdb.structure.OverflowDbEdge;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 
 import java.io.Serializable;
@@ -15,7 +14,7 @@ public class WrittenBy extends OverflowDbEdge implements Serializable {
   public static final String LABEL = "writtenBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
-  public WrittenBy(OverflowDb graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
+  public WrittenBy(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 

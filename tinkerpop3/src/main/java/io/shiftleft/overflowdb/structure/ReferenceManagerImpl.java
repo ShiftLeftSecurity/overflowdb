@@ -41,7 +41,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
 
-  private final List<ElementRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
+  private final List<NodeRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
 
   public ReferenceManagerImpl(int heapPercentageThreshold) {
     if (heapPercentageThreshold < 0 || heapPercentageThreshold > 100) {
@@ -52,7 +52,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
   }
 
   @Override
-  public void registerRef(ElementRef ref) {
+  public void registerRef(NodeRef ref) {
     clearableRefs.add(ref);
   }
 
@@ -99,7 +99,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
     final int releaseCountPerThread = (int) Math.ceil(releaseCount / cpuCount.floatValue());
     for (int i = 0; i < cpuCount; i++) {
       // doing this concurrently is tricky and won't be much faster since PriorityBlockingQueue is `blocking` anyway
-      final List<ElementRef> refsToClear = collectRefsToClear(releaseCountPerThread);
+      final List<NodeRef> refsToClear = collectRefsToClear(releaseCountPerThread);
       if (!refsToClear.isEmpty()) {
         futures.add(executorService.submit(() -> {
           safelyClearReferences(refsToClear);
@@ -112,14 +112,14 @@ public class ReferenceManagerImpl implements ReferenceManager {
     return futures;
   }
 
-  protected List<ElementRef> collectRefsToClear(int releaseCount) {
-    final List<ElementRef> refsToClear = new ArrayList<>(releaseCount);
+  protected List<NodeRef> collectRefsToClear(int releaseCount) {
+    final List<NodeRef> refsToClear = new ArrayList<>(releaseCount);
 
     while (releaseCount > 0) {
       if (clearableRefs.isEmpty()) {
         break;
       }
-      final ElementRef ref = clearableRefs.remove(0);
+      final NodeRef ref = clearableRefs.remove(0);
       if (ref != null) {
         refsToClear.add(ref);
       }
@@ -132,7 +132,7 @@ public class ReferenceManagerImpl implements ReferenceManager {
   /**
    * clear references, ensuring no exception is raised
    */
-  protected void safelyClearReferences(final List<ElementRef> refsToClear) {
+  protected void safelyClearReferences(final List<NodeRef> refsToClear) {
     try {
       synchronized (backPressureSyncObject) {
         clearingProcessCount += 1;
@@ -150,11 +150,11 @@ public class ReferenceManagerImpl implements ReferenceManager {
     }
   }
 
-  protected void clearReferences(final List<ElementRef> refsToClear) throws IOException {
+  protected void clearReferences(final List<NodeRef> refsToClear) throws IOException {
     logger.info("attempting to clear " + refsToClear.size() + " references");
-    final Iterator<ElementRef> refsIterator = refsToClear.iterator();
+    final Iterator<NodeRef> refsIterator = refsToClear.iterator();
     while (refsIterator.hasNext()) {
-      final ElementRef ref = refsIterator.next();
+      final NodeRef ref = refsIterator.next();
       if (ref.isSet()) {
         ref.clear();
         totalReleaseCount.incrementAndGet();

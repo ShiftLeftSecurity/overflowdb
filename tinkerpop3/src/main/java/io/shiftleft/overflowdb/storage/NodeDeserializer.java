@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
-import io.shiftleft.overflowdb.structure.ElementRef;
+import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OverflowDb;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
@@ -60,7 +60,7 @@ public class NodeDeserializer {
   /**
    * only deserialize the part we're keeping in memory, used during startup when initializing from disk
    */
-  public ElementRef deserializeRef(byte[] bytes) throws IOException {
+  public NodeRef deserializeRef(byte[] bytes) throws IOException {
     try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
       long id = unpacker.unpackLong();
       String label = unpacker.unpackString();
@@ -157,7 +157,7 @@ public class NodeDeserializer {
     return keyValues.toArray();
   }
 
-  protected ElementRef createNodeRef(long id, String label) {
+  protected NodeRef createNodeRef(long id, String label) {
     OverflowElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
     if (vertexFactory == null) {
       throw new AssertionError("vertexFactory not found for label=" + label);
