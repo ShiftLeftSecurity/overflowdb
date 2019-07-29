@@ -8,12 +8,13 @@ import io.shiftleft.overflowdb.process.traversal.strategy.optimization.CountStra
 import io.shiftleft.overflowdb.process.traversal.strategy.optimization.OverflowDbGraphStepStrategy;
 import io.shiftleft.overflowdb.storage.NodeDeserializer;
 import io.shiftleft.overflowdb.storage.OndiskOverflow;
+import io.shiftleft.overflowdb.storage.iterator.MultiIterator2;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -306,7 +307,12 @@ public final class OverflowDb implements Graph {
 
   @Override
   public Iterator<Edge> edges(final Object... ids) {
-    throw new NotImplementedException("");
+    MultiIterator2 multiIterator = new MultiIterator2();
+    vertices.forEachValue(vertex -> {
+      multiIterator.addIterator(vertex.edges(Direction.OUT));
+      return true;
+    });
+    return multiIterator;
   }
 
   /**
