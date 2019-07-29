@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public final class OverflowDbGraph implements Graph {
   private final Logger logger = LoggerFactory.getLogger(getClass());
