@@ -16,7 +16,7 @@ import java.util.Iterator;
 public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
   public final long id;
   protected final OverflowDbGraph graph;
-  protected N node;
+  private N node;
 
   public NodeRef(final OverflowDbGraph graph, N node) {
     this.graph = graph;
