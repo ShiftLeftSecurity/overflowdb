@@ -131,7 +131,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public Song createVertex(Long id, OverflowDbGraph graph) {
+    public Song createVertex(long id, OverflowDbGraph graph) {
       final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
       ref.setNode(node);
@@ -139,8 +139,8 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Song> createVertexRef(Long id, OverflowDbGraph graph) {
-      return new NodeRef(id, graph, null) {
+    public NodeRef<Song> createVertexRef(long id, OverflowDbGraph graph) {
+      return new NodeRef(id, graph) {
         @Override
         public String label() {
           return Song.label;

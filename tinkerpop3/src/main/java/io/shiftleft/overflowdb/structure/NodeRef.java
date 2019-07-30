@@ -15,21 +15,22 @@ import java.util.Iterator;
  */
 public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
   public final long id;
-
   protected final OverflowDbGraph graph;
   protected N node;
+
+  public NodeRef(final OverflowDbGraph graph, N node) {
+    this.graph = graph;
+    this.node = node;
+    this.id = node.ref.id;
+  }
 
   /**
    * used when creating a node without the underlying instance at hand
    * this assumes that it is available on disk
    */
-  public NodeRef(final Object id, final Graph graph, N node) {
-    this.id = (long) id;
-    this.graph = (OverflowDbGraph) graph;
-    this.node = node;
-    if (node != null) {
-      this.graph.referenceManager.registerRef(this);
-    }
+  public NodeRef(final long id, final OverflowDbGraph graph) {
+    this.id = id;
+    this.graph = graph;
   }
 
   public boolean isSet() {

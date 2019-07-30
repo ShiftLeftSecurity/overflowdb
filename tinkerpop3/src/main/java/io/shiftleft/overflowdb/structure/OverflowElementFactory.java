@@ -6,12 +6,9 @@ public class OverflowElementFactory {
 
   public interface ForNode<V extends OverflowDbNode> {
     String forLabel();
-
-    V createVertex(Long id, OverflowDbGraph graph);
-
+    V createVertex(long id, OverflowDbGraph graph);
     V createVertex(NodeRef<V> ref);
-
-    NodeRef<V> createVertexRef(Long id, OverflowDbGraph graph);
+    NodeRef<V> createVertexRef(long id, OverflowDbGraph graph);
   }
 
 

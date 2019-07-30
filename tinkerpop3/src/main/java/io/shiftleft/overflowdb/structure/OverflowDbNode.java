@@ -44,9 +44,7 @@ public abstract class OverflowDbNode implements Vertex {
     this.ref = ref;
 
     ref.setNode(this);
-    if (ref.graph != null && ref.graph.referenceManager != null) {
-      ref.graph.referenceManager.applyBackpressureMaybe();
-    }
+    ref.graph.referenceManager.applyBackpressureMaybe();
 
     edgeOffsets = new int[layoutInformation().numberOfDifferentAdjacentTypes() * 2];
   }

@@ -45,9 +45,7 @@ public abstract class OverflowDbEdge implements Edge {
     this.inVertex = inVertex;
 
     this.specificKeys = specificKeys;
-    if (graph.referenceManager != null) {
-      graph.referenceManager.applyBackpressureMaybe();
-    }
+    graph.referenceManager.applyBackpressureMaybe();
   }
 
   public int getOutBlockOffset() {
