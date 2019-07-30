@@ -57,19 +57,19 @@ public final class OverflowDbGraph implements Graph {
   public static final Configuration EMPTY_CONFIGURATION() {
     return new BaseConfiguration() {{
       this.setProperty(Graph.GRAPH, OverflowDbGraph.class.getName());
-      this.setProperty(SWAPPING_HEAP_PERCENTAGE_THRESHOLD, 80);
-      this.setProperty(SWAPPING_ENABLED, true);
+      this.setProperty(OVERFLOW_HEAP_PERCENTAGE_THRESHOLD, 80);
+      this.setProperty(OVERFLOW_ENABLED, true);
     }};
   }
 
   public static final String GRAPH_LOCATION = "overflowdb.graphLocation";
-  public static final String SWAPPING_ENABLED = "overflowdb.swapping.enabled";
+  public static final String OVERFLOW_ENABLED = "overflowdb.overflow.enabled";
 
   /**
    * when heap (after GC run) is above this threshold (e.g. 80 for 80%), `ReferenceManager` will
    * start to clear some references, i.e. write them to storage and set them to `null`
    */
-  public static final String SWAPPING_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.swapping.heapPercentageThreshold";
+  public static final String OVERFLOW_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.overflow.heapPercentageThreshold";
 
   private final GraphFeatures features = new GraphFeatures();
   protected AtomicLong currentId = new AtomicLong(-1L);
@@ -96,8 +96,11 @@ public final class OverflowDbGraph implements Graph {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
+    referenceManager = configuration.getBoolean(OVERFLOW_ENABLED, true) ?
+        new ReferenceManagerImpl(configuration.getInt(OVERFLOW_HEAP_PERCENTAGE_THRESHOLD)) :
+        new NoOpReferenceManager();
     graphLocation = configuration.getString(GRAPH_LOCATION, null);
-    referenceManager = new ReferenceManagerImpl(configuration.getInt(SWAPPING_HEAP_PERCENTAGE_THRESHOLD));
+
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
     if (graphLocation == null) {
       ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);

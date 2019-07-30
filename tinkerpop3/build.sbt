@@ -8,7 +8,7 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2-mvstore" % "1.4.199",
   "org.apache.tinkerpop" % "gremlin-test" % "3.3.4" % Test,
   "com.novocode" % "junit-interface" % "0.11" % Test,
-  "org.slf4j" % "slf4j-log4j12" % "1.7.21" % Test,
+  "org.slf4j" % "slf4j-simple" % "1.7.21" % Test,
 )
 
 Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
