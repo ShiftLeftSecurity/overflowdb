@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.structure;
 
 public class NoOpReferenceManager implements ReferenceManager {
   @Override
-  public void registerRef(ElementRef ref) {
+  public void registerRef(NodeRef ref) {
   }
 
   @Override

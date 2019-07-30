@@ -4,7 +4,6 @@ import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OverflowDb;
 import io.shiftleft.overflowdb.structure.OverflowDbEdge;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 
 import java.util.Arrays;
@@ -19,7 +18,7 @@ public class FollowedBy extends OverflowDbEdge {
     return (Integer) property(WEIGHT).value();
   }
 
-  public FollowedBy(OverflowDb graph, NodeRef<OverflowDbNode> outVertex, NodeRef<OverflowDbNode> inVertex) {
+  public FollowedBy(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 

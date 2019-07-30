@@ -24,32 +24,32 @@ public class ReferenceManagerTest {
   }
 
 
-  private class DummyElementRef extends ElementRef {
-    private final String label;
-
-    public DummyElementRef(Element element) {
-      super(element.id(), element.graph(), element);
-      this.label = element.label();
-    }
-
-    @Override
-    protected Element readFromDisk(long elementId) throws IOException {
-      throw new NotImplementedException("");
-    }
-
-    @Override
-    public Property<?> property(String key, Object value) {
-      throw new NotImplementedException("");
-    }
-
-    @Override
-    public Iterator<? extends Property<?>> properties(String... propertyKeys) {
-      throw new NotImplementedException("");
-    }
-
-    @Override
-    public String label() {
-      return label;
-    }
-  }
+//  private class DummyElementRef extends NodeRef {
+//    private final String label;
+//
+//    public DummyElementRef(Element element) {
+//      super(element.id(), element.graph(), element);
+//      this.label = element.label();
+//    }
+//
+//    @Override
+//    protected Element readFromDisk(long elementId) throws IOException {
+//      throw new NotImplementedException("");
+//    }
+//
+//    @Override
+//    public Property<?> property(String key, Object value) {
+//      throw new NotImplementedException("");
+//    }
+//
+//    @Override
+//    public Iterator<? extends Property<?>> properties(String... propertyKeys) {
+//      throw new NotImplementedException("");
+//    }
+//
+//    @Override
+//    public String label() {
+//      return label;
+//    }
+//  }
 }

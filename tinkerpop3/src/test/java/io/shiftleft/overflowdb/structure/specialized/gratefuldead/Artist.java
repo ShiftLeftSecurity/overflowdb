@@ -100,7 +100,7 @@ public class Artist extends OverflowDbNode {
     public Artist createVertex(Long id, OverflowDb graph) {
       final NodeRef<Artist> ref = createVertexRef(id, graph);
       final Artist node = createVertex(ref);
-      ref.setElement(node);
+      ref.setNode(node);
       return node;
     }
 
