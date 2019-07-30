@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.structure;
 
+import io.shiftleft.overflowdb.structure.specialized.gratefuldead.Artist;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
@@ -135,7 +136,12 @@ public class OverflowDbTestNode extends OverflowDbNode {
 
     @Override
     public NodeRef<OverflowDbTestNode> createVertexRef(Long id, OverflowDbGraph graph) {
-      return new NodeRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
+      return new NodeRef(id, graph, null) {
+        @Override
+        public String label() {
+          return OverflowDbTestNode.label;
+        }
+      };
     }
   };
 
