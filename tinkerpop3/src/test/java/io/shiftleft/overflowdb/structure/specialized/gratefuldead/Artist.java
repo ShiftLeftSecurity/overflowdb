@@ -96,7 +96,7 @@ public class Artist extends OverflowDbNode {
     }
 
     @Override
-    public Artist createVertex(Long id, OverflowDbGraph graph) {
+    public Artist createVertex(long id, OverflowDbGraph graph) {
       final NodeRef<Artist> ref = createVertexRef(id, graph);
       final Artist node = createVertex(ref);
       ref.setNode(node);
@@ -104,8 +104,8 @@ public class Artist extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Artist> createVertexRef(Long id, OverflowDbGraph graph) {
-      return new NodeRef(id, graph, null) {
+    public NodeRef<Artist> createVertexRef(long id, OverflowDbGraph graph) {
+      return new NodeRef(id, graph) {
         @Override
         public String label() {
           return Artist.label;
