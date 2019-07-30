@@ -27,7 +27,6 @@ import static org.junit.Assert.assertEquals;
 public class GraphSaveRestoreTest {
 
   @Test
-  @Ignore
   public void greenField() throws IOException {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
@@ -60,7 +59,6 @@ public class GraphSaveRestoreTest {
   }
 
   @Test
-  @Ignore
   public void completeGratefulDeadGraph() throws IOException {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();

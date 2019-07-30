@@ -148,10 +148,10 @@ public abstract class OverflowDbNode implements Vertex {
       }
     }
     Index.removeElementIndex(this);
-    graph.nodes.remove((long) id());
+    graph.nodes.remove(ref.id);
     graph.getElementsByLabel(graph.nodesByLabel, label()).remove(this);
 
-    graph.ondiskOverflow.removeVertex((Long) id());
+    graph.ondiskOverflow.removeVertex(ref.id);
 //        this.modifiedSinceLastSerialization = true;
   }
 
@@ -243,7 +243,7 @@ public abstract class OverflowDbNode implements Vertex {
     if (inVertex instanceof NodeRef) inNodeRef = (NodeRef) inVertex;
     else inNodeRef = (NodeRef) ref.graph.vertex((Long) inVertex.id());
     OverflowDbNode inVertexOdb = inNodeRef.get();
-    NodeRef thisNodeRef = (NodeRef) ref.graph.vertex((Long) id());
+    NodeRef thisNodeRef = (NodeRef) ref.graph.vertex(ref.id);
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
     int inBlockOffset = inVertexOdb.storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);

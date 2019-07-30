@@ -22,7 +22,7 @@ public class NodeSerializer {
   public byte[] serialize(OverflowDbNode node) throws IOException {
     long start = System.currentTimeMillis();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
-      packer.packLong((Long) node.id());
+      packer.packLong(node.ref.id);
       packer.packString(node.label());
 
       packProperties(packer, node.valueMap());

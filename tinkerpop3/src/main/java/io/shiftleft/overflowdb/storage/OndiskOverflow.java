@@ -66,14 +66,10 @@ public class OndiskOverflow implements AutoCloseable {
     vertexMVMap = mvstore.openMap("vertices");
   }
 
-  public void persist(final Element element) throws IOException {
+  public void persist(final OverflowDbNode node) throws IOException {
     if (!closed) {
-      final Long id = (Long) element.id();
-      if (element instanceof Vertex) {
-        vertexMVMap.put(id, nodeSerializer.serialize((OverflowDbNode) element));
-      } else {
-        throw new RuntimeException("unable to serialize " + element + " of type " + element.getClass());
-      }
+      final long id = node.ref.id;
+      vertexMVMap.put(id, nodeSerializer.serialize(node));
     }
   }
 

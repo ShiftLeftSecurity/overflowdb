@@ -43,11 +43,11 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
 
   /* only called by @ReferenceManager */
   protected void clear() throws IOException {
-    OverflowDbNode ref = node;
-    if (ref != null) {
-      graph.ondiskOverflow.persist(ref);
+    OverflowDbNode node = this.node;
+    if (node != null) {
+      graph.ondiskOverflow.persist(node);
     }
-    node = null;
+    this.node = null;
   }
 
   public N get() {
