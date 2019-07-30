@@ -18,7 +18,6 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
 
   protected final OverflowDb graph;
   protected N node;
-  private boolean removed = false;
 
   /**
    * used when creating a node without the underlying instance at hand
@@ -39,10 +38,6 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
 
   public boolean isCleared() {
     return node == null;
-  }
-
-  public boolean isRemoved() {
-    return removed;
   }
 
   /* only called by @ReferenceManager */
@@ -93,7 +88,6 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
 
   @Override
   public void remove() {
-    this.removed = true;
     this.get().remove();
   }
 
