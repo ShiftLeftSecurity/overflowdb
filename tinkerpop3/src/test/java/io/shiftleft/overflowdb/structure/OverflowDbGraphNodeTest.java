@@ -211,7 +211,7 @@ public class OverflowDbGraphNodeTest {
   }
 
   @Test
-  public void removeEdgeComplex() {
+  public void removeEdgeComplex1() {
     try (OverflowDbGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
@@ -230,7 +230,26 @@ public class OverflowDbGraphNodeTest {
   }
 
   @Test
-  public void removeEdgeComplexAfterSerialization() throws IOException {
+  public void removeEdgeComplex2() {
+    try (OverflowDbGraph graph = newGraph()) {
+      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
+      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
+      Edge edge0 = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 0l);
+      Edge edge1 = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, 1l);
+
+      edge1.remove();
+
+      Iterator<Edge> v0outEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(0), v0outEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v0outEdges.hasNext());
+      Iterator<Edge> v1inEdges = v0.edges(Direction.OUT);
+      assertEquals(Long.valueOf(0), v1inEdges.next().value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertFalse(v1inEdges.hasNext());
+    }
+  }
+
+  @Test
+  public void removeEdgeComplexAfterSerialization() {
     try (OverflowDbGraph graph = newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label, OverflowDbTestNode.STRING_PROPERTY, "v1");
