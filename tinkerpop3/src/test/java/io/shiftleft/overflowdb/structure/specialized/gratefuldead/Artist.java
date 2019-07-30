@@ -2,10 +2,10 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDbGraph;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.OverflowElementFactory;
-import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
+import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.structure.OdbElementFactory;
+import io.shiftleft.overflowdb.structure.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Artist extends OverflowDbNode {
+public class Artist extends OdbNode {
   public static final String label = "artist";
   public static final String NAME = "name";
 
@@ -45,7 +45,7 @@ public class Artist extends OverflowDbNode {
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
     final VertexProperty<V> ret;
     if (NAME.equals(key) && name != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, name));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, name));
     } else {
       return Collections.emptyIterator();
     }
@@ -83,7 +83,7 @@ public class Artist extends OverflowDbNode {
       Arrays.asList(),
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation));
 
-  public static OverflowElementFactory.ForNode<Artist> factory = new OverflowElementFactory.ForNode<Artist>() {
+  public static OdbElementFactory.ForNode<Artist> factory = new OdbElementFactory.ForNode<Artist>() {
 
     @Override
     public String forLabel() {
@@ -96,7 +96,7 @@ public class Artist extends OverflowDbNode {
     }
 
     @Override
-    public Artist createVertex(long id, OverflowDbGraph graph) {
+    public Artist createVertex(long id, OdbGraph graph) {
       final NodeRef<Artist> ref = createVertexRef(id, graph);
       final Artist node = createVertex(ref);
       ref.setNode(node);
@@ -104,7 +104,7 @@ public class Artist extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Artist> createVertexRef(long id, OverflowDbGraph graph) {
+    public NodeRef<Artist> createVertexRef(long id, OdbGraph graph) {
       return new NodeRef(id, graph) {
         @Override
         public String label() {

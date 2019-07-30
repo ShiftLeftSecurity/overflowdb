@@ -66,7 +66,7 @@ public final class CountStrategy extends AbstractTraversalStrategy<TraversalStra
 
   @Override
   public Set<Class<? extends ProviderOptimizationStrategy>> applyPost() {
-    return Collections.singleton(OverflowDbGraphStepStrategy.class);
+    return Collections.singleton(OdbGraphStepStrategy.class);
   }
 
   public static CountStrategy instance() {

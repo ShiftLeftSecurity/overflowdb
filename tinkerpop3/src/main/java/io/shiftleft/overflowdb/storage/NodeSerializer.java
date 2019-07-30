@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
+import io.shiftleft.overflowdb.structure.OdbNode;
 import org.apache.commons.lang3.NotImplementedException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -19,7 +19,7 @@ public class NodeSerializer {
   private int serializedCount = 0;
   private long serializationTimeSpentMillis = 0;
 
-  public byte[] serialize(OverflowDbNode node) throws IOException {
+  public byte[] serialize(OdbNode node) throws IOException {
     long start = System.currentTimeMillis();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       packer.packLong(node.ref.id);

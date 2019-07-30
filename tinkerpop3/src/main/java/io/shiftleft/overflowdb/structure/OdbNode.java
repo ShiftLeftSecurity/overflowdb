@@ -27,7 +27,7 @@ import java.util.stream.StreamSupport;
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
  */
-public abstract class OverflowDbNode implements Vertex {
+public abstract class OdbNode implements Vertex {
 
   public final NodeRef ref;
 
@@ -40,7 +40,7 @@ public abstract class OverflowDbNode implements Vertex {
    * i.e. each outgoing edge type has two entries in this array. */
   private int[] edgeOffsets;
 
-  protected OverflowDbNode(NodeRef ref) {
+  protected OdbNode(NodeRef ref) {
     this.ref = ref;
 
     ref.setNode(this);
@@ -139,11 +139,11 @@ public abstract class OverflowDbNode implements Vertex {
 
   @Override
   public void remove() {
-    OverflowDbGraph graph = ref.graph;
+    OdbGraph graph = ref.graph;
     final List<Edge> edges = new ArrayList<>();
     this.edges(Direction.BOTH).forEachRemaining(edges::add);
     for (Edge edge : edges) {
-      if (!((OverflowDbEdge) edge).isRemoved()) {
+      if (!((OdbEdge) edge).isRemoved()) {
         edge.remove();
       }
     }
@@ -160,7 +160,7 @@ public abstract class OverflowDbNode implements Vertex {
 //    }
 
   public <V> Iterator<Property<V>> getEdgeProperties(Direction direction,
-                                                     OverflowDbEdge edge,
+                                                     OdbEdge edge,
                                                      int blockOffset,
                                                      String... keys) {
     List<Property<V>> result = new ArrayList<>();
@@ -179,7 +179,7 @@ public abstract class OverflowDbNode implements Vertex {
   }
 
   public <V> Property<V> getEdgeProperty(Direction direction,
-                                         OverflowDbEdge edge,
+                                         OdbEdge edge,
                                          int blockOffset,
                                          String key) {
     int propertyPosition = getEdgePropertyIndex(direction, edge.label(), key, blockOffset);
@@ -190,7 +190,7 @@ public abstract class OverflowDbNode implements Vertex {
     if (value == null) {
       return EmptyProperty.instance();
     }
-    return new OverflowProperty<>(key, value, edge);
+    return new OdbProperty<>(key, value, edge);
   }
 
   public <V> void setEdgeProperty(Direction direction,
@@ -242,13 +242,13 @@ public abstract class OverflowDbNode implements Vertex {
     final NodeRef inNodeRef;
     if (inVertex instanceof NodeRef) inNodeRef = (NodeRef) inVertex;
     else inNodeRef = (NodeRef) ref.graph.vertex((Long) inVertex.id());
-    OverflowDbNode inVertexOdb = inNodeRef.get();
+    OdbNode inVertexOdb = inNodeRef.get();
     NodeRef thisNodeRef = (NodeRef) ref.graph.vertex(ref.id);
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
     int inBlockOffset = inVertexOdb.storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
-    OverflowDbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
+    OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
     dummyEdge.setOutBlockOffset(outBlockOffset);
     dummyEdge.setInBlockOffset(inBlockOffset);
 
@@ -524,10 +524,10 @@ public abstract class OverflowDbNode implements Vertex {
   /**
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
-  protected OverflowDbEdge instantiateDummyEdge(String label,
-                                                NodeRef outVertex,
-                                                NodeRef inVertex) {
-    final OverflowElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
+  protected OdbEdge instantiateDummyEdge(String label,
+                                         NodeRef outVertex,
+                                         NodeRef inVertex) {
+    final OdbElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
     return edgeFactory.createEdge(ref.graph, outVertex, inVertex);

@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.process.traversal.step.sideEffect;
 
-import io.shiftleft.overflowdb.structure.OverflowDbGraph;
+import io.shiftleft.overflowdb.structure.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S, E> implements HasContainerHolder {
+public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> implements HasContainerHolder {
 
   private final List<HasContainer> hasContainers = new ArrayList<>();
 
-  public OverflowDbGraphStep(final GraphStep<S, E> originalGraphStep) {
+  public OdbGraphStep(final GraphStep<S, E> originalGraphStep) {
     super(originalGraphStep.getTraversal(), originalGraphStep.getReturnClass(), originalGraphStep.isStartStep(), originalGraphStep.getIds());
     originalGraphStep.getLabels().forEach(this::addLabel);
 
@@ -39,7 +39,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private Iterator<? extends Edge> edges() {
-    final OverflowDbGraph graph = (OverflowDbGraph) this.getTraversal().getGraph().get();
+    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
     if (null == this.ids)
@@ -51,7 +51,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private Iterator<? extends Vertex> vertices() {
-    final OverflowDbGraph graph = (OverflowDbGraph) this.getTraversal().getGraph().get();
+    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
     final HasContainer indexedContainer = getIndexKey(Vertex.class);
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
@@ -84,7 +84,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private HasContainer getIndexKey(final Class<? extends Element> indexedClass) {
-    final Set<String> indexedKeys = ((OverflowDbGraph) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
+    final Set<String> indexedKeys = ((OdbGraph) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
 
     final Iterator<HasContainer> itty = IteratorUtils.filter(hasContainers.iterator(),
         c -> c.getPredicate().getBiPredicate() == Compare.eq && indexedKeys.contains(c.getKey()));
