@@ -14,17 +14,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * @author Marko A. Rodriguez (http://markorodriguez.com)
- */
-final class TinkerIndex<T extends Element> {
+final class Index<T extends Element> {
 
   protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
   protected final Class<T> indexClass;
   private final Set<String> indexedKeys = new HashSet<>();
   private final OverflowDb graph;
 
-  public TinkerIndex(final OverflowDb graph, final Class<T> indexClass) {
+  public Index(final OverflowDb graph, final Class<T> indexClass) {
     this.graph = graph;
     this.indexClass = indexClass;
   }
@@ -136,4 +133,54 @@ final class TinkerIndex<T extends Element> {
   public Set<String> getIndexedKeys() {
     return this.indexedKeys;
   }
+
+
+//    public static List<Vertex> queryVertexIndex(final OverflowDb graph, final String key, final Object value) {
+//        return null == graph.vertexIndex ? Collections.emptyList() : graph.vertexIndex.get(key, value);
+//    }
+//
+//    public static List<Edge> queryEdgeIndex(final OverflowDb graph, final String key, final Object value) {
+//        return Collections.emptyList();
+//    }
+//
+//    public static Map<String, List<VertexProperty>> getProperties(final TinkerVertex vertex) {
+//        return null == vertex.properties ? Collections.emptyMap() : vertex.properties;
+//    }
+
+//    public static void autoUpdateIndex(final Edge edge, final String key, final Object newValue, final Object oldValue) {
+//        final OverflowDb graph = (OverflowDb) edge.graph();
+//
+//        if (graph.edgeIndex != null)
+//            graph.edgeIndex.autoUpdate(key, newValue, oldValue, edge);
+//    }
+
+  public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
+    final OverflowDb graph = (OverflowDb) vertex.graph();
+    if (graph.vertexIndex != null)
+      graph.vertexIndex.autoUpdate(key, newValue, oldValue, vertex);
+  }
+
+  public static void removeElementIndex(final Vertex vertex) {
+    final OverflowDb graph = (OverflowDb) vertex.graph();
+    if (graph.vertexIndex != null)
+      graph.vertexIndex.removeElement(vertex);
+  }
+
+//    public static void removeElementIndex(final Edge edge) {
+//        final OverflowDb graph = (OverflowDb) edge.graph();
+//        if (graph.edgeIndex != null)
+//            graph.edgeIndex.removeElement(edge);
+//    }
+//
+//    public static void removeIndex(final TinkerVertex vertex, final String key, final Object value) {
+//        final OverflowDb graph = (OverflowDb) vertex.graph();
+//        if (graph.vertexIndex != null)
+//            graph.vertexIndex.remove(key, value, vertex);
+//    }
+
+//    public static void removeIndex(final TinkerEdge edge, final String key, final Object value) {
+//        final OverflowDb graph = (OverflowDb) edge.graph();
+//        if (graph.edgeIndex != null)
+//            graph.edgeIndex.remove(key, value, edge);
+//    }
 }
