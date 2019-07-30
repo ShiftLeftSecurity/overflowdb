@@ -2,7 +2,6 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.NodeRefWithLabel;
 import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
@@ -141,9 +140,13 @@ public class Song extends OverflowDbNode {
 
     @Override
     public NodeRef<Song> createVertexRef(Long id, OverflowDbGraph graph) {
-      return new NodeRefWithLabel<>(id, graph, null, Song.label);
+      return new NodeRef(id, graph, null) {
+        @Override
+        public String label() {
+          return Song.label;
+        }
+      };
     }
   };
-
 
 }

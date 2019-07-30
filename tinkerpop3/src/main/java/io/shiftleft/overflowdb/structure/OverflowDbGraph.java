@@ -77,7 +77,7 @@ public final class OverflowDbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
 
-  protected GraphVariables variables = null;
+  protected final GraphVariables variables = new GraphVariables();;
   protected Index<Vertex> nodeIndex = null;
   protected final IdManager nodeIdManager;
 
@@ -88,8 +88,8 @@ public final class OverflowDbGraph implements Graph {
   private final String graphLocation;
   private boolean closed = false;
 
-  protected OndiskOverflow ondiskOverflow;
-  protected ReferenceManager referenceManager;
+  protected final OndiskOverflow ondiskOverflow;
+  protected final ReferenceManager referenceManager;
 
   private OverflowDbGraph(final Configuration configuration,
                           Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
@@ -247,8 +247,6 @@ public final class OverflowDbGraph implements Graph {
 
   @Override
   public Variables variables() {
-    if (null == this.variables)
-      this.variables = new GraphVariables();
     return this.variables;
   }
 
