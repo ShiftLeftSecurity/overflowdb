@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class OverflowDbTestNode extends OverflowDbNode {
+public class OdbTestNode extends OdbNode {
   public static final String LABEL = "testNode";
 
   public static final String STRING_PROPERTY = "StringProperty";
@@ -26,13 +26,13 @@ public class OverflowDbTestNode extends OverflowDbNode {
   private List<String> stringListProperty;
   private List<Integer> intListProperty;
 
-  protected OverflowDbTestNode(NodeRef ref) {
+  protected OdbTestNode(NodeRef ref) {
     super(ref);
   }
 
   @Override
   public String label() {
-    return OverflowDbTestNode.LABEL;
+    return OdbTestNode.LABEL;
   }
 
   @Override
@@ -44,13 +44,13 @@ public class OverflowDbTestNode extends OverflowDbNode {
   @Override
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
     if (STRING_PROPERTY.equals(key) && stringProperty != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, stringProperty));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, stringProperty));
     } else if (key == STRING_LIST_PROPERTY && stringListProperty != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, stringListProperty));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, stringListProperty));
     } else if (key == INT_PROPERTY && intProperty != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, intProperty));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, intProperty));
     } else if (key == INT_LIST_PROPERTY && intListProperty != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, intListProperty));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, intListProperty));
     } else {
       return Collections.emptyIterator();
     }
@@ -110,35 +110,35 @@ public class OverflowDbTestNode extends OverflowDbNode {
 
   private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
       new HashSet<>(Arrays.asList(STRING_PROPERTY, INT_PROPERTY, STRING_LIST_PROPERTY, INT_LIST_PROPERTY)),
-      Arrays.asList(OverflowDbTestEdge.layoutInformation),
-      Arrays.asList(OverflowDbTestEdge.layoutInformation));
+      Arrays.asList(OdbTestEdge.layoutInformation),
+      Arrays.asList(OdbTestEdge.layoutInformation));
 
-  public static OverflowElementFactory.ForNode<OverflowDbTestNode> factory = new OverflowElementFactory.ForNode<OverflowDbTestNode>() {
+  public static OdbElementFactory.ForNode<OdbTestNode> factory = new OdbElementFactory.ForNode<OdbTestNode>() {
 
     @Override
     public String forLabel() {
-      return OverflowDbTestNode.LABEL;
+      return OdbTestNode.LABEL;
     }
 
     @Override
-    public OverflowDbTestNode createVertex(NodeRef<OverflowDbTestNode> ref) {
-      return new OverflowDbTestNode(ref);
+    public OdbTestNode createVertex(NodeRef<OdbTestNode> ref) {
+      return new OdbTestNode(ref);
     }
 
     @Override
-    public OverflowDbTestNode createVertex(long id, OverflowDbGraph graph) {
-      final NodeRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
-      final OverflowDbTestNode node = createVertex(ref);
+    public OdbTestNode createVertex(long id, OdbGraph graph) {
+      final NodeRef<OdbTestNode> ref = createVertexRef(id, graph);
+      final OdbTestNode node = createVertex(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<OverflowDbTestNode> createVertexRef(long id, OverflowDbGraph graph) {
+    public NodeRef<OdbTestNode> createVertexRef(long id, OdbGraph graph) {
       return new NodeRef(id, graph) {
         @Override
         public String label() {
-          return OverflowDbTestNode.LABEL;
+          return OdbTestNode.LABEL;
         }
       };
     }

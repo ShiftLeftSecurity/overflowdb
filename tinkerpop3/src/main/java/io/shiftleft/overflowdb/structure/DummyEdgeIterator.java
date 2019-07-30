@@ -42,7 +42,7 @@ class DummyEdgeIterator implements Iterator<Edge> {
     if (!hasNext()) throw new NoSuchElementException();
 
     NodeRef otherRef = (NodeRef) array[current];
-    OverflowDbEdge dummyEdge;
+    OdbEdge dummyEdge;
     if (direction == Direction.OUT) {
       dummyEdge = thisRef.get().instantiateDummyEdge(label, thisRef, otherRef);
       dummyEdge.setOutBlockOffset(current - begin);

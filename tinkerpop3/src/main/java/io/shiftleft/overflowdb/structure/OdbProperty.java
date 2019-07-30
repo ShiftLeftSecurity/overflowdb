@@ -5,12 +5,12 @@ import org.apache.tinkerpop.gremlin.structure.Property;
 
 import java.util.NoSuchElementException;
 
-public class OverflowProperty<V> implements Property<V> {
+public class OdbProperty<V> implements Property<V> {
   private final String key;
   private final V value;
   private final Element element; //set to null
 
-  public OverflowProperty(String key, V value, Element element) {
+  public OdbProperty(String key, V value, Element element) {
     this.key = key;
     this.value = value;
     this.element = element;

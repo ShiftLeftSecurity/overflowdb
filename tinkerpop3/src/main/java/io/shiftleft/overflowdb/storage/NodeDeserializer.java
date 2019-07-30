@@ -2,9 +2,9 @@ package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDbGraph;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.OverflowElementFactory;
+import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.structure.OdbElementFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
@@ -23,17 +23,17 @@ import java.util.Map;
 
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  protected final OverflowDbGraph graph;
-  protected final Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel;
+  protected final OdbGraph graph;
+  protected final Map<String, OdbElementFactory.ForNode> vertexFactoryByLabel;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(OverflowDbGraph graph, Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel) {
+  public NodeDeserializer(OdbGraph graph, Map<String, OdbElementFactory.ForNode> vertexFactoryByLabel) {
     this.graph = graph;
     this.vertexFactoryByLabel = vertexFactoryByLabel;
   }
 
-  public OverflowDbNode deserialize(byte[] bytes) throws IOException {
+  public OdbNode deserialize(byte[] bytes) throws IOException {
     long start = System.currentTimeMillis();
     if (null == bytes)
       return null;
@@ -45,7 +45,7 @@ public class NodeDeserializer {
       final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
       final Object[] adjacentVerticesWithProperties = unpackAdjacentVerticesWithProperties(unpacker);
 
-      OverflowDbNode node = createNode(id, label, properties, edgeOffsets, adjacentVerticesWithProperties);
+      OdbNode node = createNode(id, label, properties, edgeOffsets, adjacentVerticesWithProperties);
 
       deserializedCount++;
       deserializationTimeSpentMillis += System.currentTimeMillis() - start;
@@ -158,7 +158,7 @@ public class NodeDeserializer {
   }
 
   protected NodeRef createNodeRef(long id, String label) {
-    OverflowElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
+    OdbElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
     if (vertexFactory == null) {
       throw new AssertionError("vertexFactory not found for label=" + label);
     }
@@ -166,12 +166,12 @@ public class NodeDeserializer {
     return vertexFactory.createVertexRef(id, graph);
   }
 
-  protected OverflowDbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
-    OverflowElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
+  protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
+    OdbElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
     if (vertexFactory == null) {
       throw new AssertionError("vertexFactory not found for label=" + label);
     }
-    OverflowDbNode vertex = vertexFactory.createVertex(id, graph);
+    OdbNode vertex = vertexFactory.createVertex(id, graph);
     ElementHelper.attachProperties(vertex, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
     vertex.setEdgeOffsets(edgeOffsets);
     vertex.setAdjacentVerticesWithProperties(adjacentVerticesWithProperties);

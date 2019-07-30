@@ -9,22 +9,22 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class OverflowNodeProperty<V> implements Element, VertexProperty<V> {
+public class OdbNodeProperty<V> implements Element, VertexProperty<V> {
   private final int id;
   private final Vertex vertex;
   private final String key;
   private final V value;
 
-  public OverflowNodeProperty(final Vertex vertex,
-                              final String key,
-                              final V value) {
+  public OdbNodeProperty(final Vertex vertex,
+                         final String key,
+                         final V value) {
     this(-1, vertex, key, value);
   }
 
-  public OverflowNodeProperty(final int id,
-                              final Vertex vertex,
-                              final String key,
-                              final V value) {
+  public OdbNodeProperty(final int id,
+                         final Vertex vertex,
+                         final String key,
+                         final V value) {
     this.id = id;
     this.vertex = vertex;
     this.key = key;

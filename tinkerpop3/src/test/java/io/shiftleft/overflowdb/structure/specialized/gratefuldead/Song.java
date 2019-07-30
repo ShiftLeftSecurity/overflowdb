@@ -2,10 +2,10 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDbGraph;
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import io.shiftleft.overflowdb.structure.OverflowElementFactory;
-import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
+import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.structure.OdbElementFactory;
+import io.shiftleft.overflowdb.structure.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Song extends OverflowDbNode {
+public class Song extends OdbNode {
   public static final String label = "song";
   public static final String NAME = "name";
   public static final String SONG_TYPE = "songType";
@@ -59,13 +59,13 @@ public class Song extends OverflowDbNode {
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
     final VertexProperty<V> ret;
     if (NAME.equals(key) && name != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, name));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, name));
     } else if (key == SONG_TYPE && songType != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, songType));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, songType));
     } else if (key == PERFORMANCES && performances != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, performances));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, performances));
     } else if (key == TEST_PROP && testProp != null) {
-      return IteratorUtils.of(new OverflowNodeProperty(this, key, testProp));
+      return IteratorUtils.of(new OdbNodeProperty(this, key, testProp));
     } else {
       return Collections.emptyIterator();
     }
@@ -119,7 +119,7 @@ public class Song extends OverflowDbNode {
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation),
       Arrays.asList(FollowedBy.layoutInformation));
 
-  public static OverflowElementFactory.ForNode<Song> factory = new OverflowElementFactory.ForNode<Song>() {
+  public static OdbElementFactory.ForNode<Song> factory = new OdbElementFactory.ForNode<Song>() {
     @Override
     public String forLabel() {
       return Song.label;
@@ -131,7 +131,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public Song createVertex(long id, OverflowDbGraph graph) {
+    public Song createVertex(long id, OdbGraph graph) {
       final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
       ref.setNode(node);
@@ -139,7 +139,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Song> createVertexRef(long id, OverflowDbGraph graph) {
+    public NodeRef<Song> createVertexRef(long id, OdbGraph graph) {
       return new NodeRef(id, graph) {
         @Override
         public String label() {

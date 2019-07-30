@@ -11,8 +11,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class OverflowDbEdge implements Edge {
-  private final OverflowDbGraph graph;
+public abstract class OdbEdge implements Edge {
+  private final OdbGraph graph;
   private final String label;
   private final NodeRef outVertex;
   private final NodeRef inVertex;
@@ -34,11 +34,11 @@ public abstract class OverflowDbEdge implements Edge {
 
   private static final int UNINITIALIZED_BLOCK_OFFSET = -1;
 
-  public OverflowDbEdge(OverflowDbGraph graph,
-                        String label,
-                        NodeRef outVertex,
-                        NodeRef inVertex,
-                        Set<String> specificKeys) {
+  public OdbEdge(OdbGraph graph,
+                 String label,
+                 NodeRef outVertex,
+                 NodeRef inVertex,
+                 Set<String> specificKeys) {
     this.graph = graph;
     this.label = label;
     this.outVertex = outVertex;
@@ -107,7 +107,7 @@ public abstract class OverflowDbEdge implements Edge {
     }
     inVertex.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
     outVertex.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
-    return new OverflowProperty<>(key, value, this);
+    return new OdbProperty<>(key, value, this);
   }
 
   @Override
@@ -150,11 +150,11 @@ public abstract class OverflowDbEdge implements Edge {
 
   @Override
   public boolean equals(Object other) {
-    if (!(other instanceof OverflowDbEdge)) {
+    if (!(other instanceof OdbEdge)) {
       return false;
     }
 
-    OverflowDbEdge otherEdge = (OverflowDbEdge) other;
+    OdbEdge otherEdge = (OdbEdge) other;
     fixupBlockOffsetsIfNecessary(otherEdge);
 
     return this.inVertex.id().equals(otherEdge.inVertex.id()) &&
@@ -177,7 +177,7 @@ public abstract class OverflowDbEdge implements Edge {
     return Objects.hash(inVertex.id(), outVertex.id(), label);
   }
 
-  private void fixupBlockOffsetsIfNecessary(OverflowDbEdge otherEdge) {
+  private void fixupBlockOffsetsIfNecessary(OdbEdge otherEdge) {
     if ((this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
         otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET) &&
         (this.outBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||

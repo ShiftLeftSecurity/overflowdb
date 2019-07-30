@@ -13,12 +13,12 @@ import java.util.Iterator;
  * Wrapper for a node, which may be set to `null` by @ReferenceManager to avoid OutOfMemory errors.
  * When it's cleared, it will be persisted to an on-disk storage.
  */
-public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
+public abstract class NodeRef<N extends OdbNode> implements Vertex {
   public final long id;
-  protected final OverflowDbGraph graph;
+  protected final OdbGraph graph;
   private N node;
 
-  public NodeRef(final OverflowDbGraph graph, N node) {
+  public NodeRef(final OdbGraph graph, N node) {
     this.graph = graph;
     this.node = node;
     this.id = node.ref.id;
@@ -28,7 +28,7 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
    * used when creating a node without the underlying instance at hand
    * this assumes that it is available on disk
    */
-  public NodeRef(final long id, final OverflowDbGraph graph) {
+  public NodeRef(final long id, final OdbGraph graph) {
     this.id = id;
     this.graph = graph;
   }
@@ -43,7 +43,7 @@ public abstract class NodeRef<N extends OverflowDbNode> implements Vertex {
 
   /* only called by @ReferenceManager */
   protected void clear() throws IOException {
-    OverflowDbNode node = this.node;
+    OdbNode node = this.node;
     if (node != null) {
       graph.ondiskOverflow.persist(node);
     }

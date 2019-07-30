@@ -1,7 +1,6 @@
 package io.shiftleft.overflowdb.storage;
 
-import io.shiftleft.overflowdb.structure.OverflowDbNode;
-import org.apache.tinkerpop.gremlin.structure.Element;
+import io.shiftleft.overflowdb.structure.OdbNode;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -66,7 +65,7 @@ public class OndiskOverflow implements AutoCloseable {
     vertexMVMap = mvstore.openMap("vertices");
   }
 
-  public void persist(final OverflowDbNode node) throws IOException {
+  public void persist(final OdbNode node) throws IOException {
     if (!closed) {
       final long id = node.ref.id;
       vertexMVMap.put(id, nodeSerializer.serialize(node));

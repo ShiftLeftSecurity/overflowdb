@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDbGraph;
-import io.shiftleft.overflowdb.structure.OverflowDbTestEdge;
-import io.shiftleft.overflowdb.structure.OverflowDbTestNode;
-import io.shiftleft.overflowdb.structure.OverflowElementFactory;
+import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.structure.OdbTestEdge;
+import io.shiftleft.overflowdb.structure.OdbTestNode;
+import io.shiftleft.overflowdb.structure.OdbElementFactory;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -22,55 +22,55 @@ public class SerializerTest {
 
   @Test
   public void serializeVertex() throws IOException {
-    try (OverflowDbGraph graph = newGraph()) {
+    try (OdbGraph graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
       Vertex vertexRef = graph.addVertex(
-          T.label, OverflowDbTestNode.LABEL,
-          OverflowDbTestNode.STRING_PROPERTY, "StringValue",
-          OverflowDbTestNode.INT_PROPERTY, 42,
-          OverflowDbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
-          OverflowDbTestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43)
+          T.label, OdbTestNode.LABEL,
+          OdbTestNode.STRING_PROPERTY, "StringValue",
+          OdbTestNode.INT_PROPERTY, 42,
+          OdbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
+          OdbTestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43)
       );
 
-      OverflowDbTestNode underlyingVertexDb = ((NodeRef<OverflowDbTestNode>) vertexRef).get();
+      OdbTestNode underlyingVertexDb = ((NodeRef<OdbTestNode>) vertexRef).get();
       byte[] bytes = serializer.serialize(underlyingVertexDb);
       Vertex deserialized = deserializer.deserialize(bytes);
 
       assertEquals(underlyingVertexDb.id(), deserialized.id());
       assertEquals(underlyingVertexDb.label(), deserialized.label());
-      assertEquals(underlyingVertexDb.valueMap(), ((OverflowDbTestNode) deserialized).valueMap());
+      assertEquals(underlyingVertexDb.valueMap(), ((OdbTestNode) deserialized).valueMap());
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(vertexRef.id(), deserializedRef.id);
-      assertEquals(OverflowDbTestNode.LABEL, deserializedRef.label());
+      assertEquals(OdbTestNode.LABEL, deserializedRef.label());
     }
   }
 
   @Test
   public void serializeWithEdge() throws IOException {
-    try (OverflowDbGraph graph = newGraph()) {
+    try (OdbGraph graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
 
-      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.LABEL);
-      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.LABEL);
-      Edge edge = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
+      Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
+      Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
+      Edge edge = v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
-      OverflowDbTestNode v0Underlying = ((NodeRef<OverflowDbTestNode>) v0).get();
-      OverflowDbTestNode v1Underlying = ((NodeRef<OverflowDbTestNode>) v1).get();
+      OdbTestNode v0Underlying = ((NodeRef<OdbTestNode>) v0).get();
+      OdbTestNode v1Underlying = ((NodeRef<OdbTestNode>) v1).get();
       Vertex v0Deserialized = deserializer.deserialize(serializer.serialize(v0Underlying));
       Vertex v1Deserialized = deserializer.deserialize(serializer.serialize(v1Underlying));
 
-      Edge edgeViaV0Deserialized = v0Deserialized.edges(Direction.OUT, OverflowDbTestEdge.LABEL).next();
-      Edge edgeViaV1Deserialized = v1Deserialized.edges(Direction.IN, OverflowDbTestEdge.LABEL).next();
+      Edge edgeViaV0Deserialized = v0Deserialized.edges(Direction.OUT, OdbTestEdge.LABEL).next();
+      Edge edgeViaV1Deserialized = v1Deserialized.edges(Direction.IN, OdbTestEdge.LABEL).next();
 
       assertEquals(edge.id(), edgeViaV0Deserialized.id());
       assertEquals(edge.id(), edgeViaV1Deserialized.id());
-      assertEquals(OverflowDbTestEdge.LABEL, edgeViaV0Deserialized.label());
-      assertEquals(OverflowDbTestEdge.LABEL, edgeViaV1Deserialized.label());
-      assertEquals(Long.MAX_VALUE, (long) edgeViaV0Deserialized.value(OverflowDbTestEdge.LONG_PROPERTY));
-      assertEquals(Long.MAX_VALUE, (long) edgeViaV1Deserialized.value(OverflowDbTestEdge.LONG_PROPERTY));
+      assertEquals(OdbTestEdge.LABEL, edgeViaV0Deserialized.label());
+      assertEquals(OdbTestEdge.LABEL, edgeViaV1Deserialized.label());
+      assertEquals(Long.MAX_VALUE, (long) edgeViaV0Deserialized.value(OdbTestEdge.LONG_PROPERTY));
+      assertEquals(Long.MAX_VALUE, (long) edgeViaV1Deserialized.value(OdbTestEdge.LONG_PROPERTY));
 
       assertEquals(v0.id(), edgeViaV0Deserialized.outVertex().id());
       assertEquals(v1.id(), edgeViaV0Deserialized.inVertex().id());
@@ -79,16 +79,16 @@ public class SerializerTest {
     }
   }
 
-  private NodeDeserializer newDeserializer(OverflowDbGraph graph) {
-    Map<String, OverflowElementFactory.ForNode> vertexFactories = new HashMap();
-    vertexFactories.put(OverflowDbTestNode.LABEL, OverflowDbTestNode.factory);
+  private NodeDeserializer newDeserializer(OdbGraph graph) {
+    Map<String, OdbElementFactory.ForNode> vertexFactories = new HashMap();
+    vertexFactories.put(OdbTestNode.LABEL, OdbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }
 
-  private OverflowDbGraph newGraph() {
-    return OverflowDbGraph.open(
-        Arrays.asList(OverflowDbTestNode.factory),
-        Arrays.asList(OverflowDbTestEdge.factory)
+  private OdbGraph newGraph() {
+    return OdbGraph.open(
+        Arrays.asList(OdbTestNode.factory),
+        Arrays.asList(OdbTestEdge.factory)
     );
   }
 

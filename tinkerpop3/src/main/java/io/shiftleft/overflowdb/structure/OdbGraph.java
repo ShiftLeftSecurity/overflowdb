@@ -5,7 +5,7 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.set.hash.THashSet;
 import io.shiftleft.overflowdb.process.traversal.strategy.optimization.CountStrategy;
-import io.shiftleft.overflowdb.process.traversal.strategy.optimization.OverflowDbGraphStepStrategy;
+import io.shiftleft.overflowdb.process.traversal.strategy.optimization.OdbGraphStepStrategy;
 import io.shiftleft.overflowdb.storage.NodeDeserializer;
 import io.shiftleft.overflowdb.storage.OndiskOverflow;
 import io.shiftleft.overflowdb.storage.iterator.MultiIterator2;
@@ -45,18 +45,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class OverflowDbGraph implements Graph {
+public final class OdbGraph implements Graph {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   static {
-    TraversalStrategies.GlobalCache.registerStrategies(OverflowDbGraph.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
-        OverflowDbGraphStepStrategy.instance(),
+    TraversalStrategies.GlobalCache.registerStrategies(OdbGraph.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
+        OdbGraphStepStrategy.instance(),
         CountStrategy.instance()));
   }
 
   public static final Configuration EMPTY_CONFIGURATION() {
     return new BaseConfiguration() {{
-      this.setProperty(Graph.GRAPH, OverflowDbGraph.class.getName());
+      this.setProperty(Graph.GRAPH, OdbGraph.class.getName());
       this.setProperty(OVERFLOW_HEAP_PERCENTAGE_THRESHOLD, 80);
       this.setProperty(OVERFLOW_ENABLED, true);
     }};
@@ -79,8 +79,8 @@ public final class OverflowDbGraph implements Graph {
   protected final GraphVariables variables = new GraphVariables();;
   protected Index<Vertex> nodeIndex = null;
 
-  protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
-  protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
+  protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
+  protected final Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel;
 
   private final Configuration configuration;
   private final String graphLocation;
@@ -89,9 +89,9 @@ public final class OverflowDbGraph implements Graph {
   protected final OndiskOverflow ondiskOverflow;
   protected final ReferenceManager referenceManager;
 
-  private OverflowDbGraph(final Configuration configuration,
-                          Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
-                          Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
+  private OdbGraph(final Configuration configuration,
+                   Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
+                   Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
     this.configuration = configuration;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -151,14 +151,14 @@ public final class OverflowDbGraph implements Graph {
   }
 
   /**
-   * Open a new {@link OverflowDbGraph} instance.
+   * Open a new {@link OdbGraph} instance.
    * <p/>
    * <b>Reference Implementation Help:</b> If a {@link Graph} implementation does not require a {@code Configuration}
    * (or perhaps has a default configuration) it can choose to implement a zero argument
    * {@code open()} method. This is an optional constructor method for OverflowDb. It is not enforced by the Gremlin
    * Test Suite.
    */
-  public static OverflowDbGraph open() {
+  public static OdbGraph open() {
     return open(EMPTY_CONFIGURATION());
   }
 
@@ -175,24 +175,24 @@ public final class OverflowDbGraph implements Graph {
    * @param configuration the configuration for the instance
    * @return a newly opened {@link Graph}
    */
-  public static OverflowDbGraph open(final Configuration configuration) {
-    return new OverflowDbGraph(configuration, new HashMap<>(), new HashMap<>());
+  public static OdbGraph open(final Configuration configuration) {
+    return new OdbGraph(configuration, new HashMap<>(), new HashMap<>());
   }
 
 
-  public static OverflowDbGraph open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                     List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
+  public static OdbGraph open(List<OdbElementFactory.ForNode<?>> nodeFactories,
+                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
     return open(EMPTY_CONFIGURATION(), nodeFactories, edgeFactories);
   }
 
-  public static OverflowDbGraph open(final Configuration configuration,
-                                     List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                     List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
-    Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
-    Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
+  public static OdbGraph open(final Configuration configuration,
+                              List<OdbElementFactory.ForNode<?>> nodeFactories,
+                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
+    Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
+    Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OverflowDbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+    return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   ////////////// STRUCTURE API METHODS //////////////////
@@ -237,8 +237,8 @@ public final class OverflowDbGraph implements Graph {
           "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
               + ". Mixing specialized and generic elements is not (yet) supported");
     }
-    final OverflowElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
-    final OverflowDbNode underlying = factory.createVertex(idValue, this);
+    final OdbElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
+    final OdbNode underlying = factory.createVertex(idValue, this);
     this.referenceManager.registerRef(underlying.ref);
     node = underlying.ref;
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);

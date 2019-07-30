@@ -2,7 +2,6 @@ package io.shiftleft.overflowdb.structure;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,27 +24,27 @@ public class OverflowTest {
     boolean enableOverflow = true;
     int nodeCount = 100_000;
     int currentInt = 0;
-    try(OverflowDbGraph graph = newGraph(enableOverflow)) {
+    try(OdbGraph graph = newGraph(enableOverflow)) {
       for (long i = 0; i < nodeCount; i++) {
         if (i % 1000 == 0) {
           System.out.println(i + " nodes created");
         }
-        Vertex v = graph.addVertex(OverflowDbTestNode.LABEL);
+        Vertex v = graph.addVertex(OdbTestNode.LABEL);
         List<Integer> ints = new ArrayList<>();
         for (int j = 0; j < 1000; j++) {
           ints.add(currentInt++);
         }
-        v.property(OverflowDbTestNode.INT_LIST_PROPERTY, ints);
+        v.property(OdbTestNode.INT_LIST_PROPERTY, ints);
       }
     }
   }
 
-  private OverflowDbGraph newGraph(boolean enableOverflow) {
-    Configuration configuration = OverflowDbGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(OverflowDbGraph.OVERFLOW_ENABLED, enableOverflow);
-    return OverflowDbGraph.open(
+  private OdbGraph newGraph(boolean enableOverflow) {
+    Configuration configuration = OdbGraph.EMPTY_CONFIGURATION();
+    configuration.setProperty(OdbGraph.OVERFLOW_ENABLED, enableOverflow);
+    return OdbGraph.open(
         configuration,
-        Arrays.asList(OverflowDbTestNode.factory),
+        Arrays.asList(OdbTestNode.factory),
         Arrays.asList()
     );
   }
