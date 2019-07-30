@@ -118,8 +118,8 @@ public abstract class OverflowDbEdge implements Edge {
   @Override
   public void remove() {
     fixupBlockOffsets();
-    outVertex.get().removeEdge(Direction.OUT, label(), inVertex, outBlockOffset);
-    inVertex.get().removeEdge(Direction.IN, label(), outVertex, inBlockOffset);
+    outVertex.get().removeEdge(Direction.OUT, label(), outBlockOffset);
+    inVertex.get().removeEdge(Direction.IN, label(), inBlockOffset);
   }
 
   @Override

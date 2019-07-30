@@ -356,7 +356,7 @@ public abstract class OverflowDbNode implements Vertex {
    *
    * @param blockOffset must have been initialized
    */
-  protected void removeEdge(Direction direction, String label, NodeRef adjacentVertex, int blockOffset) {
+  protected void removeEdge(Direction direction, String label, int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos) + blockOffset;
     int strideSize = getStrideSize(label);
