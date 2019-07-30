@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbEdge;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 
@@ -14,7 +14,7 @@ public class WrittenBy extends OverflowDbEdge implements Serializable {
   public static final String LABEL = "writtenBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
-  public WrittenBy(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
+  public WrittenBy(OverflowDbGraph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -27,7 +27,7 @@ public class WrittenBy extends OverflowDbEdge implements Serializable {
     }
 
     @Override
-    public WrittenBy createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
+    public WrittenBy createEdge(OverflowDbGraph graph, NodeRef outVertex, NodeRef inVertex) {
       return new WrittenBy(graph, outVertex, inVertex);
     }
   };

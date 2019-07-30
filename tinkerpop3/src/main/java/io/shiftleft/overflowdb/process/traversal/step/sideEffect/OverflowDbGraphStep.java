@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.process.traversal.step.sideEffect;
 
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
@@ -39,7 +39,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private Iterator<? extends Edge> edges() {
-    final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
+    final OverflowDbGraph graph = (OverflowDbGraph) this.getTraversal().getGraph().get();
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
     if (null == this.ids)
@@ -51,7 +51,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private Iterator<? extends Vertex> vertices() {
-    final OverflowDb graph = (OverflowDb) this.getTraversal().getGraph().get();
+    final OverflowDbGraph graph = (OverflowDbGraph) this.getTraversal().getGraph().get();
     final HasContainer indexedContainer = getIndexKey(Vertex.class);
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
@@ -84,7 +84,7 @@ public final class OverflowDbGraphStep<S, E extends Element> extends GraphStep<S
   }
 
   private HasContainer getIndexKey(final Class<? extends Element> indexedClass) {
-    final Set<String> indexedKeys = ((OverflowDb) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
+    final Set<String> indexedKeys = ((OverflowDbGraph) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
 
     final Iterator<HasContainer> itty = IteratorUtils.filter(hasContainers.iterator(),
         c -> c.getPredicate().getBiPredicate() == Compare.eq && indexedKeys.contains(c.getKey()));

@@ -45,18 +45,18 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-public final class OverflowDb implements Graph {
+public final class OverflowDbGraph implements Graph {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   static {
-    TraversalStrategies.GlobalCache.registerStrategies(OverflowDb.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
+    TraversalStrategies.GlobalCache.registerStrategies(OverflowDbGraph.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
         OverflowDbGraphStepStrategy.instance(),
         CountStrategy.instance()));
   }
 
   public static final Configuration EMPTY_CONFIGURATION() {
     return new BaseConfiguration() {{
-      this.setProperty(Graph.GRAPH, OverflowDb.class.getName());
+      this.setProperty(Graph.GRAPH, OverflowDbGraph.class.getName());
       this.setProperty(SWAPPING_HEAP_PERCENTAGE_THRESHOLD, 80);
       this.setProperty(SWAPPING_ENABLED, true);
     }};
@@ -90,9 +90,9 @@ public final class OverflowDb implements Graph {
   protected OndiskOverflow ondiskOverflow;
   protected ReferenceManager referenceManager;
 
-  private OverflowDb(final Configuration configuration,
-                     Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
-                     Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
+  private OverflowDbGraph(final Configuration configuration,
+                          Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel,
+                          Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel) {
     this.configuration = configuration;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -150,14 +150,14 @@ public final class OverflowDb implements Graph {
   }
 
   /**
-   * Open a new {@link OverflowDb} instance.
+   * Open a new {@link OverflowDbGraph} instance.
    * <p/>
    * <b>Reference Implementation Help:</b> If a {@link Graph} implementation does not require a {@code Configuration}
    * (or perhaps has a default configuration) it can choose to implement a zero argument
    * {@code open()} method. This is an optional constructor method for OverflowDb. It is not enforced by the Gremlin
    * Test Suite.
    */
-  public static OverflowDb open() {
+  public static OverflowDbGraph open() {
     return open(EMPTY_CONFIGURATION());
   }
 
@@ -174,24 +174,24 @@ public final class OverflowDb implements Graph {
    * @param configuration the configuration for the instance
    * @return a newly opened {@link Graph}
    */
-  public static OverflowDb open(final Configuration configuration) {
-    return new OverflowDb(configuration, new HashMap<>(), new HashMap<>());
+  public static OverflowDbGraph open(final Configuration configuration) {
+    return new OverflowDbGraph(configuration, new HashMap<>(), new HashMap<>());
   }
 
 
-  public static OverflowDb open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
+  public static OverflowDbGraph open(List<OverflowElementFactory.ForNode<?>> nodeFactories,
+                                     List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
     return open(EMPTY_CONFIGURATION(), nodeFactories, edgeFactories);
   }
 
-  public static OverflowDb open(final Configuration configuration,
-                                List<OverflowElementFactory.ForNode<?>> nodeFactories,
-                                List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
+  public static OverflowDbGraph open(final Configuration configuration,
+                                     List<OverflowElementFactory.ForNode<?>> nodeFactories,
+                                     List<OverflowElementFactory.ForEdge<?>> edgeFactories) {
     Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
     Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OverflowDb(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+    return new OverflowDbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   ////////////// STRUCTURE API METHODS //////////////////
@@ -538,9 +538,9 @@ public final class OverflowDb implements Graph {
    */
   class IdManager {
     /**
-     * Generate an identifier which should be unique to the {@link OverflowDb} instance.
+     * Generate an identifier which should be unique to the {@link OverflowDbGraph} instance.
      */
-    public Long getNextId(final OverflowDb graph) {
+    public Long getNextId(final OverflowDbGraph graph) {
       return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
     }
 

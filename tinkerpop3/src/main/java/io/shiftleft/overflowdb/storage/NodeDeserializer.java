@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import org.apache.commons.lang3.NotImplementedException;
@@ -23,12 +23,12 @@ import java.util.Map;
 
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  protected final OverflowDb graph;
+  protected final OverflowDbGraph graph;
   protected final Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(OverflowDb graph, Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel) {
+  public NodeDeserializer(OverflowDbGraph graph, Map<String, OverflowElementFactory.ForNode> vertexFactoryByLabel) {
     this.graph = graph;
     this.vertexFactoryByLabel = vertexFactoryByLabel;
   }

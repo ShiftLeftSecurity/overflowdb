@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbEdge;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 
@@ -18,7 +18,7 @@ public class FollowedBy extends OverflowDbEdge {
     return (Integer) property(WEIGHT).value();
   }
 
-  public FollowedBy(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
+  public FollowedBy(OverflowDbGraph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -31,7 +31,7 @@ public class FollowedBy extends OverflowDbEdge {
     }
 
     @Override
-    public FollowedBy createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex) {
+    public FollowedBy createEdge(OverflowDbGraph graph, NodeRef outVertex, NodeRef inVertex) {
       return new FollowedBy(graph, outVertex, inVertex);
     }
   };

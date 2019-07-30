@@ -3,7 +3,7 @@ package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.NodeRefWithLabel;
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
 import io.shiftleft.overflowdb.structure.OverflowNodeProperty;
@@ -132,7 +132,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public Song createVertex(Long id, OverflowDb graph) {
+    public Song createVertex(Long id, OverflowDbGraph graph) {
       final NodeRef<Song> ref = createVertexRef(id, graph);
       final Song node = createVertex(ref);
       ref.setNode(node);
@@ -140,7 +140,7 @@ public class Song extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<Song> createVertexRef(Long id, OverflowDb graph) {
+    public NodeRef<Song> createVertexRef(Long id, OverflowDbGraph graph) {
       return new NodeRefWithLabel<>(id, graph, null, Song.label);
     }
   };

@@ -7,18 +7,18 @@ public class OverflowElementFactory {
   public interface ForNode<V extends OverflowDbNode> {
     String forLabel();
 
-    V createVertex(Long id, OverflowDb graph);
+    V createVertex(Long id, OverflowDbGraph graph);
 
     V createVertex(NodeRef<V> ref);
 
-    NodeRef<V> createVertexRef(Long id, OverflowDb graph);
+    NodeRef<V> createVertexRef(Long id, OverflowDbGraph graph);
   }
 
 
   public interface ForEdge<E extends OverflowDbEdge> {
     String forLabel();
 
-    E createEdge(OverflowDb graph, NodeRef outVertex, NodeRef inVertex);
+    E createEdge(OverflowDbGraph graph, NodeRef outVertex, NodeRef inVertex);
   }
 
 }

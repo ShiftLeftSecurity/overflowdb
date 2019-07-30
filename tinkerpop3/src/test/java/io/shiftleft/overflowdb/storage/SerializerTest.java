@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OverflowDb;
+import io.shiftleft.overflowdb.structure.OverflowDbGraph;
 import io.shiftleft.overflowdb.structure.OverflowDbTestEdge;
 import io.shiftleft.overflowdb.structure.OverflowDbTestNode;
 import io.shiftleft.overflowdb.structure.OverflowElementFactory;
@@ -22,7 +22,7 @@ public class SerializerTest {
 
   @Test
   public void serializeVertex() throws IOException {
-    try (OverflowDb graph = newGraph()) {
+    try (OverflowDbGraph graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
       Vertex vertexRef = graph.addVertex(
@@ -49,7 +49,7 @@ public class SerializerTest {
 
   @Test
   public void serializeWithEdge() throws IOException {
-    try (OverflowDb graph = newGraph()) {
+    try (OverflowDbGraph graph = newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
 
@@ -79,14 +79,14 @@ public class SerializerTest {
     }
   }
 
-  private NodeDeserializer newDeserializer(OverflowDb graph) {
+  private NodeDeserializer newDeserializer(OverflowDbGraph graph) {
     Map<String, OverflowElementFactory.ForNode> vertexFactories = new HashMap();
     vertexFactories.put(OverflowDbTestNode.label, OverflowDbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }
 
-  private OverflowDb newGraph() {
-    return OverflowDb.open(
+  private OverflowDbGraph newGraph() {
+    return OverflowDbGraph.open(
         Arrays.asList(OverflowDbTestNode.factory),
         Arrays.asList(OverflowDbTestEdge.factory)
     );

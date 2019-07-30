@@ -19,9 +19,9 @@ final class Index<T extends Element> {
   protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
   protected final Class<T> indexClass;
   private final Set<String> indexedKeys = new HashSet<>();
-  private final OverflowDb graph;
+  private final OverflowDbGraph graph;
 
-  public Index(final OverflowDb graph, final Class<T> indexClass) {
+  public Index(final OverflowDbGraph graph, final Class<T> indexClass) {
     this.graph = graph;
     this.indexClass = indexClass;
   }
@@ -155,13 +155,13 @@ final class Index<T extends Element> {
 //    }
 
   public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
-    final OverflowDb graph = (OverflowDb) vertex.graph();
+    final OverflowDbGraph graph = (OverflowDbGraph) vertex.graph();
     if (graph.nodeIndex != null)
       graph.nodeIndex.autoUpdate(key, newValue, oldValue, vertex);
   }
 
   public static void removeElementIndex(final Vertex vertex) {
-    final OverflowDb graph = (OverflowDb) vertex.graph();
+    final OverflowDbGraph graph = (OverflowDbGraph) vertex.graph();
     if (graph.nodeIndex != null)
       graph.nodeIndex.removeElement(vertex);
   }
