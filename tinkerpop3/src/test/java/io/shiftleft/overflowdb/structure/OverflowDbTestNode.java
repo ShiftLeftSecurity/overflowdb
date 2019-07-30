@@ -126,7 +126,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
     }
 
     @Override
-    public OverflowDbTestNode createVertex(Long id, OverflowDb graph) {
+    public OverflowDbTestNode createVertex(Long id, OverflowDbGraph graph) {
       final NodeRef<OverflowDbTestNode> ref = createVertexRef(id, graph);
       final OverflowDbTestNode node = createVertex(ref);
       ref.setNode(node);
@@ -134,7 +134,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
     }
 
     @Override
-    public NodeRef<OverflowDbTestNode> createVertexRef(Long id, OverflowDb graph) {
+    public NodeRef<OverflowDbTestNode> createVertexRef(Long id, OverflowDbGraph graph) {
       return new NodeRefWithLabel<>(id, graph, null, OverflowDbTestNode.label);
     }
   };

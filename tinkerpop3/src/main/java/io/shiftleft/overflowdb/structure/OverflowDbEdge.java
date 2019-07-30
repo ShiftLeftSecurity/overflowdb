@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public abstract class OverflowDbEdge implements Edge {
-  private final OverflowDb graph;
+  private final OverflowDbGraph graph;
   private final String label;
   private final NodeRef outVertex;
   private final NodeRef inVertex;
@@ -34,7 +34,7 @@ public abstract class OverflowDbEdge implements Edge {
 
   private static final int UNINITIALIZED_BLOCK_OFFSET = -1;
 
-  public OverflowDbEdge(OverflowDb graph,
+  public OverflowDbEdge(OverflowDbGraph graph,
                         String label,
                         NodeRef outVertex,
                         NodeRef inVertex,
