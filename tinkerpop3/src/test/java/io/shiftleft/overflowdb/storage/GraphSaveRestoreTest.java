@@ -11,7 +11,6 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -76,7 +75,7 @@ public class GraphSaveRestoreTest {
 
   private OverflowDbGraph newGratefulDeadGraphWithSpecializedElements(File overflowDb) {
     Configuration configuration = OverflowDbGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(OverflowDbGraph.SWAPPING_ENABLED, true);
+    configuration.setProperty(OverflowDbGraph.OVERFLOW_ENABLED, true);
     configuration.setProperty(OverflowDbGraph.GRAPH_LOCATION, overflowDb.getAbsolutePath());
     return OverflowDbGraph.open(
         configuration,

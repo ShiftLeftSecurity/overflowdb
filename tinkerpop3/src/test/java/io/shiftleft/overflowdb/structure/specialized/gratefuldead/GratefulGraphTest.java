@@ -299,7 +299,7 @@ public class GratefulGraphTest {
 
   private OverflowDbGraph newGratefulDeadGraphWithSpecializedElements() {
     Configuration configuration = OverflowDbGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(OverflowDbGraph.SWAPPING_ENABLED, false);
+    configuration.setProperty(OverflowDbGraph.OVERFLOW_ENABLED, false);
     return OverflowDbGraph.open(
         configuration,
         Arrays.asList(Song.factory, Artist.factory),

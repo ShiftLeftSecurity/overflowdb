@@ -26,7 +26,7 @@ public class SerializerTest {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
       Vertex vertexRef = graph.addVertex(
-          T.label, OverflowDbTestNode.label,
+          T.label, OverflowDbTestNode.LABEL,
           OverflowDbTestNode.STRING_PROPERTY, "StringValue",
           OverflowDbTestNode.INT_PROPERTY, 42,
           OverflowDbTestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
@@ -43,7 +43,7 @@ public class SerializerTest {
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(vertexRef.id(), deserializedRef.id);
-      assertEquals(OverflowDbTestNode.label, deserializedRef.label());
+      assertEquals(OverflowDbTestNode.LABEL, deserializedRef.label());
     }
   }
 
@@ -53,8 +53,8 @@ public class SerializerTest {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
 
-      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.label);
-      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.label);
+      Vertex v0 = graph.addVertex(T.label, OverflowDbTestNode.LABEL);
+      Vertex v1 = graph.addVertex(T.label, OverflowDbTestNode.LABEL);
       Edge edge = v0.addEdge(OverflowDbTestEdge.LABEL, v1, OverflowDbTestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
       OverflowDbTestNode v0Underlying = ((NodeRef<OverflowDbTestNode>) v0).get();
@@ -81,7 +81,7 @@ public class SerializerTest {
 
   private NodeDeserializer newDeserializer(OverflowDbGraph graph) {
     Map<String, OverflowElementFactory.ForNode> vertexFactories = new HashMap();
-    vertexFactories.put(OverflowDbTestNode.label, OverflowDbTestNode.factory);
+    vertexFactories.put(OverflowDbTestNode.LABEL, OverflowDbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }
 

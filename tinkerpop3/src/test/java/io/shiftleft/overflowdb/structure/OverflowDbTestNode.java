@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class OverflowDbTestNode extends OverflowDbNode {
-  public static final String label = "testNode";
+  public static final String LABEL = "testNode";
 
   public static final String STRING_PROPERTY = "StringProperty";
   public static final String INT_PROPERTY = "IntProperty";
@@ -32,7 +32,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
 
   @Override
   public String label() {
-    return OverflowDbTestNode.label;
+    return OverflowDbTestNode.LABEL;
   }
 
   @Override
@@ -117,7 +117,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
 
     @Override
     public String forLabel() {
-      return OverflowDbTestNode.label;
+      return OverflowDbTestNode.LABEL;
     }
 
     @Override
@@ -138,7 +138,7 @@ public class OverflowDbTestNode extends OverflowDbNode {
       return new NodeRef(id, graph) {
         @Override
         public String label() {
-          return OverflowDbTestNode.label;
+          return OverflowDbTestNode.LABEL;
         }
       };
     }
