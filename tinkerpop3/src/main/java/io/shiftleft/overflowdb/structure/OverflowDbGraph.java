@@ -41,10 +41,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public final class OverflowDbGraph implements Graph {
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -79,7 +78,6 @@ public final class OverflowDbGraph implements Graph {
 
   protected final GraphVariables variables = new GraphVariables();;
   protected Index<Vertex> nodeIndex = null;
-  protected final IdManager nodeIdManager;
 
   protected final Map<String, OverflowElementFactory.ForNode> nodeFactoryByLabel;
   protected final Map<String, OverflowElementFactory.ForEdge> edgeFactoryByLabel;
@@ -97,7 +95,6 @@ public final class OverflowDbGraph implements Graph {
     this.configuration = configuration;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
-    nodeIdManager = new IdManager();
 
     graphLocation = configuration.getString(GRAPH_LOCATION, null);
     referenceManager = new ReferenceManagerImpl(configuration.getInt(SWAPPING_HEAP_PERCENTAGE_THRESHOLD));
@@ -196,7 +193,6 @@ public final class OverflowDbGraph implements Graph {
   }
 
   ////////////// STRUCTURE API METHODS //////////////////
-
   @Override
   public Vertex addVertex(final Object... keyValues) {
     if (isClosed()) {
@@ -205,19 +201,30 @@ public final class OverflowDbGraph implements Graph {
     ElementHelper.legalPropertyKeyValueArray(keyValues);
     final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
 
-    Long idValue = (Long) nodeIdManager.convert(ElementHelper.getIdValue(keyValues).orElse(null));
-    if (null != idValue) {
-      if (nodes.containsKey(idValue))
-        throw Exceptions.vertexWithIdAlreadyExists(idValue);
-    } else {
-      idValue = nodeIdManager.getNextId(this);
-    }
+    final long idValue = determineNewNodeId(keyValues);
     currentId.set(Long.max(idValue, currentId.get()));
 
     final NodeRef node = createNode(idValue, label, keyValues);
     nodes.put(node.id, node);
     getElementsByLabel(nodesByLabel, label).add(node);
     return node;
+  }
+
+  private long determineNewNodeId(final Object... keyValues) {
+    Optional idValueMaybe = ElementHelper.getIdValue(keyValues);
+    if (idValueMaybe.isPresent()) {
+      final Object idValue = idValueMaybe.get();
+      if (!(idValue instanceof Long)) {
+        throw new IllegalArgumentException("id must be of type `long`, but is " + idValue.getClass());
+      }
+      final long idValueLong = (long) idValue;
+      if (nodes.containsKey(idValueLong)) {
+        throw Exceptions.vertexWithIdAlreadyExists(idValue);
+      }
+      return idValueLong;
+    } else {
+      return currentId.incrementAndGet();
+    }
   }
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
@@ -417,7 +424,7 @@ public final class OverflowDbGraph implements Graph {
 
     @Override
     public boolean willAllowId(final Object id) {
-      return nodeIdManager.allow(id);
+      return id instanceof Long;
     }
 
     @Override
@@ -476,7 +483,7 @@ public final class OverflowDbGraph implements Graph {
 
     @Override
     public boolean willAllowId(final Object id) {
-      return nodeIdManager.allow(id);
+      return false;
     }
   }
 
@@ -527,43 +534,6 @@ public final class OverflowDbGraph implements Graph {
       return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
-  }
-
-  /**
-   * OverflowDb will use an implementation of this interface to generate identifiers when a user does not supply
-   * them and to handle identifier conversions when querying to provide better flexibility with respect to
-   * handling different data types that mean the same thing.
-   */
-  class IdManager {
-    /**
-     * Generate an identifier which should be unique to the {@link OverflowDbGraph} instance.
-     */
-    public Long getNextId(final OverflowDbGraph graph) {
-      return Stream.generate(() -> (graph.currentId.incrementAndGet())).findAny().get();
-    }
-
-    /**
-     * Convert an identifier to the type required by the manager.
-     */
-    public Object convert(final Object id) {
-      if (null == id)
-        return null;
-      else if (id instanceof Long)
-        return id;
-      else if (id instanceof Number)
-        return ((Number) id).longValue();
-      else if (id instanceof String)
-        return Long.parseLong((String) id);
-      else
-        throw new IllegalArgumentException(String.format("Expected an id that is convertible to Long but received %s", id.getClass()));
-    }
-
-    /**
-     * Determine if an identifier is allowed by this manager given its type.
-     */
-    public boolean allow(final Object id) {
-      return id instanceof Number || id instanceof String;
     }
   }
 }
