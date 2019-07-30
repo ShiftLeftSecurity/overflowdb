@@ -44,10 +44,10 @@ class DummyEdgeIterator implements Iterator<Edge> {
     NodeRef otherRef = (NodeRef) array[current];
     OverflowDbEdge dummyEdge;
     if (direction == Direction.OUT) {
-      dummyEdge = thisRef.node.instantiateDummyEdge(label, thisRef, otherRef);
+      dummyEdge = thisRef.get().instantiateDummyEdge(label, thisRef, otherRef);
       dummyEdge.setOutBlockOffset(current - begin);
     } else {
-      dummyEdge = thisRef.node.instantiateDummyEdge(label, otherRef, thisRef);
+      dummyEdge = thisRef.get().instantiateDummyEdge(label, otherRef, thisRef);
       dummyEdge.setInBlockOffset(current - begin);
     }
     current += strideSize;
