@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -72,38 +73,38 @@ public class GratefulGraphTest {
   }
 
   @Test
-  /* ensure these are identical for both ondisk overflow enabled/disabled */
   public void optimizationStrategyAffectedSteps() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    try (OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData()) {
+      // using `g.V().hasLabel(lbl)` optimization
+      assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
+      assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).toList().size());
+      assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).hasLabel(Song.label).toList().size());
+      assertEquals(142, graph.traversal().V().hasLabel(Song.label).has(Song.PERFORMANCES, 1).toList().size());
+      assertEquals(7047, graph.traversal().V().out().hasLabel(Song.label).toList().size());
+      assertEquals(1, graph.traversal().V(800l).hasLabel(Song.label).toList().size());
+      assertEquals(5, graph.traversal().V(1l).out().hasLabel(Song.label).toList().size());
+      assertEquals(0, graph.traversal().V().hasLabel(Song.label).hasLabel(Artist.label).toList().size());
+      assertEquals(808, graph.traversal().V().hasLabel(Song.label, Artist.label).toList().size());
+      assertEquals(501, graph.traversal().V().outE().hasLabel(WrittenBy.LABEL).toList().size());
+      assertEquals(501, graph.traversal().V().hasLabel(Song.label).outE().hasLabel(WrittenBy.LABEL).toList().size());
 
-    // using `g.V().hasLabel(lbl)` optimization
-    assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
-    assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).toList().size());
-    assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).hasLabel(Song.label).toList().size());
-    assertEquals(142, graph.traversal().V().hasLabel(Song.label).has(Song.PERFORMANCES, 1).toList().size());
-    assertEquals(7047, graph.traversal().V().out().hasLabel(Song.label).toList().size());
-    assertEquals(1, graph.traversal().V(800l).hasLabel(Song.label).toList().size());
-    assertEquals(5, graph.traversal().V(1l).out().hasLabel(Song.label).toList().size());
-    assertEquals(0, graph.traversal().V().hasLabel(Song.label).hasLabel(Artist.label).toList().size());
-    assertEquals(808, graph.traversal().V().hasLabel(Song.label, Artist.label).toList().size());
-    assertEquals(501, graph.traversal().V().outE().hasLabel(WrittenBy.LABEL).toList().size());
-    assertEquals(501, graph.traversal().V().hasLabel(Song.label).outE().hasLabel(WrittenBy.LABEL).toList().size());
-
-    // using `g.E().hasLabel(lbl)` optimization
-    assertEquals(8049, graph.traversal().E().toList().size());
-    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).toList().size());
-    assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).toList().size());
-    assertEquals(3564, graph.traversal().E().hasLabel(FollowedBy.LABEL).has(FollowedBy.WEIGHT, 1).toList().size());
-    assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).hasLabel(FollowedBy.LABEL).toList().size());
-    assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).outV().hasLabel(Song.label).toList().size());
-    assertEquals(7548, graph.traversal().E().hasLabel(FollowedBy.LABEL, SungBy.LABEL).toList().size());
-
-    graph.close();
+      // using `g.E().hasLabel(lbl)` optimization
+      assertEquals(8049, graph.traversal().E().toList().size());
+      assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).toList().size());
+      assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).toList().size());
+      assertEquals(3564, graph.traversal().E().hasLabel(FollowedBy.LABEL).has(FollowedBy.WEIGHT, 1).toList().size());
+      assertEquals(3564, graph.traversal().E().has(FollowedBy.WEIGHT, 1).hasLabel(FollowedBy.LABEL).toList().size());
+      assertEquals(7047, graph.traversal().E().hasLabel(FollowedBy.LABEL).outV().hasLabel(Song.label).toList().size());
+      assertEquals(7548, graph.traversal().E().hasLabel(FollowedBy.LABEL, SungBy.LABEL).toList().size());
+    }
   }
 
   @Test
   public void gratefulDeadGraph() throws IOException {
     OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+
+    Vertex v1 = graph.traversal().V(1l).next();
+    assertEquals("HEY BO DIDDLEY", v1.value("name"));
 
     List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
     assertEquals(garcias.size(), 1);
@@ -315,7 +316,7 @@ public class GratefulGraphTest {
   }
 
   private void loadGraphMl(OdbGraph graph) throws IOException {
-    graph.io(IoCore.graphml()).readGraph("tinkerpop3/src/test/resources/grateful-dead.xml");
+    graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
   }
 
 }
