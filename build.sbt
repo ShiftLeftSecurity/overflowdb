@@ -9,16 +9,17 @@ lazy val tinkerpop3 = project.in(file("tinkerpop3"))
 ThisBuild/autoScalaLibrary := false
 ThisBuild/crossPaths := false
 
-ThisBuild/coursierTtl := Some(scala.concurrent.duration.Duration.create("5 min"))
-ThisBuild/resolvers ++= Seq(
-  Resolver.mavenLocal,
-  "Artifactory release local" at "https://shiftleft.jfrog.io/shiftleft/libs-release-local",
-  "Apache public" at "https://repository.apache.org/content/groups/public/",
-  "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public"
-)
+ThisBuild/resolvers ++= Seq(Resolver.mavenLocal,
+                            "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
-ThisBuild/publishTo := Some("releases" at "https://shiftleft.jfrog.io/shiftleft/libs-release-local")
-ThisBuild/publishMavenStyle := true
+ThisBuild/publishTo := sonatypePublishTo.value
+ThisBuild/scmInfo := Some(ScmInfo(url("https://github.com/ShiftLeftSecurity/overflowdb"),
+                                      "scm:git@github.com:ShiftLeftSecurity/overflowdb.git"))
+ThisBuild/homepage := Some(url("https://github.com/ShiftLeftSecurity/overflowdb/"))
+ThisBuild/licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild/developers := List(
+  Developer("mpollmeier", "Michael Pollmeier", "michael@michaelpollmeier.com", url("http://www.michaelpollmeier.com/")),
+  Developer("ml86", "Markus Lottmann", "markus@shiftleft.io", url("https://github.com/ml86")))
 
 // allow to cancel sbt compilation/test/... using C-c
 Global/cancelable := true
