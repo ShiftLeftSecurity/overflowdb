@@ -216,18 +216,25 @@ public final class OdbGraph implements Graph {
   private long determineNewNodeId(final Object... keyValues) {
     Optional idValueMaybe = ElementHelper.getIdValue(keyValues);
     if (idValueMaybe.isPresent()) {
-      final Object idValue = idValueMaybe.get();
-      if (!(idValue instanceof Long)) {
-        throw new IllegalArgumentException("id must be of type `long`, but is " + idValue.getClass());
-      }
-      final long idValueLong = (long) idValue;
-      if (nodes.containsKey(idValueLong)) {
+      final long idValue = parseLong(idValueMaybe.get());
+      if (nodes.containsKey(idValue)) {
         throw Exceptions.vertexWithIdAlreadyExists(idValue);
       }
-      return idValueLong;
+      return idValue;
     } else {
       return currentId.incrementAndGet();
     }
+  }
+
+  private long parseLong(Object id) {
+    if (id instanceof Long)
+      return (long) id;
+    else if (id instanceof Number)
+      return ((Number) id).longValue();
+    else if (id instanceof String)
+      return Long.parseLong((String) id);
+    else
+      throw new IllegalArgumentException(String.format("Expected an id that is convertible to Long but received %s", id.getClass()));
   }
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
@@ -427,7 +434,7 @@ public final class OdbGraph implements Graph {
 
     @Override
     public boolean willAllowId(final Object id) {
-      return id instanceof Long;
+      return id instanceof Number || id instanceof String;
     }
 
     @Override

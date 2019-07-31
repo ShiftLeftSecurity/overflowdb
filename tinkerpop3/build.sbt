@@ -15,5 +15,3 @@ Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
 Test/compile/javacOptions ++= Seq("-g")
 Test/fork := true
 scalacOptions ++= Seq("-deprecation", "-feature")
-// execute tests in root project so that they work in sbt *and* intellij
-Test/baseDirectory := (ThisBuild/Test/run/baseDirectory).value
