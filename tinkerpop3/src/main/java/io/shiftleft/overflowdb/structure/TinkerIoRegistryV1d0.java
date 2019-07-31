@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb.structure;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
@@ -84,18 +85,19 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraph read(final Kryo kryo, final Input input, final Class<OdbGraph> clazz) {
-      final Configuration conf = new BaseConfiguration();
-      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-      final OdbGraph graph = OdbGraph.open(conf);
-      final int len = input.readInt();
-      final byte[] bytes = input.readBytes(len);
-      try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-        GryoReader.build().mapper(() -> kryo).create().readGraph(stream, graph);
-      } catch (Exception io) {
-        throw new RuntimeException(io);
-      }
-
-      return graph;
+      throw new NotImplementedException("");
+//      final Configuration conf = new BaseConfiguration();
+//      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
+//      final OdbGraph graph = OdbGraph.open(conf);
+//      final int len = input.readInt();
+//      final byte[] bytes = input.readBytes(len);
+//      try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+//        GryoReader.build().mapper(() -> kryo).create().readGraph(stream, graph);
+//      } catch (Exception io) {
+//        throw new RuntimeException(io);
+//      }
+//
+//      return graph;
     }
   }
 
@@ -199,46 +201,47 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraph deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-      final Configuration conf = new BaseConfiguration();
-      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-      final OdbGraph graph = OdbGraph.open(conf);
-
-      final List<Map<String, Object>> edges;
-      final List<Map<String, Object>> vertices;
-      if (!jsonParser.getCurrentToken().isStructStart()) {
-        if (!jsonParser.getCurrentName().equals(GraphSONTokens.VERTICES))
-          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.VERTICES));
-
-        jsonParser.nextToken();
-        vertices = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
-        jsonParser.nextToken();
-
-        if (!jsonParser.getCurrentName().equals(GraphSONTokens.EDGES))
-          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.EDGES));
-
-        jsonParser.nextToken();
-        edges = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
-      } else {
-        final Map<String, Object> graphData = deserializationContext.readValue(jsonParser, HashMap.class);
-        vertices = (List<Map<String, Object>>) graphData.get(GraphSONTokens.VERTICES);
-        edges = (List<Map<String, Object>>) graphData.get(GraphSONTokens.EDGES);
-      }
-
-      for (Map<String, Object> vertexData : vertices) {
-        final DetachedVertex detached = new DetachedVertex(vertexData.get(GraphSONTokens.ID),
-            vertexData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) vertexData.get(GraphSONTokens.PROPERTIES));
-        detached.attach(Attachable.Method.getOrCreate(graph));
-      }
-
-      for (Map<String, Object> edgeData : edges) {
-        final DetachedEdge detached = new DetachedEdge(edgeData.get(GraphSONTokens.ID),
-            edgeData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) edgeData.get(GraphSONTokens.PROPERTIES),
-            edgeData.get(GraphSONTokens.OUT), edgeData.get(GraphSONTokens.OUT_LABEL).toString(),
-            edgeData.get(GraphSONTokens.IN), edgeData.get(GraphSONTokens.IN_LABEL).toString());
-        detached.attach(Attachable.Method.getOrCreate(graph));
-      }
-
-      return graph;
+      throw new NotImplementedException("");
+//      final Configuration conf = new BaseConfiguration();
+//      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
+//      final OdbGraph graph = OdbGraph.open(conf);
+//
+//      final List<Map<String, Object>> edges;
+//      final List<Map<String, Object>> vertices;
+//      if (!jsonParser.getCurrentToken().isStructStart()) {
+//        if (!jsonParser.getCurrentName().equals(GraphSONTokens.VERTICES))
+//          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.VERTICES));
+//
+//        jsonParser.nextToken();
+//        vertices = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
+//        jsonParser.nextToken();
+//
+//        if (!jsonParser.getCurrentName().equals(GraphSONTokens.EDGES))
+//          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.EDGES));
+//
+//        jsonParser.nextToken();
+//        edges = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
+//      } else {
+//        final Map<String, Object> graphData = deserializationContext.readValue(jsonParser, HashMap.class);
+//        vertices = (List<Map<String, Object>>) graphData.get(GraphSONTokens.VERTICES);
+//        edges = (List<Map<String, Object>>) graphData.get(GraphSONTokens.EDGES);
+//      }
+//
+//      for (Map<String, Object> vertexData : vertices) {
+//        final DetachedVertex detached = new DetachedVertex(vertexData.get(GraphSONTokens.ID),
+//            vertexData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) vertexData.get(GraphSONTokens.PROPERTIES));
+//        detached.attach(Attachable.Method.getOrCreate(graph));
+//      }
+//
+//      for (Map<String, Object> edgeData : edges) {
+//        final DetachedEdge detached = new DetachedEdge(edgeData.get(GraphSONTokens.ID),
+//            edgeData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) edgeData.get(GraphSONTokens.PROPERTIES),
+//            edgeData.get(GraphSONTokens.OUT), edgeData.get(GraphSONTokens.OUT_LABEL).toString(),
+//            edgeData.get(GraphSONTokens.IN), edgeData.get(GraphSONTokens.IN_LABEL).toString());
+//        detached.attach(Attachable.Method.getOrCreate(graph));
+//      }
+//
+//      return graph;
     }
   }
 }

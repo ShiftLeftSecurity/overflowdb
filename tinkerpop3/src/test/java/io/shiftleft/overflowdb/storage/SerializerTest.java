@@ -1,6 +1,7 @@
 package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OdbConfig;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbTestEdge;
 import io.shiftleft.overflowdb.structure.OdbTestNode;
@@ -87,6 +88,7 @@ public class SerializerTest {
 
   private OdbGraph newGraph() {
     return OdbGraph.open(
+        OdbConfig.withoutOverflow(),
         Arrays.asList(OdbTestNode.factory),
         Arrays.asList(OdbTestEdge.factory)
     );

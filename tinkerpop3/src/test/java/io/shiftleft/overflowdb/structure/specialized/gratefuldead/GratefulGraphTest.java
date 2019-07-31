@@ -1,8 +1,8 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OdbConfig;
 import io.shiftleft.overflowdb.structure.OdbGraph;
-import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,7 @@ public class GratefulGraphTest {
 
   @Test
   public void simpleTest() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
@@ -51,7 +50,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldAllowToSpecifyIds() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
 
     Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
     Vertex v20 = graph.addVertex(T.id, 20l, T.label, Song.label, Song.NAME, "Song 20");
@@ -63,7 +62,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldReturnElementRefs() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
@@ -74,7 +73,7 @@ public class GratefulGraphTest {
 
   @Test
   public void optimizationStrategyAffectedSteps() throws IOException {
-    try (OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData()) {
+    try (OdbGraph graph = newGratefulDeadGraphWithData()) {
       // using `g.V().hasLabel(lbl)` optimization
       assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
       assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).toList().size());
@@ -101,7 +100,7 @@ public class GratefulGraphTest {
 
   @Test
   public void gratefulDeadGraph() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OdbGraph graph = newGratefulDeadGraphWithData();
 
     Vertex v1 = graph.traversal().V(1l).next();
     assertEquals("HEY BO DIDDLEY", v1.value("name"));
@@ -116,7 +115,7 @@ public class GratefulGraphTest {
 
   @Test
   public void testBasicSteps() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OdbGraph graph = newGratefulDeadGraphWithData();
     Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
     // inE
@@ -152,7 +151,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldAllowAddingElementsAndSettingProperties() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
 
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
@@ -174,7 +173,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportEdgeRemoval() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
@@ -190,7 +189,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportVertexRemoval1() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     song1.addEdge(FollowedBy.LABEL, song2);
@@ -209,7 +208,7 @@ public class GratefulGraphTest {
 
   @Test
   public void shouldSupportVertexRemoval2() {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+    OdbGraph graph = newGratefulDeadGraph();
     Vertex song1 = graph.addVertex(Song.label);
     Vertex song2 = graph.addVertex(Song.label);
     song1.addEdge(FollowedBy.LABEL, song2);
@@ -235,7 +234,7 @@ public class GratefulGraphTest {
     Double avgTimeWithoutIndex = null;
 
     { // tests with index
-      OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OdbGraph graph = newGratefulDeadGraphWithData();
       graph.createIndex("weight", Edge.class);
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
@@ -244,7 +243,7 @@ public class GratefulGraphTest {
     }
 
     { // tests without index
-      OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OdbGraph graph = newGratefulDeadGraphWithData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
@@ -265,7 +264,7 @@ public class GratefulGraphTest {
     Double avgTimeWithoutIndex = null;
 
     { // tests with index
-      OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+      OdbGraph graph = newGratefulDeadGraph();
       graph.createIndex("weight", Edge.class);
       loadGraphMl(graph);
       GraphTraversalSource g = graph.traversal();
@@ -275,7 +274,7 @@ public class GratefulGraphTest {
     }
 
     { // tests without index
-      OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+      OdbGraph graph = newGratefulDeadGraphWithData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
@@ -290,7 +289,7 @@ public class GratefulGraphTest {
 
   @Test
   public void handleEmptyProperties() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElementsWithData();
+    OdbGraph graph = newGratefulDeadGraphWithData();
 
     List<Object> props1 = graph.traversal().V().values("foo").toList();
     // results will be empty, but it should't crash. see https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/issues/12
@@ -298,19 +297,16 @@ public class GratefulGraphTest {
     graph.close();
   }
 
-  private OdbGraph newGratefulDeadGraphWithSpecializedElements() {
-    Configuration configuration = OdbGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(OdbGraph.OVERFLOW_ENABLED, false);
+  private OdbGraph newGratefulDeadGraph() {
     return OdbGraph.open(
-        configuration,
+        OdbConfig.withoutOverflow(),
         Arrays.asList(Song.factory, Artist.factory),
         Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
     );
   }
 
-  //
-  private OdbGraph newGratefulDeadGraphWithSpecializedElementsWithData() throws IOException {
-    OdbGraph graph = newGratefulDeadGraphWithSpecializedElements();
+  private OdbGraph newGratefulDeadGraphWithData() throws IOException {
+    OdbGraph graph = newGratefulDeadGraph();
     loadGraphMl(graph);
     return graph;
   }

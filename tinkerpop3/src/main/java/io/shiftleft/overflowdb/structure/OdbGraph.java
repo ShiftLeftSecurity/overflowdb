@@ -9,8 +9,8 @@ import io.shiftleft.overflowdb.process.traversal.strategy.optimization.OdbGraphS
 import io.shiftleft.overflowdb.storage.NodeDeserializer;
 import io.shiftleft.overflowdb.storage.OndiskOverflow;
 import io.shiftleft.overflowdb.storage.iterator.MultiIterator2;
-import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
@@ -25,7 +25,6 @@ import org.apache.tinkerpop.gremlin.structure.io.Io;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.apache.tinkerpop.gremlin.util.iterator.MultiIterator;
@@ -54,60 +53,49 @@ public final class OdbGraph implements Graph {
         CountStrategy.instance()));
   }
 
-  public static final Configuration EMPTY_CONFIGURATION() {
-    return new BaseConfiguration() {{
-      this.setProperty(Graph.GRAPH, OdbGraph.class.getName());
-      this.setProperty(OVERFLOW_HEAP_PERCENTAGE_THRESHOLD, 80);
-      this.setProperty(OVERFLOW_ENABLED, true);
-    }};
-  }
-
-  public static final String GRAPH_LOCATION = "overflowdb.graphLocation";
-  public static final String OVERFLOW_ENABLED = "overflowdb.overflow.enabled";
-
-  /**
-   * when heap (after GC run) is above this threshold (e.g. 80 for 80%), `ReferenceManager` will
-   * start to clear some references, i.e. write them to storage and set them to `null`
-   */
-  public static final String OVERFLOW_HEAP_PERCENTAGE_THRESHOLD = "overflowdb.overflow.heapPercentageThreshold";
-
   private final GraphFeatures features = new GraphFeatures();
-  protected AtomicLong currentId = new AtomicLong(-1L);
+  protected final AtomicLong currentId = new AtomicLong(-1L);
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
-
-  protected final GraphVariables variables = new GraphVariables();;
+  protected final GraphVariables variables = new GraphVariables();
   protected Index<Vertex> nodeIndex = null;
+  private final OdbConfig config;
+  private boolean closed = false;
 
   protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
   protected final Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel;
 
-  private final Configuration configuration;
-  private final String graphLocation;
-  private boolean closed = false;
-
   protected final OndiskOverflow ondiskOverflow;
   protected final ReferenceManager referenceManager;
 
-  private OdbGraph(final Configuration configuration,
-                   Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
-                   Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
-    this.configuration = configuration;
+  public static OdbGraph open(OdbConfig configuration,
+                              List<OdbElementFactory.ForNode<?>> nodeFactories,
+                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
+    Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
+    Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
+    nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
+    edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
+    return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+  }
+
+  private OdbGraph(OdbConfig config,
+                  Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
+                  Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
+    this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    referenceManager = configuration.getBoolean(OVERFLOW_ENABLED, true) ?
-        new ReferenceManagerImpl(configuration.getInt(OVERFLOW_HEAP_PERCENTAGE_THRESHOLD)) :
+    referenceManager = config.isOverflowEnabled() ?
+        new ReferenceManagerImpl(config.getHeapPercentageThreshold()) :
         new NoOpReferenceManager();
-    graphLocation = configuration.getString(GRAPH_LOCATION, null);
 
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
-    if (graphLocation == null) {
+    if (config.getStorageLocation().isPresent()) {
+      ondiskOverflow = OndiskOverflow.createWithSpecificLocation(nodeDeserializer, new File(config.getStorageLocation().get()));
+      initElementCollections(ondiskOverflow);
+    } else {
       ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);
       initEmptyElementCollections();
-    } else {
-      ondiskOverflow = OndiskOverflow.createWithSpecificLocation(nodeDeserializer, new File(graphLocation));
-      initElementCollections(ondiskOverflow);
     }
   }
 
@@ -148,51 +136,6 @@ public final class OdbGraph implements Graph {
     currentId.set(maxId + 1);
     long elapsedMillis = System.currentTimeMillis() - start;
     logger.info("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
-  }
-
-  /**
-   * Open a new {@link OdbGraph} instance.
-   * <p/>
-   * <b>Reference Implementation Help:</b> If a {@link Graph} implementation does not require a {@code Configuration}
-   * (or perhaps has a default configuration) it can choose to implement a zero argument
-   * {@code open()} method. This is an optional constructor method for OverflowDb. It is not enforced by the Gremlin
-   * Test Suite.
-   */
-  public static OdbGraph open() {
-    return open(EMPTY_CONFIGURATION());
-  }
-
-  /**
-   * Open a new {@code OverflowDb} instance.
-   * <p/>
-   * <b>Reference Implementation Help:</b> This method is the one use by the {@link GraphFactory} to instantiate
-   * {@link Graph} instances.  This method must be overridden for the Structure Test Suite to pass. Implementers have
-   * latitude in terms of how exceptions are handled within this method.  Such exceptions will be considered
-   * implementation specific by the test suite as all test generate graph instances by way of
-   * {@link GraphFactory}. As such, the exceptions get generalized behind that facade and since
-   * {@link GraphFactory} is the preferred method to opening graphs it will be consistent at that level.
-   *
-   * @param configuration the configuration for the instance
-   * @return a newly opened {@link Graph}
-   */
-  public static OdbGraph open(final Configuration configuration) {
-    return new OdbGraph(configuration, new HashMap<>(), new HashMap<>());
-  }
-
-
-  public static OdbGraph open(List<OdbElementFactory.ForNode<?>> nodeFactories,
-                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
-    return open(EMPTY_CONFIGURATION(), nodeFactories, edgeFactories);
-  }
-
-  public static OdbGraph open(final Configuration configuration,
-                              List<OdbElementFactory.ForNode<?>> nodeFactories,
-                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
-    Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
-    Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
-    nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
-    edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   ////////////// STRUCTURE API METHODS //////////////////
@@ -283,12 +226,12 @@ public final class OdbGraph implements Graph {
   }
 
   /**
-   * if the {@link #GRAPH_LOCATION} is set, data in the graph is persisted to that location.
+   * if the config.graphLocation is set, data in the graph is persisted to that location.
    */
   @Override
   public void close() {
     this.closed = true;
-    if (graphLocation != null) referenceManager.clearAllReferences();
+    if (config.getStorageLocation().isPresent()) referenceManager.clearAllReferences();
     referenceManager.close();
     ondiskOverflow.close();
   }
@@ -300,7 +243,7 @@ public final class OdbGraph implements Graph {
 
   @Override
   public Configuration configuration() {
-    return configuration;
+    throw new NotImplementedException("");
   }
 
   public Vertex vertex(final Long id) {
@@ -367,19 +310,6 @@ public final class OdbGraph implements Graph {
   @Override
   public Features features() {
     return features;
-  }
-
-  private void validateHomogenousIds(final List<Object> ids) {
-    final Iterator<Object> iterator = ids.iterator();
-    Object id = iterator.next();
-    if (id == null)
-      throw Graph.Exceptions.idArgsMustBeEitherIdOrElement();
-    final Class firstClass = id.getClass();
-    while (iterator.hasNext()) {
-      id = iterator.next();
-      if (id == null || !id.getClass().equals(firstClass))
-        throw Graph.Exceptions.idArgsMustBeEitherIdOrElement();
-    }
   }
 
   public boolean isClosed() {

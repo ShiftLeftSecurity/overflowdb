@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb.structure;
 
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
@@ -79,18 +80,19 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraph read(final Kryo kryo, final Input input, final Class<OdbGraph> clazz) {
-      final Configuration conf = new BaseConfiguration();
-      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-      final OdbGraph graph = OdbGraph.open(conf);
-      final int len = input.readInt();
-      final byte[] bytes = input.readBytes(len);
-      try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-        GryoReader.build().mapper(() -> kryo).create().readGraph(stream, graph);
-      } catch (Exception io) {
-        throw new RuntimeException(io);
-      }
-
-      return graph;
+      throw new NotImplementedException("");
+//      final Configuration conf = new BaseConfiguration();
+//      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
+//      final OdbGraph graph = OdbGraph.open(conf);
+//      final int len = input.readInt();
+//      final byte[] bytes = input.readBytes(len);
+//      try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+//        GryoReader.build().mapper(() -> kryo).create().readGraph(stream, graph);
+//      } catch (Exception io) {
+//        throw new RuntimeException(io);
+//      }
+//
+//      return graph;
     }
   }
 
@@ -168,29 +170,30 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraph deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-      final Configuration conf = new BaseConfiguration();
-      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-      final OdbGraph graph = OdbGraph.open(conf);
-
-      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
-        if (jsonParser.getCurrentName().equals("vertices")) {
-          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
-              final DetachedVertex v = (DetachedVertex) deserializationContext.readValue(jsonParser, Vertex.class);
-              v.attach(Attachable.Method.getOrCreate(graph));
-            }
-          }
-        } else if (jsonParser.getCurrentName().equals("edges")) {
-          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
-              final DetachedEdge e = (DetachedEdge) deserializationContext.readValue(jsonParser, Edge.class);
-              e.attach(Attachable.Method.getOrCreate(graph));
-            }
-          }
-        }
-      }
-
-      return graph;
+      throw new NotImplementedException("");
+//      final Configuration conf = new BaseConfiguration();
+//      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
+//      final OdbGraph graph = OdbGraph.open(conf);
+//
+//      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+//        if (jsonParser.getCurrentName().equals("vertices")) {
+//          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+//            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
+//              final DetachedVertex v = (DetachedVertex) deserializationContext.readValue(jsonParser, Vertex.class);
+//              v.attach(Attachable.Method.getOrCreate(graph));
+//            }
+//          }
+//        } else if (jsonParser.getCurrentName().equals("edges")) {
+//          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+//            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
+//              final DetachedEdge e = (DetachedEdge) deserializationContext.readValue(jsonParser, Edge.class);
+//              e.attach(Attachable.Method.getOrCreate(graph));
+//            }
+//          }
+//        }
+//      }
+//
+//      return graph;
     }
   }
 }
