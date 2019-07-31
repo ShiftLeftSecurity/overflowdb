@@ -239,14 +239,11 @@ public abstract class OdbNode implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    final NodeRef inNodeRef;
-    if (inVertex instanceof NodeRef) inNodeRef = (NodeRef) inVertex;
-    else inNodeRef = (NodeRef) ref.graph.vertex((Long) inVertex.id());
-    OdbNode inVertexOdb = inNodeRef.get();
-    NodeRef thisNodeRef = (NodeRef) ref.graph.vertex(ref.id);
+    final NodeRef inNodeRef = (NodeRef) inVertex;
+    NodeRef thisNodeRef = ref;
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
-    int inBlockOffset = inVertexOdb.storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
+    int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
     OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
     dummyEdge.setOutBlockOffset(outBlockOffset);
