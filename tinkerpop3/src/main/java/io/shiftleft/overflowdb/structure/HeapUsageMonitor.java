@@ -22,27 +22,30 @@ import java.util.Set;
  * clear some references, in order to avoid an OutOfMemoryError
  */
 public class HeapUsageMonitor implements AutoCloseable {
+  interface HeapNotificationListener {
+    void notifyHeapAboveThreshold();
+  }
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final Map<NotificationEmitter, NotificationListener> gcNotificationListeners = new HashMap<>(2);
 
-  public HeapUsageMonitor(int heapPercentageThreshold, ReferenceManager referenceManager) {
+  public HeapUsageMonitor(int heapPercentageThreshold, HeapNotificationListener notificationListener) {
     if (heapPercentageThreshold < 0 || heapPercentageThreshold > 100) {
       throw new IllegalArgumentException("heapPercentageThreshold must be between 0 and 100, but is " + heapPercentageThreshold);
     }
     float heapUsageThreshold = (float) heapPercentageThreshold / 100f;
-    installGCMonitoring(heapUsageThreshold, referenceManager);
+    installGCMonitoring(heapUsageThreshold, notificationListener);
   }
 
   /**
    * monitor GC, and should the heap grow above 80% usage, clear some strong references
    *
    * @param heapUsageThreshold range 0.0 - 1.0
-   * @param referenceManager
    */
-  protected void installGCMonitoring(float heapUsageThreshold, ReferenceManager referenceManager) {
+  protected void installGCMonitoring(float heapUsageThreshold, HeapNotificationListener notificationListener) {
     List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
     for (GarbageCollectorMXBean gcbean : gcbeans) {
-      NotificationListener listener = createNotificationListener(heapUsageThreshold, referenceManager);
+      NotificationListener listener = createNotificationListener(heapUsageThreshold, notificationListener);
       NotificationEmitter emitter = (NotificationEmitter) gcbean;
       emitter.addNotificationListener(listener, null, null);
       gcNotificationListeners.put(emitter, listener);
@@ -51,7 +54,7 @@ public class HeapUsageMonitor implements AutoCloseable {
     logger.info("installed GC monitors. will clear references if heap (after GC) is larger than " + heapUsageThresholdPercent + "%");
   }
 
-  private NotificationListener createNotificationListener(float heapUsageThreshold, ReferenceManager referenceManager) {
+  private NotificationListener createNotificationListener(float heapUsageThreshold, HeapNotificationListener notificationListener) {
     Set<String> ignoredMemoryAreas = new HashSet<>(Arrays.asList("Code Cache", "Compressed Class Space", "Metaspace"));
     return (notification, handback) -> {
       if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
@@ -71,8 +74,8 @@ public class HeapUsageMonitor implements AutoCloseable {
         float heapUsage = (float) totalMemUsed / (float) totalMemMax;
         int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
         if (heapUsage > heapUsageThreshold) {
-          logger.info("heap usage after GC: " + heapUsagePercent + "% -> asking ReferenceManager to clear some references");
-          referenceManager.clearReferencesMaybe();
+          logger.info("heap usage after GC: " + heapUsagePercent + "% -> notifying HeapNotificationListener");
+          notificationListener.notifyHeapAboveThreshold();
         } else {
           logger.trace("heap usage after GC: " + heapUsagePercent + "%");
         }

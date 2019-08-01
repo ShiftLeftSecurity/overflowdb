@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * can save all references to disk to persist the graph on shutdown
  * n.b. we could also persist the graph without a ReferenceManager, by serializing all nodes to disk. But if that
  * instance has been started from a storage location, the ReferenceManager ensures that we don't re-serialize all
- * unchanged nodes. 
+ * unchanged nodes.
  */
-public class ReferenceManager implements AutoCloseable {
+public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNotificationListener {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public final int releaseCount = 100000; //TODO make configurable
@@ -56,7 +56,8 @@ public class ReferenceManager implements AutoCloseable {
     }
   }
 
-  public void clearReferencesMaybe() {
+  @Override
+  public void notifyHeapAboveThreshold() {
     if (clearingProcessCount > 0) {
       logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
     } else if (clearableRefs.isEmpty()) {
