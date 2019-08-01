@@ -21,11 +21,11 @@ import java.util.Set;
  * watches GC activity, and when we're low on available heap space, it instructs the ReferenceManager to
  * clear some references, in order to avoid an OutOfMemoryError
  */
-public class HeapUsageMonitor {
+public class HeapUsageMonitor implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final Map<NotificationEmitter, NotificationListener> gcNotificationListeners = new HashMap<>(2);
 
-  public HeapUsageMonitor(int heapPercentageThreshold, ReferenceManagerImpl referenceManager) {
+  public HeapUsageMonitor(int heapPercentageThreshold, ReferenceManager referenceManager) {
     if (heapPercentageThreshold < 0 || heapPercentageThreshold > 100) {
       throw new IllegalArgumentException("heapPercentageThreshold must be between 0 and 100, but is " + heapPercentageThreshold);
     }
@@ -39,7 +39,7 @@ public class HeapUsageMonitor {
    * @param heapUsageThreshold range 0.0 - 1.0
    * @param referenceManager
    */
-  protected void installGCMonitoring(float heapUsageThreshold, ReferenceManagerImpl referenceManager) {
+  protected void installGCMonitoring(float heapUsageThreshold, ReferenceManager referenceManager) {
     List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
     for (GarbageCollectorMXBean gcbean : gcbeans) {
       NotificationListener listener = createNotificationListener(heapUsageThreshold, referenceManager);
@@ -51,7 +51,7 @@ public class HeapUsageMonitor {
     logger.info("installed GC monitors. will clear references if heap (after GC) is larger than " + heapUsageThresholdPercent + "%");
   }
 
-  private NotificationListener createNotificationListener(float heapUsageThreshold, ReferenceManagerImpl referenceManager) {
+  private NotificationListener createNotificationListener(float heapUsageThreshold, ReferenceManager referenceManager) {
     Set<String> ignoredMemoryAreas = new HashSet<>(Arrays.asList("Code Cache", "Compressed Class Space", "Metaspace"));
     return (notification, handback) -> {
       if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {

@@ -67,7 +67,7 @@ public final class OdbGraph implements Graph {
 
   protected final OndiskOverflow ondiskOverflow;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
-  protected final ReferenceManagerImpl referenceManager;
+  protected final ReferenceManager referenceManager;
 
   public static OdbGraph open(OdbConfig configuration,
                               List<OdbElementFactory.ForNode<?>> nodeFactories,
@@ -86,7 +86,7 @@ public final class OdbGraph implements Graph {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    referenceManager = new ReferenceManagerImpl();
+    referenceManager = new ReferenceManager();
     heapUsageMonitor = config.isOverflowEnabled() ?
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
         Optional.empty();
