@@ -1,11 +1,12 @@
-name := "overflowdb-root"
+name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
 ThisBuild/scalaVersion := "2.12.8"
-publish / skip := true
+publish/skip := true
+enablePlugins(GitVersioning)
 
 lazy val tinkerpop3 = project.in(file("tinkerpop3"))
 
-// we only use scala in src/test
+/* it's a java-only build */
 ThisBuild/autoScalaLibrary := false
 ThisBuild/crossPaths := false
 
