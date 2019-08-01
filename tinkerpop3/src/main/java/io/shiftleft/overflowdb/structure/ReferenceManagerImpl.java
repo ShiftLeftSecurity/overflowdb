@@ -1,39 +1,26 @@
 package io.shiftleft.overflowdb.structure;
 
-import com.sun.management.GarbageCollectionNotificationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.management.ListenerNotFoundException;
-import javax.management.NotificationEmitter;
-import javax.management.NotificationListener;
-import javax.management.openmbean.CompositeData;
 import java.io.IOException;
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * watches GC activity, and when we're low on available heap space,
- * it sets some references in the `[Vertex|Edge]Refs` to `null`, to avoid OOM
+ * can clear references to disk and apply backpressure when creating new nodes, both to avoid an OutOfMemoryError
+ * can save all references to disk to persist the graph on shutdown
  */
 public class ReferenceManagerImpl implements ReferenceManager {
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  private Map<NotificationEmitter, NotificationListener> gcNotificationListeners = new HashMap<>(2);
-  private final float heapUsageThreshold; // range 0.0 - 1.0
+
   public final int releaseCount = 100000; //TODO make configurable
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
   private final Integer cpuCount = Runtime.getRuntime().availableProcessors();
@@ -42,14 +29,6 @@ public class ReferenceManagerImpl implements ReferenceManager {
   private final Object backPressureSyncObject = new Object();
 
   private final List<NodeRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
-
-  public ReferenceManagerImpl(int heapPercentageThreshold) {
-    if (heapPercentageThreshold < 0 || heapPercentageThreshold > 100) {
-      throw new IllegalArgumentException("heapPercentageThreshold must be between 0 and 100, but is " + heapPercentageThreshold);
-    }
-    heapUsageThreshold = (float) heapPercentageThreshold / 100f;
-    installGCMonitoring();
-  }
 
   @Override
   public void registerRef(NodeRef ref) {
@@ -75,17 +54,15 @@ public class ReferenceManagerImpl implements ReferenceManager {
     }
   }
 
-  protected void maybeClearReferences(final float heapUsage) {
-    if (heapUsage > heapUsageThreshold) {
-      if (clearingProcessCount > 0) {
-        logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
-      } else if (clearableRefs.isEmpty()) {
-        logger.info("no refs to clear at the moment. heapUsage=" + heapUsage);
-      } else {
-        int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
-        logger.info("heap usage (after GC) was " + heapUsage + " -> scheduled to clear " + releaseCount + " references (asynchronously)");
-        asynchronouslyClearReferences(releaseCount);
-      }
+  public void clearReferencesMaybe() {
+    if (clearingProcessCount > 0) {
+      logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
+    } else if (clearableRefs.isEmpty()) {
+      logger.info("no refs to clear at the moment.");
+    } else {
+      int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
+      logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
+      asynchronouslyClearReferences(releaseCount);
     }
   }
 
@@ -163,47 +140,6 @@ public class ReferenceManagerImpl implements ReferenceManager {
   }
 
   /**
-   * monitor GC, and should the heap grow above 80% usage, clear some strong references
-   */
-  protected void installGCMonitoring() {
-    List<GarbageCollectorMXBean> gcbeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
-    for (GarbageCollectorMXBean gcbean : gcbeans) {
-      NotificationListener listener = createNotificationListener();
-      NotificationEmitter emitter = (NotificationEmitter) gcbean;
-      emitter.addNotificationListener(listener, null, null);
-      gcNotificationListeners.put(emitter, listener);
-    }
-    int heapUsageThresholdPercent = (int) Math.floor(heapUsageThreshold * 100f);
-    logger.info("installed GC monitors. will clear references if heap (after GC) is larger than " + heapUsageThresholdPercent + "%");
-  }
-
-  private NotificationListener createNotificationListener() {
-    Set<String> ignoredMemoryAreas = new HashSet<>(Arrays.asList("Code Cache", "Compressed Class Space", "Metaspace"));
-    return (notification, handback) -> {
-      if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
-        GarbageCollectionNotificationInfo info = GarbageCollectionNotificationInfo.from((CompositeData) notification.getUserData());
-
-        //sum up used and max memory across relevant memory areas
-        long totalMemUsed = 0;
-        long totalMemMax = 0;
-        for (Map.Entry<String, MemoryUsage> entry : info.getGcInfo().getMemoryUsageAfterGc().entrySet()) {
-          String name = entry.getKey();
-          if (!ignoredMemoryAreas.contains(name)) {
-            MemoryUsage detail = entry.getValue();
-            totalMemUsed += detail.getUsed();
-            totalMemMax += detail.getMax();
-          }
-        }
-        float heapUsage = (float) totalMemUsed / (float) totalMemMax;
-        int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
-        logger.trace("heap usage after GC: " + heapUsagePercent + "%");
-        maybeClearReferences(heapUsage);
-      }
-    };
-  }
-
-
-  /**
    * writes all references to disk overflow, blocks until complete.
    * useful when saving the graph
    */
@@ -223,22 +159,8 @@ public class ReferenceManagerImpl implements ReferenceManager {
     }
   }
 
-  protected void uninstallGCMonitoring() {
-    while (!gcNotificationListeners.isEmpty()) {
-      Map.Entry<NotificationEmitter, NotificationListener> entry = gcNotificationListeners.entrySet().iterator().next();
-      try {
-        entry.getKey().removeNotificationListener(entry.getValue());
-        gcNotificationListeners.remove(entry.getKey());
-      } catch (ListenerNotFoundException e) {
-        throw new RuntimeException("unable to remove GC monitor", e);
-      }
-    }
-    logger.info("uninstalled GC monitors.");
-  }
-
   @Override
   public void close() {
-    uninstallGCMonitoring();
     executorService.shutdown();
   }
 

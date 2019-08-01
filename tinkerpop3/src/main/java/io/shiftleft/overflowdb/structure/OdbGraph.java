@@ -66,7 +66,8 @@ public final class OdbGraph implements Graph {
   protected final Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel;
 
   protected final OndiskOverflow ondiskOverflow;
-  protected final ReferenceManager referenceManager;
+  protected final Optional<HeapUsageMonitor> heapUsageMonitor;
+  protected final ReferenceManagerImpl referenceManager;
 
   public static OdbGraph open(OdbConfig configuration,
                               List<OdbElementFactory.ForNode<?>> nodeFactories,
@@ -79,15 +80,16 @@ public final class OdbGraph implements Graph {
   }
 
   private OdbGraph(OdbConfig config,
-                  Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
-                  Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
+                   Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
+                   Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    referenceManager = config.isOverflowEnabled() ?
-        new ReferenceManagerImpl(config.getHeapPercentageThreshold()) :
-        new NoOpReferenceManager();
+    referenceManager = new ReferenceManagerImpl();
+    heapUsageMonitor = config.isOverflowEnabled() ?
+        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
+        Optional.empty();
 
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
     if (config.getStorageLocation().isPresent()) {
@@ -231,7 +233,11 @@ public final class OdbGraph implements Graph {
   @Override
   public void close() {
     this.closed = true;
-    if (config.getStorageLocation().isPresent()) referenceManager.clearAllReferences();
+    heapUsageMonitor.ifPresent(monitor -> monitor.close());
+    if (config.getStorageLocation().isPresent()) {
+      /* persist to disk */
+      referenceManager.clearAllReferences();
+    }
     referenceManager.close();
     ondiskOverflow.close();
   }
