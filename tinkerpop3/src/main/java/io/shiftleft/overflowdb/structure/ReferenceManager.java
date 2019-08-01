@@ -16,7 +16,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * can clear references to disk and apply backpressure when creating new nodes, both to avoid an OutOfMemoryError
+ *
  * can save all references to disk to persist the graph on shutdown
+ * n.b. we could also persist the graph without a ReferenceManager, by serializing all nodes to disk. But if that
+ * instance has been started from a storage location, the ReferenceManager ensures that we don't re-serialize all
+ * unchanged nodes. 
  */
 public class ReferenceManager implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
