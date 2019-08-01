@@ -284,6 +284,7 @@ public class OdbGraphNodeTest {
 
   private OdbGraph newGraph() {
     return OdbGraph.open(
+        OdbConfig.withoutOverflow(),
         Arrays.asList(OdbTestNode.factory),
         Arrays.asList(OdbTestEdge.factory)
     );

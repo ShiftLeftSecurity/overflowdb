@@ -1,15 +1,10 @@
 package io.shiftleft.overflowdb.structure;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class OverflowTest {
 
@@ -19,12 +14,12 @@ public class OverflowTest {
   // with overflow that number should be tremendously larger, because only the reference wrappers are helt in memory
   // it'll be much slower due to the serialization to disk, but should not crash
   // important: use all the following vm opts:  `-Xms256m -Xmx256m`
-  public void shouldAllowGraphsLargerThanMemory() throws InterruptedException {
-//    boolean enableOverflow = false;
-    boolean enableOverflow = true;
+  public void shouldAllowGraphsLargerThanMemory() {
+    OdbConfig config = OdbConfig.withoutOverflow();
+//    OdbConfig config = OdbConfig.withDefaults();
     int nodeCount = 100_000;
     int currentInt = 0;
-    try(OdbGraph graph = newGraph(enableOverflow)) {
+    try(OdbGraph graph = newGraph(config)) {
       for (long i = 0; i < nodeCount; i++) {
         if (i % 1000 == 0) {
           System.out.println(i + " nodes created");
@@ -39,11 +34,9 @@ public class OverflowTest {
     }
   }
 
-  private OdbGraph newGraph(boolean enableOverflow) {
-    Configuration configuration = OdbGraph.EMPTY_CONFIGURATION();
-    configuration.setProperty(OdbGraph.OVERFLOW_ENABLED, enableOverflow);
+  private OdbGraph newGraph(OdbConfig config) {
     return OdbGraph.open(
-        configuration,
+        config,
         Arrays.asList(OdbTestNode.factory),
         Arrays.asList()
     );
