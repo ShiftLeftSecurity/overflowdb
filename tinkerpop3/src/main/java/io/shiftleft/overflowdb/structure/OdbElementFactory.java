@@ -6,9 +6,9 @@ public class OdbElementFactory {
 
   public interface ForNode<V extends OdbNode> {
     String forLabel();
-    V createVertex(long id, OdbGraph graph);
-    V createVertex(NodeRef<V> ref);
-    NodeRef<V> createVertexRef(long id, OdbGraph graph);
+    V createNode(long id, OdbGraph graph);
+    V createNode(NodeRef<V> ref);
+    NodeRef<V> createNodeRef(long id, OdbGraph graph);
   }
 
 

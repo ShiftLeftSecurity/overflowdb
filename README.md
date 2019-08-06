@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
 # ShiftLeft OverflowDB
 * jvm-embedded property graph database

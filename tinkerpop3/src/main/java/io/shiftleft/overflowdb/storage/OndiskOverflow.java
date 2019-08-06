@@ -87,7 +87,7 @@ public class OndiskOverflow implements AutoCloseable {
     return new File(mvstore.getFileStore().getFileName());
   }
 
-  public void removeVertex(final Long id) {
+  public void removeNode(final Long id) {
     vertexMVMap.remove(id);
   }
 

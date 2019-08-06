@@ -74,7 +74,7 @@ public class NodeSerializer {
       packer.packByte(ValueTypes.UNKNOWN.id);
       packer.packNil();
     } else if (value instanceof NodeRef) {
-      packer.packByte(ValueTypes.VERTEX_REF.id);
+      packer.packByte(ValueTypes.NODE_REF.id);
       packer.packLong(((NodeRef) value).id);
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
