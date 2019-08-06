@@ -18,7 +18,7 @@ public class OdbTestEdge extends OdbEdge {
 
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
-  public static OdbElementFactory.ForEdge<OdbTestEdge> factory = new OdbElementFactory.ForEdge<OdbTestEdge>() {
+  public static EdgeFactory<OdbTestEdge> factory = new EdgeFactory<OdbTestEdge>() {
     @Override
     public String forLabel() {
       return OdbTestEdge.LABEL;

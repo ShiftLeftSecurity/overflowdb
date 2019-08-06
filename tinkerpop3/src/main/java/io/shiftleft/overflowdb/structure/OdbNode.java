@@ -524,7 +524,7 @@ public abstract class OdbNode implements Vertex {
   protected OdbEdge instantiateDummyEdge(String label,
                                          NodeRef outNode,
                                          NodeRef inNode) {
-    final OdbElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
+    final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
     return edgeFactory.createEdge(ref.graph, outNode, inNode);

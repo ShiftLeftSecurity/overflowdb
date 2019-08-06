@@ -113,7 +113,7 @@ public class OdbTestNode extends OdbNode {
       Arrays.asList(OdbTestEdge.layoutInformation),
       Arrays.asList(OdbTestEdge.layoutInformation));
 
-  public static OdbElementFactory.ForNode<OdbTestNode> factory = new OdbElementFactory.ForNode<OdbTestNode>() {
+  public static NodeFactory<OdbTestNode> factory = new NodeFactory<OdbTestNode>() {
 
     @Override
     public String forLabel() {
@@ -123,14 +123,6 @@ public class OdbTestNode extends OdbNode {
     @Override
     public OdbTestNode createNode(NodeRef<OdbTestNode> ref) {
       return new OdbTestNode(ref);
-    }
-
-    @Override
-    public OdbTestNode createNode(OdbGraph graph, long id) {
-      final NodeRef<OdbTestNode> ref = createNodeRef(graph, id);
-      final OdbTestNode node = createNode(ref);
-      ref.setNode(node);
-      return node;
     }
 
     @Override

@@ -1,11 +1,11 @@
 package io.shiftleft.overflowdb.storage;
 
+import io.shiftleft.overflowdb.structure.NodeFactory;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbConfig;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbTestEdge;
 import io.shiftleft.overflowdb.structure.OdbTestNode;
-import io.shiftleft.overflowdb.structure.OdbElementFactory;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -81,7 +81,7 @@ public class SerializerTest {
   }
 
   private NodeDeserializer newDeserializer(OdbGraph graph) {
-    Map<String, OdbElementFactory.ForNode> vertexFactories = new HashMap();
+    Map<String, NodeFactory> vertexFactories = new HashMap();
     vertexFactories.put(OdbTestNode.LABEL, OdbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }

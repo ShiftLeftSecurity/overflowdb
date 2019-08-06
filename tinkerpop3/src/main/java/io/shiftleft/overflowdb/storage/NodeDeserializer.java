@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
+import io.shiftleft.overflowdb.structure.NodeFactory;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbNode;
-import io.shiftleft.overflowdb.structure.OdbElementFactory;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
@@ -24,11 +24,11 @@ import java.util.Map;
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final OdbGraph graph;
-  protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
+  protected final Map<String, NodeFactory> nodeFactoryByLabel;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(OdbGraph graph, Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel) {
+  public NodeDeserializer(OdbGraph graph, Map<String, NodeFactory> nodeFactoryByLabel) {
     this.graph = graph;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
   }
@@ -158,7 +158,7 @@ public class NodeDeserializer {
   }
 
   protected NodeRef createNodeRef(long id, String label) {
-    OdbElementFactory.ForNode nodeFactory = nodeFactoryByLabel.get(label);
+    NodeFactory nodeFactory = nodeFactoryByLabel.get(label);
     if (nodeFactory == null) {
       throw new AssertionError("nodeFactory not found for label=" + label);
     }
@@ -167,7 +167,7 @@ public class NodeDeserializer {
   }
 
   protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
-    OdbElementFactory.ForNode nodeFactory = nodeFactoryByLabel.get(label);
+    NodeFactory nodeFactory = nodeFactoryByLabel.get(label);
     if (nodeFactory == null) {
       throw new AssertionError("nodeFactory not found for label=" + label);
     }

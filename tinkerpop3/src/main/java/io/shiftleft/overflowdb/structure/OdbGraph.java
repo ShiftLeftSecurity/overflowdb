@@ -62,26 +62,26 @@ public final class OdbGraph implements Graph {
   private final OdbConfig config;
   private boolean closed = false;
 
-  protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
-  protected final Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel;
+  protected final Map<String, NodeFactory> nodeFactoryByLabel;
+  protected final Map<String, EdgeFactory> edgeFactoryByLabel;
 
   protected final OndiskOverflow ondiskOverflow;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
   public static OdbGraph open(OdbConfig configuration,
-                              List<OdbElementFactory.ForNode<?>> nodeFactories,
-                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
-    Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
-    Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
+                              List<NodeFactory<?>> nodeFactories,
+                              List<EdgeFactory<?>> edgeFactories) {
+    Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>();
+    Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>();
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
     return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   private OdbGraph(OdbConfig config,
-                   Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
-                   Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
+                   Map<String, NodeFactory> nodeFactoryByLabel,
+                   Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -189,7 +189,7 @@ public final class OdbGraph implements Graph {
           "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
               + ". Mixing specialized and generic elements is not (yet) supported");
     }
-    final OdbElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
+    final NodeFactory factory = nodeFactoryByLabel.get(label);
     final OdbNode underlying = factory.createNode(this, idValue);
     this.referenceManager.registerRef(underlying.ref);
     node = underlying.ref;
@@ -259,12 +259,20 @@ public final class OdbGraph implements Graph {
   @Override
   public Iterator<Vertex> vertices(final Object... ids) {
     final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
-    final Iterator<Vertex> vertexIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+    final Iterator<Vertex> nodeIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     if (0 == ids.length) {
-      return vertexIter;
+      return nodeIter;
     } else {
-      final Set idsSet = new HashSet(Arrays.asList(ids));
-      return IteratorUtils.filter(vertexIter, ref -> idsSet.contains(ref.id()));
+      final Set<Long> idsSet = new HashSet<>(ids.length);
+      // the tinkerpop api allows to pass the actual element instead of the ids :(
+      for (Object idOrNode : ids) {
+        final Long id;// = idOrNode instanceof Long ? idOrNode : null;
+        if (idOrNode instanceof Long) id = (Long) idOrNode;
+        else if (idOrNode instanceof Vertex) id = (Long) ((Vertex) idOrNode).id();
+        else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
+        idsSet.add(id);
+      }
+      return IteratorUtils.filter(nodeIter, ref -> idsSet.contains(ref.id()));
     }
   }
 
