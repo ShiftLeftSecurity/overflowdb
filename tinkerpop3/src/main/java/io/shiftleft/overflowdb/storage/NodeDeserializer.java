@@ -163,7 +163,7 @@ public class NodeDeserializer {
       throw new AssertionError("nodeFactory not found for label=" + label);
     }
 
-    return nodeFactory.createNodeRef(id, graph);
+    return nodeFactory.createNodeRef(graph, id);
   }
 
   protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
@@ -171,7 +171,7 @@ public class NodeDeserializer {
     if (nodeFactory == null) {
       throw new AssertionError("nodeFactory not found for label=" + label);
     }
-    OdbNode node = nodeFactory.createNode(id, graph);
+    OdbNode node = nodeFactory.createNode(graph, id);
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
     node.setEdgeOffsets(edgeOffsets);
     node.setAdjacentVerticesWithProperties(adjacentVerticesWithProperties);

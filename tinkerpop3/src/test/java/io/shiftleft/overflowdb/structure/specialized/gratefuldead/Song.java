@@ -131,16 +131,16 @@ public class Song extends OdbNode {
     }
 
     @Override
-    public Song createNode(long id, OdbGraph graph) {
-      final NodeRef<Song> ref = createNodeRef(id, graph);
+    public Song createNode(OdbGraph graph, long id) {
+      final NodeRef<Song> ref = createNodeRef(graph, id);
       final Song node = createNode(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<Song> createNodeRef(long id, OdbGraph graph) {
-      return new NodeRef(id, graph) {
+    public NodeRef<Song> createNodeRef(OdbGraph graph, long id) {
+      return new NodeRef(graph, id) {
         @Override
         public String label() {
           return Song.label;

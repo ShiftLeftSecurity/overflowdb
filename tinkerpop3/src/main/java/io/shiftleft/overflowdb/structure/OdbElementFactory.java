@@ -6,15 +6,13 @@ public class OdbElementFactory {
 
   public interface ForNode<V extends OdbNode> {
     String forLabel();
-    V createNode(long id, OdbGraph graph);
+    V createNode(OdbGraph graph, long id);
     V createNode(NodeRef<V> ref);
-    NodeRef<V> createNodeRef(long id, OdbGraph graph);
+    NodeRef<V> createNodeRef(OdbGraph graph, long id);
   }
-
 
   public interface ForEdge<E extends OdbEdge> {
     String forLabel();
-
     E createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex);
   }
 
