@@ -126,20 +126,20 @@ public class Song extends OdbNode {
     }
 
     @Override
-    public Song createVertex(NodeRef<Song> ref) {
+    public Song createNode(NodeRef<Song> ref) {
       return new Song(ref);
     }
 
     @Override
-    public Song createVertex(long id, OdbGraph graph) {
-      final NodeRef<Song> ref = createVertexRef(id, graph);
-      final Song node = createVertex(ref);
+    public Song createNode(long id, OdbGraph graph) {
+      final NodeRef<Song> ref = createNodeRef(id, graph);
+      final Song node = createNode(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<Song> createVertexRef(long id, OdbGraph graph) {
+    public NodeRef<Song> createNodeRef(long id, OdbGraph graph) {
       return new NodeRef(id, graph) {
         @Override
         public String label() {

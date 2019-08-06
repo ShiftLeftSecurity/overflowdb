@@ -121,20 +121,20 @@ public class OdbTestNode extends OdbNode {
     }
 
     @Override
-    public OdbTestNode createVertex(NodeRef<OdbTestNode> ref) {
+    public OdbTestNode createNode(NodeRef<OdbTestNode> ref) {
       return new OdbTestNode(ref);
     }
 
     @Override
-    public OdbTestNode createVertex(long id, OdbGraph graph) {
-      final NodeRef<OdbTestNode> ref = createVertexRef(id, graph);
-      final OdbTestNode node = createVertex(ref);
+    public OdbTestNode createNode(long id, OdbGraph graph) {
+      final NodeRef<OdbTestNode> ref = createNodeRef(id, graph);
+      final OdbTestNode node = createNode(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<OdbTestNode> createVertexRef(long id, OdbGraph graph) {
+    public NodeRef<OdbTestNode> createNodeRef(long id, OdbGraph graph) {
       return new NodeRef(id, graph) {
         @Override
         public String label() {

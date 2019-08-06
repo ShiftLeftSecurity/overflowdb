@@ -23,7 +23,7 @@ import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
 /**
- * Node/Vertex that stores adjacent Nodes directly, rather than via edges.
+ * Node that stores adjacent Nodes directly, rather than via edges.
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
  */
@@ -151,7 +151,7 @@ public abstract class OdbNode implements Vertex {
     graph.nodes.remove(ref.id);
     graph.getElementsByLabel(graph.nodesByLabel, label()).remove(this);
 
-    graph.ondiskOverflow.removeVertex(ref.id);
+    graph.ondiskOverflow.removeNode(ref.id);
 //        this.modifiedSinceLastSerialization = true;
   }
 
@@ -205,9 +205,9 @@ public abstract class OdbNode implements Vertex {
     adjacentVerticesWithProperties[propertyPosition] = value;
   }
 
-  private int calcAdjacentVertexIndex(Direction direction,
-                                      String edgeLabel,
-                                      int blockOffset) {
+  private int calcAdjacentNodeIndex(Direction direction,
+                                    String edgeLabel,
+                                    int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
     if (offsetPos == -1) {
       return -1;
@@ -224,22 +224,22 @@ public abstract class OdbNode implements Vertex {
                                    String label,
                                    String key,
                                    int blockOffset) {
-    int adjacentVertexIndex = calcAdjacentVertexIndex(direction, label, blockOffset);
-    if (adjacentVertexIndex == -1) {
+    int adjacentNodeIndex = calcAdjacentNodeIndex(direction, label, blockOffset);
+    if (adjacentNodeIndex == -1) {
       return -1;
     }
 
-    int propertyOffset = layoutInformation().getOffsetRelativeToAdjacentVertexRef(label, key);
+    int propertyOffset = layoutInformation().getOffsetRelativeToAdjacentNodeRef(label, key);
     if (propertyOffset == -1) {
       return -1;
     }
 
-    return adjacentVertexIndex + propertyOffset;
+    return adjacentNodeIndex + propertyOffset;
   }
 
   @Override
-  public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    final NodeRef inNodeRef = (NodeRef) inVertex;
+  public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
+    final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
@@ -276,12 +276,12 @@ public abstract class OdbNode implements Vertex {
     final MultiIterator2<Vertex> multiIterator = new MultiIterator2<>();
     if (direction == Direction.IN || direction == Direction.BOTH) {
       for (String label : calcInLabels(edgeLabels)) {
-        multiIterator.addIterator(createAdjacentVertexIterator(Direction.IN, label));
+        multiIterator.addIterator(createAdjacentNodeIterator(Direction.IN, label));
       }
     }
     if (direction == Direction.OUT || direction == Direction.BOTH) {
       for (String label : calcOutLabels(edgeLabels)) {
-        multiIterator.addIterator(createAdjacentVertexIterator(Direction.OUT, label));
+        multiIterator.addIterator(createAdjacentNodeIterator(Direction.OUT, label));
       }
     }
 
@@ -294,11 +294,11 @@ public abstract class OdbNode implements Vertex {
    * index for the same edge.
    *
    * @return the occurrence for a given edge, calculated by counting the number times the given
-   * adjacent vertex occurred between the start of the edge-specific block and the blockOffset
+   * adjacent node occurred between the start of the edge-specific block and the blockOffset
    */
   public int blockOffsetToOccurrence(Direction direction,
                                      String label,
-                                     NodeRef otherVertex,
+                                     NodeRef otherNode,
                                      int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
@@ -306,7 +306,7 @@ public abstract class OdbNode implements Vertex {
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
-      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(otherVertex.id())) {
+      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(otherNode.id())) {
         occurrenceCount++;
       }
     }
@@ -323,7 +323,7 @@ public abstract class OdbNode implements Vertex {
    */
   public int occurrenceToBlockOffset(Direction direction,
                                      String label,
-                                     NodeRef adjacentVertex,
+                                     NodeRef adjacentNode,
                                      int occurrence) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos);
@@ -332,17 +332,17 @@ public abstract class OdbNode implements Vertex {
 
     int currentOccurrence = 0;
     for (int i = start; i < start + length; i += strideSize) {
-      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(adjacentVertex.id())) {
+      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(adjacentNode.id())) {
         if (currentOccurrence == occurrence) {
-          int adjacentVertexIndex = i - start;
-          return adjacentVertexIndex;
+          int adjacentNodeIndex = i - start;
+          return adjacentNodeIndex;
         } else {
           currentOccurrence++;
         }
       }
     }
     throw new RuntimeException("Unable to find occurrence " + occurrence + " of "
-        + label + " edge to vertex " + adjacentVertex.id());
+        + label + " edge to node " + adjacentNode.id());
   }
 
   /**
@@ -378,7 +378,7 @@ public abstract class OdbNode implements Vertex {
     }
   }
 
-  private Iterator<NodeRef> createAdjacentVertexIterator(Direction direction, String label) {
+  private Iterator<NodeRef> createAdjacentNodeIterator(Direction direction, String label) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
@@ -522,11 +522,11 @@ public abstract class OdbNode implements Vertex {
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
   protected OdbEdge instantiateDummyEdge(String label,
-                                         NodeRef outVertex,
-                                         NodeRef inVertex) {
+                                         NodeRef outNode,
+                                         NodeRef inNode) {
     final OdbElementFactory.ForEdge edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
-    return edgeFactory.createEdge(ref.graph, outVertex, inVertex);
+    return edgeFactory.createEdge(ref.graph, outNode, inNode);
   }
 }

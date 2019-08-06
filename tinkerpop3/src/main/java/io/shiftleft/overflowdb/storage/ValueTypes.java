@@ -14,7 +14,7 @@ public enum ValueTypes {
   FLOAT((byte) 6),
   DOUBLE((byte) 7),
   LIST((byte) 8),
-  VERTEX_REF((byte) 9),
+  NODE_REF((byte) 9),
   UNKNOWN((byte) 10);
 
   public final byte id;
@@ -44,7 +44,7 @@ public enum ValueTypes {
       case 8:
         return LIST;
       case 9:
-        return VERTEX_REF;
+        return NODE_REF;
       case 10:
         return UNKNOWN;
       default:

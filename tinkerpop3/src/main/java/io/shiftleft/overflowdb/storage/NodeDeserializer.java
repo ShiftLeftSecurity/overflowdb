@@ -24,13 +24,13 @@ import java.util.Map;
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final OdbGraph graph;
-  protected final Map<String, OdbElementFactory.ForNode> vertexFactoryByLabel;
+  protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(OdbGraph graph, Map<String, OdbElementFactory.ForNode> vertexFactoryByLabel) {
+  public NodeDeserializer(OdbGraph graph, Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel) {
     this.graph = graph;
-    this.vertexFactoryByLabel = vertexFactoryByLabel;
+    this.nodeFactoryByLabel = nodeFactoryByLabel;
   }
 
   public OdbNode deserialize(byte[] bytes) throws IOException {
@@ -106,7 +106,7 @@ public class NodeDeserializer {
     switch (ValueTypes.lookup(valueTypeId)) {
       case UNKNOWN:
         return null;
-      case VERTEX_REF:
+      case NODE_REF:
         long id = value.asIntegerValue().asLong();
         return graph.vertex(id);
       case BOOLEAN:
@@ -158,25 +158,25 @@ public class NodeDeserializer {
   }
 
   protected NodeRef createNodeRef(long id, String label) {
-    OdbElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
-    if (vertexFactory == null) {
-      throw new AssertionError("vertexFactory not found for label=" + label);
+    OdbElementFactory.ForNode nodeFactory = nodeFactoryByLabel.get(label);
+    if (nodeFactory == null) {
+      throw new AssertionError("nodeFactory not found for label=" + label);
     }
 
-    return vertexFactory.createVertexRef(id, graph);
+    return nodeFactory.createNodeRef(id, graph);
   }
 
   protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
-    OdbElementFactory.ForNode vertexFactory = vertexFactoryByLabel.get(label);
-    if (vertexFactory == null) {
-      throw new AssertionError("vertexFactory not found for label=" + label);
+    OdbElementFactory.ForNode nodeFactory = nodeFactoryByLabel.get(label);
+    if (nodeFactory == null) {
+      throw new AssertionError("nodeFactory not found for label=" + label);
     }
-    OdbNode vertex = vertexFactory.createVertex(id, graph);
-    ElementHelper.attachProperties(vertex, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
-    vertex.setEdgeOffsets(edgeOffsets);
-    vertex.setAdjacentVerticesWithProperties(adjacentVerticesWithProperties);
+    OdbNode node = nodeFactory.createNode(id, graph);
+    ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
+    node.setEdgeOffsets(edgeOffsets);
+    node.setAdjacentVerticesWithProperties(adjacentVerticesWithProperties);
 
-    return vertex;
+    return node;
   }
 
 }

@@ -138,7 +138,7 @@ public class NodeLayoutInformation {
    * adjacentVerticesWithProperties array starting from 1. Return -1 if
    * key does not exist for given edgeLabel.
    */
-  public int getOffsetRelativeToAdjacentVertexRef(String edgeLabel, String key) {
+  public int getOffsetRelativeToAdjacentNodeRef(String edgeLabel, String key) {
     return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, key), -1);
   }
 
