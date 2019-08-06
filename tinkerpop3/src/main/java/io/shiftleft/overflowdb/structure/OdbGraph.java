@@ -259,12 +259,20 @@ public final class OdbGraph implements Graph {
   @Override
   public Iterator<Vertex> vertices(final Object... ids) {
     final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
-    final Iterator<Vertex> vertexIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+    final Iterator<Vertex> nodeIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     if (0 == ids.length) {
-      return vertexIter;
+      return nodeIter;
     } else {
-      final Set idsSet = new HashSet(Arrays.asList(ids));
-      return IteratorUtils.filter(vertexIter, ref -> idsSet.contains(ref.id()));
+      final Set<Long> idsSet = new HashSet<>(ids.length);
+      // the tinkerpop api allows to pass the actual element instead of the ids :(
+      for (Object idOrNode : ids) {
+        final Long id;// = idOrNode instanceof Long ? idOrNode : null;
+        if (idOrNode instanceof Long) id = (Long) idOrNode;
+        else if (idOrNode instanceof Vertex) id = (Long) ((Vertex) idOrNode).id();
+        else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
+        idsSet.add(id);
+      }
+      return IteratorUtils.filter(nodeIter, ref -> idsSet.contains(ref.id()));
     }
   }
 
