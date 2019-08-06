@@ -62,26 +62,26 @@ public final class OdbGraph implements Graph {
   private final OdbConfig config;
   private boolean closed = false;
 
-  protected final Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel;
-  protected final Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel;
+  protected final Map<String, NodeFactory> nodeFactoryByLabel;
+  protected final Map<String, EdgeFactory> edgeFactoryByLabel;
 
   protected final OndiskOverflow ondiskOverflow;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
   public static OdbGraph open(OdbConfig configuration,
-                              List<OdbElementFactory.ForNode<?>> nodeFactories,
-                              List<OdbElementFactory.ForEdge<?>> edgeFactories) {
-    Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel = new HashMap<>();
-    Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel = new HashMap<>();
+                              List<NodeFactory<?>> nodeFactories,
+                              List<EdgeFactory<?>> edgeFactories) {
+    Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>();
+    Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>();
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
     return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   private OdbGraph(OdbConfig config,
-                   Map<String, OdbElementFactory.ForNode> nodeFactoryByLabel,
-                   Map<String, OdbElementFactory.ForEdge> edgeFactoryByLabel) {
+                   Map<String, NodeFactory> nodeFactoryByLabel,
+                   Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -189,7 +189,7 @@ public final class OdbGraph implements Graph {
           "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
               + ". Mixing specialized and generic elements is not (yet) supported");
     }
-    final OdbElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
+    final NodeFactory factory = nodeFactoryByLabel.get(label);
     final OdbNode underlying = factory.createNode(this, idValue);
     this.referenceManager.registerRef(underlying.ref);
     node = underlying.ref;

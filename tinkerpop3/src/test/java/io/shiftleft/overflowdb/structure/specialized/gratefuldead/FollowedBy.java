@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.EdgeFactory;
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbEdge;
-import io.shiftleft.overflowdb.structure.OdbElementFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -24,7 +24,7 @@ public class FollowedBy extends OdbEdge {
 
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
-  public static OdbElementFactory.ForEdge<FollowedBy> factory = new OdbElementFactory.ForEdge<FollowedBy>() {
+  public static EdgeFactory<FollowedBy> factory = new EdgeFactory<FollowedBy>() {
     @Override
     public String forLabel() {
       return FollowedBy.LABEL;

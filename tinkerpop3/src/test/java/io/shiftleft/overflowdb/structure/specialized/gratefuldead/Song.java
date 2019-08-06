@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.NodeFactory;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbNode;
-import io.shiftleft.overflowdb.structure.OdbElementFactory;
 import io.shiftleft.overflowdb.structure.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
@@ -119,7 +119,7 @@ public class Song extends OdbNode {
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation),
       Arrays.asList(FollowedBy.layoutInformation));
 
-  public static OdbElementFactory.ForNode<Song> factory = new OdbElementFactory.ForNode<Song>() {
+  public static NodeFactory<Song> factory = new NodeFactory<Song>() {
     @Override
     public String forLabel() {
       return Song.label;
@@ -128,14 +128,6 @@ public class Song extends OdbNode {
     @Override
     public Song createNode(NodeRef<Song> ref) {
       return new Song(ref);
-    }
-
-    @Override
-    public Song createNode(OdbGraph graph, long id) {
-      final NodeRef<Song> ref = createNodeRef(graph, id);
-      final Song node = createNode(ref);
-      ref.setNode(node);
-      return node;
     }
 
     @Override

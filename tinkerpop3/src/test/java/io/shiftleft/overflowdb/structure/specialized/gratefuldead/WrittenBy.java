@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
 
+import io.shiftleft.overflowdb.structure.EdgeFactory;
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
 import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbEdge;
-import io.shiftleft.overflowdb.structure.OdbElementFactory;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -20,7 +20,7 @@ public class WrittenBy extends OdbEdge implements Serializable {
 
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
-  public static OdbElementFactory.ForEdge<WrittenBy> factory = new OdbElementFactory.ForEdge<WrittenBy>() {
+  public static EdgeFactory<WrittenBy> factory = new EdgeFactory<WrittenBy>() {
     @Override
     public String forLabel() {
       return WrittenBy.LABEL;
