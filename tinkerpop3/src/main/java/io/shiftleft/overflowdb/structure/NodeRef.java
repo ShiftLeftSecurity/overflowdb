@@ -28,9 +28,9 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
    * used when creating a node without the underlying instance at hand
    * this assumes that it is available on disk
    */
-  public NodeRef(final long id, final OdbGraph graph) {
-    this.id = id;
+  public NodeRef(final OdbGraph graph, final long id) {
     this.graph = graph;
+    this.id = id;
   }
 
   public boolean isSet() {

@@ -190,7 +190,7 @@ public final class OdbGraph implements Graph {
               + ". Mixing specialized and generic elements is not (yet) supported");
     }
     final OdbElementFactory.ForNode factory = nodeFactoryByLabel.get(label);
-    final OdbNode underlying = factory.createNode(idValue, this);
+    final OdbNode underlying = factory.createNode(this, idValue);
     this.referenceManager.registerRef(underlying.ref);
     node = underlying.ref;
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);

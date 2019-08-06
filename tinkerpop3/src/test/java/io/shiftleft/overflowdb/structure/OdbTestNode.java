@@ -126,16 +126,16 @@ public class OdbTestNode extends OdbNode {
     }
 
     @Override
-    public OdbTestNode createNode(long id, OdbGraph graph) {
-      final NodeRef<OdbTestNode> ref = createNodeRef(id, graph);
+    public OdbTestNode createNode(OdbGraph graph, long id) {
+      final NodeRef<OdbTestNode> ref = createNodeRef(graph, id);
       final OdbTestNode node = createNode(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<OdbTestNode> createNodeRef(long id, OdbGraph graph) {
-      return new NodeRef(id, graph) {
+    public NodeRef<OdbTestNode> createNodeRef(OdbGraph graph, long id) {
+      return new NodeRef(graph, id) {
         @Override
         public String label() {
           return OdbTestNode.LABEL;

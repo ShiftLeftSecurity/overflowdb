@@ -96,16 +96,16 @@ public class Artist extends OdbNode {
     }
 
     @Override
-    public Artist createNode(long id, OdbGraph graph) {
-      final NodeRef<Artist> ref = createNodeRef(id, graph);
+    public Artist createNode(OdbGraph graph, long id) {
+      final NodeRef<Artist> ref = createNodeRef(graph, id);
       final Artist node = createNode(ref);
       ref.setNode(node);
       return node;
     }
 
     @Override
-    public NodeRef<Artist> createNodeRef(long id, OdbGraph graph) {
-      return new NodeRef(id, graph) {
+    public NodeRef<Artist> createNodeRef(OdbGraph graph, long id) {
+      return new NodeRef(graph, id) {
         @Override
         public String label() {
           return Artist.label;
