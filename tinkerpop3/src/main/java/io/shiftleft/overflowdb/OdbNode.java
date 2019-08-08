@@ -152,7 +152,7 @@ public abstract class OdbNode implements Vertex {
     graph.nodes.remove(ref.id);
     graph.getElementsByLabel(graph.nodesByLabel, label()).remove(this);
 
-    graph.ondiskOverflow.removeNode(ref.id);
+    graph.storage.removeNode(ref.id);
 //        this.modifiedSinceLastSerialization = true;
   }
 

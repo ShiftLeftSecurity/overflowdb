@@ -45,7 +45,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   protected void clear() throws IOException {
     OdbNode node = this.node;
     if (node != null) {
-      graph.ondiskOverflow.persist(node);
+      graph.storage.persist(node);
     }
     this.node = null;
   }
@@ -72,7 +72,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   protected N readFromDisk(long nodeId) throws IOException {
-    return graph.ondiskOverflow.readVertex(nodeId);
+    return graph.storage.readVertex(nodeId);
   }
 
   @Override

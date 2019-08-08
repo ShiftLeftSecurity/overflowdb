@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class OndiskOverflow implements AutoCloseable {
+public class OdbStorage implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer = new NodeSerializer();
   protected final Optional<NodeDeserializer> vertexDeserializer;
@@ -22,28 +22,28 @@ public class OndiskOverflow implements AutoCloseable {
   protected final MVMap<Long, byte[]> vertexMVMap;
   private boolean closed;
 
-  public static OndiskOverflow createWithTempFile(final NodeDeserializer nodeDeserializer) {
-    return new OndiskOverflow(Optional.empty(), Optional.ofNullable(nodeDeserializer));
+  public static OdbStorage createWithTempFile(final NodeDeserializer nodeDeserializer) {
+    return new OdbStorage(Optional.empty(), Optional.ofNullable(nodeDeserializer));
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OndiskOverflow createWithSpecificLocation(
+  public static OdbStorage createWithSpecificLocation(
       final NodeDeserializer nodeDeserializer, final File mvstoreFile) {
-    return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OndiskOverflow createWithSpecificLocation(final File mvstoreFile) {
-    return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.empty());
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.empty());
   }
 
-  private OndiskOverflow(
+  private OdbStorage(
       final Optional<File> mvstoreFileMaybe,
       final Optional<NodeDeserializer> vertexDeserializer) {
     this.vertexDeserializer = vertexDeserializer;
@@ -102,7 +102,6 @@ public class OndiskOverflow implements AutoCloseable {
   public MVMap<Long, byte[]> getVertexMVMap() {
     return vertexMVMap;
   }
-
 
   public Optional<NodeDeserializer> getVertexDeserializer() {
     return vertexDeserializer;
