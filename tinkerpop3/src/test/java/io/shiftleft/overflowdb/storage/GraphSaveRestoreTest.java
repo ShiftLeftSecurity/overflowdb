@@ -4,6 +4,7 @@ import io.shiftleft.overflowdb.OdbConfig;
 import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.SungBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.WrittenBy;
@@ -91,11 +92,7 @@ public class GraphSaveRestoreTest {
 
   private OdbGraph newGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
     OdbConfig config = enableOverflow ? OdbConfig.withDefaults() : OdbConfig.withoutOverflow();
-    return OdbGraph.open(
-        config.withStorageLocation(overflowDb.getAbsolutePath()),
-        Arrays.asList(Song.factory, Artist.factory),
-        Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
-    );
+    return GratefulDead.newGraph(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 
   private void loadGraphMl(OdbGraph graph) throws IOException {

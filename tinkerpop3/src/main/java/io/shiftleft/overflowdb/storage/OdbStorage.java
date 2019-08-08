@@ -13,42 +13,42 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class OndiskOverflow implements AutoCloseable {
+public class OdbStorage implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer = new NodeSerializer();
   protected final Optional<NodeDeserializer> vertexDeserializer;
 
-  private final MVStore mvstore;
-  protected final MVMap<Long, byte[]> vertexMVMap;
+  private final File mvstoreFile;
+  private MVStore mvstore; // initialized in `getVertexMVMap`
+  private MVMap<Long, byte[]> vertexMVMap;
   private boolean closed;
 
-  public static OndiskOverflow createWithTempFile(final NodeDeserializer nodeDeserializer) {
-    return new OndiskOverflow(Optional.empty(), Optional.ofNullable(nodeDeserializer));
+  public static OdbStorage createWithTempFile(final NodeDeserializer nodeDeserializer) {
+    return new OdbStorage(Optional.empty(), Optional.ofNullable(nodeDeserializer));
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OndiskOverflow createWithSpecificLocation(
+  public static OdbStorage createWithSpecificLocation(
       final NodeDeserializer nodeDeserializer, final File mvstoreFile) {
-    return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OndiskOverflow createWithSpecificLocation(final File mvstoreFile) {
-    return new OndiskOverflow(Optional.ofNullable(mvstoreFile), Optional.empty());
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.empty());
   }
 
-  private OndiskOverflow(
+  private OdbStorage(
       final Optional<File> mvstoreFileMaybe,
       final Optional<NodeDeserializer> vertexDeserializer) {
     this.vertexDeserializer = vertexDeserializer;
 
-    final File mvstoreFile;
     if (mvstoreFileMaybe.isPresent()) {
       mvstoreFile = mvstoreFileMaybe.get();
     } else {
@@ -60,27 +60,24 @@ public class OndiskOverflow implements AutoCloseable {
       }
     }
     logger.debug("on-disk overflow file: " + mvstoreFile);
-
-    mvstore = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
-    vertexMVMap = mvstore.openMap("vertices");
   }
 
   public void persist(final OdbNode node) throws IOException {
     if (!closed) {
       final long id = node.ref.id;
-      vertexMVMap.put(id, nodeSerializer.serialize(node));
+      getVertexMVMap().put(id, nodeSerializer.serialize(node));
     }
   }
 
   public <A extends Vertex> A readVertex(final long id) throws IOException {
-    return (A) vertexDeserializer.get().deserialize(vertexMVMap.get(id));
+    return (A) vertexDeserializer.get().deserialize(getVertexMVMap().get(id));
   }
 
   @Override
   public void close() {
     closed = true;
     logger.info("closing " + getClass().getSimpleName());
-    mvstore.close();
+    if (mvstore != null) mvstore.close();
   }
 
   public File getStorageFile() {
@@ -88,11 +85,11 @@ public class OndiskOverflow implements AutoCloseable {
   }
 
   public void removeNode(final Long id) {
-    vertexMVMap.remove(id);
+    getVertexMVMap().remove(id);
   }
 
   public Set<Map.Entry<Long, byte[]>> allVertices() {
-    return vertexMVMap.entrySet();
+    return getVertexMVMap().entrySet();
   }
 
   public NodeSerializer getNodeSerializer() {
@@ -100,9 +97,12 @@ public class OndiskOverflow implements AutoCloseable {
   }
 
   public MVMap<Long, byte[]> getVertexMVMap() {
+    if (mvstore == null) {
+      mvstore = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
+      vertexMVMap = mvstore.openMap("vertices");
+    }
     return vertexMVMap;
   }
-
 
   public Optional<NodeDeserializer> getVertexDeserializer() {
     return vertexDeserializer;

@@ -6,6 +6,7 @@ import io.shiftleft.overflowdb.OdbConfig;
 import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.simple.OdbTestEdge;
 import io.shiftleft.overflowdb.testdomains.simple.OdbTestNode;
+import io.shiftleft.overflowdb.testdomains.simple.SimpleDomain;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
@@ -23,7 +24,7 @@ public class SerializerTest {
 
   @Test
   public void serializeVertex() throws IOException {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
       Vertex vertexRef = graph.addVertex(
@@ -50,7 +51,7 @@ public class SerializerTest {
 
   @Test
   public void serializeWithEdge() throws IOException {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       NodeSerializer serializer = new NodeSerializer();
       NodeDeserializer deserializer = newDeserializer(graph);
 
@@ -84,14 +85,6 @@ public class SerializerTest {
     Map<String, NodeFactory> vertexFactories = new HashMap();
     vertexFactories.put(OdbTestNode.LABEL, OdbTestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
-  }
-
-  private OdbGraph newGraph() {
-    return OdbGraph.open(
-        OdbConfig.withoutOverflow(),
-        Arrays.asList(OdbTestNode.factory),
-        Arrays.asList(OdbTestEdge.factory)
-    );
   }
 
 }

@@ -5,7 +5,7 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.set.hash.THashSet;
 import io.shiftleft.overflowdb.storage.NodeDeserializer;
-import io.shiftleft.overflowdb.storage.OndiskOverflow;
+import io.shiftleft.overflowdb.storage.OdbStorage;
 import io.shiftleft.overflowdb.tp3.GraphVariables;
 import io.shiftleft.overflowdb.tp3.TinkerIoRegistryV1d0;
 import io.shiftleft.overflowdb.tp3.TinkerIoRegistryV2d0;
@@ -68,7 +68,7 @@ public final class OdbGraph implements Graph {
   protected final Map<String, NodeFactory> nodeFactoryByLabel;
   protected final Map<String, EdgeFactory> edgeFactoryByLabel;
 
-  protected final OndiskOverflow ondiskOverflow;
+  protected final OdbStorage storage;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
@@ -96,10 +96,10 @@ public final class OdbGraph implements Graph {
 
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
     if (config.getStorageLocation().isPresent()) {
-      ondiskOverflow = OndiskOverflow.createWithSpecificLocation(nodeDeserializer, new File(config.getStorageLocation().get()));
-      initElementCollections(ondiskOverflow);
+      storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, new File(config.getStorageLocation().get()));
+      initElementCollections(storage);
     } else {
-      ondiskOverflow = OndiskOverflow.createWithTempFile(nodeDeserializer);
+      storage = OdbStorage.createWithTempFile(nodeDeserializer);
       initEmptyElementCollections();
     }
   }
@@ -112,9 +112,9 @@ public final class OdbGraph implements Graph {
   /**
    * implementation note: must start with vertices, because the edges require the vertexRefs to be already present!
    */
-  private void initElementCollections(OndiskOverflow ondiskOverflow) {
+  private void initElementCollections(OdbStorage storage) {
     long start = System.currentTimeMillis();
-    final Set<Map.Entry<Long, byte[]>> serializedVertices = ondiskOverflow.allVertices();
+    final Set<Map.Entry<Long, byte[]>> serializedVertices = storage.allVertices();
     logger.info("initializing " + serializedVertices.size() + " nodes from existing storage - this may take some time");
     int importCount = 0;
     long maxId = currentId.get();
@@ -125,7 +125,7 @@ public final class OdbGraph implements Graph {
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
-        final NodeRef nodeRef = (NodeRef) ondiskOverflow.getVertexDeserializer().get().deserializeRef(entry.getValue());
+        final NodeRef nodeRef = storage.getVertexDeserializer().get().deserializeRef(entry.getValue());
         nodes.put(nodeRef.id, nodeRef);
         getElementsByLabel(nodesByLabel, nodeRef.label()).add(nodeRef);
         importCount++;
@@ -242,7 +242,7 @@ public final class OdbGraph implements Graph {
       referenceManager.clearAllReferences();
     }
     referenceManager.close();
-    ondiskOverflow.close();
+    storage.close();
   }
 
   @Override

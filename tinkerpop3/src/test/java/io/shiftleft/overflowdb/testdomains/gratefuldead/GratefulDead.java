@@ -9,8 +9,12 @@ import java.util.Arrays;
 
 public class GratefulDead {
   public static OdbGraph newGraph() {
+    return newGraph(OdbConfig.withoutOverflow());
+  }
+
+  public static OdbGraph newGraph(OdbConfig config) {
     return OdbGraph.open(
-        OdbConfig.withoutOverflow(),
+        config,
         Arrays.asList(Song.factory, Artist.factory),
         Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
     );
@@ -25,4 +29,6 @@ public class GratefulDead {
   public static void loadData(OdbGraph graph) throws IOException {
     graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
   }
+
+
 }
