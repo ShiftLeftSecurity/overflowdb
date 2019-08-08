@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
-import io.shiftleft.overflowdb.structure.NodeFactory;
-import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OdbGraph;
-import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.NodeFactory;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbGraph;
+import io.shiftleft.overflowdb.OdbNode;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;

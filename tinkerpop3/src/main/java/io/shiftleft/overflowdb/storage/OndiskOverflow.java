@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.storage;
 
-import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.OdbNode;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;

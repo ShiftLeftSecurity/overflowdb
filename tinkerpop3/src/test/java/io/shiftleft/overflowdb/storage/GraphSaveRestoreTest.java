@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.storage;
 
-import io.shiftleft.overflowdb.structure.OdbConfig;
-import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
