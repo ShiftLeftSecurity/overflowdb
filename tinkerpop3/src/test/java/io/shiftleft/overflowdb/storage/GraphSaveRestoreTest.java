@@ -2,11 +2,11 @@ package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.structure.OdbConfig;
 import io.shiftleft.overflowdb.structure.OdbGraph;
-import io.shiftleft.overflowdb.structure.specialized.gratefuldead.Artist;
-import io.shiftleft.overflowdb.structure.specialized.gratefuldead.FollowedBy;
-import io.shiftleft.overflowdb.structure.specialized.gratefuldead.Song;
-import io.shiftleft.overflowdb.structure.specialized.gratefuldead.SungBy;
-import io.shiftleft.overflowdb.structure.specialized.gratefuldead.WrittenBy;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.SungBy;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.WrittenBy;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;

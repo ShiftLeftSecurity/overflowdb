@@ -1,5 +1,12 @@
 package io.shiftleft.overflowdb.structure;
 
+import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
+import io.shiftleft.overflowdb.testdomains.simple.OdbTestEdge;
+import io.shiftleft.overflowdb.testdomains.simple.OdbTestNode;
+import io.shiftleft.overflowdb.testdomains.simple.SimpleDomain;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -7,8 +14,10 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
@@ -16,11 +25,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class OdbGraphNodeTest {
+public class OdbNodeTest {
 
   @Test
   public void simpleTest() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(
         T.label, OdbTestNode.LABEL,
@@ -72,8 +81,22 @@ public class OdbGraphNodeTest {
   }
 
   @Test
+  public void loadGratefulDeadGraph() throws IOException {
+    try(OdbGraph graph = GratefulDead.newGraphWithData()) {
+      Vertex v1 = graph.traversal().V(1l).next();
+      assertEquals("HEY BO DIDDLEY", v1.value("name"));
+
+      List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
+      assertEquals(garcias.size(), 1);
+      NodeRef nodeRef = (NodeRef) garcias.get(0);
+      Artist garcia = (Artist) nodeRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
+      assertEquals("Garcia", garcia.getName());
+    }
+  }
+
+  @Test
   public void testEdgeEquality() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -91,7 +114,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaNewEdge() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -103,7 +126,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaQueriedEdge() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -117,7 +140,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaDifferenceQueriedEdges() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -133,7 +156,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaNewEdgeMultiple() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -150,7 +173,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaQueriedEdgeMultiple() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -172,7 +195,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void setAndGetEdgePropertyViaDifferenceQueriedEdgesMultiple() {
-    OdbGraph graph = newGraph();
+    OdbGraph graph = SimpleDomain.newGraph();
 
     Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL);
     Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL);
@@ -197,7 +220,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void removeEdgeSimple() {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v1");
       Edge edge = v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, 1l);
@@ -211,7 +234,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void removeEdgeComplex1() {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v1");
       Edge edge0 = v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, 0l);
@@ -230,7 +253,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void removeEdgeComplex2() {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v1");
       Edge edge0 = v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, 0l);
@@ -249,7 +272,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void removeEdgeComplexAfterSerialization() {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v1");
       v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, 0l);
@@ -270,7 +293,7 @@ public class OdbGraphNodeTest {
 
   @Test
   public void removeNodeSimple() {
-    try (OdbGraph graph = newGraph()) {
+    try (OdbGraph graph = SimpleDomain.newGraph()) {
       Vertex v0 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v0");
       Vertex v1 = graph.addVertex(T.label, OdbTestNode.LABEL, OdbTestNode.STRING_PROPERTY, "v1");
       v0.addEdge(OdbTestEdge.LABEL, v1, OdbTestEdge.LONG_PROPERTY, 1l);
@@ -282,12 +305,100 @@ public class OdbGraphNodeTest {
     }
   }
 
-  private OdbGraph newGraph() {
-    return OdbGraph.open(
-        OdbConfig.withoutOverflow(),
-        Arrays.asList(OdbTestNode.factory),
-        Arrays.asList(OdbTestEdge.factory)
-    );
+  @Test
+  public void shouldAllowAddingElementsAndSettingProperties() {
+    try(OdbGraph graph = GratefulDead.newGraph()) {
+
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.property(Song.NAME, "song 1");
+      song2.property(Song.NAME, "song 2");
+
+      List<Vertex> vertices = graph.traversal().V().toList();
+      assertEquals(2, vertices.size());
+      Set<Object> names = graph.traversal().V().values("name").toSet();
+      assertTrue(names.contains("song 1"));
+      assertTrue(names.contains("song 2"));
+
+      song1.addEdge(FollowedBy.LABEL, song2, FollowedBy.WEIGHT, new Integer(42));
+      assertEquals(42, graph.traversal().E().values(FollowedBy.WEIGHT).next());
+      assertEquals(42, __(song1).outE().values(FollowedBy.WEIGHT).next());
+    }
+  }
+
+  @Test
+  public void shouldSupportEdgeRemoval() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
+      assertEquals(2, graph.traversal().V().toList().size());
+      assertEquals(1, graph.traversal().E().toList().size());
+
+      followedBy.remove();
+      assertEquals(2, graph.traversal().V().toList().size());
+      assertEquals(0, graph.traversal().E().toList().size());
+    }
+  }
+
+  @Test
+  public void shouldSupportVertexRemoval1() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      assertEquals(2, graph.traversal().V().toList().size());
+      assertEquals(1, graph.traversal().E().toList().size());
+
+      song1.remove();
+      assertEquals(1, graph.traversal().V().toList().size());
+      assertEquals(0, graph.traversal().E().toList().size());
+
+      song2.remove();
+      assertEquals(0, graph.traversal().V().toList().size());
+    }
+  }
+
+  @Test
+  public void shouldSupportVertexRemoval2() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      assertEquals(2, graph.traversal().V().toList().size());
+      assertEquals(1, graph.traversal().E().toList().size());
+
+      song2.remove();
+      assertEquals(1, graph.traversal().V().toList().size());
+      assertEquals(0, graph.traversal().E().toList().size());
+
+      song1.remove();
+      assertEquals(0, graph.traversal().V().toList().size());
+    }
+  }
+
+  @Test
+  public void shouldAllowToSpecifyIds() {
+    try(OdbGraph graph = GratefulDead.newGraph()) {
+
+      Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
+      Vertex v20 = graph.addVertex(T.id, 20l, T.label, Song.label, Song.NAME, "Song 20");
+      v10.addEdge(FollowedBy.LABEL, v20, FollowedBy.WEIGHT, 5);
+
+      assertEquals(5, graph.traversal().V(10l).outE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
+      assertEquals(5, graph.traversal().V(20l).inE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
+    }
+  }
+
+  @Test
+  public void shouldReturnElementRefs() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+      Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
+      Edge e4 = v0.addEdge(FollowedBy.LABEL, v2);
+      assertTrue(v0 instanceof NodeRef);
+      assertTrue(v0.vertices(Direction.OUT).next() instanceof NodeRef);
+    }
   }
 
 }

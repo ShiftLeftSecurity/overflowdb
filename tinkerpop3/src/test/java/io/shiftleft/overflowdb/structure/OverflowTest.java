@@ -1,5 +1,7 @@
 package io.shiftleft.overflowdb.structure;
 
+import io.shiftleft.overflowdb.testdomains.simple.OdbTestNode;
+import io.shiftleft.overflowdb.testdomains.simple.SimpleDomain;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ public class OverflowTest {
 //    OdbConfig config = OdbConfig.withDefaults();
     int nodeCount = 100_000;
     int currentInt = 0;
-    try(OdbGraph graph = newGraph(config)) {
+    try(OdbGraph graph = SimpleDomain.newGraph(config)) {
       for (long i = 0; i < nodeCount; i++) {
         if (i % 1000 == 0) {
           System.out.println(i + " nodes created");
@@ -32,14 +34,6 @@ public class OverflowTest {
         v.property(OdbTestNode.INT_LIST_PROPERTY, ints);
       }
     }
-  }
-
-  private OdbGraph newGraph(OdbConfig config) {
-    return OdbGraph.open(
-        config,
-        Arrays.asList(OdbTestNode.factory),
-        Arrays.asList()
-    );
   }
 
 }

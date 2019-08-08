@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
+package io.shiftleft.overflowdb.testdomains.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.NodeFactory;
 import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
@@ -16,26 +16,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Song extends OdbNode {
-  public static final String label = "song";
+public class Artist extends OdbNode {
+  public static final String label = "artist";
   public static final String NAME = "name";
-  public static final String SONG_TYPE = "songType";
-  public static final String PERFORMANCES = "performances";
-  public static final String TEST_PROP = "testProperty";
 
   /* properties */
   private String name;
-  private String songType;
-  private Integer performances;
-  private int[] testProp;
 
-  protected Song(NodeRef ref) {
+  protected Artist(NodeRef ref) {
     super(ref);
   }
 
   @Override
   public String label() {
-    return Song.label;
+    return Artist.label;
   }
 
   @Override
@@ -47,25 +41,11 @@ public class Song extends OdbNode {
     return name;
   }
 
-  public String getSongType() {
-    return songType;
-  }
-
-  public Integer getPerformances() {
-    return performances;
-  }
-
   @Override
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
     final VertexProperty<V> ret;
     if (NAME.equals(key) && name != null) {
       return IteratorUtils.of(new OdbNodeProperty(this, key, name));
-    } else if (key == SONG_TYPE && songType != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, songType));
-    } else if (key == PERFORMANCES && performances != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, performances));
-    } else if (key == TEST_PROP && testProp != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, testProp));
     } else {
       return Collections.emptyIterator();
     }
@@ -75,9 +55,6 @@ public class Song extends OdbNode {
   public Map<String, Object> valueMap() {
     Map<String, Object> properties = new HashMap<>();
     if (name != null) properties.put(NAME, name);
-    if (songType != null) properties.put(SONG_TYPE, songType);
-    if (performances != null) properties.put(PERFORMANCES, performances);
-    if (testProp != null) properties.put(TEST_PROP, testProp);
     return properties;
   }
 
@@ -86,59 +63,46 @@ public class Song extends OdbNode {
       VertexProperty.Cardinality cardinality, String key, V value) {
     if (NAME.equals(key)) {
       this.name = (String) value;
-    } else if (SONG_TYPE.equals(key)) {
-      this.songType = (String) value;
-    } else if (PERFORMANCES.equals(key)) {
-      this.performances = ((Integer) value);
-    } else if (TEST_PROP.equals(key)) {
-      this.testProp = (int[]) value;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
     return property(key);
   }
 
-
   @Override
   protected void removeSpecificProperty(String key) {
     if (NAME.equals(key)) {
       this.name = null;
-    } else if (SONG_TYPE.equals(key)) {
-      this.songType = null;
-    } else if (PERFORMANCES.equals(key)) {
-      this.performances = null;
-    } else if (TEST_PROP.equals(key)) {
-      this.testProp = null;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
   }
 
   private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-      new HashSet<>(Arrays.asList(NAME, SONG_TYPE, PERFORMANCES, TEST_PROP)),
-      Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation),
-      Arrays.asList(FollowedBy.layoutInformation));
+      new HashSet<>(Arrays.asList(NAME)),
+      Arrays.asList(),
+      Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation));
 
-  public static NodeFactory<Song> factory = new NodeFactory<Song>() {
+  public static NodeFactory<Artist> factory = new NodeFactory<Artist>() {
+
     @Override
     public String forLabel() {
-      return Song.label;
+      return Artist.label;
     }
 
     @Override
-    public Song createNode(NodeRef<Song> ref) {
-      return new Song(ref);
+    public Artist createNode(NodeRef<Artist> ref) {
+      return new Artist(ref);
     }
 
     @Override
-    public NodeRef<Song> createNodeRef(OdbGraph graph, long id) {
+    public NodeRef<Artist> createNodeRef(OdbGraph graph, long id) {
       return new NodeRef(graph, id) {
         @Override
         public String label() {
-          return Song.label;
+          return Artist.label;
         }
       };
     }
   };
-
 }

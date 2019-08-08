@@ -1,4 +1,10 @@
-package io.shiftleft.overflowdb.structure;
+package io.shiftleft.overflowdb.testdomains.simple;
+
+import io.shiftleft.overflowdb.structure.EdgeFactory;
+import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OdbEdge;
+import io.shiftleft.overflowdb.structure.OdbGraph;
 
 import java.util.Arrays;
 import java.util.HashSet;

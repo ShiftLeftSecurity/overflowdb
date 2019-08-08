@@ -1,5 +1,11 @@
-package io.shiftleft.overflowdb.structure;
+package io.shiftleft.overflowdb.testdomains.simple;
 
+import io.shiftleft.overflowdb.structure.NodeFactory;
+import io.shiftleft.overflowdb.structure.NodeLayoutInformation;
+import io.shiftleft.overflowdb.structure.NodeRef;
+import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.structure.OdbNode;
+import io.shiftleft.overflowdb.structure.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
