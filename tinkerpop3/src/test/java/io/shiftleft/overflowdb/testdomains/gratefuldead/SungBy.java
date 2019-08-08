@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
+package io.shiftleft.overflowdb.testdomains.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.EdgeFactory;
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
@@ -6,29 +6,28 @@ import io.shiftleft.overflowdb.structure.NodeRef;
 import io.shiftleft.overflowdb.structure.OdbGraph;
 import io.shiftleft.overflowdb.structure.OdbEdge;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class WrittenBy extends OdbEdge implements Serializable {
-  public static final String LABEL = "writtenBy";
+public class SungBy extends OdbEdge {
+  public static final String LABEL = "sungBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
-  public WrittenBy(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+  public SungBy(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
-  public static EdgeFactory<WrittenBy> factory = new EdgeFactory<WrittenBy>() {
+  public static EdgeFactory<SungBy> factory = new EdgeFactory<SungBy>() {
     @Override
     public String forLabel() {
-      return WrittenBy.LABEL;
+      return SungBy.LABEL;
     }
 
     @Override
-    public WrittenBy createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
-      return new WrittenBy(graph, outVertex, inVertex);
+    public SungBy createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+      return new SungBy(graph, outVertex, inVertex);
     }
   };
 }

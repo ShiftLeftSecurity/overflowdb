@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.structure.specialized.gratefuldead;
+package io.shiftleft.overflowdb.testdomains.gratefuldead;
 
 import io.shiftleft.overflowdb.structure.EdgeFactory;
 import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
