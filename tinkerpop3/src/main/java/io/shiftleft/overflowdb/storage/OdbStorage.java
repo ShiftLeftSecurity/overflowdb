@@ -18,8 +18,9 @@ public class OdbStorage implements AutoCloseable {
   protected final NodeSerializer nodeSerializer = new NodeSerializer();
   protected final Optional<NodeDeserializer> vertexDeserializer;
 
-  private final MVStore mvstore;
-  protected final MVMap<Long, byte[]> vertexMVMap;
+  private final File mvstoreFile;
+  private MVStore mvstore; // initialized in `getVertexMVMap`
+  private MVMap<Long, byte[]> vertexMVMap;
   private boolean closed;
 
   public static OdbStorage createWithTempFile(final NodeDeserializer nodeDeserializer) {
@@ -48,7 +49,6 @@ public class OdbStorage implements AutoCloseable {
       final Optional<NodeDeserializer> vertexDeserializer) {
     this.vertexDeserializer = vertexDeserializer;
 
-    final File mvstoreFile;
     if (mvstoreFileMaybe.isPresent()) {
       mvstoreFile = mvstoreFileMaybe.get();
     } else {
@@ -60,27 +60,24 @@ public class OdbStorage implements AutoCloseable {
       }
     }
     logger.debug("on-disk overflow file: " + mvstoreFile);
-
-    mvstore = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
-    vertexMVMap = mvstore.openMap("vertices");
   }
 
   public void persist(final OdbNode node) throws IOException {
     if (!closed) {
       final long id = node.ref.id;
-      vertexMVMap.put(id, nodeSerializer.serialize(node));
+      getVertexMVMap().put(id, nodeSerializer.serialize(node));
     }
   }
 
   public <A extends Vertex> A readVertex(final long id) throws IOException {
-    return (A) vertexDeserializer.get().deserialize(vertexMVMap.get(id));
+    return (A) vertexDeserializer.get().deserialize(getVertexMVMap().get(id));
   }
 
   @Override
   public void close() {
     closed = true;
     logger.info("closing " + getClass().getSimpleName());
-    mvstore.close();
+    if (mvstore != null) mvstore.close();
   }
 
   public File getStorageFile() {
@@ -88,11 +85,11 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public void removeNode(final Long id) {
-    vertexMVMap.remove(id);
+    getVertexMVMap().remove(id);
   }
 
   public Set<Map.Entry<Long, byte[]>> allVertices() {
-    return vertexMVMap.entrySet();
+    return getVertexMVMap().entrySet();
   }
 
   public NodeSerializer getNodeSerializer() {
@@ -100,6 +97,10 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public MVMap<Long, byte[]> getVertexMVMap() {
+    if (mvstore == null) {
+      mvstore = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
+      vertexMVMap = mvstore.openMap("vertices");
+    }
     return vertexMVMap;
   }
 
