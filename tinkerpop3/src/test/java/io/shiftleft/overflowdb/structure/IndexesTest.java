@@ -4,6 +4,7 @@ import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -18,24 +19,24 @@ public class IndexesTest {
   @Test
   @Ignore // only run manually since the timings vary depending on the environment
   public void shouldUseIndices() throws IOException {
-    int loops = 100;
-    Double avgTimeWithIndex = null;
-    Double avgTimeWithoutIndex = null;
+    int loops = 100_000;
+    final double avgTimeWithIndex;
+    final double avgTimeWithoutIndex;
 
     { // tests with index
       OdbGraph graph = GratefulDead.newGraphWithData();
-      graph.createIndex("weight", Edge.class);
+      graph.createIndex("performances", Vertex.class);
       GraphTraversalSource g = graph.traversal();
-      assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
-      avgTimeWithIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
       graph.close();
     }
 
     { // tests without index
       OdbGraph graph = GratefulDead.newGraphWithData();
       GraphTraversalSource g = graph.traversal();
-      assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
-      avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
       graph.close();
     }
 
@@ -48,25 +49,25 @@ public class IndexesTest {
   @Test
   @Ignore // only run manually since the timings vary depending on the environment
   public void shouldUseIndicesCreatedBeforeLoadingData() throws IOException {
-    int loops = 100;
-    Double avgTimeWithIndex = null;
-    Double avgTimeWithoutIndex = null;
+    int loops = 100_000;
+    final double avgTimeWithIndex;
+    final double avgTimeWithoutIndex;
 
     { // tests with index
       OdbGraph graph = GratefulDead.newGraph();
-      graph.createIndex("weight", Edge.class);
+      graph.createIndex("performances", Vertex.class);
       GratefulDead.loadData(graph);
       GraphTraversalSource g = graph.traversal();
-      assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
-      avgTimeWithIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
       graph.close();
     }
 
     { // tests without index
       OdbGraph graph = GratefulDead.newGraphWithData();
       GraphTraversalSource g = graph.traversal();
-      assertEquals(3564, (long) g.E().has("weight", P.eq(1)).count().next());
-      avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.E().has("weight", P.eq(1)).count().next());
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
       graph.close();
     }
 

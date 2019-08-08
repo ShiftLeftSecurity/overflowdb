@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +57,7 @@ public final class OdbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
   protected final GraphVariables variables = new GraphVariables();
-  protected Index<Vertex> nodeIndex = null;
+  protected OdbIndex<Vertex> nodeIndex = null;
   private final OdbConfig config;
   private boolean closed = false;
 
@@ -454,7 +453,7 @@ public final class OdbGraph implements Graph {
    */
   public <E extends Element> void createIndex(final String key, final Class<E> elementClass) {
     if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null == this.nodeIndex) this.nodeIndex = new Index<>(this, Vertex.class);
+      if (null == this.nodeIndex) this.nodeIndex = new OdbIndex<>(this, Vertex.class);
       this.nodeIndex.createKeyIndex(key);
     } else {
       throw new IllegalArgumentException("Class is not indexable: " + elementClass);

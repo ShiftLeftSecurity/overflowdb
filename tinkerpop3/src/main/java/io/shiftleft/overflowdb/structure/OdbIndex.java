@@ -14,14 +14,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class Index<T extends Element> {
+public final class OdbIndex<T extends Element> {
 
   protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
   protected final Class<T> indexClass;
   private final Set<String> indexedKeys = new HashSet<>();
   private final OdbGraph graph;
 
-  public Index(final OdbGraph graph, final Class<T> indexClass) {
+  public OdbIndex(final OdbGraph graph, final Class<T> indexClass) {
     this.graph = graph;
     this.indexClass = indexClass;
   }
@@ -134,11 +134,10 @@ final class Index<T extends Element> {
     return this.indexedKeys;
   }
 
+  public static List<Vertex> queryNodeIndex(final OdbGraph graph, final String key, final Object value) {
+    return null == graph.nodeIndex ? Collections.emptyList() : graph.nodeIndex.get(key, value);
+  }
 
-//    public static List<Vertex> queryVertexIndex(final OverflowDb graph, final String key, final Object value) {
-//        return null == graph.vertexIndex ? Collections.emptyList() : graph.vertexIndex.get(key, value);
-//    }
-//
 //    public static List<Edge> queryEdgeIndex(final OverflowDb graph, final String key, final Object value) {
 //        return Collections.emptyList();
 //    }

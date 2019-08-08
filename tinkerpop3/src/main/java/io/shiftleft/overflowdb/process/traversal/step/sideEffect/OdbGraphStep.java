@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.process.traversal.step.sideEffect;
 
 import io.shiftleft.overflowdb.structure.OdbGraph;
-import org.apache.commons.lang3.NotImplementedException;
+import io.shiftleft.overflowdb.structure.OdbIndex;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.HasContainerHolder;
@@ -63,13 +63,12 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
       return graph.verticesByLabel((P<String>) hasLabelContainer.get().getPredicate());
     else {
       if (indexedContainer == null) return this.iteratorList(graph.vertices());
-      else throw new NotImplementedException("");
+      else {
+        return IteratorUtils.filter(
+            OdbIndex.queryNodeIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
+            vertex -> HasContainer.testAll(vertex, this.hasContainers));
+      }
     }
-//            return null == indexedContainer ?
-//                    this.iteratorList(graph.vertices()) :
-//                      throw new NotImplementedException("");
-//                    IteratorUtils.filter(TinkerHelper.queryVertexIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
-//                            vertex -> HasContainer.testAll(vertex, this.hasContainers));
   }
 
   // only optimize if hasLabel is the _only_ hasContainer, since that's the simplest case
