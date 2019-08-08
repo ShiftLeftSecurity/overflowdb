@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.testdomains.gratefuldead;
 
-import io.shiftleft.overflowdb.structure.OdbConfig;
-import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbGraph;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 
 import java.io.IOException;

@@ -1,10 +1,10 @@
 package io.shiftleft.overflowdb.testdomains.gratefuldead;
 
-import io.shiftleft.overflowdb.structure.EdgeFactory;
-import io.shiftleft.overflowdb.structure.EdgeLayoutInformation;
-import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OdbGraph;
-import io.shiftleft.overflowdb.structure.OdbEdge;
+import io.shiftleft.overflowdb.EdgeFactory;
+import io.shiftleft.overflowdb.EdgeLayoutInformation;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbGraph;
+import io.shiftleft.overflowdb.OdbEdge;
 
 import java.io.Serializable;
 import java.util.Arrays;

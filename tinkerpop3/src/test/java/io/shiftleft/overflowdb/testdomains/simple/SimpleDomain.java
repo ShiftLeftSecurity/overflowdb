@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.testdomains.simple;
 
-import io.shiftleft.overflowdb.structure.OdbConfig;
-import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbGraph;
 
 import java.util.Arrays;
 

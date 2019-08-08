@@ -1,9 +1,9 @@
 package io.shiftleft.overflowdb.storage;
 
-import io.shiftleft.overflowdb.structure.NodeFactory;
-import io.shiftleft.overflowdb.structure.NodeRef;
-import io.shiftleft.overflowdb.structure.OdbConfig;
-import io.shiftleft.overflowdb.structure.OdbGraph;
+import io.shiftleft.overflowdb.NodeFactory;
+import io.shiftleft.overflowdb.NodeRef;
+import io.shiftleft.overflowdb.OdbConfig;
+import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.simple.OdbTestEdge;
 import io.shiftleft.overflowdb.testdomains.simple.OdbTestNode;
 import org.apache.tinkerpop.gremlin.structure.Direction;
