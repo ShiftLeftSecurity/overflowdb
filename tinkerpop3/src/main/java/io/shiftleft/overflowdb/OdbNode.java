@@ -45,7 +45,9 @@ public abstract class OdbNode implements Vertex {
     this.ref = ref;
 
     ref.setNode(this);
-    ref.graph.referenceManager.applyBackpressureMaybe();
+    if (ref.graph != null) {
+      ref.graph.referenceManager.applyBackpressureMaybe();
+    }
 
     edgeOffsets = new int[layoutInformation().numberOfDifferentAdjacentTypes() * 2];
   }
