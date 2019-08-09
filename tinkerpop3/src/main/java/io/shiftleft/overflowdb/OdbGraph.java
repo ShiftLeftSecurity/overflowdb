@@ -271,6 +271,7 @@ public final class OdbGraph implements Graph {
       for (Object idOrNode : ids) {
         final Long id;// = idOrNode instanceof Long ? idOrNode : null;
         if (idOrNode instanceof Long) id = (Long) idOrNode;
+        else if (idOrNode instanceof Integer) id = ((Integer) idOrNode).longValue();
         else if (idOrNode instanceof Vertex) id = (Long) ((Vertex) idOrNode).id();
         else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
         idsSet.add(id);
