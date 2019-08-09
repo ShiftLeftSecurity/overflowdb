@@ -381,11 +381,11 @@ public class OdbNodeTest {
     try(OdbGraph graph = GratefulDead.newGraph()) {
 
       Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
-      Vertex v20 = graph.addVertex(T.id, 20l, T.label, Song.label, Song.NAME, "Song 20");
+      Vertex v20 = graph.addVertex(T.id,  20, T.label, Song.label, Song.NAME, "Song 20");
       v10.addEdge(FollowedBy.LABEL, v20, FollowedBy.WEIGHT, 5);
 
       assertEquals(5, graph.traversal().V(10l).outE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
-      assertEquals(5, graph.traversal().V(20l).inE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
+      assertEquals(5, graph.traversal().V(20).inE(FollowedBy.LABEL).values(FollowedBy.WEIGHT).next());
     }
   }
 
