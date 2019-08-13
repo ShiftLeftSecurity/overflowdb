@@ -261,23 +261,28 @@ public final class OdbGraph implements Graph {
 
   @Override
   public Iterator<Vertex> vertices(final Object... ids) {
-    final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
-    final Iterator<Vertex> nodeIter = IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
-    if (0 == ids.length) {
-      return nodeIter;
+    if (ids.length == 0) { //return all vertices - that's how the tinkerpop api rolls.
+      final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
+      return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+    } else if (ids.length == 1) {
+      // optimization for common case where only one id is requested
+      final Long id = convertToId(ids[0]);
+      return IteratorUtils.of(nodes.get(id));
     } else {
       final Set<Long> idsSet = new HashSet<>(ids.length);
-      // the tinkerpop api allows to pass the actual element instead of the ids :(
       for (Object idOrNode : ids) {
-        final Long id;// = idOrNode instanceof Long ? idOrNode : null;
-        if (idOrNode instanceof Long) id = (Long) idOrNode;
-        else if (idOrNode instanceof Integer) id = ((Integer) idOrNode).longValue();
-        else if (idOrNode instanceof Vertex) id = (Long) ((Vertex) idOrNode).id();
-        else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
-        idsSet.add(id);
+        idsSet.add(convertToId(idOrNode));
       }
-      return IteratorUtils.filter(nodeIter, ref -> idsSet.contains(ref.id()));
+      return IteratorUtils.map(idsSet.iterator(), id -> nodes.get(id));
     }
+  }
+
+  /** the tinkerpop api allows to pass the actual element instead of the ids :( */
+  private Long convertToId(Object idOrNode) {
+    if (idOrNode instanceof Long) return (Long) idOrNode;
+    else if (idOrNode instanceof Integer) return ((Integer) idOrNode).longValue();
+    else if (idOrNode instanceof Vertex) return (Long) ((Vertex) idOrNode).id();
+    else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
   }
 
   public int nodeCount() {
