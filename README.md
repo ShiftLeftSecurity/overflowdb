@@ -1,19 +1,41 @@
 [![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
-# ShiftLeft OverflowDB
-* jvm-embedded property graph database
-* low memory footprint
-* automatically overflows to disk when heap space is running low
-* if no serialization is required, it is completely in memory and has zero overhead 
+## ShiftLeft OverflowDB
+* in-memory graph database with low memory footprint
+* overflows to disk when running out of heap space (preventing `OutOfMemoryError`)
+* property graph model, i.e. there are **nodes** and **directed edges**, both of which can have properties
 * work with simple classes, rather than abstracting over some model and using a query language a la sql/gremlin/cql/cypher/...
-* strict schema
+* enforces strict schema
 * can save/load to/from disk
-* this originally started as a [Fork of TinkerGraph](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/)
-* partly compatible with TinkerPop3 API
-<!-- * every PR merged to master is automatically released by travis.ci and tagged in git -->
 
-## Usage
+### Table of contents
+<!-- generated with https://github.com/jonschlinkert/markdown-toc 
+markdown-toc --maxdepth 2 --no-firsth1 README.md
+-->
+- [Core concepts](#core-concepts)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [TinkerPop3 compatibility](#tinkerpop3-compatibility)
+- [FAQ](#faq)
+
+### Core concepts
+In order to be memory efficient, edges only exist *virtually*, i.e. they *normally* don't exist as edge instances on your heap, 
+and they do not have an ID. Instead, edges are represented in `adjacentNodesWithProperties` 
+
+Therefor it's typically be to embed OverflowDB in your JVM as part of the 
+
+TODO continue
+* Overflow mechanism: swap
+    * if overflow is not required, it is completely in memory and has zero overhead
+    * make use of your entire heap - your application as well as the db
+    * Refs
+    
+* save to disk, load from disk
+    * graphLocation - auto save
+    * only persists to disk on proper close. there's no guarantees what happens on jvm crash
+
+### Usage
 1) add a dependency to the latest published artifact on [maven central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb)
 TODO
 
@@ -44,11 +66,25 @@ The repository contains examples for the [grateful dead graph](https://github.co
 <!-- This means that we can throw an error if the schema is violated, e.g., if a the user tries to set a property that is not defined for a specific vertex, or if the user tris to connect a vertex via an edge that's not supposed to be connected to this vertex.  -->
 <!-- It is important to note though, that it's up to you if you want to make this a strict validation or not - you can choose to tolerate schema violations in your domain classes. -->
 
-## TinkerPop3 compatibility
-* we (currently) do not run the entire tinkerpop standard testsuite
-* edges only exist virtually and therefor don't have an id that they can be looked up or indexed by
-* an OLAP (GraphComputer) implementation is not available
+### Configuration
+* Overflow heap config 
+* graphLocation - auto save
+    * only persists to disk on proper close. there's no guarantees what happens on jvm crash
 
-## Limitations
-* indices aren't updated automatically when you mutate or add elements to the graph. This would be easy to do I guess, but we haven't had the need yet. Workaround: drop and recreate the index.
 
+### TinkerPop3 compatibility
+While this project originally started as a [Fork of TinkerGraph](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/), 
+it has diverged significantly. While most traversals *should* still work, there may be some that don't. The most obvious thing 
+that doesn't work is starting a traversal with an edge, e.g. by `g.E(0).toList` - that's because edges only exist virtually, 
+so they don't have IDs and can't be indexed. There's no inherent reason this can't be done, but the need didn't yet arise. 
+Same goes for an OLAP (GraphComputer) implementation, which is not yet available.
+
+### Memory layout
+TODO 
+
+### FAQ
+1. **Can you please do a release?**  
+Releases happen automatically. Every PR merged to master is automatically released by travis.ci and tagged in git, using [sbt-ci-release-early](https://github.com/ShiftLeftSecurity/sbt-ci-release-early)
+1. **What repositories are the artifacts deployed to?**   
+https://oss.sonatype.org/content/repositories/public/io/shiftleft/overflowdb-tinkerpop3/
+https://repo1.maven.org/maven2/io/shiftleft/overflowdb-tinkerpop3/

@@ -59,7 +59,7 @@ public class OdbStorage implements AutoCloseable {
         throw new RuntimeException("cannot create tmp file for mvstore", e);
       }
     }
-    logger.debug("on-disk overflow file: " + mvstoreFile);
+    logger.trace("storge file: " + mvstoreFile);
   }
 
   public void persist(final OdbNode node) throws IOException {
