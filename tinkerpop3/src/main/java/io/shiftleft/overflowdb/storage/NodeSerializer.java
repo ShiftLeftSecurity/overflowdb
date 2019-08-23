@@ -27,7 +27,7 @@ public class NodeSerializer {
 
       packProperties(packer, node.valueMap());
       packEdgeOffsets(packer, node.getEdgeOffsets());
-      packAdjacentVerticesWithProperties(packer, node.getAdjacentVerticesWithProperties());
+      packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
 
       serializedCount++;
       serializationTimeSpentMillis += System.currentTimeMillis() - start;
@@ -58,10 +58,10 @@ public class NodeSerializer {
     }
   }
 
-  private void packAdjacentVerticesWithProperties(MessageBufferPacker packer, Object[] adjacentVerticesWithProperties) throws IOException {
-    packer.packArrayHeader(adjacentVerticesWithProperties.length);
-    for (int i = 0; i < adjacentVerticesWithProperties.length; i++) {
-      packTypedValue(packer, adjacentVerticesWithProperties[i]);
+  private void packAdjacentNodesWithProperties(MessageBufferPacker packer, Object[] adjacentNodesWithProperties) throws IOException {
+    packer.packArrayHeader(adjacentNodesWithProperties.length);
+    for (int i = 0; i < adjacentNodesWithProperties.length; i++) {
+      packTypedValue(packer, adjacentNodesWithProperties[i]);
     }
   }
 

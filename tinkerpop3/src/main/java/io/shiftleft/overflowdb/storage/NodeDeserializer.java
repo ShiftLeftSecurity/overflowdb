@@ -43,15 +43,15 @@ public class NodeDeserializer {
       final String label = unpacker.unpackString();
       final Map<String, Object> properties = unpackProperties(unpacker);
       final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-      final Object[] adjacentVerticesWithProperties = unpackAdjacentVerticesWithProperties(unpacker);
+      final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
-      OdbNode node = createNode(id, label, properties, edgeOffsets, adjacentVerticesWithProperties);
+      OdbNode node = createNode(id, label, properties, edgeOffsets, adjacentNodesWithProperties);
 
       deserializedCount++;
       deserializationTimeSpentMillis += System.currentTimeMillis() - start;
       if (deserializedCount % 131072 == 0) { //2^17
         float avgDeserializationTime = deserializationTimeSpentMillis / (float) deserializedCount;
-        logger.debug("stats: deserialized " + deserializedCount + " vertices in total (avg time: " + avgDeserializationTime + "ms)");
+        logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
       }
       return node;
     }
@@ -89,13 +89,13 @@ public class NodeDeserializer {
     return edgeOffsets;
   }
 
-  protected Object[] unpackAdjacentVerticesWithProperties(MessageUnpacker unpacker) throws IOException {
+  protected Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
     int size = unpacker.unpackArrayHeader();
-    Object[] adjacentVerticesWithProperties = new Object[size];
+    Object[] adjacentNodesWithProperties = new Object[size];
     for (int i = 0; i < size; i++) {
-      adjacentVerticesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
+      adjacentNodesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
     }
-    return adjacentVerticesWithProperties;
+    return adjacentNodesWithProperties;
   }
 
   private Object unpackValue(final ArrayValue packedValueAndType) {
@@ -166,7 +166,7 @@ public class NodeDeserializer {
     return nodeFactory.createNodeRef(graph, id);
   }
 
-  protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentVerticesWithProperties) {
+  protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
     NodeFactory nodeFactory = nodeFactoryByLabel.get(label);
     if (nodeFactory == null) {
       throw new AssertionError("nodeFactory not found for label=" + label);
@@ -174,7 +174,7 @@ public class NodeDeserializer {
     OdbNode node = nodeFactory.createNode(graph, id);
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
     node.setEdgeOffsets(edgeOffsets);
-    node.setAdjacentVerticesWithProperties(adjacentVerticesWithProperties);
+    node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
 
     return node;
   }
