@@ -13,8 +13,8 @@ public class SimpleDomain {
   public static OdbGraph newGraph(OdbConfig config) {
     return OdbGraph.open(
         config,
-        Arrays.asList(OdbTestNode.factory),
-        Arrays.asList(OdbTestEdge.factory)
+        Arrays.asList(TestNode.factory),
+        Arrays.asList(TestEdge.factory)
     );
   }
 }

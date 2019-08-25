@@ -4,8 +4,8 @@ import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.WrittenBy;
-import io.shiftleft.overflowdb.testdomains.simple.OdbTestEdge;
-import io.shiftleft.overflowdb.testdomains.simple.OdbTestNode;
+import io.shiftleft.overflowdb.testdomains.simple.TestEdge;
+import io.shiftleft.overflowdb.testdomains.simple.TestNode;
 import io.shiftleft.overflowdb.testdomains.simple.SimpleDomain;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -26,7 +26,7 @@ public class TraversalTest {
   @Test
   public void addV() {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
-      Vertex vertex = graph.traversal().addV(OdbTestNode.LABEL).next();
+      Vertex vertex = graph.traversal().addV(TestNode.LABEL).next();
 
       assertEquals(vertex, graph.traversal().V().next());
       assertEquals(vertex, graph.traversal().V(vertex.id()).next());
@@ -37,17 +37,17 @@ public class TraversalTest {
   @Test
   public void addE() {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
-      Vertex v0 = graph.addVertex(OdbTestNode.LABEL);
-      Vertex v1 = graph.addVertex(OdbTestNode.LABEL);
+      Vertex v0 = graph.addVertex(TestNode.LABEL);
+      Vertex v1 = graph.addVertex(TestNode.LABEL);
       Edge e = graph.traversal()
           .V(v0)
-          .addE(OdbTestEdge.LABEL)
+          .addE(TestEdge.LABEL)
           .to(v1)
-          .property(OdbTestEdge.LONG_PROPERTY, 99l)
+          .property(TestEdge.LONG_PROPERTY, 99l)
           .next();
 
       assertEquals(e, v0.edges(Direction.OUT).next());
-      assertEquals(Long.valueOf(99), v0.edges(Direction.OUT).next().value(OdbTestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(99), v0.edges(Direction.OUT).next().value(TestEdge.LONG_PROPERTY));
       assertEquals(v1, v0.edges(Direction.OUT).next().inVertex());
       assertEquals(v1, v0.vertices(Direction.OUT).next());
     }

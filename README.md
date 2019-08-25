@@ -10,8 +10,9 @@
 * can save/load to/from disk
 
 ### Table of contents
-<!-- generated with https://github.com/jonschlinkert/markdown-toc 
+<!--  
 markdown-toc --maxdepth 2 --no-firsth1 README.md
+https://github.com/jonschlinkert/markdown-toc
 -->
 - [Core concepts](#core-concepts)
 - [Usage](#usage)
@@ -27,36 +28,91 @@ and there's a _helper_ array `OdbNode.edgeOffsets` to keep track of those group 
 This model has been chosen in order to be memory efficient, and is based on the assumption that most graphs have orders of magnitude more edges than nodes.   
 
 **Simple classes and schema**: all nodes/edges are *specific to your domain* rather than *generic with arbitrary properties*. 
-This way we get a strict schema and don't waste memory on `Map` instances. 
+This way we get a strict schema and don't waste memory on `Map` instances. On the flip side, you need to provide your domain-specific
+`[Node|Edge]Factories` to instantiate them. These can be auto-generated though, and we may provide a codegen in future. 
 As of today, TinkerPop3 is the only query language to interact with the graph. TinkerPop returns generic `Vertex|Edge` instances,
 but if you want to access their properties in a type-safe way (`person.name` rather than `vertex.property("NAME")`, you can cast 
 them to your specific node|edge based on their label. 
 
-**Overflow mechanism**: for maximum throughput and simplicity, OverflowDB is designed to run on the same JVM as your 
+**Overflow**: for maximum throughput and simplicity, OverflowDB is designed to run on the same JVM as your 
 main application. Since the memory requirements of your application will likely vary over time, OverflowDB dynamically adapts 
 to the available memory. I.e. it will allocate instances on the heap while there's still space, but if the heap usage (after a full GC)
 is above a configurable threashold (e.g. 80%), it will start serializing instances to disk, freeing up some space. 
 This way we can always fully utilize the heap while preventing `OutOfMemoryError`. OverflowDB applies backpressure to creating 
 new nodes in that case. These mechanisms have practically no overhead while there is enough heap available and the overflow is not required.  
 
-**Persistence**
-* save to disk, load from disk.
-* graphLocation - auto save
-* only persists to disk on proper close. there's no guarantees what happens on jvm crash.
+**Persistence**: if you provide a `graphLocation` when creating the graph, OverflowDB will a) use that file for the on-disk overflow,
+and b) persist to that location on `graph.close()`. 'Persisting' is equivalent to simply serializing all nodes to disk, via the 
+normal 'overflow' mechanism.  
+If the `graphLocation` file already exists, OverflowDB will initialize all NodeRefs from it. I.e. starting up is fast, but the first
+ queries will be slow, until all required nodes are deserialized from disk. 
+Note that there's no guarantees what happens on jvm crash.
 
 ### Usage
-1) add a dependency to the latest published artifact on [maven central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb)
-TODO
-<!-- 2) extend [SpecializedTinkerVertex](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedTinkerVertex.java) for vertices and [SpecializedTinkerEdge](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedTinkerEdge.java) for edges 
-3) create instances of [`SpecializedElementFactory.ForVertex`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedElementFactory.java#L29) and [`SpecializedElementFactory.ForEdge`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedElementFactory.java#L34) and pass them to [`TinkerGraph.open`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/TinkerGraph.java#L153-L156)
--->
+**1)** add a dependency - depending on your build tool. Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
+```xml
+<dependency> <!-- maven -->
+  <groupId>io.shiftleft</groupId>
+  <artifactId>overflowdb-tinkerpop3</artifactId>
+  <version>x.y</version>
+</dependency>
+```
+```groovy
+implementation 'io.shiftleft:overflowdb-tinkerpop3:x.y' // gradle
+```
+```scala
+libraryDependencies += "io.shiftleft" % "overflowdb-tinkerpop3" % "x.y" // sbt
+```
+[Other build tools and versions](https://search.maven.org/search?q=g:io.shiftleft%20AND%20a:overflowdb-tinkerpop3&core=gav)
 
-### Configuration
-* Overflow heap config 
-* graphLocation - auto save
-    * only persists to disk on proper close. there's no guarantees what happens on jvm crash
+**2)** Implement your domain-specific nodes/edges and factories. It's probably best to follow the example implementations 
+of [simple](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/simple) 
+and [grateful dead](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/gratefuldead).
+
+**3)** Create a graph
+```java
+OdbGraph graph = OdbGraph.open(
+  OdbConfig.withoutOverflow(),
+  Arrays.asList(Song.factory, Artist.factory),
+  Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
+);
+
+// either create some nodes/edges manually
+Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+Vertex v1 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
+v0.addEdge(FollowedBy.LABEL, v1);
+
+// or import e.g. a graphml
+graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
+```
+
+**4)** Traverse for fun and profit
+```java
+assertEquals(Long.valueOf(808), graph.traversal().V().count().next());
+assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
+
+Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
+assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
+```
+
+**5)** `graph.close`
+
+For more complete examples, please check out the [tests](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb).  
+To learn more about traversals please refer to the [TinkerPop3 documentation](http://tinkerpop.apache.org/docs/current/reference/).
+
+### Configuration: OdbConfig builder
+```java
+OdbConfig config = OdbConfig.withDefaults()   // overflow is enabled, threshold is 80% of heap (after full GC)
+config.disableOverflow // or shorter: OdbConfig.withoutOverflow() 
+config.withHeapPercentageThreshold(90)        // set threshold to 90% (after full GC)
+
+// relative or absolute path to storage
+// if specified, OverflowDB will persist to that location on `graph.close()`
+// to restore from that location, simply instantiate a new graph instance with the same setting 
+config.withStorageLocation("path/to/odb.bin") 
+```
     
-### Overflow implementation
+### Overflow mechanism
 Here's a rough sketch of how the overflow mechanism works internally: <!-- http://asciiflow.com -->
 ```
 +----------+        +--------------+         +-----------------------+
