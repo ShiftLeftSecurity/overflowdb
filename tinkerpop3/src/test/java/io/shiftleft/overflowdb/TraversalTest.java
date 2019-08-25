@@ -1,7 +1,5 @@
 package io.shiftleft.overflowdb;
 
-import io.shiftleft.overflowdb.NodeRef;
-import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
@@ -80,7 +78,7 @@ public class TraversalTest {
 
   @Test
   public void testBasicSteps() throws IOException {
-    try(OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try (OdbGraph graph = GratefulDead.newGraphWithData()) {
       Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
       // inE
@@ -116,7 +114,7 @@ public class TraversalTest {
 
   @Test
   public void handleEmptyProperties() throws IOException {
-    try(OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try (OdbGraph graph = GratefulDead.newGraphWithData()) {
       List<Object> props1 = graph.traversal().V().values("foo").toList();
       // results will be empty, but it should't crash. see https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/issues/12
       assertEquals(props1.size(), 0);
