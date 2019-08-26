@@ -1,6 +1,7 @@
 package io.shiftleft.overflowdb;
 
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.ArtistDb;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
@@ -95,9 +96,9 @@ public class OdbNodeTest {
 
       List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
       assertEquals(garcias.size(), 1);
-      NodeRef nodeRef = (NodeRef) garcias.get(0);
-      Artist garcia = (Artist) nodeRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
-      assertEquals("Garcia", garcia.getName());
+      Artist artist = (Artist) garcias.get(0);
+      ArtistDb garcia = artist.get();
+      assertEquals("Garcia", garcia.name());
     }
   }
 

@@ -29,10 +29,6 @@ public class TestNode extends NodeRef<TestNodeDb> {
     return get().intListProperty();
   }
 
-  public TestNode(OdbGraph graph, TestNodeDb node) {
-    super(graph, node);
-  }
-
   public TestNode(OdbGraph graph, long id) {
     super(graph, id);
   }
@@ -54,7 +50,7 @@ public class TestNode extends NodeRef<TestNodeDb> {
     }
 
     @Override
-    public NodeRef<TestNodeDb> createNodeRef(OdbGraph graph, long id) {
+    public TestNode createNodeRef(OdbGraph graph, long id) {
       return new TestNode(graph, id);
     }
   };
