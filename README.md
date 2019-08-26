@@ -78,9 +78,9 @@ OdbGraph graph = OdbGraph.open(
 );
 
 // either create some nodes/edges manually
-Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
-Vertex v1 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
-v0.addEdge(FollowedBy.LABEL, v1);
+Song song1 = (Song) graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+Song song2 = (Song) graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
+song1.addEdge(FollowedBy.LABEL, song2);
 
 // or import e.g. a graphml
 graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
@@ -91,7 +91,8 @@ graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
 assertEquals(Long.valueOf(808), graph.traversal().V().count().next());
 assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
 
-Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
+Artist garcia = (Artist) graph.traversal().V().has("name", "Garcia").next();
+assertEquals("Garcia", garcia.name);
 assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
 ```
 
