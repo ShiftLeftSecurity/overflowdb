@@ -109,23 +109,20 @@ public final class OdbGraph implements Graph {
     nodesByLabel = new THashMap<>(100);
   }
 
-  /**
-   * implementation note: must start with vertices, because the edges require the vertexRefs to be already present!
-   */
   private void initElementCollections(OdbStorage storage) {
     long start = System.currentTimeMillis();
-    final Set<Map.Entry<Long, byte[]>> serializedVertices = storage.allVertices();
-    logger.info("initializing " + serializedVertices.size() + " nodes from existing storage - this may take some time");
+    final Set<Map.Entry<Long, byte[]>> serializedNodes = storage.allNodes();
+    logger.info("initializing " + serializedNodes.size() + " nodes from existing storage - this may take some time");
     int importCount = 0;
     long maxId = currentId.get();
 
-    nodes = new TLongObjectHashMap<>(serializedVertices.size());
-    nodesByLabel = new THashMap<>(serializedVertices.size());
-    final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedVertices.iterator();
+    nodes = new TLongObjectHashMap<>(serializedNodes.size());
+    nodesByLabel = new THashMap<>(serializedNodes.size());
+    final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedNodes.iterator();
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
-        final NodeRef nodeRef = storage.getVertexDeserializer().get().deserializeRef(entry.getValue());
+        final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
         nodes.put(nodeRef.id, nodeRef);
         getElementsByLabel(nodesByLabel, nodeRef.label()).add(nodeRef);
         importCount++;
@@ -227,7 +224,7 @@ public final class OdbGraph implements Graph {
 
   @Override
   public String toString() {
-    return StringFactory.graphString(this, "vertices: " + nodes.size());
+    return StringFactory.graphString(this, "nodes: " + nodes.size());
   }
 
   /**
@@ -261,7 +258,7 @@ public final class OdbGraph implements Graph {
 
   @Override
   public Iterator<Vertex> vertices(final Object... ids) {
-    if (ids.length == 0) { //return all vertices - that's how the tinkerpop api rolls.
+    if (ids.length == 0) { //return all nodes - that's how the tinkerpop api rolls.
       final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
       return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     } else if (ids.length == 1) {
@@ -289,7 +286,7 @@ public final class OdbGraph implements Graph {
     return nodes.size();
   }
 
-  public Iterator<NodeRef> verticesByLabel(final P<String> labelPredicate) {
+  public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
     return elementsByLabel(nodesByLabel, labelPredicate);
   }
 

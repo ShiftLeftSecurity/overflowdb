@@ -1,54 +1,161 @@
 [![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
-# ShiftLeft OverflowDB
-* jvm-embedded property graph database
-* low memory footprint
-* automatically overflows to disk when heap space is running low
-* if no serialization is required, it is completely in memory and has zero overhead 
-* work with simple classes, rather than abstracting over some model and using a query language a la sql/gremlin/cql/cypher/...
-* strict schema
+## ShiftLeft OverflowDB
+* in-memory graph database with low memory footprint
+* overflows to disk when running out of heap space: use your entire heap and prevent `OutOfMemoryError`
+* property graph model, i.e. there are **nodes** and **directed edges**, both of which can have properties
+* work with simple classes, rather than abstracting over some generic model <!-- and using a query language a la sql/gremlin/cql/cypher/... -->
+* enforces strict schema
 * can save/load to/from disk
-* this originally started as a [Fork of TinkerGraph](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/)
-* partly compatible with TinkerPop3 API
-<!-- * every PR merged to master is automatically released by travis.ci and tagged in git -->
 
-## Usage
-1) add a dependency to the latest published artifact on [maven central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb)
-TODO
-
-<!-- 2) extend [SpecializedTinkerVertex](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedTinkerVertex.java) for vertices and [SpecializedTinkerEdge](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedTinkerEdge.java) for edges 
-3) create instances of [`SpecializedElementFactory.ForVertex`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedElementFactory.java#L29) and [`SpecializedElementFactory.ForEdge`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/SpecializedElementFactory.java#L34) and pass them to [`TinkerGraph.open`](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/blob/master/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/TinkerGraph.java#L153-L156)
+### Table of contents
+<!--  
+markdown-toc --maxdepth 2 --no-firsth1 README.md
+https://github.com/jonschlinkert/markdown-toc
 -->
+- [Core concepts](#core-concepts)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [TinkerPop3 compatibility](#tinkerpop3-compatibility)
+- [FAQ](#faq)
 
-The repository contains examples for the [grateful dead graph](https://github.com/ShiftLeftSecurity/overflowdb/tree/michael/master/src/test/java/io/shiftleft/overflowdb/structure/specialized/gratefuldead/GratefulGraphTest.java).
-<!-- 2) and 3) are basically boilerplate and therefor good candidates for code generation.  -->
+### Core concepts
+**Memory layout**: edges only exist *virtually*, i.e. they *normally* don't exist as edge instances on your heap, 
+and they do not have an ID. Instead, edges are helt in the `OdbNode.adjacentNodesWithProperties`, which is an `Object[]`, 
+containing direct pointers to the adjacent nodes, as well as potential edge properties. Those edges are grouped by edge label, 
+and there's a _helper_ array `OdbNode.edgeOffsets` to keep track of those group sizes.  
+This model has been chosen in order to be memory efficient, and is based on the assumption that most graphs have orders of magnitude more edges than nodes.   
 
-<!-- # Motivation and context -->
-<!-- The main difference is that instead of generic HashMaps we use specific structures as per your domain. To make this more clear, let's look at the main use cases for HashMaps in TinkerGraph: -->
+**Simple classes and schema**: all nodes/edges are *specific to your domain* rather than *generic with arbitrary properties*. 
+This way we get a strict schema and don't waste memory on `Map` instances. On the flip side, you need to provide your domain-specific
+`[Node|Edge]Factories` to instantiate them. These can be auto-generated though, and we may provide a codegen in future. 
+As of today, TinkerPop3 is the only query language to interact with the graph. TinkerPop returns generic `Vertex|Edge` instances,
+but if you want to access their properties in a type-safe way (`person.name` rather than `vertex.property("NAME")`, you can cast 
+them to your specific node|edge based on their label. 
 
-<!-- 1) allow any vertex and any edge to have any property (basically a key/value pair, e.g., `foo=42`). To achieve this, each element in the graph has a `Map<String, Property>`, and each property is wrapped inside a `HashMap$Node`, see [TinkerVertex](https://github.com/apache/tinkerpop/blob/3.3.0/tinkergraph-gremlin/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/TinkerVertex.java#L45) and [TinkerEdge](https://github.com/apache/tinkerpop/blob/3.3.0/tinkergraph-gremlin/src/main/java/org/apache/tinkerpop/gremlin/tinkergraph/structure/TinkerEdge.java#L43).  -->
-<!-- 2) TinkerGraph allows to connect any two vertices by any edge. Therefor each vertex holds two `Map<String, Set<Edge>>` instances (one for incoming and one for outgoing edges), where the String refers to the edge label. -->
+**Overflow**: for maximum throughput and simplicity, OverflowDB is designed to run on the same JVM as your 
+main application. Since the memory requirements of your application will likely vary over time, OverflowDB dynamically adapts 
+to the available memory. I.e. it will allocate instances on the heap while there's still space, but if the heap usage (after a full GC)
+is above a configurable threashold (e.g. 80%), it will start serializing instances to disk, freeing up some space. 
+This way we can always fully utilize the heap while preventing `OutOfMemoryError`. OverflowDB applies backpressure to creating 
+new nodes in that case. These mechanisms have practically no overhead while there is enough heap available and the overflow is not required.  
 
-<!-- Being generic and not enforcing a schema makes complete sense for the default TinkerGraph - it allows users to play without restrictions and build prototypes. Once a project is more mature though, chances are you have a good understanding of your domain and can define a schema, so that you don't need the generic structure any more and can save a lot of memory. -->
+**Persistence**: if you provide a `graphLocation` when creating the graph, OverflowDB will a) use that file for the on-disk overflow,
+and b) persist to that location on `graph.close()`. 'Persisting' is equivalent to simply serializing all nodes to disk, via the 
+normal 'overflow' mechanism.  
+If the `graphLocation` file already exists, OverflowDB will initialize all NodeRefs from it. I.e. starting up is fast, but the first
+ queries will be slow, until all required nodes are deserialized from disk. 
+Note that there's no guarantees what happens on jvm crash.
 
-<!-- Using less memory is not the only benefit, though: knowing exactly which properties a given element can have, of which type they are and which edges are allowed on a specific vertex, helps catching errors very early in the development cycle. Your IDE can help you to build valid (i.e., schema conforming) graphs and traversals. If you use a statically-checked language, your compiler can find errors that would otherwise only occur at runtime. Even if you are using a dynamic language you are better off, because you'll get an error when you load the graph, e.g., by setting a property on the wrong vertex type. This is far better than getting invalid results at query time, when you need to debug all the way back to a potentially very simple mistake. Since we already had a loosely-defined schema for our code property graph, this exercise helped to complete and strengthen it. -->
+### Usage
+**1)** add a dependency - depending on your build tool. Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
+```xml
+<dependency> <!-- maven -->
+  <groupId>io.shiftleft</groupId>
+  <artifactId>overflowdb-tinkerpop3</artifactId>
+  <version>x.y</version>
+</dependency>
+```
+```groovy
+implementation 'io.shiftleft:overflowdb-tinkerpop3:x.y' // gradle
+```
+```scala
+libraryDependencies += "io.shiftleft" % "overflowdb-tinkerpop3" % "x.y" // sbt
+```
+[Other build tools and versions](https://search.maven.org/search?q=g:io.shiftleft%20AND%20a:overflowdb-tinkerpop3&core=gav)
 
-<!-- ## What does this mean in practice? -->
-<!-- 'Enforcing a strict schema' actually translates to something very simple: we just replaced the *generic* HashMaps with *specific* members: -->
+**2)** Implement your domain-specific nodes/edges and factories. It's probably best to follow the example implementations 
+of [simple](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/simple) 
+and [grateful dead](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/gratefuldead).
 
-<!-- 1) Element properties: vertices and edges contain *generic* `HashMap<String, Object>` that hold all the element's properties. We just replaced them with *specific* class members, e.g., `String name` and `String return_type` -->
+**3)** Create a graph
+```java
+OdbGraph graph = OdbGraph.open(
+  OdbConfig.withoutOverflow(),
+  Arrays.asList(Song.factory, Artist.factory),
+  Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
+);
 
-<!-- 2) Edges on a vertex: the *generic* TinkerVertex contains two `HashMap<String, Set<Edge>> in|outEdges` which can reference any edge. We replaced these by *specific* `Set<SomeSpecificEdgeType>` for each edge type that is allowed to connect this vertex with another vertex. -->
+// either create some nodes/edges manually
+Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+Vertex v1 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
+v0.addEdge(FollowedBy.LABEL, v1);
 
-<!-- This means that we can throw an error if the schema is violated, e.g., if a the user tries to set a property that is not defined for a specific vertex, or if the user tris to connect a vertex via an edge that's not supposed to be connected to this vertex.  -->
-<!-- It is important to note though, that it's up to you if you want to make this a strict validation or not - you can choose to tolerate schema violations in your domain classes. -->
+// or import e.g. a graphml
+graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
+```
 
-## TinkerPop3 compatibility
-* we (currently) do not run the entire tinkerpop standard testsuite
-* edges only exist virtually and therefor don't have an id that they can be looked up or indexed by
-* an OLAP (GraphComputer) implementation is not available
+**4)** Traverse for fun and profit
+```java
+assertEquals(Long.valueOf(808), graph.traversal().V().count().next());
+assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
 
-## Limitations
-* indices aren't updated automatically when you mutate or add elements to the graph. This would be easy to do I guess, but we haven't had the need yet. Workaround: drop and recreate the index.
+Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
+assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
+```
 
+**5)** `graph.close`
+
+For more complete examples, please check out the [tests](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb).  
+To learn more about traversals please refer to the [TinkerPop3 documentation](http://tinkerpop.apache.org/docs/current/reference/).
+
+### Configuration: OdbConfig builder
+```java
+OdbConfig config = OdbConfig.withDefaults()   // overflow is enabled, threshold is 80% of heap (after full GC)
+config.disableOverflow // or shorter: OdbConfig.withoutOverflow() 
+config.withHeapPercentageThreshold(90)        // set threshold to 90% (after full GC)
+
+// relative or absolute path to storage
+// if specified, OverflowDB will persist to that location on `graph.close()`
+// to restore from that location, simply instantiate a new graph instance with the same setting 
+config.withStorageLocation("path/to/odb.bin") 
+```
+    
+### Overflow mechanism
+Here's a rough sketch of how the overflow mechanism works internally: <!-- http://asciiflow.com -->
+```
++----------+        +--------------+         +-----------------------+
+|          |        |   NodeRef    |  free!  |    Node               |
+|OdbStorage+--------+              +-------->+                       |
+|          |        |String name();|         |String name;           |
+|          |        |              |         |Object[] adjacentNodes;|
++----------+        +------+-------+         +-----------------------+
+                           ^
+                           |
+                           |free!
+                           |
+                   +-------+--------+
+                   |ReferenceManager|
+                   +-------+--------+
+                           ^
+                           |
+                           |free!
+                           |
+                     +-----+-----+
+                     |HeapMonitor|
+                     +-----------+
+
+```
+`NodeRef` instances have a low memory footprint - they only contain the `id` and a reference to the graph - and can be freely passed 
+around the application. `Node`s in contrast hold all properties, as well as the adjacent edges and their properties. When the available
+heap is getting low, it is the `Node` instances that are serialized to disk and collected by the garbage collector. That's why you should 
+never hold a (strong) reference onto them in your main application: it would inhibit the overflow mechanism.   
+
+### TinkerPop3 compatibility
+While this project originally started as a [Fork of TinkerGraph](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/), 
+it has diverged significantly. While most traversals *should* still work, there may be some that don't. The most obvious thing 
+that doesn't work is starting a traversal with an edge, e.g. by `g.E(0).toList` - that's because edges only exist virtually, 
+so they don't have IDs and can't be indexed. There's no inherent reason this can't be done, but the need didn't yet arise. 
+Same goes for an OLAP (GraphComputer) implementation, which is not yet available.
+
+### FAQ
+1. **Why not just use a simple cache instead of the overflow mechanism?**  
+Regular caches require you have to specify a fixed size. OverflowDB is designed to run in the same JVM as your main application, and since 
+most applications have varying memory needs over time, it would be hard/impossible to achieve our goal *use your entire heap and prevent OutOfMemoryError* 
+with a regular cache. Besides that, it's very compute-intensive to calculate the size of the cache in megabytes on the heap. 
+1. **When is the next release coming out?**  
+Releases happen automatically. Every PR merged to master is automatically released by travis.ci and tagged in git, using [sbt-ci-release-early](https://github.com/ShiftLeftSecurity/sbt-ci-release-early)
+1. **What repositories are the artifacts deployed to?**   
+https://oss.sonatype.org/content/repositories/public/io/shiftleft/overflowdb-tinkerpop3/
+https://repo1.maven.org/maven2/io/shiftleft/overflowdb-tinkerpop3/

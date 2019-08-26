@@ -32,7 +32,7 @@ public class NodeLayoutInformation {
    * n.b. property keys are of type `HashSet` (rather than just `Set`) to ensure `.size` has constant time */
   private final Map<String, HashSet<String>> edgePropertyKeysByLabel;
 
-  /* position in stride (entry within `adjacentVerticesWithProperties`) for a given edge label and edge property key
+  /* position in stride (entry within `adjacentNodesWithProperties`) for a given edge label and edge property key
    * 1-based, because index `0` is the adjacent node ref */
   private final Map<LabelAndKey, Integer> edgeLabelAndKeyToStrideIndex;
 
@@ -134,9 +134,8 @@ public class NodeLayoutInformation {
   }
 
   /**
-   * @return The offset relative to the adjacent vertex element in the
-   * adjacentVerticesWithProperties array starting from 1. Return -1 if
-   * key does not exist for given edgeLabel.
+   * @return The offset relative to the adjacent node in the  adjacentNodesWithProperties array starting from 1.
+   * Return -1 if key does not exist for given edgeLabel.
    */
   public int getOffsetRelativeToAdjacentNodeRef(String edgeLabel, String key) {
     return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, key), -1);

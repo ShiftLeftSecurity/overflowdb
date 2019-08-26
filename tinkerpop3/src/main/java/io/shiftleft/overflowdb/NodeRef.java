@@ -72,7 +72,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   protected N readFromDisk(long nodeId) throws IOException {
-    return graph.storage.readVertex(nodeId);
+    return graph.storage.readNode(nodeId);
   }
 
   @Override

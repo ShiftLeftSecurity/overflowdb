@@ -35,9 +35,9 @@ public abstract class OdbNode implements Vertex {
   /**
    * holds refs to all adjacent nodes (a.k.a. dummy edges) and the edge properties
    */
-  private Object[] adjacentVerticesWithProperties = new Object[0];
+  private Object[] adjacentNodesWithProperties = new Object[0];
 
-  /* store the start offset and length into the above `adjacentVerticesWithProperties` array in an interleaved manner,
+  /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
    * i.e. each outgoing edge type has two entries in this array. */
   private int[] edgeOffsets;
 
@@ -56,12 +56,12 @@ public abstract class OdbNode implements Vertex {
 
   protected abstract <V> Iterator<VertexProperty<V>> specificProperties(String key);
 
-  public Object[] getAdjacentVerticesWithProperties() {
-    return adjacentVerticesWithProperties;
+  public Object[] getAdjacentNodesWithProperties() {
+    return adjacentNodesWithProperties;
   }
 
-  public void setAdjacentVerticesWithProperties(Object[] adjacentVerticesWithProperties) {
-    this.adjacentVerticesWithProperties = adjacentVerticesWithProperties;
+  public void setAdjacentNodesWithProperties(Object[] adjacentNodesWithProperties) {
+    this.adjacentNodesWithProperties = adjacentNodesWithProperties;
   }
 
   public int[] getEdgeOffsets() {
@@ -189,7 +189,7 @@ public abstract class OdbNode implements Vertex {
     if (propertyPosition == -1) {
       return EmptyProperty.instance();
     }
-    V value = (V) adjacentVerticesWithProperties[propertyPosition];
+    V value = (V) adjacentNodesWithProperties[propertyPosition];
     if (value == null) {
       return EmptyProperty.instance();
     }
@@ -205,7 +205,7 @@ public abstract class OdbNode implements Vertex {
     if (propertyPosition == -1) {
       throw new RuntimeException("Edge " + edgeLabel + " does not support property " + key + ".");
     }
-    adjacentVerticesWithProperties[propertyPosition] = value;
+    adjacentNodesWithProperties[propertyPosition] = value;
   }
 
   private int calcAdjacentNodeIndex(Direction direction,
@@ -309,7 +309,7 @@ public abstract class OdbNode implements Vertex {
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
-      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(otherNode.id())) {
+      if (((NodeRef) adjacentNodesWithProperties[i]).id().equals(otherNode.id())) {
         occurrenceCount++;
       }
     }
@@ -322,7 +322,7 @@ public abstract class OdbNode implements Vertex {
    * @param occurrence if there are multiple edges between the same two nodes with the same label,
    *                   this is used to differentiate between those edges.
    *                   Both nodes use the same occurrence index for the same edge.
-   * @return the index into `adjacentVerticesWithProperties`
+   * @return the index into `adjacentNodesWithProperties`
    */
   public int occurrenceToBlockOffset(Direction direction,
                                      String label,
@@ -335,7 +335,7 @@ public abstract class OdbNode implements Vertex {
 
     int currentOccurrence = 0;
     for (int i = start; i < start + length; i += strideSize) {
-      if (((NodeRef) adjacentVerticesWithProperties[i]).id().equals(adjacentNode.id())) {
+      if (((NodeRef) adjacentNodesWithProperties[i]).id().equals(adjacentNode.id())) {
         if (currentOccurrence == occurrence) {
           int adjacentNodeIndex = i - start;
           return adjacentNodeIndex;
@@ -350,7 +350,7 @@ public abstract class OdbNode implements Vertex {
 
   /**
    * Removes an 'edge', i.e. in reality it removes the information about the adjacent node from
-   * `adjacentVerticesWithProperties`. The corresponding elements will be set to `null`, i.e. we'll have holes.
+   * `adjacentNodesWithProperties`. The corresponding elements will be set to `null`, i.e. we'll have holes.
    * Note: this decrements the `offset` of the following edges in the same block by one, but that's ok because the only
    * thing that matters is that the offset is identical for both connected nodes (assuming thread safety).
    *
@@ -362,7 +362,7 @@ public abstract class OdbNode implements Vertex {
     int strideSize = getStrideSize(label);
 
     for (int i = start; i < start + strideSize; i++) {
-      adjacentVerticesWithProperties[i] = null;
+      adjacentNodesWithProperties[i] = null;
     }
   }
 
@@ -374,7 +374,7 @@ public abstract class OdbNode implements Vertex {
       int length = blockLength(offsetPos);
       int strideSize = getStrideSize(label);
 
-      return new DummyEdgeIterator(adjacentVerticesWithProperties, start, start + length, strideSize,
+      return new DummyEdgeIterator(adjacentNodesWithProperties, start, start + length, strideSize,
           direction, label, (NodeRef) ref);
     } else {
       return Collections.emptyIterator();
@@ -388,7 +388,7 @@ public abstract class OdbNode implements Vertex {
       int length = blockLength(offsetPos);
       int strideSize = getStrideSize(label);
 
-      return new ArrayOffsetIterator<>(adjacentVerticesWithProperties, start, start + length, strideSize);
+      return new ArrayOffsetIterator<>(adjacentNodesWithProperties, start, start + length, strideSize);
     } else {
       return Collections.emptyIterator();
     }
@@ -423,12 +423,12 @@ public abstract class OdbNode implements Vertex {
     int strideSize = getStrideSize(edgeLabel);
 
     int insertAt = start + length;
-    if (adjacentVerticesWithProperties.length <= insertAt || adjacentVerticesWithProperties[insertAt] != null) {
-      // space already occupied - grow adjacentVerticesWithProperties array, leaving some room for more elements
-      adjacentVerticesWithProperties = growAdjacentVerticesWithProperties(offsetPos, strideSize, insertAt, length);
+    if (adjacentNodesWithProperties.length <= insertAt || adjacentNodesWithProperties[insertAt] != null) {
+      // space already occupied - grow adjacentNodesWithProperties array, leaving some room for more elements
+      adjacentNodesWithProperties = growAdjacentNodesWithProperties(offsetPos, strideSize, insertAt, length);
     }
 
-    adjacentVerticesWithProperties[insertAt] = nodeRef;
+    adjacentNodesWithProperties[insertAt] = nodeRef;
     // update edgeOffset length to include the newly inserted element
     edgeOffsets[2 * offsetPos + 1] = length + strideSize;
 
@@ -441,7 +441,7 @@ public abstract class OdbNode implements Vertex {
   }
 
   /**
-   * @return number of elements reserved in `adjacentVerticesWithProperties` for a given edge label
+   * @return number of elements reserved in `adjacentNodesWithProperties` for a given edge label
    * includes space for the node ref and all properties
    */
   private int getStrideSize(String edgeLabel) {
@@ -468,7 +468,7 @@ public abstract class OdbNode implements Vertex {
   }
 
   /**
-   * Returns the length of an edge type block in the adjacentVerticesWithProperties array.
+   * Returns the length of an edge type block in the adjacentNodesWithProperties array.
    * Length means number of index positions.
    */
   private int blockLength(int offsetPosition) {
@@ -492,16 +492,16 @@ public abstract class OdbNode implements Vertex {
   }
 
   /**
-   * grow the adjacentVerticesWithProperties array
+   * grow the adjacentNodesWithProperties array
    * <p>
    * preallocates more space than immediately necessary, so we don't need to grow the array every time
    * (tradeoff between performance and memory).
    * grows with the square root of the double of the current capacity.
    */
-  private Object[] growAdjacentVerticesWithProperties(int offsetPos,
-                                                      int strideSize,
-                                                      int insertAt,
-                                                      int currentLength) {
+  private Object[] growAdjacentNodesWithProperties(int offsetPos,
+                                                   int strideSize,
+                                                   int insertAt,
+                                                   int currentLength) {
     // TODO optimize growth function - optimizing has potential to save a lot of memory, but the below slowed down processing massively
 //    int currentCapacity = currentLength / strideSize;
 //    double additionalCapacity = Math.sqrt(currentCapacity) + 1;
@@ -509,10 +509,10 @@ public abstract class OdbNode implements Vertex {
 //    int additionalEntriesCount = additionalCapacityInt * strideSize;
     int growthEmptyFactor = 2;
     int additionalEntriesCount = (currentLength + strideSize) * growthEmptyFactor;
-    int newSize = adjacentVerticesWithProperties.length + additionalEntriesCount;
+    int newSize = adjacentNodesWithProperties.length + additionalEntriesCount;
     Object[] newArray = new Object[newSize];
-    System.arraycopy(adjacentVerticesWithProperties, 0, newArray, 0, insertAt);
-    System.arraycopy(adjacentVerticesWithProperties, insertAt, newArray, insertAt + additionalEntriesCount, adjacentVerticesWithProperties.length - insertAt);
+    System.arraycopy(adjacentNodesWithProperties, 0, newArray, 0, insertAt);
+    System.arraycopy(adjacentNodesWithProperties, insertAt, newArray, insertAt + additionalEntriesCount, adjacentNodesWithProperties.length - insertAt);
 
     // Increment all following start offsets by `additionalEntriesCount`.
     for (int i = offsetPos + 1; 2 * i < edgeOffsets.length; i++) {

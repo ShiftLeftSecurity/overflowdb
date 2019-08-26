@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class OdbTestNode extends OdbNode {
+public class TestNode extends OdbNode {
   public static final String LABEL = "testNode";
 
   public static final String STRING_PROPERTY = "StringProperty";
@@ -32,13 +32,13 @@ public class OdbTestNode extends OdbNode {
   private List<String> stringListProperty;
   private List<Integer> intListProperty;
 
-  protected OdbTestNode(NodeRef ref) {
+  protected TestNode(NodeRef ref) {
     super(ref);
   }
 
   @Override
   public String label() {
-    return OdbTestNode.LABEL;
+    return TestNode.LABEL;
   }
 
   @Override
@@ -116,27 +116,27 @@ public class OdbTestNode extends OdbNode {
 
   private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
       new HashSet<>(Arrays.asList(STRING_PROPERTY, INT_PROPERTY, STRING_LIST_PROPERTY, INT_LIST_PROPERTY)),
-      Arrays.asList(OdbTestEdge.layoutInformation),
-      Arrays.asList(OdbTestEdge.layoutInformation));
+      Arrays.asList(TestEdge.layoutInformation),
+      Arrays.asList(TestEdge.layoutInformation));
 
-  public static NodeFactory<OdbTestNode> factory = new NodeFactory<OdbTestNode>() {
+  public static NodeFactory<TestNode> factory = new NodeFactory<TestNode>() {
 
     @Override
     public String forLabel() {
-      return OdbTestNode.LABEL;
+      return TestNode.LABEL;
     }
 
     @Override
-    public OdbTestNode createNode(NodeRef<OdbTestNode> ref) {
-      return new OdbTestNode(ref);
+    public TestNode createNode(NodeRef<TestNode> ref) {
+      return new TestNode(ref);
     }
 
     @Override
-    public NodeRef<OdbTestNode> createNodeRef(OdbGraph graph, long id) {
+    public NodeRef<TestNode> createNodeRef(OdbGraph graph, long id) {
       return new NodeRef(graph, id) {
         @Override
         public String label() {
-          return OdbTestNode.LABEL;
+          return TestNode.LABEL;
         }
       };
     }
