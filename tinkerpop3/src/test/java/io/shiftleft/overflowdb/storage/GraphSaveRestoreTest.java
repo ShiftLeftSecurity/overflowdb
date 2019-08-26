@@ -2,12 +2,9 @@ package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.OdbConfig;
 import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
-import io.shiftleft.overflowdb.testdomains.gratefuldead.SungBy;
-import io.shiftleft.overflowdb.testdomains.gratefuldead.WrittenBy;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -17,7 +14,6 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,6 +1,5 @@
 package io.shiftleft.overflowdb;
 
-import io.shiftleft.overflowdb.OdbGraph;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;

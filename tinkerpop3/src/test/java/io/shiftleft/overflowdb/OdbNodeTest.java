@@ -1,6 +1,7 @@
 package io.shiftleft.overflowdb;
 
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
+import io.shiftleft.overflowdb.testdomains.gratefuldead.ArtistDb;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
@@ -43,6 +44,13 @@ public class OdbNodeTest {
           TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
           TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
       Edge e = v0.addEdge(TestEdge.LABEL, v1, TestEdge.LONG_PROPERTY, 99l);
+
+      //  tinkerpop api returns generic `vertex|edge`, but we can safely cast
+      TestNode node1 = (TestNode) v0;
+      assertEquals("node 1", node1.stringProperty());
+      assertEquals(Integer.valueOf(42), node1.intProperty());
+      TestEdge testEdge = (TestEdge) e;
+      assertEquals(Long.valueOf(99), testEdge.longProperty());
 
       // vertex traversals
       assertEquals(1, __(v0).out().toList().size());
@@ -88,9 +96,9 @@ public class OdbNodeTest {
 
       List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
       assertEquals(garcias.size(), 1);
-      NodeRef nodeRef = (NodeRef) garcias.get(0);
-      Artist garcia = (Artist) nodeRef.get(); //it's actually of type `Artist`, not (only) `Vertex`
-      assertEquals("Garcia", garcia.getName());
+      Artist artist = (Artist) garcias.get(0);
+      ArtistDb garcia = artist.get();
+      assertEquals("Garcia", garcia.name());
     }
   }
 

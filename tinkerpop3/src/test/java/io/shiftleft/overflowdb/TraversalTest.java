@@ -89,9 +89,8 @@ public class TraversalTest {
       assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
       List<Vertex> songsWritten = __(garcia).in(WrittenBy.LABEL).has("name", "CREAM PUFF WAR").toList();
       assertEquals(songsWritten.size(), 1);
-      NodeRef<Song> songRef = (NodeRef) songsWritten.get(0); //it's actually of type `NodeRef<Song>`, but we can't infer that since it's behind the tinkerpop api
-      Song song = songRef.get();
-      assertEquals("CREAM PUFF WAR", song.getName());
+      Song song = (Song) songsWritten.get(0);
+      assertEquals("CREAM PUFF WAR", song.name());
 
       // outE
       assertEquals(1, __(song).outE(WrittenBy.LABEL).toList().size());

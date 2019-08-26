@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- * Wrapper for a node, which may be set to `null` by @ReferenceManager to avoid OutOfMemory errors.
- * When it's cleared, it will be persisted to an on-disk storage.
+ * Wrapper for a node, which may be set to `null` by @ReferenceManager and persisted to storage to avoid `OutOfMemory` errors.
+ *
+ * When starting from an existing storage location, only `NodeRef` instances are created - the underlying nodes
+ * are lazily fetched from storage.
  */
 public abstract class NodeRef<N extends OdbNode> implements Vertex {
   public final long id;
