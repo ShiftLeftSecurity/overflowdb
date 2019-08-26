@@ -44,6 +44,13 @@ public class OdbNodeTest {
           TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
       Edge e = v0.addEdge(TestEdge.LABEL, v1, TestEdge.LONG_PROPERTY, 99l);
 
+      //  tinkerpop api returns generic `vertex|edge`, but we can safely cast
+      TestNode node1 = (TestNode) v0;
+      assertEquals("node 1", node1.stringProperty());
+      assertEquals(Integer.valueOf(42), node1.intProperty());
+      TestEdge testEdge = (TestEdge) e;
+      assertEquals(Long.valueOf(99), testEdge.longProperty());
+
       // vertex traversals
       assertEquals(1, __(v0).out().toList().size());
       assertEquals(0, __(v0).out("otherLabel").toList().size());
