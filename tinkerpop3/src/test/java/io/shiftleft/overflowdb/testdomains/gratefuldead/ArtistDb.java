@@ -19,11 +19,6 @@ public class ArtistDb extends OdbNode {
     super(ref);
   }
 
-  @Override
-  public String label() {
-    return Artist.label;
-  }
-
   private String _name;
 
   public String name() {
