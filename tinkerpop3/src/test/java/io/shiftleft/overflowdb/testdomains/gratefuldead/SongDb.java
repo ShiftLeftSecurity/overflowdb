@@ -19,11 +19,6 @@ public class SongDb extends OdbNode {
     super(ref);
   }
 
-  @Override
-  public String label() {
-    return Song.label;
-  }
-
   private String _name;
   private String _songType;
   private Integer _performances;

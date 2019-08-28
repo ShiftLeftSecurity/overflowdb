@@ -32,6 +32,11 @@ public abstract class OdbNode implements Vertex {
 
   public final NodeRef ref;
 
+  @Override
+  public String label() {
+    return ref.label();
+  }
+
   /**
    * holds refs to all adjacent nodes (a.k.a. dummy edges) and the edge properties
    */

@@ -21,11 +21,6 @@ public class TestNodeDb extends OdbNode {
     super(ref);
   }
 
-  @Override
-  public String label() {
-    return TestNode.LABEL;
-  }
-
   private String _stringProperty;
   private Integer _intProperty;
   private List<String> _stringListProperty;
