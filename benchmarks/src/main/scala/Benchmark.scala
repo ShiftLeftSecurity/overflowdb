@@ -8,4 +8,7 @@ object Benchmark {
     println(s"$msg: ${average}ms")
   }
 
+  def newUUID(): String =
+    java.util.UUID.randomUUID.toString.substring(0, 16)
+
 }
