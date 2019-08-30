@@ -17,6 +17,15 @@ lazy val janusgraph = project.in(file("janusgraph")).dependsOn(root)
 lazy val orientdb = project.in(file("orientdb")).dependsOn(root)
 lazy val neo4j = project.in(file("neo4j")).dependsOn(root)
 
+lazy val stageAll = taskKey[Unit]("stage all projects")
+stageAll := {
+  (overflowdb/stage).value
+  (tinkergraph/stage).value
+  (janusgraph/stage).value
+  (orientdb/stage).value
+  (neo4j/stage).value
+}
+
 ThisBuild/resolvers ++=
   Seq(Resolver.mavenLocal, "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 Global/cancelable := true

@@ -20,15 +20,4 @@ public class GratefulDead {
     );
   }
 
-  public static OdbGraph newGraphWithData() throws IOException {
-    OdbGraph graph = newGraph();
-    loadData(graph);
-    return graph;
-  }
-
-  public static void loadData(OdbGraph graph) throws IOException {
-    graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
-  }
-
-
 }

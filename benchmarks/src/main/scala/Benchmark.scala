@@ -11,6 +11,11 @@ object Benchmark {
 
   val testSetups = List(
     TestSetup(
+      "warmup: g.V.outE.inV",
+      _.V().outE().inV(),
+      expectedResults = 8049,
+      iterations = 1),
+    TestSetup(
       "g.V.outE.inV.outE.inV.outE.inV",
       _.V().outE().inV().outE().inV().outE().inV(),
       expectedResults = 14465066,
@@ -33,8 +38,7 @@ object Benchmark {
   }
 
   /* returns the average time in millis */
-  def timed(iterations: Int, warmupIterations: Int = 10)(fun: () => Unit): Float = {
-    1.to(warmupIterations).foreach { _ => fun()}
+  def timed(iterations: Int)(fun: () => Unit): Float = {
     val start = System.nanoTime
     1.to(iterations).foreach { _ => fun()}
     val average = (System.nanoTime - start) / iterations.toFloat / 1_000_000f
