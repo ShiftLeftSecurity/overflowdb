@@ -1,6 +1,6 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.12.8"
+ThisBuild/scalaVersion := "2.13.0"
 publish/skip := true
 enablePlugins(GitVersioning)
 
@@ -10,8 +10,8 @@ lazy val tinkerpop3 = project.in(file("tinkerpop3"))
 ThisBuild/autoScalaLibrary := false
 ThisBuild/crossPaths := false
 
-ThisBuild/resolvers ++= Seq(Resolver.mavenLocal,
-                            "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
+ThisBuild/resolvers ++=
+  Seq(Resolver.mavenLocal, "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
 ThisBuild/publishTo := sonatypePublishTo.value
 ThisBuild/scmInfo := Some(ScmInfo(url("https://github.com/ShiftLeftSecurity/overflowdb"),
