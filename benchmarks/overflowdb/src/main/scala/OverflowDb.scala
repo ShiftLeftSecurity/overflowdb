@@ -1,5 +1,3 @@
-package io.shiftleft.benchmarks
-
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead
 
 import scala.util.Using

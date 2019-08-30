@@ -1,5 +1,3 @@
-package io.shiftleft.benchmarks
-
 import org.apache.tinkerpop.gremlin.structure.io.IoCore
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph
 

@@ -1,5 +1,3 @@
-package io.shiftleft.benchmarks
-
 object Benchmark {
 
   def timed(msg: String, iterations: Int, warmupIterations: Int = 1)(fun: () => Unit): Unit = {
