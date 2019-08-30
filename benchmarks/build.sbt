@@ -1,5 +1,6 @@
 // note: this is an independent project with it's own subprojects
 name := "benchmarks"
+
 ThisBuild/organization := "io.shiftleft"
 ThisBuild/scalaVersion := "2.13.0"
 ThisBuild/publish/skip := true
