@@ -1,4 +1,4 @@
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource}
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.{GraphTraversal, GraphTraversalSource, __}
 import org.apache.tinkerpop.gremlin.structure.io.IoCore
 import org.apache.tinkerpop.gremlin.structure.Graph
 
@@ -9,18 +9,48 @@ object Benchmark {
     expectedResults: Long,
     iterations: Int)
 
+  /** from https://robertdale.github.io/2017/01/26/gremlin-neo4j-driver-benchmarks.html */
   val testSetups = List(
+     TestSetup(
+       "warmup: g.V.outE.inV",
+       _.V().outE().inV(),
+       expectedResults = 8049,
+       iterations = 1),
+     TestSetup(
+       "g.V.outE.inV.outE.inV.outE.inV",
+       _.V().outE().inV().outE().inV().outE().inV(),
+       expectedResults = 14465066,
+       iterations = 100),
+     TestSetup(
+       "g.V.out.out.out",
+       _.V().out().out().out(),
+       expectedResults = 14465066,
+       iterations = 100),
+     TestSetup(
+       "g.V.out.out.out.path",
+       _.V().out().out().out().path,
+       expectedResults = 14465066,
+       iterations = 10),
+     TestSetup(
+       "g.V.repeat(out()).times(2)",
+       _.V().repeat(__.out()).times(2),
+       expectedResults = 327370,
+       iterations = 100),
+     TestSetup(
+       "g.V.repeat(out()).times(3)",
+       _.V().repeat(__.out()).times(3),
+       expectedResults = 14465066,
+       iterations = 100),
     TestSetup(
-      "warmup: g.V.outE.inV",
-      _.V().outE().inV(),
-      expectedResults = 8049,
-      iterations = 1),
+      "g.V.local(out().out().values(\"name\").fold)",
+      _.V().local(__.out().out().values("name").fold()),
+      expectedResults = 808,
+      iterations = 100),
     TestSetup(
-      "g.V.outE.inV.outE.inV.outE.inV",
-      _.V().outE().inV().outE().inV().outE().inV(),
-      expectedResults = 14465066,
-      iterations = 100
-    )
+      "g.V.out.local(out.out.values(\"name\").fold)",
+      _.V().out().local(__.out().out().values("name").fold()),
+      expectedResults = 562,
+      iterations = 100),
   )
 
   def benchmark(graph: Graph): Unit = {
