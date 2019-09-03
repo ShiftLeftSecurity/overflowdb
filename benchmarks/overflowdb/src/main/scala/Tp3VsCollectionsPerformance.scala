@@ -17,6 +17,7 @@ import scala.jdk.CollectionConverters._
  * interpretation:
  * 1) scala's foreach is faster than java's
  * 2) flatMap is always more expensive, but standard collections are roughly twice as fast as tinkerpop
+ * 3) map is far more expensive than foreach
  */
 object Tp3VsCollectionsPerformance extends App {
   benchmark(GratefulDead.newGraph)

@@ -15,7 +15,7 @@ import scala.jdk.CollectionConverters._
  * 47s, 654 young gc runs
  *
  * interpretation:
- * tinkerpop's flatMap/start operations are incredibly memory hungry and creates 25x more garbage than plain scala collections
+ * tinkerpop's flatMap/start create 25x more garbage than plain scala collections
  */
 object Tp3VsCollectionsMemoryImpact
 
