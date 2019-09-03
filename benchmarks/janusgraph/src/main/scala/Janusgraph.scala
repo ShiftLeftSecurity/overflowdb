@@ -5,5 +5,5 @@ object Janusgraph extends App {
   val conf = new BaseConfiguration
   conf.setProperty("storage.backend", "inmemory")
   val graph = JanusGraphFactory.open(conf)
-  Benchmark.benchmark(graph)
+  Benchmarks.Tinkerpop3.benchmark(graph)
 }
