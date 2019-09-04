@@ -124,7 +124,7 @@ public final class OdbGraph implements Graph {
       try {
         final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
         nodes.put(nodeRef.id, nodeRef);
-        getElementsByLabel(nodesByLabel, nodeRef.label()).add(nodeRef);
+        storeInByLabelCollection(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) {
           logger.debug("imported " + importCount + " elements - still running...");
@@ -154,7 +154,7 @@ public final class OdbGraph implements Graph {
 
     final NodeRef node = createNode(idValue, label, keyValues);
     nodes.put(node.id, node);
-    getElementsByLabel(nodesByLabel, label).add(node);
+    storeInByLabelCollection(node);
     return node;
   }
 
@@ -286,10 +286,6 @@ public final class OdbGraph implements Graph {
     return nodes.size();
   }
 
-  public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
-    return elementsByLabel(nodesByLabel, labelPredicate);
-  }
-
   @Override
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
@@ -301,20 +297,23 @@ public final class OdbGraph implements Graph {
     return multiIterator;
   }
 
-  /**
-   * retrieve the correct by-label map (and create it if it doesn't yet exist)
-   */
-  protected <E extends Element> Set<E> getElementsByLabel(final THashMap<String, Set<E>> elementsByLabel, final String label) {
-    if (!elementsByLabel.containsKey(label))
-      elementsByLabel.put(label, new THashSet<>(100000));
-    return elementsByLabel.get(label);
+  private void storeInByLabelCollection(NodeRef nodeRef) {
+    final String label = nodeRef.label();
+    if (!nodesByLabel.containsKey(label))
+      nodesByLabel.put(label, new THashSet<>(10000));
+
+    nodesByLabel.get(label).add(nodeRef);
   }
 
-  protected <E extends Element> Iterator<E> elementsByLabel(final THashMap<String, Set<E>> elementsByLabel, final P<String> labelPredicate) {
-    final MultiIterator<E> multiIterator = new MultiIterator<>();
-    for (String label : elementsByLabel.keySet()) {
+  public Iterator<NodeRef> nodesByLabel(final String label) {
+    return nodesByLabel.get(label).iterator();
+  }
+
+  public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
+    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+    for (String label : nodesByLabel.keySet()) {
       if (labelPredicate.test(label)) {
-        multiIterator.addIterator(elementsByLabel.get(label).iterator());
+        multiIterator.addIterator(nodesByLabel.get(label).iterator());
       }
     }
     return multiIterator;
