@@ -1,14 +1,11 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.12.10"
+ThisBuild/scalaVersion := "2.13.0"
 publish/skip := true
 enablePlugins(GitVersioning)
 
 lazy val tinkerpop3 = project.in(file("tinkerpop3"))
-
-/* it's a java-only build */
-ThisBuild/autoScalaLibrary := false
-ThisBuild/crossPaths := false
+lazy val traversals = project.in(file("traversals")).dependsOn(tinkerpop3) //TODO factor out `core` from tinkerpop3
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,
