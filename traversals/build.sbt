@@ -5,6 +5,5 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test,
 )
 
-Test/compile/javacOptions ++= Seq("-g")
-Test/fork := true
-scalacOptions ++= Seq("-deprecation", "-feature")
+// execute tests in root project so that they work in sbt *and* intellij
+Test/baseDirectory := (ThisBuild / Test / run / baseDirectory).value
