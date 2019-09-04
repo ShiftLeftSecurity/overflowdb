@@ -1,7 +1,11 @@
 package io.shiftleft.overflowdb.traversals
 
+import io.shiftleft.overflowdb.{NodeRef, OdbGraph, OdbNode}
+import org.apache.tinkerpop.gremlin.structure.Vertex
+
 import scala.collection.immutable.ArraySeq
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
+import scala.jdk.CollectionConverters._
 
 class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
   with IterableOps[A, Traversal, Traversal[A]]
@@ -23,6 +27,17 @@ object Traversal extends IterableFactory[Traversal] {
 
   def from[A](source: IterableOnce[A]): Traversal[A] =
     new Traversal(Iterator.from(source))
+}
+
+abstract class TraversalSource(graph: OdbGraph) {
+  // TODO change to [OdbNode] once `core` is separated
+  def all: Traversal[Vertex] = new Traversal(graph.vertices().asScala)
+
+  protected def nodesByLabel(label: String): Traversal[NodeRef[_]] =
+    new Traversal(graph.nodesByLabel(label).asScala)
+
+  protected def nodesByLabelTyped[A <: NodeRef[_]](label: String): Traversal[A] =
+    nodesByLabel(label).map(_.asInstanceOf[A])
 }
 
 object Test extends App {
