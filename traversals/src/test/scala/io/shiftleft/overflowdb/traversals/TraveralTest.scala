@@ -24,8 +24,10 @@ class TraveralTest extends WordSpec with Matchers {
       artistNames.contains("Bob_Dylan") shouldBe true
     }
 
-    "traverse `Artist <-- sungBy --- Song` edges" in {
+    "traverse domain-specific edges" in {
       gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
+      gratefulDead.songs.name("WALKIN THE DOG").followedBy.size shouldBe 5
+      gratefulDead.songs.name("WALKIN THE DOG").followedBy.songType.toSet shouldBe Set("original", "cover", "")
     }
 
     "be expressed in for comprehension" in {

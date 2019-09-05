@@ -3,7 +3,7 @@ package io.shiftleft.overflowdb.traversals
 import io.shiftleft.overflowdb.{NodeRef, OdbGraph}
 import org.apache.tinkerpop.gremlin.structure.Vertex
 
-import scala.collection.immutable.ArraySeq
+import scala.collection.immutable.{ArraySeq, IndexedSeq}
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
@@ -14,7 +14,7 @@ class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
   override def iterableFactory: IterableFactory[Traversal] = Traversal
   override def iterator: Iterator[A] = elements.iterator
 
-  def l: ArraySeq[A] = elements.iterator.to(ArraySeq.untagged)
+  def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
 }
 
 object Traversal extends IterableFactory[Traversal] {

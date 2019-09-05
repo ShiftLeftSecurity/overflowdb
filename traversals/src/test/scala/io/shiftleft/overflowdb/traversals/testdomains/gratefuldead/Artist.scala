@@ -35,7 +35,6 @@ class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
   def name: String = get.name
 
   /* Artist <-- sungBy --- Song */
-  def sangSongs: Traversal[Song] =
-    new Traversal(vertices(Direction.IN, SungBy.Label).asScala.map(_.asInstanceOf[Song]))
+  def sangSongs: Traversal[Song] = get.sangSongs
 }
 
