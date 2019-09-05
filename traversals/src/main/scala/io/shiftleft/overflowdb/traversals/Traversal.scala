@@ -8,6 +8,7 @@ class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
   with IterableFactoryDefaults[A, Traversal] {
 
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
+  def cast[B]: Traversal[B] = new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
   override def className = "Traversal"
   override def iterableFactory: IterableFactory[Traversal] = Traversal

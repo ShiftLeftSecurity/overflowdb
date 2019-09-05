@@ -6,5 +6,5 @@ import scala.jdk.CollectionConverters._
 
 trait NodeOps { this: OdbNode =>
   def adjacentNodes[A](direction: Direction, label: String): Traversal[A] =
-    new Traversal(vertices(direction, label).asScala.map(_.asInstanceOf[A]))
+    new Traversal(vertices(direction, label).asScala).cast[A]
 }
