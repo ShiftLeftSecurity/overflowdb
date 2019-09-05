@@ -4,8 +4,8 @@ import io.shiftleft.overflowdb.OdbGraph
 import io.shiftleft.overflowdb.traversals.{Traversal, TraversalSource}
 
 class GratefulDeadTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
-  def artists: Traversal[Artist] = nodesByLabelTyped(Artist.Label)
-  def songs: Traversal[Song] = nodesByLabelTyped(Song.Label)
+  def artists: Traversal[Artist] = withLabelTyped(Artist.Label)
+  def songs: Traversal[Song] = withLabelTyped(Song.Label)
 }
 
 class ArtistTraversal(trav: Traversal[Artist]) extends Traversal[Artist](trav) {
