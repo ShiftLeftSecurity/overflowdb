@@ -59,9 +59,11 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
       return Collections.emptyIterator();
     else if (this.ids.length > 0)
       return this.iteratorList(graph.vertices(this.ids));
-    else if (hasLabelContainer.isPresent())
-      return graph.nodesByLabel((P<String>) hasLabelContainer.get().getPredicate());
-    else {
+    else if (hasLabelContainer.isPresent()) {
+      P<String> hasLabelPredicate = (P<String>) hasLabelContainer.get().getPredicate();
+      // unfortunately TP3 api doesn't seem to find out if it's the `Compare.eq` bipredicate, so we can optimise single-label lookups
+      return graph.nodesByLabel(hasLabelPredicate);
+    } else {
       if (indexedContainer == null) return this.iteratorList(graph.vertices());
       else {
         return IteratorUtils.filter(
