@@ -19,14 +19,10 @@ class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
 
 object Traversal extends IterableFactory[Traversal] {
   private[this] val _empty = new Traversal(Iterator.empty)
-
   def empty[A]: Traversal[A] = _empty
 
-  def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
-    Iterator.newBuilder[A].mapResult(new Traversal(_))
-
-  def from[A](source: IterableOnce[A]): Traversal[A] =
-    new Traversal(Iterator.from(source))
+  def newBuilder[A]: mutable.Builder[A, Traversal[A]] = Iterator.newBuilder[A].mapResult(new Traversal(_))
+  def from[A](source: IterableOnce[A]): Traversal[A] = new Traversal(Iterator.from(source))
 }
 
 abstract class TraversalSource(graph: OdbGraph) {

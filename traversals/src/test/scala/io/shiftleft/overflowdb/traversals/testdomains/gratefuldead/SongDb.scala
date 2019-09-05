@@ -1,28 +1,21 @@
 package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversals.{NodeOps, Traversal}
 import io.shiftleft.overflowdb.{NodeRef, OdbNode, OdbNodeProperty}
 import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 
-import scala.jdk.CollectionConverters._
-
-class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) {
+class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) with NodeOps {
   private var _name: String = null
   private var _songType: String = null
   private var _performances: Integer = null
 
   def name: String = _name
-
   def songType: String = _songType
-
   def performances: Integer = _performances
 
   /* Song --- followedBy --- Song */
-  def followedBy: Traversal[Song] =
-    new Traversal(vertices(Direction.OUT, FollowedBy.Label).asScala.map(_.asInstanceOf[Song]))
-
-  override protected def layoutInformation = Song.layoutInformation
+  def followedBy: Traversal[Song] = adjacentNodes(Direction.OUT, FollowedBy.Label)
 
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]
@@ -67,4 +60,6 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) {
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
+
+  override protected def layoutInformation = Song.layoutInformation
 }
