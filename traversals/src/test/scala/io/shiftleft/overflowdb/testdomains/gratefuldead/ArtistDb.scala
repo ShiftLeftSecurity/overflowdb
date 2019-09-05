@@ -1,14 +1,21 @@
 package io.shiftleft.overflowdb.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb.{NodeLayoutInformation, NodeRef, OdbNode}
-import org.apache.tinkerpop.gremlin.structure.VertexProperty
+import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
+
 import scala.jdk.CollectionConverters._
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 import io.shiftleft.overflowdb.OdbNodeProperty
+import io.shiftleft.overflowdb.traversals.Traversal
 
 class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
-  private var _name: String = null
+  /* name property */
   def name: String = _name
+  private var _name: String = null
+
+  /* Artist <-- sungBy --- Song */
+  def sangSongs: Traversal[Song] =
+    new Traversal(vertices(Direction.IN, SungBy.Label).asScala.map(_.asInstanceOf[Song]))
 
   override protected def layoutInformation = Artist.layoutInformation
 

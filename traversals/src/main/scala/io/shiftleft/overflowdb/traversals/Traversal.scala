@@ -30,7 +30,6 @@ object Traversal extends IterableFactory[Traversal] {
 }
 
 abstract class TraversalSource(graph: OdbGraph) {
-  // TODO change to [OdbNode] once `core` is separated
   def all: Traversal[Vertex] = new Traversal(graph.vertices().asScala)
 
   protected def nodesByLabel(label: String): Traversal[NodeRef[_]] =
@@ -40,14 +39,3 @@ abstract class TraversalSource(graph: OdbGraph) {
     nodesByLabel(label).map(_.asInstanceOf[A])
 }
 
-object Test extends App {
-  val traversal =
-    new Traversal(Iterator(1, 2, 3))
-      .map(_ + 1)
-      .collect {
-        case i if i % 2 == 0 => i
-      }
-  def l: ArraySeq[Int] = traversal.l
-  println(traversal)
-
-}

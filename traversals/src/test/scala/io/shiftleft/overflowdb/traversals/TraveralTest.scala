@@ -21,7 +21,7 @@ class TraveralTest extends WordSpec with Matchers {
     }
 
     gratefulDead.artists.name("Bob_Dylan").size shouldBe 1
-//    gratefulDead.artists.name(".*Dylan.*").songs.size shouldBe 999
+    gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
 
   }
 

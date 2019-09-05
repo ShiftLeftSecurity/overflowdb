@@ -1,6 +1,8 @@
 package io.shiftleft.overflowdb.testdomains.gratefuldead
 
+import io.shiftleft.overflowdb.traversals.Traversal
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
+import org.apache.tinkerpop.gremlin.structure.Direction
 
 import scala.jdk.CollectionConverters._
 
@@ -29,6 +31,11 @@ object Artist {
 
 class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
   override def label: String = Artist.Label
+
   def name: String = get.name
+
+  /* Artist <-- sungBy --- Song */
+  def sangSongs: Traversal[Song] =
+    new Traversal(vertices(Direction.IN, SungBy.Label).asScala.map(_.asInstanceOf[Song]))
 }
 

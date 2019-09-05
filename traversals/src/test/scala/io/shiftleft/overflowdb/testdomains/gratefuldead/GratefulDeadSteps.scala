@@ -14,7 +14,7 @@ class ArtistTraversal(trav: Traversal[Artist]) extends Traversal[Artist](trav) {
   def name(value: String): Traversal[Artist] =
     trav.filter(_.name == value)
 
-//  def songs: Traversal[Song] = ???trav.flatMap(_.songs)
+  def sangSongs: Traversal[Song] = trav.flatMap(_.sangSongs)
 }
 
 class SongTraversal(trav: Traversal[Song]) extends Traversal[Song](trav) {
