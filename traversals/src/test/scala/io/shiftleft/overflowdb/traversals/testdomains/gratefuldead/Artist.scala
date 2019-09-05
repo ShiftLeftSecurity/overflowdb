@@ -6,6 +6,15 @@ import org.apache.tinkerpop.gremlin.structure.Direction
 
 import scala.jdk.CollectionConverters._
 
+class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
+  override def label: String = Artist.Label
+
+  def name: String = get.name
+
+  /* Artist <-- sungBy --- Song */
+  def sangSongs: Traversal[Song] = get.sangSongs
+}
+
 object Artist {
   val Label = "artist"
 
@@ -29,12 +38,5 @@ object Artist {
     )
 }
 
-class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
-  override def label: String = Artist.Label
 
-  def name: String = get.name
-
-  /* Artist <-- sungBy --- Song */
-  def sangSongs: Traversal[Song] = get.sangSongs
-}
 

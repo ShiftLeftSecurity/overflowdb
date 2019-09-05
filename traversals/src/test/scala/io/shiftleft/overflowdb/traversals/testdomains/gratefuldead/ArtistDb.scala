@@ -16,8 +16,6 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) with NodeOps {
   /* Artist <-- sungBy --- Song */
   def sangSongs: Traversal[Song] = adjacentNodes(Direction.IN, SungBy.Label)
 
-  override protected def layoutInformation = Artist.layoutInformation
-
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]
     if (_name != null) properties.put(Artist.Properties.Name, _name)
@@ -48,4 +46,6 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) with NodeOps {
       case _ =>       
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
+
+  override protected def layoutInformation = Artist.layoutInformation
 }

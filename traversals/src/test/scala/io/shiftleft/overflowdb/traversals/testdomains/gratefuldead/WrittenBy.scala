@@ -3,6 +3,9 @@ package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 import io.shiftleft.overflowdb._
 import scala.jdk.CollectionConverters._
 
+class WrittenBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
+  extends OdbEdge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.Properties.allAsJava)
+
 object WrittenBy {
   val Label = "writtenBy"
   object Properties {
@@ -17,6 +20,3 @@ object WrittenBy {
       new WrittenBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }
-
-class WrittenBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends OdbEdge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.Properties.allAsJava)

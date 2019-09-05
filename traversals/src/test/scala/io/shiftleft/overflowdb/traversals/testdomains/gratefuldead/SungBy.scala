@@ -3,6 +3,9 @@ package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 import io.shiftleft.overflowdb._
 import scala.jdk.CollectionConverters._
 
+class SungBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
+  extends OdbEdge(graph, SungBy.Label, outVertex, inVertex, SungBy.Properties.allAsJava)
+
 object SungBy {
   val Label = "sungBy"
 
@@ -20,6 +23,3 @@ object SungBy {
       new SungBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }
-
-class SungBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends OdbEdge(graph, SungBy.Label, outVertex, inVertex, SungBy.Properties.allAsJava)

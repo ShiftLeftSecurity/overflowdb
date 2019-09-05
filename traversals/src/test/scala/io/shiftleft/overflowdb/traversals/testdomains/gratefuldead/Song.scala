@@ -4,6 +4,17 @@ import io.shiftleft.overflowdb.traversals.Traversal
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
 import scala.jdk.CollectionConverters._
 
+class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) {
+  override def label: String = Song.Label
+
+  def name: String = get.name
+  def songType: String = get.songType
+  def performances: Int = get.performances
+
+  /* Song --- followedBy --- Song */
+  def followedBy: Traversal[Song] = get.followedBy
+}
+
 object Song {
   val Label = "song"
 
@@ -29,14 +40,4 @@ object Song {
     )
 }
 
-class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) {
-  override def label: String = Song.Label
-
-  def name: String = get.name
-  def songType: String = get.songType
-  def performances: Int = get.performances
-
-  /* Song --- followedBy --- Song */
-  def followedBy: Traversal[Song] = get.followedBy
-}
 

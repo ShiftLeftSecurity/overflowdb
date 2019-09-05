@@ -8,6 +8,8 @@ class TraveralTest extends WordSpec with Matchers {
 
   "generic graph traversals" in {
     gratefulDead.all.size shouldBe 808
+    gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
+    gratefulDead.all.id.l.sorted.last shouldBe 808
   }
 
   "domain specific traversals" can {
