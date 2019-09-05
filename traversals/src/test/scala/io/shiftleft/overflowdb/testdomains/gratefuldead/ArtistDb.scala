@@ -14,13 +14,13 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
 
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Artist.PropertyKeys.Name, _name)
+    if (_name != null) properties.put(Artist.Properties.Name, _name)
     properties
   }
   
   override protected def specificProperties[V](key: String) = 
     key match {
-      case Artist.PropertyKeys.Name if _name != null => 
+      case Artist.Properties.Name if _name != null => 
         IteratorUtils.of(new OdbNodeProperty(this, key, _name.asInstanceOf[V]))
       case _ => 
         java.util.Collections.emptyIterator
@@ -28,16 +28,16 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
 
   override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) = 
     key match {
-      case Artist.PropertyKeys.Name => 
+      case Artist.Properties.Name => 
         _name = value.asInstanceOf[String]
-        property(Artist.PropertyKeys.Name)
+        property(Artist.Properties.Name)
       case _ =>       
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
   override protected def removeSpecificProperty(key: String) = 
     key match {
-      case Artist.PropertyKeys.Name => 
+      case Artist.Properties.Name => 
         _name = null
       case _ =>       
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());

@@ -7,7 +7,7 @@ import scala.jdk.CollectionConverters._
 object Song {
   val Label = "song"
 
-  object PropertyKeys {
+  object Properties {
     val Name = "name"
     val SongType = "songType"
     val Performances = "performances"
@@ -23,7 +23,7 @@ object Song {
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      PropertyKeys.allAsJava,
+      Properties.allAsJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation).asJava,
       List(FollowedBy.layoutInformation).asJava
     )

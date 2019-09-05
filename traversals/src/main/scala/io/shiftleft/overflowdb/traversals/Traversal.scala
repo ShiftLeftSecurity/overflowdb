@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversals
 
-import io.shiftleft.overflowdb.{NodeRef, OdbGraph, OdbNode}
+import io.shiftleft.overflowdb.{NodeRef, OdbGraph}
 import org.apache.tinkerpop.gremlin.structure.Vertex
 
 import scala.collection.immutable.ArraySeq

@@ -7,7 +7,7 @@ import scala.jdk.CollectionConverters._
 object Artist {
   val Label = "artist"
 
-  object PropertyKeys {
+  object Properties {
     val Name = "name"
     val all: Set[String] = Set(Name)
     val allAsJava: java.util.Set[String] = all.asJava
@@ -21,7 +21,7 @@ object Artist {
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      PropertyKeys.allAsJava,
+      Properties.allAsJava,
       Nil.asJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation).asJava
     )
