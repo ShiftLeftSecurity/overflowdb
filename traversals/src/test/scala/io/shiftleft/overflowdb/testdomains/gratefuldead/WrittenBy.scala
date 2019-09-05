@@ -14,9 +14,9 @@ object WrittenBy {
     override def forLabel(): String = WrittenBy.Label
 
     override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): WrittenBy =
-      new WrittenBy(graph, outNode, inNode)
+      new WrittenBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }
 
-class WrittenBy(graph: OdbGraph, outVertex: NodeRef[_ <: OdbNode], inVertex: NodeRef[_ <: OdbNode])
+class WrittenBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
   extends OdbEdge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.PropertyKeys.allAsJava)

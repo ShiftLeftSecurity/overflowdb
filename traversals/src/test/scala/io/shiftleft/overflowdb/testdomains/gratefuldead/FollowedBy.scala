@@ -16,9 +16,9 @@ object FollowedBy {
     override def forLabel(): String = FollowedBy.Label
 
     override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): FollowedBy =
-      new FollowedBy(graph, outNode, inNode)
+      new FollowedBy(graph, outNode.asInstanceOf[NodeRef[SongDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }
 
-class FollowedBy(graph: OdbGraph, outVertex: NodeRef[_ <: OdbNode], inVertex: NodeRef[_ <: OdbNode])
+class FollowedBy(graph: OdbGraph, outVertex: NodeRef[SongDb], inVertex: NodeRef[SongDb])
   extends OdbEdge(graph, FollowedBy.Label, outVertex, inVertex, FollowedBy.PropertyKeys.allAsJava)
