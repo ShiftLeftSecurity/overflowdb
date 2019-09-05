@@ -4,34 +4,40 @@ import io.shiftleft.overflowdb.traversals.testdomains.gratefuldead._
 import org.scalatest.{Matchers, WordSpec}
 
 class TraveralTest extends WordSpec with Matchers {
+  val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
-  "domain specific traversals" in {
-    val graph = GratefulDead.newGraphWithData
-    //    GratefulDead.traversal(graph) // only intellij get's this wrong... clear caches?
-    val gratefulDead = new GratefulDeadTraversalSource(graph)
-
+  "generic graph traversals" in {
     gratefulDead.all.size shouldBe 808
-    gratefulDead.artists.size shouldBe 224
-    gratefulDead.songs.size shouldBe 584
+  }
 
-    {
+  "domain specific traversals" can {
+    "perform single step start traversals" in {
+      gratefulDead.artists.size shouldBe 224
+      gratefulDead.songs.size shouldBe 584
+    }
+
+    "perform property related traversals" in {
+      gratefulDead.artists.name("Bob_Dylan").size shouldBe 1
+
       val artistNames = gratefulDead.artists.name.l
       artistNames.size shouldBe 224
       artistNames.contains("Bob_Dylan") shouldBe true
     }
 
-    gratefulDead.artists.name("Bob_Dylan").size shouldBe 1
-    gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
+    "traverse `Artist <-- sungBy --- Song` edges" in {
+      gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
+    }
 
-    val artistAndSongTuples = {
-      for {
+    "be expressed in for comprehension" in {
+      val traversal = for {
         artist <- gratefulDead.artists
         song <- artist.sangSongs
       } yield artist.name -> song.name
-    }.l
-    artistAndSongTuples.size shouldBe 501
-    artistAndSongTuples.sortBy(_._1).head shouldBe ("All" -> "AND WE BID YOU GOODNIGHT")
 
+      val artistAndSongTuples = traversal.l
+      artistAndSongTuples.size shouldBe 501
+      artistAndSongTuples.sortBy(_._1).head shouldBe ("All" -> "AND WE BID YOU GOODNIGHT")
+    }
   }
 
 }
