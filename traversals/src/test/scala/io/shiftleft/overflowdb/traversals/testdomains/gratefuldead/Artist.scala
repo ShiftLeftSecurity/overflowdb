@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb.traversals.Traversal
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}

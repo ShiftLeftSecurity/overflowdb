@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb._
 import scala.jdk.CollectionConverters._

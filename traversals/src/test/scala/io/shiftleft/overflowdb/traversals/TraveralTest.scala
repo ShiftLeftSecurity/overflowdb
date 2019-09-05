@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversals
 
-import io.shiftleft.overflowdb.testdomains.gratefuldead._
+import io.shiftleft.overflowdb.traversals.testdomains.gratefuldead._
 import org.scalatest.{Matchers, WordSpec}
 
 class TraveralTest extends WordSpec with Matchers {

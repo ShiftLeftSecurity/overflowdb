@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb.{NodeLayoutInformation, NodeRef, OdbNode}
 import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}

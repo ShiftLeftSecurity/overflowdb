@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.testdomains
+package io.shiftleft.overflowdb.traversals.testdomains
 
 import io.shiftleft.overflowdb.traversals.Traversal
 
