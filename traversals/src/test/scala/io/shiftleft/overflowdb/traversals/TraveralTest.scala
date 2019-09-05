@@ -23,6 +23,15 @@ class TraveralTest extends WordSpec with Matchers {
     gratefulDead.artists.name("Bob_Dylan").size shouldBe 1
     gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
 
+    val artistAndSongTuples = {
+      for {
+        artist <- gratefulDead.artists
+        song <- artist.sangSongs
+      } yield artist.name -> song.name
+    }.l
+    artistAndSongTuples.size shouldBe 501
+    artistAndSongTuples.sortBy(_._1).head shouldBe ("All" -> "AND WE BID YOU GOODNIGHT")
+
   }
 
 }
