@@ -12,8 +12,9 @@ class TraveralTest extends WordSpec with Matchers {
     gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
 
     gratefulDead.withLabel(Artist.Label).size shouldBe 224
-    gratefulDead.withId(200).size shouldBe 1 //TODO lookup property, e.g. name
-    gratefulDead.withIds(1, 2).size shouldBe 2 //TODO lookup property, e.g. name
+    gratefulDead.withId(1).label.head shouldBe Song.Label
+    gratefulDead.withId(2).property[String](Song.Properties.Name).head shouldBe "IM A MAN"
+    gratefulDead.withIds(3, 4).property[String](Song.Properties.Name).l shouldBe Seq("BERTHA", "NOT FADE AWAY")
   }
 
   "domain specific traversals" can {
