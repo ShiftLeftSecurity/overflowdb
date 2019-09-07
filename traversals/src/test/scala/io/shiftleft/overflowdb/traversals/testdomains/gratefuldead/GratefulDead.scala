@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
 import java.util
 
+import io.shiftleft.overflowdb.traversals.{Traversal, TraversalSource}
 import io.shiftleft.overflowdb.{OdbConfig, OdbGraph}
 import org.apache.tinkerpop.gremlin.structure.io.IoCore
 
@@ -24,4 +25,9 @@ object GratefulDead {
     graph.io(IoCore.graphml).readGraph("src/test/resources/grateful-dead.xml")
 
   def traversal(graph: OdbGraph) = new GratefulDeadTraversalSource(graph)
+}
+
+class GratefulDeadTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
+  def artists: Traversal[Artist] = withLabelTyped(Artist.Label)
+  def songs: Traversal[Song] = withLabelTyped(Song.Label)
 }
