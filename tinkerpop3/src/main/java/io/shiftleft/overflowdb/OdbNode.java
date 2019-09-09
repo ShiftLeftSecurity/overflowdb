@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb;
 
 import io.shiftleft.overflowdb.util.ArrayOffsetIterator;
 import io.shiftleft.overflowdb.util.MultiIterator2;
+import io.shiftleft.overflowdb.util.PackedIntArray;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
@@ -44,7 +45,7 @@ public abstract class OdbNode implements Vertex {
 
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
    * i.e. each outgoing edge type has two entries in this array. */
-  private int[] edgeOffsets;
+  private PackedIntArray edgeOffsets;
 
   protected OdbNode(NodeRef ref) {
     this.ref = ref;
@@ -54,7 +55,7 @@ public abstract class OdbNode implements Vertex {
       ref.graph.referenceManager.applyBackpressureMaybe();
     }
 
-    edgeOffsets = new int[layoutInformation().numberOfDifferentAdjacentTypes() * 2];
+    edgeOffsets = PackedIntArray.create(layoutInformation().numberOfDifferentAdjacentTypes() * 2);
   }
 
   protected abstract NodeLayoutInformation layoutInformation();
@@ -70,11 +71,11 @@ public abstract class OdbNode implements Vertex {
   }
 
   public int[] getEdgeOffsets() {
-    return edgeOffsets;
+    return edgeOffsets.toIntArray();
   }
 
   public void setEdgeOffsets(int[] edgeOffsets) {
-    this.edgeOffsets = edgeOffsets;
+    this.edgeOffsets = PackedIntArray.of(edgeOffsets);
   }
 
   public abstract Map<String, Object> valueMap();
@@ -435,14 +436,14 @@ public abstract class OdbNode implements Vertex {
 
     adjacentNodesWithProperties[insertAt] = nodeRef;
     // update edgeOffset length to include the newly inserted element
-    edgeOffsets[2 * offsetPos + 1] = length + strideSize;
+    edgeOffsets.set(2 * offsetPos + 1, length + strideSize);
 
     int blockOffset = length;
     return blockOffset;
   }
 
   private int startIndex(int offsetPosition) {
-    return edgeOffsets[2 * offsetPosition];
+    return edgeOffsets.get(2 * offsetPosition);
   }
 
   /**
@@ -477,7 +478,7 @@ public abstract class OdbNode implements Vertex {
    * Length means number of index positions.
    */
   private int blockLength(int offsetPosition) {
-    return edgeOffsets[2 * offsetPosition + 1];
+    return edgeOffsets.get(2 * offsetPosition + 1);
   }
 
   private String[] calcInLabels(String... edgeLabels) {
@@ -520,8 +521,8 @@ public abstract class OdbNode implements Vertex {
     System.arraycopy(adjacentNodesWithProperties, insertAt, newArray, insertAt + additionalEntriesCount, adjacentNodesWithProperties.length - insertAt);
 
     // Increment all following start offsets by `additionalEntriesCount`.
-    for (int i = offsetPos + 1; 2 * i < edgeOffsets.length; i++) {
-      edgeOffsets[2 * i] = edgeOffsets[2 * i] + additionalEntriesCount;
+    for (int i = offsetPos + 1; 2 * i < edgeOffsets.length(); i++) {
+      edgeOffsets.set(2 * i, edgeOffsets.get(2 * i) + additionalEntriesCount);
     }
     return newArray;
   }
