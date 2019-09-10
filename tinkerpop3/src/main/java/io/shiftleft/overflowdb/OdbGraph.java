@@ -300,7 +300,7 @@ public final class OdbGraph implements Graph {
   private void storeInByLabelCollection(NodeRef nodeRef) {
     final String label = nodeRef.label();
     if (!nodesByLabel.containsKey(label))
-      nodesByLabel.put(label, new THashSet<>(10000));
+      nodesByLabel.put(label, new THashSet<>(1));
 
     nodesByLabel.get(label).add(nodeRef);
   }
