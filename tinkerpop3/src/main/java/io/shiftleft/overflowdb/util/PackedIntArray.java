@@ -1,5 +1,12 @@
 package io.shiftleft.overflowdb.util;
 
+/**
+ * Int array that stores values in byte[] until number
+ * larger than min/max byte is written, then it grows to short[]
+ * and if number larger than short is written then it grows to int[].
+ * For the specific case with the OdbNode.edgeOffsets where the most
+ * numbers fit into byte almost all the time it saves ~90Mb in a 1.3Gb heap.
+ */
 public class PackedIntArray {
   private static final byte BYTE_ARRAY = 0;
   private static final byte SHORT_ARRAY = 1;
