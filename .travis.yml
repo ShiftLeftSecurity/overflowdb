@@ -1,3 +1,5 @@
+dist: xenial
+if: tag IS blank
 language: scala
 jdk: openjdk8
 before_install:
