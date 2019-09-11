@@ -1,6 +1,6 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.12.8"
+ThisBuild/scalaVersion := "2.12.10"
 publish/skip := true
 enablePlugins(GitVersioning)
 
@@ -13,7 +13,8 @@ ThisBuild/crossPaths := false
 ThisBuild/resolvers ++= Seq(Resolver.mavenLocal,
                             "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
-ThisBuild/publishTo := sonatypePublishTo.value
+ThisBuild/useGpg := false
+ThisBuild/publishTo := sonatypePublishToBundle.value
 ThisBuild/scmInfo := Some(ScmInfo(url("https://github.com/ShiftLeftSecurity/overflowdb"),
                                       "scm:git@github.com:ShiftLeftSecurity/overflowdb.git"))
 ThisBuild/homepage := Some(url("https://github.com/ShiftLeftSecurity/overflowdb/"))
