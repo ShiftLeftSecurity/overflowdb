@@ -1,11 +1,8 @@
 package io.shiftleft.overflowdb
 
-import java.util
-
+import io.shiftleft.overflowdb.util.JIteratorCastingWrapper
 import org.apache.tinkerpop.gremlin.structure.Direction
-
 import scala.collection.IterableOnce
-import scala.jdk.CollectionConverters._
 
 package object traversals {
 
@@ -36,18 +33,17 @@ package object traversals {
       nodes[B](Direction.OUT, label)
 
     private def nodes[B <: NodeRef[_]](direction: Direction, label: String): Traversal[B] =
-      traversal.flatMap(_.vertices(direction, label).cast[B].asScala)
+      traversal.flatMap(_.vertices(direction, label).toScalaAs[B])
   }
 
-  implicit class JIterableOps[A](val iterable: java.util.Iterator[A]) extends AnyVal {
-    def cast[B]: java.util.Iterator[B] = new java.util.Iterator[B] {
-      override def hasNext = iterable.hasNext
-      override def next() = iterable.next.asInstanceOf[B]
-    }
-  }
-
-  implicit class IterableOnceOps[A](val iterable: IterableOnce[A]) extends AnyVal {
-    def cast[B]: IterableOnce[B] = iterable.iterator.map(_.asInstanceOf[B])
+  implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
+    /**
+     * Wraps a java iterator into a scala iterator, and casts it's elements.
+     * This is faster than `jIterator.asScala.map(_.asInstanceOf[B])` because
+     * 1) `.asScala` conversion is actually quite slow: multiple method calls and a `match` without @switch
+     * 2) no additional `map` step that iterates and creates yet another iterator
+     **/
+    def toScalaAs[B]: IterableOnce[B] = new JIteratorCastingWrapper[B](jIterator)
   }
 
 }
