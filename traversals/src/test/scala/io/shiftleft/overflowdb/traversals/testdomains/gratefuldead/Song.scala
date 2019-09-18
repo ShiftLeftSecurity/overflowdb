@@ -1,10 +1,11 @@
 package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversals.{NodeRefOps, Traversal}
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
+
 import scala.jdk.CollectionConverters._
 
-class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) {
+class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) with NodeRefOps[Song] {
   override def label: String = Song.Label
 
   def name: String = get.name

@@ -1,12 +1,11 @@
 package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversals.{NodeRefOps, Traversal}
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
-import org.apache.tinkerpop.gremlin.structure.Direction
 
 import scala.jdk.CollectionConverters._
 
-class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
+class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) with NodeRefOps[Artist] {
   override def label: String = Artist.Label
 
   def name: String = get.name

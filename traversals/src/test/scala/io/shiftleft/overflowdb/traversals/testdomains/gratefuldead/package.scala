@@ -20,9 +20,4 @@ package object gratefuldead {
 
     def followedBy: Traversal[Song] = trav.flatMap(_.followedBy)
   }
-
-  // TODO move to overflowdb-traversal
-  // TODO can we just inherit Traversal and make it an `implicit class <: AnyVal`?
-  implicit def start[A](a: A): Traversal[A] =
-    new Traversal[A](Iterator.single(a))
 }
