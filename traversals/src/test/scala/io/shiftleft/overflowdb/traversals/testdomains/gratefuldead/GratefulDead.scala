@@ -22,7 +22,7 @@ object GratefulDead {
   }
 
   def loadData(graph: OdbGraph): Unit =
-    graph.io(IoCore.graphml).readGraph("src/test/resources/grateful-dead.xml")
+    graph.traversal().io("src/test/resources/grateful-dead.xml").read().iterate()
 
   def traversal(graph: OdbGraph) = new GratefulDeadTraversalSource(graph)
 }
