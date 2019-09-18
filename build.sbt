@@ -15,6 +15,7 @@ ThisBuild/resolvers ++= Seq(Resolver.mavenLocal,
 
 ThisBuild/useGpg := false
 ThisBuild/publishTo := sonatypePublishToBundle.value
+Global/useGpgPinentry := true
 ThisBuild/scmInfo := Some(ScmInfo(url("https://github.com/ShiftLeftSecurity/overflowdb"),
                                       "scm:git@github.com:ShiftLeftSecurity/overflowdb.git"))
 ThisBuild/homepage := Some(url("https://github.com/ShiftLeftSecurity/overflowdb/"))
