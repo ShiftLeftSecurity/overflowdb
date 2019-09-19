@@ -33,7 +33,6 @@ import java.util.Map;
  * An implementation of the {@link IoRegistry} interface that provides serializers with custom configurations for
  * implementation specific classes that might need to be serialized.  This registry allows a {@link OdbGraph} to
  * be serialized directly which is useful for moving small graphs around on the network.
- * <p/>
  * Most providers need not implement this kind of custom serializer as they will deal with much larger graphs that
  * wouldn't be practical to serialize in this fashion.  This is a bit of a special case for OverflowDb given its
  * in-memory status.  Typical implementations would create serializers for a complex vertex identifier or a
