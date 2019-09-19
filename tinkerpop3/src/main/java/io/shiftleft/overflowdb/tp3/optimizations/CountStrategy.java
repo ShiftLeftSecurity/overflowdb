@@ -26,7 +26,7 @@ import java.util.Set;
  * size call if the traversal is a count of the vertices and edges of the graph or a one-to-one map chain thereof.
  *
  * @author Marko A. Rodriguez (http://markorodriguez.com)
- * @example <pre>
+ * example: <pre>
  * g.V().count()               // is replaced by TinkerCountGlobalStep
  * g.V().map(out()).count()    // is replaced by TinkerCountGlobalStep
  * g.E().label().count()       // is replaced by TinkerCountGlobalStep

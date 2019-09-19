@@ -319,13 +319,6 @@ public final class OdbGraph implements Graph {
     return multiIterator;
   }
 
-  /**
-   * Return OverflowDb feature set.
-   * <p/>
-   * <b>Reference Implementation Help:</b> Implementers only need to implement features for which there are
-   * negative or instance configured features.  By default, all
-   * {@link org.apache.tinkerpop.gremlin.structure.Graph.Features} return true.
-   */
   @Override
   public Features features() {
     return features;
