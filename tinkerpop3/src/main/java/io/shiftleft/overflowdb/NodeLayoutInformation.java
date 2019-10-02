@@ -31,6 +31,9 @@ public class NodeLayoutInformation {
   /* possible edge property keys, grouped by edge label.
    * n.b. property keys are of type `HashSet` (rather than just `Set`) to ensure `.size` has constant time */
   private final Map<String, HashSet<String>> edgePropertyKeysByLabel;
+  /* maps offsetPos -> number of edge properties
+  */
+  public final int[] nPropertiesbyOffsetPos;
 
   /* position in stride (entry within `adjacentNodesWithProperties`) for a given edge label and edge property key
    * 1-based, because index `0` is the adjacent node ref */
@@ -51,19 +54,25 @@ public class NodeLayoutInformation {
     /* create unique offsets for each edge type and direction
      * sort them by edge label to ensure we get the same offsets between restarts
      * n.b. this doesn't support schema changes */
-    int offsetPosition = 0;
-    outEdgeToOffsetPosition = new HashMap<>(outEdgeLayouts.size());
-    for (EdgeLayoutInformation edgeLayout : sortByLabel(outEdgeLayouts)) {
-      outEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
-    }
-    inEdgeToOffsetPosition = new HashMap<>(inEdgeLayouts.size());
-    for (EdgeLayoutInformation edgeLayout : sortByLabel(inEdgeLayouts)) {
-      inEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
-    }
 
-    /* only so we don't need to calculate it every time */
-    allowedOutEdgeLabels = outEdgeToOffsetPosition.keySet().toArray(new String[0]);
-    allowedInEdgeLabels = inEdgeToOffsetPosition.keySet().toArray(new String[0]);
+    allowedOutEdgeLabels = new String[outEdgeLayouts.size()];
+    allowedInEdgeLabels = new String[inEdgeLayouts.size()];
+    int offsetPosition = 0;
+    nPropertiesbyOffsetPos = new int[outEdgeLayouts.size() + inEdgeLayouts.size()];
+    int i = 0;
+    outEdgeToOffsetPosition = new HashMap<>(outEdgeLayouts.size());
+    for (EdgeLayoutInformation edgeLayout : outEdgeLayouts) {
+      nPropertiesbyOffsetPos[offsetPosition] = edgePropertyKeysByLabel.get(edgeLayout.label).size();
+      outEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
+      allowedOutEdgeLabels[i++] = edgeLayout.label;
+    }
+    i = 0;
+    inEdgeToOffsetPosition = new HashMap<>(inEdgeLayouts.size());
+    for (EdgeLayoutInformation edgeLayout : inEdgeLayouts) {
+      nPropertiesbyOffsetPos[offsetPosition] = edgePropertyKeysByLabel.get(edgeLayout.label).size();
+      inEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
+      allowedInEdgeLabels[i++] = edgeLayout.label;
+    }
   }
 
   private Map<String, HashSet<String>> createEdgePropertyKeysByLabel(Set<EdgeLayoutInformation> allEdgeLayouts) {
