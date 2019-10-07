@@ -152,6 +152,7 @@ public class NodeLayoutInformation {
     return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, key), -1);
   }
 
+  /* gets edge property count by offsetPos*/
   public final int getEdgePropertyCountByOffsetPos(int offsetPos) {
     return edgePropertyCountByOffsetPosition[offsetPos];
   }
