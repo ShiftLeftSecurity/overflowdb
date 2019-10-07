@@ -15,7 +15,8 @@ public enum ValueTypes {
   DOUBLE((byte) 7),
   LIST((byte) 8),
   NODE_REF((byte) 9),
-  UNKNOWN((byte) 10);
+  UNKNOWN((byte) 10),
+  CHARACTER((byte) 11);
 
   public final byte id;
 
@@ -47,6 +48,8 @@ public enum ValueTypes {
         return NODE_REF;
       case 10:
         return UNKNOWN;
+      case 11:
+        return CHARACTER;
       default:
         throw new IllegalArgumentException("unknown id type " + id);
     }
