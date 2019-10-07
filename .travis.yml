@@ -1,6 +1,6 @@
 language: scala
 dist: bionic
-jdk: openjdk11
+jdk: openjdk8
 if: tag IS blank
 
 before_install:
