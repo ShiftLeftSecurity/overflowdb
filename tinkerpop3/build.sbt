@@ -18,3 +18,4 @@ Test/compile/javacOptions ++= Seq("-g")
 Test/fork := true
 scalacOptions ++= Seq("-deprecation", "-feature")
 javacOptions ++= Seq("-target", "1.8")
+javacOptions ++= Seq("-source", "1.8")
