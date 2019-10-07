@@ -17,5 +17,7 @@ Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
 Test/compile/javacOptions ++= Seq("-g")
 Test/fork := true
 scalacOptions ++= Seq("-deprecation", "-feature")
-javacOptions ++= Seq("-target", "1.8")
+/* We really want to set -target 1.8, for downstream compat.
+ * For whatever reasons, javadoc does not understand the -target flag.
+ * Per manpage, source=1.8 is by default built with target=1.8, so this should suffice. */
 javacOptions ++= Seq("-source", "1.8")
