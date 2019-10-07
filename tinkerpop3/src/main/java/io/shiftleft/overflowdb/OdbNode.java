@@ -388,12 +388,16 @@ public abstract class OdbNode implements Vertex {
   }
 
   private Iterator<NodeRef> createAdjacentNodeIterator(Direction direction, String label) {
-    int offsetPos = getPositionInEdgeOffsets(direction, label);
+    return createAdjacentNodeIteratorByOffSet( getPositionInEdgeOffsets(direction, label));
+  }
+
+  // Simplify hoisting of string lookups.
+  // This is on the hot path, hence final.
+public final Iterator<NodeRef> createAdjacentNodeIteratorByOffSet(int offsetPos){
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
       int length = blockLength(offsetPos);
-      int strideSize = getStrideSize(label);
-
+      int strideSize = layoutInformation().getEdgePropertyCountByOffsetPos(offsetPos) + 1;
       return new ArrayOffsetIterator<>(adjacentNodesWithProperties, start, start + length, strideSize);
     } else {
       return Collections.emptyIterator();
