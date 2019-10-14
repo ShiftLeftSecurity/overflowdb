@@ -5,12 +5,10 @@ import io.shiftleft.overflowdb.testdomains.simple.TestEdge;
 import io.shiftleft.overflowdb.testdomains.simple.TestNode;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class GraphBuilderTest {
@@ -20,7 +18,7 @@ public class GraphBuilderTest {
     OdbConfig config = OdbConfig.withoutOverflow();
     int[] ints = {1, 2, 3};
     try (OdbGraph graph = SimpleDomain.newGraph(config)) {
-      final OdbGraphBuilder tx = graph.createDiffGraph();
+      final OdbGraphBuilder tx = graph.createGraphBuilder();
       long v0 = tx.addVertex(T.label, TestNode.LABEL, TestNode.INT_LIST_PROPERTY, Arrays.asList(ints));
       long v1 = tx.addVertex(T.label, TestNode.LABEL, TestNode.INT_PROPERTY, new Integer(123));
       tx.addEdge(v0, v1, TestEdge.LABEL, TestEdge.LONG_PROPERTY, new Long(99l));

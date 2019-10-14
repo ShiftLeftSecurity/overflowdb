@@ -166,7 +166,7 @@ public final class OdbGraph implements Graph {
   }
 
 
-  public OdbGraphBuilder createDiffGraph() {
+  public OdbGraphBuilder createGraphBuilder() {
     return new OdbGraphBuilder(this);
   }
 
