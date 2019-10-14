@@ -12,6 +12,7 @@ import io.shiftleft.overflowdb.tp3.TinkerIoRegistryV2d0;
 import io.shiftleft.overflowdb.tp3.TinkerIoRegistryV3d0;
 import io.shiftleft.overflowdb.tp3.optimizations.CountStrategy;
 import io.shiftleft.overflowdb.tp3.optimizations.OdbGraphStepStrategy;
+import io.shiftleft.overflowdb.util.FutureUtils;
 import io.shiftleft.overflowdb.util.MultiIterator2;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
@@ -37,17 +38,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class OdbGraph implements Graph {
+  private static final int PARALLEL_NODE_PROPERTIES_BATCH_SIZE = 10000;
+  private static final int PARALLEL_EDGES_BATCH_SIZE = 100000;
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   static {
@@ -71,6 +68,8 @@ public final class OdbGraph implements Graph {
   protected final OdbStorage storage;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
+  protected final Integer cpuCount = Runtime.getRuntime().availableProcessors();
+  protected final ExecutorService executorService = Executors.newFixedThreadPool(cpuCount);
 
   public static OdbGraph open(OdbConfig configuration,
                               List<NodeFactory<?>> nodeFactories,
@@ -123,8 +122,7 @@ public final class OdbGraph implements Graph {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
         final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
-        nodes.put(nodeRef.id, nodeRef);
-        storeInByLabelCollection(nodeRef);
+        storeVertex(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) {
           logger.debug("imported " + importCount + " elements - still running...");
@@ -143,6 +141,18 @@ public final class OdbGraph implements Graph {
   ////////////// STRUCTURE API METHODS //////////////////
   @Override
   public Vertex addVertex(final Object... keyValues) {
+    final NodeRef node = createVertex(keyValues);
+    storeVertex(node);
+    return node;
+  }
+
+  void storeVertex(NodeRef node) {
+    nodes.put(node.id, node);
+    storeInByLabelCollection(node);
+  }
+
+  NodeRef createVertex(Object[] keyValues) {
+//    System.out.println(keyValues.length);
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
@@ -152,10 +162,12 @@ public final class OdbGraph implements Graph {
     final long idValue = determineNewNodeId(keyValues);
     currentId.set(Long.max(idValue, currentId.get()));
 
-    final NodeRef node = createNode(idValue, label, keyValues);
-    nodes.put(node.id, node);
-    storeInByLabelCollection(node);
-    return node;
+    return createNode(idValue, label, keyValues);
+  }
+
+
+  public OdbGraphBuilder createDiffGraph() {
+    return new OdbGraphBuilder(this);
   }
 
   private long determineNewNodeId(final Object... keyValues) {
@@ -191,7 +203,7 @@ public final class OdbGraph implements Graph {
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final OdbNode underlying = factory.createNode(this, idValue);
-    this.referenceManager.registerRef(underlying.ref);
+    this.referenceManager.registerRef(underlying.ref); // TODO: Check if this is thread-safe
     node = underlying.ref;
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);
     return node;
@@ -233,6 +245,7 @@ public final class OdbGraph implements Graph {
   @Override
   public void close() {
     this.closed = true;
+    executorService.shutdown();
     heapUsageMonitor.ifPresent(monitor -> monitor.close());
     if (config.getStorageLocation().isPresent()) {
       /* persist to disk */
@@ -326,6 +339,57 @@ public final class OdbGraph implements Graph {
 
   public boolean isClosed() {
     return closed;
+  }
+
+  public void appendFromBuilder(OdbGraphBuilder graphBuilder) {
+    synchronized (this) {
+      Arrays.stream(graphBuilder.newNodes.values()).forEach((v) -> storeVertex((NodeRef)v));
+      graphBuilder.newNodes.clear();
+      final List<List<OdbGraphBuilder.PropertyInfo>> properties =
+          new ArrayList<>(graphBuilder.nodeProperties.valueCollection());
+      FutureUtils.parForEach(
+          properties,
+          (list) -> properties.stream().forEach(this::addBuilderNodeProperties),
+          PARALLEL_NODE_PROPERTIES_BATCH_SIZE,
+          executorService
+      );
+      graphBuilder.nodeProperties = null;
+      properties.clear();
+      final TLongObjectHashMap<ArrayList<OdbGraphBuilder.EdgeInfo>> edges = graphBuilder.edges;
+      long[] keys = edges.keys();
+      FutureUtils.parForEachLong(
+          keys,
+          (edgeNodeIds) -> {
+            Arrays.stream(edgeNodeIds).forEach((nodeId) -> {
+              this.addBuilderEdges(nodeId, graphBuilder.edges.get(nodeId)); });
+          },
+          PARALLEL_EDGES_BATCH_SIZE,
+          executorService
+      );
+      graphBuilder.edges.clear();
+    }
+  }
+
+  private void addBuilderNodeProperties(List<OdbGraphBuilder.PropertyInfo> propertyInfos) {
+    for (OdbGraphBuilder.PropertyInfo pi: propertyInfos) {
+      final Vertex vertex = vertex(pi.nodeId);
+      vertex.property(pi.cardinality, pi.key, pi.value);
+    }
+  }
+
+  private void addBuilderEdges(long nodeId, ArrayList<OdbGraphBuilder.EdgeInfo> edgeInfos) {
+    final NodeRef node = (NodeRef)this.vertex(nodeId);
+    for(OdbGraphBuilder.EdgeInfo edgeInfo: edgeInfos) {
+      if (edgeInfo.outNodeId == nodeId) {
+        final NodeRef otherNode = (NodeRef)this.vertex(edgeInfo.inNodeId);
+        node.get().addOutEdgeInternal(edgeInfo.label, otherNode, edgeInfo.keyValues);
+      } else if (edgeInfo.inNodeId == nodeId) {
+        final NodeRef otherNode = (NodeRef)this.vertex(edgeInfo.outNodeId);
+        node.get().addInEdgeInternal(edgeInfo.label, otherNode, edgeInfo.keyValues);
+      } else {
+        throw new IllegalArgumentException("Nodes are not partitioned in the diffgraph edge map.");
+      }
+    }
   }
 
   public class GraphFeatures implements Features {

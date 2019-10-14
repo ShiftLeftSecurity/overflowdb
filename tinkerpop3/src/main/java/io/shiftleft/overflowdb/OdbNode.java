@@ -252,6 +252,7 @@ public abstract class OdbNode implements Vertex {
     NodeRef thisNodeRef = ref;
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
+
     int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
     OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
@@ -260,6 +261,17 @@ public abstract class OdbNode implements Vertex {
 
     return dummyEdge;
   }
+
+  void addOutEdgeInternal(String label, Vertex inNode, Object... keyValues) {
+    final NodeRef inNodeRef = (NodeRef) inNode;
+    storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
+  }
+
+  void addInEdgeInternal(String label, Vertex outNode, Object... keyValues) {
+    final NodeRef outNodeRef = (NodeRef) outNode;
+    storeAdjacentNode(Direction.IN, label, outNodeRef, keyValues);
+  }
+
 
   @Override
   public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
