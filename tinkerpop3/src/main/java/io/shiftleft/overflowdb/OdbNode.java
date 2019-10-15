@@ -262,12 +262,12 @@ public abstract class OdbNode implements Vertex {
     return dummyEdge;
   }
 
-  void addOutEdgeInternal(String label, Vertex inNode, Object... keyValues) {
+  protected void addOutEdgeInternal(String label, Vertex inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
   }
 
-  void addInEdgeInternal(String label, Vertex outNode, Object... keyValues) {
+  protected void addInEdgeInternal(String label, Vertex outNode, Object... keyValues) {
     final NodeRef outNodeRef = (NodeRef) outNode;
     storeAdjacentNode(Direction.IN, label, outNodeRef, keyValues);
   }

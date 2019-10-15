@@ -203,7 +203,7 @@ public final class OdbGraph implements Graph {
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final OdbNode underlying = factory.createNode(this, idValue);
-    this.referenceManager.registerRef(underlying.ref); // TODO: Check if this is thread-safe
+    this.referenceManager.registerRef(underlying.ref);
     node = underlying.ref;
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);
     return node;
@@ -343,8 +343,10 @@ public final class OdbGraph implements Graph {
 
   public void appendFromBuilder(OdbGraphBuilder graphBuilder) {
     synchronized (this) {
-      Arrays.stream(graphBuilder.newNodes.values()).forEach((v) -> storeVertex((NodeRef)v));
-      graphBuilder.newNodes.clear();
+      assert !graphBuilder.applied;
+      graphBuilder.applied = true;
+      Arrays.stream(graphBuilder.nodes.values()).forEach((v) -> storeVertex((NodeRef)v));
+      graphBuilder.nodes.clear();
       final List<List<OdbGraphBuilder.PropertyInfo>> properties =
           new ArrayList<>(graphBuilder.nodeProperties.valueCollection());
       FutureUtils.parForEach(

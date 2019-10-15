@@ -13,16 +13,15 @@ import java.util.Arrays;
 
 public class GraphBuilderTest {
   @Test
-  @Ignore
   public void shouldAllowToBuildGraphInTransaction() {
     OdbConfig config = OdbConfig.withoutOverflow();
     int[] ints = {1, 2, 3};
     try (OdbGraph graph = SimpleDomain.newGraph(config)) {
-      final OdbGraphBuilder tx = graph.createGraphBuilder();
-      long v0 = tx.addVertex(T.label, TestNode.LABEL, TestNode.INT_LIST_PROPERTY, Arrays.asList(ints));
-      long v1 = tx.addVertex(T.label, TestNode.LABEL, TestNode.INT_PROPERTY, new Integer(123));
-      tx.addEdge(v0, v1, TestEdge.LABEL, TestEdge.LONG_PROPERTY, new Long(99l));
-      tx.appendToGraph();
+      final OdbGraphBuilder builder = graph.createGraphBuilder();
+      long v0 = builder.addVertex(T.label, TestNode.LABEL, TestNode.INT_LIST_PROPERTY, Arrays.asList(ints));
+      long v1 = builder.addVertex(T.label, TestNode.LABEL, TestNode.INT_PROPERTY, new Integer(123));
+      builder.addEdge(v0, v1, TestEdge.LABEL, TestEdge.LONG_PROPERTY, new Long(99l));
+      builder.appendToGraph();
       Assert.assertEquals(2, graph.nodes.size());
       Assert.assertEquals(TestNode.INT_LIST_PROPERTY, graph.vertex(v0).property(TestNode.INT_LIST_PROPERTY).key());
       Assert.assertEquals(Arrays.asList(ints), graph.vertex(v0).property(TestNode.INT_LIST_PROPERTY).value());

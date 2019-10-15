@@ -8,9 +8,10 @@ import java.util.ArrayList;
 
 public class OdbGraphBuilder {
   private final OdbGraph graph;
-  TLongObjectMap<NodeRef> newNodes = new TLongObjectHashMap<>();
-  TLongObjectHashMap<ArrayList<EdgeInfo>> edges = new TLongObjectHashMap<>();
-  TLongObjectMap<ArrayList<PropertyInfo>> nodeProperties = new TLongObjectHashMap<>();
+  protected boolean applied = false;
+  protected TLongObjectMap<NodeRef> nodes = new TLongObjectHashMap<>();
+  protected TLongObjectHashMap<ArrayList<EdgeInfo>> edges = new TLongObjectHashMap<>();
+  protected TLongObjectMap<ArrayList<PropertyInfo>> nodeProperties = new TLongObjectHashMap<>();
 
   static class EdgeInfo {
     final long outNodeId, inNodeId;
@@ -45,7 +46,7 @@ public class OdbGraphBuilder {
 
   public long addVertex(final Object... keyValues) {
     final NodeRef node = graph.createVertex(keyValues);
-    this.newNodes.put(node.id, node);
+    this.nodes.put(node.id, node);
     return node.id;
   }
 
@@ -56,7 +57,7 @@ public class OdbGraphBuilder {
   }
 
   public void addVertexProperty(long nodeId, VertexProperty.Cardinality cardinality, String key, Object value) {
-    final NodeRef nodeRef = newNodes.get(nodeId);
+    final NodeRef nodeRef = nodes.get(nodeId);
     if (nodeRef != null) {
       nodeRef.property(cardinality, key, value);
     } else {
