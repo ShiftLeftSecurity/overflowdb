@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 //TODO MP
-public class ReferenceManagerTest {
+public class OverflowReferenceManagerTest {
 
   private int heapPercentageThreshold = 80;
 

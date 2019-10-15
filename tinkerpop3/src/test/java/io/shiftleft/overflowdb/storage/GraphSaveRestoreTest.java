@@ -30,7 +30,7 @@ public class GraphSaveRestoreTest {
     final Long vertex0Id;
     final Long vertex1Id;
     // create graph and store in specified location
-    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, false)) {
+    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, true)) {
       Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
       Vertex v1 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
       Edge edge = v0.addEdge(FollowedBy.LABEL, v1, FollowedBy.WEIGHT, 42);
@@ -39,7 +39,7 @@ public class GraphSaveRestoreTest {
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
-    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, false)) {
+    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, true)) {
       assertEquals(Long.valueOf(2), graph.traversal().V().count().next());
       assertEquals(Long.valueOf(1), graph.traversal().V().outE().count().next());
       assertEquals("Song 1", graph.vertex(vertex0Id).value(Song.NAME));
@@ -59,12 +59,12 @@ public class GraphSaveRestoreTest {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
 
-    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, false)) {
+    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, true)) {
       loadGraphMl(graph);
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
-    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, false)) {
+    try (OdbGraph graph = newGratefulDeadGraph(overflowDb, true)) {
       assertEquals(Long.valueOf(808), graph.traversal().V().count().next());
       assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
     }

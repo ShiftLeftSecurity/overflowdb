@@ -89,10 +89,14 @@ public final class OdbGraph implements Graph {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    referenceManager = new ReferenceManager();
-    heapUsageMonitor = config.isOverflowEnabled() ?
-        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
-        Optional.empty();
+    if (config.isOverflowEnabled()) {
+      referenceManager = new OverflowReferenceManager();
+      heapUsageMonitor =
+          Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager));
+    } else {
+      referenceManager = new NoopReferenceManager();
+      heapUsageMonitor = Optional.empty();
+    }
 
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
     if (config.getStorageLocation().isPresent()) {
@@ -234,7 +238,7 @@ public final class OdbGraph implements Graph {
   public void close() {
     this.closed = true;
     heapUsageMonitor.ifPresent(monitor -> monitor.close());
-    if (config.getStorageLocation().isPresent()) {
+    if (config.getStorageLocation().isPresent() && config.isOverflowEnabled()) {
       /* persist to disk */
       referenceManager.clearAllReferences();
     }
