@@ -20,7 +20,8 @@ public class GraphBuilderTest {
       final OdbGraphBuilder builder = graph.createGraphBuilder();
       long v0 = builder.addVertex(T.label, TestNode.LABEL, TestNode.INT_LIST_PROPERTY, Arrays.asList(ints));
       long v1 = builder.addVertex(T.label, TestNode.LABEL, TestNode.INT_PROPERTY, new Integer(123));
-      builder.addEdge(v0, v1, TestEdge.LABEL, TestEdge.LONG_PROPERTY, new Long(99l));
+      builder.addEdge(v0, v1, TestEdge.LABEL);
+      builder.addEdgeProperty(v0, v1, TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
       builder.appendToGraph();
       Assert.assertEquals(2, graph.nodes.size());
       Assert.assertEquals(TestNode.INT_LIST_PROPERTY, graph.vertex(v0).property(TestNode.INT_LIST_PROPERTY).key());

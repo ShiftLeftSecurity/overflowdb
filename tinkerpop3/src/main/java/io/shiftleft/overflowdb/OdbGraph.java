@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 public final class OdbGraph implements Graph {
   private static final int PARALLEL_NODE_PROPERTIES_BATCH_SIZE = 10000;
@@ -345,9 +346,9 @@ public final class OdbGraph implements Graph {
     synchronized (this) {
       assert !graphBuilder.applied;
       graphBuilder.applied = true;
-      Arrays.stream(graphBuilder.nodes.values()).forEach((v) -> storeVertex((NodeRef)v));
+      Arrays.stream(graphBuilder.nodes.values()).forEach((v) -> storeVertex((NodeRef) v));
       graphBuilder.nodes.clear();
-      final List<List<OdbGraphBuilder.PropertyInfo>> properties =
+      final List<List<OdbGraphBuilder.NodePropertyInfo>> properties =
           new ArrayList<>(graphBuilder.nodeProperties.valueCollection());
       FutureUtils.parForEach(
           properties,
@@ -363,17 +364,24 @@ public final class OdbGraph implements Graph {
           keys,
           (edgeNodeIds) -> {
             Arrays.stream(edgeNodeIds).forEach((nodeId) -> {
-              this.addBuilderEdges(nodeId, graphBuilder.edges.get(nodeId)); });
+              this.addBuilderEdges(nodeId, graphBuilder.edges.get(nodeId));
+            });
           },
           PARALLEL_EDGES_BATCH_SIZE,
           executorService
       );
       graphBuilder.edges.clear();
+      graphBuilder.edgeProperties.forEach(pi ->
+          vertex(pi.outNodeId).edges(Direction.OUT, pi.label).forEachRemaining(edge -> {
+            if (edge.inVertex().id().equals(pi.inNodeId)) {
+              edge.property(pi.key, pi.value);
+            }
+          }));
     }
   }
 
-  private void addBuilderNodeProperties(List<OdbGraphBuilder.PropertyInfo> propertyInfos) {
-    for (OdbGraphBuilder.PropertyInfo pi: propertyInfos) {
+  private void addBuilderNodeProperties(List<OdbGraphBuilder.NodePropertyInfo> nodePropertyInfos) {
+    for (OdbGraphBuilder.NodePropertyInfo pi: nodePropertyInfos) {
       final Vertex vertex = vertex(pi.nodeId);
       vertex.property(pi.cardinality, pi.key, pi.value);
     }

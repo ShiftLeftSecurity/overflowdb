@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb;
 
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.util.ArrayList;
@@ -11,7 +12,8 @@ public class OdbGraphBuilder {
   protected boolean applied = false;
   protected TLongObjectMap<NodeRef> nodes = new TLongObjectHashMap<>();
   protected TLongObjectHashMap<ArrayList<EdgeInfo>> edges = new TLongObjectHashMap<>();
-  protected TLongObjectMap<ArrayList<PropertyInfo>> nodeProperties = new TLongObjectHashMap<>();
+  protected TLongObjectMap<ArrayList<NodePropertyInfo>> nodeProperties = new TLongObjectHashMap<>();
+  protected ArrayList<EdgePropertyInfo> edgeProperties = new ArrayList<>();
 
   static class EdgeInfo {
     final long outNodeId, inNodeId;
@@ -26,15 +28,30 @@ public class OdbGraphBuilder {
     }
   }
 
-  static class PropertyInfo {
+  static class NodePropertyInfo {
     final long nodeId;
     final VertexProperty.Cardinality cardinality;
     final String key;
     final Object value;
 
-    public PropertyInfo(long nodeId, VertexProperty.Cardinality cardinality, String key, Object value) {
+    public NodePropertyInfo(long nodeId, VertexProperty.Cardinality cardinality, String key, Object value) {
       this.nodeId = nodeId;
       this.cardinality = cardinality;
+      this.key = key;
+      this.value = value;
+    }
+  }
+
+  static class EdgePropertyInfo {
+    final long outNodeId, inNodeId;
+    final String label;
+    final String key;
+    final Object value;
+
+    public EdgePropertyInfo(long outNodeId, long inNodeId, String label, String key, Object value) {
+      this.outNodeId = outNodeId;
+      this.inNodeId = inNodeId;
+      this.label = label;
       this.key = key;
       this.value = value;
     }
@@ -61,14 +78,18 @@ public class OdbGraphBuilder {
     if (nodeRef != null) {
       nodeRef.property(cardinality, key, value);
     } else {
-      PropertyInfo propertyInfo = new PropertyInfo(nodeId, cardinality, key, value);
-      ArrayList<PropertyInfo> propertyInfoList = this.nodeProperties.get(nodeId);
-      if (propertyInfoList == null) {
-        propertyInfoList = new ArrayList<>();
-        this.nodeProperties.put(nodeId, propertyInfoList);
+      NodePropertyInfo nodePropertyInfo = new NodePropertyInfo(nodeId, cardinality, key, value);
+      ArrayList<NodePropertyInfo> nodePropertyInfoList = this.nodeProperties.get(nodeId);
+      if (nodePropertyInfoList == null) {
+        nodePropertyInfoList = new ArrayList<>();
+        this.nodeProperties.put(nodeId, nodePropertyInfoList);
       }
-      propertyInfoList.add(propertyInfo);
+      nodePropertyInfoList.add(nodePropertyInfo);
     }
+  }
+
+  public void addEdgeProperty(long outNodeId, long inNodeId, String label, String key, Object value) {
+    edgeProperties.add(new EdgePropertyInfo(outNodeId, inNodeId, label, key, value));
   }
 
   private void addEdgeToMap(TLongObjectHashMap<ArrayList<EdgeInfo>> map, long nodeId, EdgeInfo edgeInfo) {
