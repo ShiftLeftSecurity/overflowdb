@@ -108,6 +108,9 @@ public class NodeSerializer {
       while (listIter.hasNext()) {
         packTypedValue(packer, listIter.next());
       }
+    } else if (value instanceof Character) {
+      packer.packByte(ValueTypes.CHARACTER.id);
+      packer.packInt((Character) value);
     } else {
       throw new NotImplementedException("id type `" + value.getClass() + "` not yet supported");
     }

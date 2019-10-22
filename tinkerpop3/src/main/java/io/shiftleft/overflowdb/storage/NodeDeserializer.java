@@ -133,6 +133,8 @@ public class NodeDeserializer {
           deserializedArray.add(unpackValue(valueIterator.next().asArrayValue()));
         }
         return deserializedArray;
+      case CHARACTER:
+        return (char) value.asIntegerValue().asInt();
       default:
         throw new NotImplementedException("unknown valueTypeId=`" + valueTypeId);
     }
