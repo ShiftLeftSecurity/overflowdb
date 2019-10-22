@@ -29,6 +29,8 @@ class GratefulDeadTests extends WordSpec with Matchers {
       val artistNames = gratefulDead.artists.name.l
       artistNames.size shouldBe 224
       artistNames.contains("Bob_Dylan") shouldBe true
+
+      gratefulDead.artists.name("Bob_Dylan", "All").sangSongs.size shouldBe 31
     }
 
     "traverse domain-specific edges" in {
