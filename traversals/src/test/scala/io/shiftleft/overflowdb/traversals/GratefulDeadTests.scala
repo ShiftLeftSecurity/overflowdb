@@ -51,9 +51,20 @@ class GratefulDeadTests extends WordSpec with Matchers {
     }
   }
 
-  "lift a node into a Traversal with .start" in {
-    val dylan = gratefulDead.artists.name("Bob_Dylan").head
-    dylan.start.sangSongs.size shouldBe 22
-  }
+  "lifting elements into a Traversal" can {
+    "lift a single element with `Traversal.fromSingle`" in {
+      val dylan = gratefulDead.artists.name("Bob_Dylan").head
+      Traversal.fromSingle(dylan).sangSongs.size shouldBe 22
+    }
 
+    "lift a single element with `.start`" in {
+      val dylan = gratefulDead.artists.name("Bob_Dylan").head
+      dylan.start.sangSongs.size shouldBe 22
+    }
+
+    "lift multiple elements with `Traversal.from`" in {
+      val artists = gratefulDead.artists.name("Bob_Dylan", "All").toList
+      Traversal.from(artists).sangSongs.size shouldBe 31
+    }
+  }
 }

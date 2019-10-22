@@ -9,5 +9,5 @@ trait NodeRefOps[Ref <: NodeRef[_]] { this: Ref =>
 
   /** lift this NodeRef into a Traversal */
   def start: Traversal[Ref] =
-    new Traversal[Ref](Iterator.single(this))
+    new Traversal[Ref](Traversal.fromSingle(this))
 }
