@@ -24,19 +24,24 @@ class GratefulDeadTests extends WordSpec with Matchers {
     }
 
     "perform property related traversals" in {
-      gratefulDead.artists.name("Bob_Dylan").size shouldBe 1
+      gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
 
       val artistNames = gratefulDead.artists.name.l
       artistNames.size shouldBe 224
       artistNames.contains("Bob_Dylan") shouldBe true
 
-      gratefulDead.artists.name("Bob_Dylan", "All").sangSongs.size shouldBe 31
+      gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
+      gratefulDead.artists.nameExact("Bob_Dylan", "All").size shouldBe 2
+      gratefulDead.artists.name(".*").size shouldBe 224
+      gratefulDead.artists.name(".*Bob.*").size shouldBe 3
+      gratefulDead.artists.name(".*Bob.*", "^M.*").size shouldBe 16
+      gratefulDead.artists.nameNot(".*Bob.*").size shouldBe 221
     }
 
     "traverse domain-specific edges" in {
-      gratefulDead.artists.name("Bob_Dylan").sangSongs.size shouldBe 22
-      gratefulDead.songs.name("WALKIN THE DOG").followedBy.size shouldBe 5
-      gratefulDead.songs.name("WALKIN THE DOG").followedBy.songType.toSet shouldBe Set("original", "cover", "")
+      gratefulDead.artists.nameExact("Bob_Dylan").sangSongs.size shouldBe 22
+      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.size shouldBe 5
+      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSet shouldBe Set("original", "cover", "")
     }
 
     "be expressed in for comprehension" in {
@@ -53,17 +58,17 @@ class GratefulDeadTests extends WordSpec with Matchers {
 
   "lifting elements into a Traversal" can {
     "lift a single element with `Traversal.fromSingle`" in {
-      val dylan = gratefulDead.artists.name("Bob_Dylan").head
+      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").head
       Traversal.fromSingle(dylan).sangSongs.size shouldBe 22
     }
 
     "lift a single element with `.start`" in {
-      val dylan = gratefulDead.artists.name("Bob_Dylan").head
+      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").head
       dylan.start.sangSongs.size shouldBe 22
     }
 
     "lift multiple elements with `Traversal.from`" in {
-      val artists = gratefulDead.artists.name("Bob_Dylan", "All").toList
+      val artists = gratefulDead.artists.nameExact("Bob_Dylan", "All").toList
       Traversal.from(artists).sangSongs.size shouldBe 31
     }
   }
