@@ -8,6 +8,7 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * Wrapper for a node, which may be set to `null` by @ReferenceManager and persisted to storage to avoid `OutOfMemory` errors.
@@ -28,11 +29,19 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
 
   /**
    * used when creating a node without the underlying instance at hand
-   * this assumes that it is available on disk
    */
   public NodeRef(final OdbGraph graph, final long id) {
     this.graph = graph;
     this.id = id;
+
+    // this new NodeRef may refer to an already existing node. if so: assign the underlying node
+    final Vertex maybeAlreadyExistent = graph.vertex(id);
+    if (maybeAlreadyExistent != null) {
+      final Optional<N> nodeOption = ((NodeRef) maybeAlreadyExistent).getOption();
+      if (nodeOption.isPresent()) {
+        this.node = nodeOption.get();
+      }
+    }
   }
 
   public boolean isSet() {
@@ -67,6 +76,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
         throw new RuntimeException(e);
       }
     }
+  }
+
+  public Optional<N> getOption() {
+    return Optional.ofNullable(node);
   }
 
   public void setNode(N node) {
