@@ -2,18 +2,18 @@ package io.shiftleft.overflowdb.traversals.filters
 
 import io.shiftleft.overflowdb.traversals.Traversal
 
-object StringPropertyFilters extends PropertyFilters {
-  def filterRegexp[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexp: String): Traversal[NodeType] = {
+object StringPropertyFilters {
+  def regexp[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexp: String): Traversal[NodeType] = {
     val valueRegexp = regexp.r
     trav.filter(node => valueRegexp.matches(accessor(node)))
   }
 
-  def filterNotRegexp[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexp: String): Traversal[NodeType] = {
+  def regexpNot[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexp: String): Traversal[NodeType] = {
     val valueRegexp = regexp.r
     trav.filter(node => !valueRegexp.matches(accessor(node)))
   }
 
-  def filterRegexpMultiple[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexps: Seq[String]): Traversal[NodeType] = {
+  def regexpMultiple[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexps: Seq[String]): Traversal[NodeType] = {
     val valueRegexps = regexps.map(_.r)
     trav.filter { node =>
       val value = accessor(node)
@@ -21,7 +21,7 @@ object StringPropertyFilters extends PropertyFilters {
     }
   }
 
-  def filterNotRegexpMultiple[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexps: Seq[String]): Traversal[NodeType] = {
+  def regexpNotMultiple[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexps: Seq[String]): Traversal[NodeType] = {
     val valueRegexps = regexps.map(_.r)
     trav.filter { node =>
       val value = accessor(node)
@@ -29,12 +29,15 @@ object StringPropertyFilters extends PropertyFilters {
     }
   }
 
-  def filterContains[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+  def contains[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
     trav.filter(accessor(_).contains(value))
 
-  def filterStartsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+  def containsNot[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+    trav.filterNot(accessor(_).contains(value))
+
+  def startsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
     trav.filter(accessor(_).startsWith(value))
 
-  def filterEndsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+  def endsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
     trav.filter(accessor(_).endsWith(value))
 }
