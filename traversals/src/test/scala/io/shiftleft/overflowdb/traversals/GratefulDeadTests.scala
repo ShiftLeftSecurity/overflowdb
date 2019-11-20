@@ -42,6 +42,12 @@ class GratefulDeadTests extends WordSpec with Matchers {
       gratefulDead.artists.nameEndsWith("Dylan").size shouldBe 1
       gratefulDead.artists.nameContains("M").size shouldBe 30
       gratefulDead.artists.nameContainsNot("M").size shouldBe 194
+
+      gratefulDead.songs.performances(1).size shouldBe 142
+      gratefulDead.songs.performancesGt(1).size shouldBe 341
+      gratefulDead.songs.performancesGte(1).size shouldBe 483
+      gratefulDead.songs.performancesLt(1).size shouldBe 101
+      gratefulDead.songs.performancesLte(1).size shouldBe 243
     }
 
     "traverse domain-specific edges" in {
