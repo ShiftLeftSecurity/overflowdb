@@ -14,8 +14,10 @@ class GratefulDeadTests extends WordSpec with Matchers {
 
     gratefulDead.label(Artist.Label).size shouldBe 224
     gratefulDead.id(1).label.head shouldBe Song.Label
-    gratefulDead.id(2).property[String](Song.Properties.Name).head shouldBe "IM A MAN"
-    gratefulDead.ids(3, 4).property[String](Song.Properties.Name).l shouldBe Seq("BERTHA", "NOT FADE AWAY")
+    gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
+    gratefulDead.ids(3, 4).property[String]("name").l shouldBe Seq("BERTHA", "NOT FADE AWAY")
+
+//    gratefulDead.label(Artist.Label).hasProperty()
   }
 
   "domain specific traversals" can {

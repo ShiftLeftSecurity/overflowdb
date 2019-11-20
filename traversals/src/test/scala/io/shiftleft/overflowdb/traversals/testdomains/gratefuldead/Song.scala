@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.traversals.{NodeRefOps, Traversal}
+import io.shiftleft.overflowdb.traversals.{NodeRefOps, PropertyKey, Traversal}
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
 
 import scala.jdk.CollectionConverters._
@@ -20,11 +20,16 @@ object Song {
   val Label = "song"
 
   object Properties {
+    val Name = PropertyKey[String](PropertyNames.Name)
+    val SongType = PropertyKey[String](PropertyNames.SongType)
+    val Performances = PropertyKey[Int](PropertyNames.Performances)
+  }
+
+  object PropertyNames {
     val Name = "name"
     val SongType = "songType"
     val Performances = "performances"
     val all: Set[String] = Set(Name, SongType, Performances)
-    val allAsJava: java.util.Set[String] = all.asJava
   }
 
   val factory: NodeFactory[SongDb] = new NodeFactory[SongDb]() {
@@ -35,7 +40,7 @@ object Song {
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      Properties.allAsJava,
+      PropertyNames.all.asJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation).asJava,
       List(FollowedBy.layoutInformation).asJava
     )

@@ -19,19 +19,19 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) with NodeOps {
 
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Song.Properties.Name, _name)
-    if (_songType != null) properties.put(Song.Properties.SongType, _songType)
-    if (_performances != null) properties.put(Song.Properties.Performances, _performances)
+    if (_name != null) properties.put(Song.PropertyNames.Name, _name)
+    if (_songType != null) properties.put(Song.PropertyNames.SongType, _songType)
+    if (_performances != null) properties.put(Song.PropertyNames.Performances, _performances)
     properties
   }
 
   override protected def specificProperties[V](key: String) =
     key match {
-      case Song.Properties.Name if _name != null =>
+      case Song.PropertyNames.Name if _name != null =>
         IteratorUtils.of(new OdbNodeProperty(this, key, _name.asInstanceOf[V]))
-      case Song.Properties.SongType if _songType != null =>
+      case Song.PropertyNames.SongType if _songType != null =>
         IteratorUtils.of(new OdbNodeProperty(this, key, _songType.asInstanceOf[V]))
-      case Song.Properties.Performances if _performances != null =>
+      case Song.PropertyNames.Performances if _performances != null =>
         IteratorUtils.of(new OdbNodeProperty(this, key, _performances.asInstanceOf[V]))
       case _ =>
         java.util.Collections.emptyIterator
@@ -39,24 +39,24 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) with NodeOps {
 
   override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) =
     key match {
-      case Song.Properties.Name =>
+      case Song.PropertyNames.Name =>
         _name = value.asInstanceOf[String]
-        property(Song.Properties.Name)
-      case Song.Properties.SongType =>
+        property(Song.PropertyNames.Name)
+      case Song.PropertyNames.SongType =>
         _songType = value.asInstanceOf[String]
-        property(Song.Properties.SongType)
-      case Song.Properties.Performances =>
+        property(Song.PropertyNames.SongType)
+      case Song.PropertyNames.Performances =>
         _performances = value.asInstanceOf[Integer]
-        property(Song.Properties.Performances)
+        property(Song.PropertyNames.Performances)
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
   override protected def removeSpecificProperty(key: String) =
     key match {
-      case Song.Properties.Name => _name = null
-      case Song.Properties.SongType => _songType = null
-      case Song.Properties.Performances => _performances = null
+      case Song.PropertyNames.Name => _name = null
+      case Song.PropertyNames.SongType => _songType = null
+      case Song.PropertyNames.Performances => _performances = null
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }

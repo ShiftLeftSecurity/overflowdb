@@ -28,6 +28,8 @@ import java.util.stream.StreamSupport;
  * Node that stores adjacent Nodes directly, rather than via edges.
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
+ *
+ * TODO: remove tinkerpop dependency
  */
 public abstract class OdbNode implements Vertex {
 

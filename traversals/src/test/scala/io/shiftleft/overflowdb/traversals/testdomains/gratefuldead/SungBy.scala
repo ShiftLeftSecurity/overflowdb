@@ -4,17 +4,18 @@ import io.shiftleft.overflowdb._
 import scala.jdk.CollectionConverters._
 
 class SungBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends OdbEdge(graph, SungBy.Label, outVertex, inVertex, SungBy.Properties.allAsJava)
+  extends OdbEdge(graph, SungBy.Label, outVertex, inVertex, SungBy.PropertyNames.all.asJava)
 
 object SungBy {
   val Label = "sungBy"
 
-  object Properties {
+  object Properties {}
+
+  object PropertyNames {
     val all: Set[String] = Set.empty
-    val allAsJava: java.util.Set[String] = all.asJava
   }
 
-  val layoutInformation = new EdgeLayoutInformation(Label, Properties.allAsJava)
+  val layoutInformation = new EdgeLayoutInformation(Label, PropertyNames.all.asJava)
 
   var factory: EdgeFactory[SungBy] = new EdgeFactory[SungBy] {
     override def forLabel(): String = SungBy.Label
