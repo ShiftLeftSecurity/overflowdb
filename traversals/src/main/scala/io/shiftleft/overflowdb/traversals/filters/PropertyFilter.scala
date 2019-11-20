@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.traversals.filters
 
 import io.shiftleft.overflowdb.traversals.Traversal
 
-object PropertyFilters {
+object PropertyFilter {
   def exact[NodeType, Value](trav: Traversal[NodeType])(accessor: NodeType => Value, value: Value): Traversal[NodeType] =
     trav.filter(accessor(_) == value)
 

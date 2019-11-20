@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.traversals
 
+import io.shiftleft.overflowdb.traversals.filters.StringPropertyFilter.InvalidRegexException
 import io.shiftleft.overflowdb.traversals.testdomains.gratefuldead._
 import org.scalatest.{Matchers, WordSpec}
 
@@ -32,12 +33,12 @@ class GratefulDeadTests extends WordSpec with Matchers {
     }
 
     "property filters" in {
-      gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
-      gratefulDead.artists.nameExact("Bob_Dylan", "All").size shouldBe 2
       gratefulDead.artists.name(".*Bob.*").size shouldBe 3
       gratefulDead.artists.name(".*Bob.*", "^M.*").size shouldBe 16
       gratefulDead.artists.nameNot(".*Bob.*").size shouldBe 221
       gratefulDead.artists.nameNot(".*Bob.*", "^M.*").size shouldBe 208
+      gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
+      gratefulDead.artists.nameExact("Bob_Dylan", "All").size shouldBe 2
       gratefulDead.artists.nameStartsWith("Bob").size shouldBe 3
       gratefulDead.artists.nameEndsWith("Dylan").size shouldBe 1
       gratefulDead.artists.nameContains("M").size shouldBe 30
@@ -48,6 +49,10 @@ class GratefulDeadTests extends WordSpec with Matchers {
       gratefulDead.songs.performancesGte(1).size shouldBe 483
       gratefulDead.songs.performancesLt(1).size shouldBe 101
       gratefulDead.songs.performancesLte(1).size shouldBe 243
+    }
+
+    "throw useful exception when passing invalid regexp" in {
+      intercept[InvalidRegexException] { gratefulDead.artists.name("this regexp is invalid [") }
     }
 
     "traverse domain-specific edges" in {

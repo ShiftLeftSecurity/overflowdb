@@ -3,7 +3,7 @@ package io.shiftleft.overflowdb.traversals.filters
 import io.shiftleft.overflowdb.traversals.Traversal
 
 /** to avoid boxing conversion at runtime, the implementation is replicated for each number type */
-object NumberPropertyFilters {
+object NumberPropertyFilter {
 
   object Int {
     def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int, value: Int): Traversal[NodeType] =
