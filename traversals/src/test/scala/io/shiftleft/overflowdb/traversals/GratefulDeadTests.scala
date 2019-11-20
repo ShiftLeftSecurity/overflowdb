@@ -29,13 +29,18 @@ class GratefulDeadTests extends WordSpec with Matchers {
       val artistNames = gratefulDead.artists.name.l
       artistNames.size shouldBe 224
       artistNames.contains("Bob_Dylan") shouldBe true
+    }
 
+    "property filters" in {
       gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
       gratefulDead.artists.nameExact("Bob_Dylan", "All").size shouldBe 2
-      gratefulDead.artists.name(".*").size shouldBe 224
       gratefulDead.artists.name(".*Bob.*").size shouldBe 3
       gratefulDead.artists.name(".*Bob.*", "^M.*").size shouldBe 16
       gratefulDead.artists.nameNot(".*Bob.*").size shouldBe 221
+      gratefulDead.artists.nameNot(".*Bob.*", "^M.*").size shouldBe 208
+      gratefulDead.artists.nameStartsWith("Bob").size shouldBe 3
+      gratefulDead.artists.nameEndsWith("Dylan").size shouldBe 1
+      gratefulDead.artists.nameContains("M").size shouldBe 30
     }
 
     "traverse domain-specific edges" in {

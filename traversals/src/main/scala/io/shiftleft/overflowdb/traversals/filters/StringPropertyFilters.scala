@@ -28,4 +28,13 @@ object StringPropertyFilters extends PropertyFilters {
       valueRegexps.find(_.matches(value)).isEmpty
     }
   }
+
+  def filterContains[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+    trav.filter(accessor(_).contains(value))
+
+  def filterStartsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+    trav.filter(accessor(_).startsWith(value))
+
+  def filterEndsWith[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, value: String): Traversal[NodeType] =
+    trav.filter(accessor(_).endsWith(value))
 }

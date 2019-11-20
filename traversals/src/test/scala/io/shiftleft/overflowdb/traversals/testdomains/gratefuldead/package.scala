@@ -11,17 +11,15 @@ package object gratefuldead {
     def nameExact(value: String): Traversal[Artist] = StringPropertyFilters.filterExact(trav)(_.name, value)
     def nameExact(values: String*): Traversal[Artist] = StringPropertyFilters.filterExactMultiple(trav)(_.name, values)
 
-    def name(regexp: String): Traversal[Artist] =
-      StringPropertyFilters.filterRegexp(trav)(_.name, regexp)
+    def nameContains(value: String): Traversal[Artist] = StringPropertyFilters.filterContains(trav)(_.name, value)
+    def nameStartsWith(value: String): Traversal[Artist] = StringPropertyFilters.filterStartsWith(trav)(_.name, value)
+    def nameEndsWith(value: String): Traversal[Artist] = StringPropertyFilters.filterEndsWith(trav)(_.name, value)
 
-    def name(regexps: String*): Traversal[Artist] =
-      StringPropertyFilters.filterRegexpMultiple(trav)(_.name, regexps)
+    def name(regexp: String): Traversal[Artist] = StringPropertyFilters.filterRegexp(trav)(_.name, regexp)
+    def name(regexps: String*): Traversal[Artist] = StringPropertyFilters.filterRegexpMultiple(trav)(_.name, regexps)
 
-    def nameNot(regexp: String): Traversal[Artist] =
-      StringPropertyFilters.filterNotRegexp(trav)(_.name, regexp)
-
-    def nameNot(regexps: String*): Traversal[Artist] =
-      StringPropertyFilters.filterNotRegexpMultiple(trav)(_.name, regexps)
+    def nameNot(regexp: String): Traversal[Artist] = StringPropertyFilters.filterNotRegexp(trav)(_.name, regexp)
+    def nameNot(regexps: String*): Traversal[Artist] = StringPropertyFilters.filterNotRegexpMultiple(trav)(_.name, regexps)
 
     def sangSongs: Traversal[Song] = trav.flatMap(_.sangSongs)
   }
