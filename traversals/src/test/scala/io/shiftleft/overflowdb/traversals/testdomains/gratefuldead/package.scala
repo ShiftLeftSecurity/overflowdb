@@ -1,49 +1,39 @@
 package io.shiftleft.overflowdb.traversals.testdomains
 
 import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversals.filters.StringPropertyFilters
 
 package object gratefuldead {
 
   implicit class ArtistTraversal(val trav: Traversal[Artist]) extends AnyVal {
     def name: Traversal[String] = trav.map(_.name)
 
-    def nameExact(value: String): Traversal[Artist] =
-      trav.filter(_.name == value)
-    def nameExact(values: String*): Traversal[Artist] = {
-      val valuesSet: Set[String] = values.to(Set)
-      trav.filter(artist => valuesSet.contains(artist.name))
-    }
-    def name(regexp: String): Traversal[Artist] = {
-      val valueRegexp = regexp.r
-      trav.filter { node => valueRegexp.matches(node.name) }
-    }
-    def name(regexps: String*): Traversal[Artist] = {
-      val valueRegexps = regexps.map(_.r)
-      trav.filter { node => valueRegexps.find(_.matches(node.name)).isDefined }
-    }
-    def nameNot(regexp: String): Traversal[Artist] = {
-      val valueRegexp = regexp.r
-      trav.filter { node => !valueRegexp.matches(node.name) }
-    }
-    def nameNot(regexps: String*): Traversal[Artist] = {
-      val valueRegexps = regexps.map(_.r)
-      trav.filter { node => valueRegexps.find(_.matches(node.name)).isEmpty }
-    }
+    def nameExact(value: String): Traversal[Artist] = StringPropertyFilters.filterExact(trav, _.name, value)
+    def nameExact(values: String*): Traversal[Artist] = StringPropertyFilters.filterExactMultiple(trav, _.name, values)
+
+    def name(regexp: String): Traversal[Artist] =
+      StringPropertyFilters.filterRegexp(trav, _.name, regexp)
+
+    def name(regexps: String*): Traversal[Artist] =
+      StringPropertyFilters.filterRegexpMultiple(trav, _.name, regexps)
+
+    def nameNot(regexp: String): Traversal[Artist] =
+      StringPropertyFilters.filterNotRegexp(trav, _.name, regexp)
+
+    def nameNot(regexps: String*): Traversal[Artist] =
+      StringPropertyFilters.filterNotRegexpMultiple(trav, _.name, regexps)
 
     def sangSongs: Traversal[Song] = trav.flatMap(_.sangSongs)
   }
 
   implicit class SongTraversal(val trav: Traversal[Song]) extends AnyVal {
     def name: Traversal[String] = trav.map(_.name)
-    def nameExact(value: String): Traversal[Song] = trav.filter(_.name == value)
-    def nameExact(values: String*): Traversal[Song] = {
-      val valuesSet: Set[String] = values.to(Set)
-      trav.filter(song => valuesSet.contains(song.name))
-    }
+
+    def nameExact(value: String): Traversal[Song] = StringPropertyFilters.filterExact(trav, _.name, value)
+    def nameExact(values: String*): Traversal[Song] = StringPropertyFilters.filterExactMultiple(trav, _.name, values)
 
     def songType: Traversal[String] = trav.map(_.songType)
     def performances: Traversal[Int] = trav.map(_.performances)
-
     def followedBy: Traversal[Song] = trav.flatMap(_.followedBy)
   }
 }
