@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.traversals
+package io.shiftleft.overflowdb.traversal
 
 import org.slf4j.LoggerFactory
 

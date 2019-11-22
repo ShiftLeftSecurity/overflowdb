@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.traversals
+package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.OdbNode
 import org.apache.tinkerpop.gremlin.structure.Direction

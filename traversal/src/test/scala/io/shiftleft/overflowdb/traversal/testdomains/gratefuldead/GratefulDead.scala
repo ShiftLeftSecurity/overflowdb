@@ -1,8 +1,8 @@
-package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
 import java.util
 
-import io.shiftleft.overflowdb.traversals.{Traversal, TraversalSource}
+import io.shiftleft.overflowdb.traversal.{Traversal, TraversalSource}
 import io.shiftleft.overflowdb.{OdbConfig, OdbGraph}
 import org.apache.tinkerpop.gremlin.structure.io.IoCore
 

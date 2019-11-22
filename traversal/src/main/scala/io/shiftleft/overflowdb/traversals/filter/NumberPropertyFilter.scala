@@ -1,6 +1,6 @@
-package io.shiftleft.overflowdb.traversals.filters
+package io.shiftleft.overflowdb.traversal.filter
 
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversal.Traversal
 
 /** to avoid boxing conversion at runtime, the implementation is replicated for each number type */
 object NumberPropertyFilter {

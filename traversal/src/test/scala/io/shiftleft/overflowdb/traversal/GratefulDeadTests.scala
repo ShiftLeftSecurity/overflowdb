@@ -1,13 +1,13 @@
-package io.shiftleft.overflowdb.traversals
+package io.shiftleft.overflowdb.traversal
 
-import io.shiftleft.overflowdb.traversals.filters.StringPropertyFilter.InvalidRegexException
-import io.shiftleft.overflowdb.traversals.testdomains.gratefuldead._
+import io.shiftleft.overflowdb.traversal.filter.StringPropertyFilter.InvalidRegexException
+import io.shiftleft.overflowdb.traversal.testdomains.gratefuldead._
 import org.scalatest.{Matchers, WordSpec}
 
 class GratefulDeadTests extends WordSpec with Matchers {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
-  "generic graph traversals" in {
+  "generic graph traversal" in {
     gratefulDead.all.size shouldBe 808
     gratefulDead.all.id.l.sorted.head shouldBe 1
     gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
@@ -18,13 +18,13 @@ class GratefulDeadTests extends WordSpec with Matchers {
     gratefulDead.ids(3, 4).property[String]("name").l shouldBe Seq("BERTHA", "NOT FADE AWAY")
   }
 
-  "domain specific traversals" can {
-    "perform single step start traversals" in {
+  "domain specific traversal" can {
+    "perform single step start traversal" in {
       gratefulDead.artists.size shouldBe 224
       gratefulDead.songs.size shouldBe 584
     }
 
-    "perform property related traversals" in {
+    "perform property related traversal" in {
       gratefulDead.artists.nameExact("Bob_Dylan").size shouldBe 1
 
       val artistNames = gratefulDead.artists.name.l
@@ -32,7 +32,7 @@ class GratefulDeadTests extends WordSpec with Matchers {
       artistNames.contains("Bob_Dylan") shouldBe true
     }
 
-    "property filters" in {
+    "property filter" in {
       gratefulDead.artists.name(".*Bob.*").size shouldBe 3
       gratefulDead.artists.name(".*Bob.*", "^M.*").size shouldBe 16
       gratefulDead.artists.nameNot(".*Bob.*").size shouldBe 221

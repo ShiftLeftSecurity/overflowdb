@@ -1,7 +1,7 @@
-package io.shiftleft.overflowdb.traversals.filters
+package io.shiftleft.overflowdb.traversal.filter
 
 import java.util.regex.PatternSyntaxException
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversal.Traversal
 import scala.util.matching.Regex
 
 object StringPropertyFilter {

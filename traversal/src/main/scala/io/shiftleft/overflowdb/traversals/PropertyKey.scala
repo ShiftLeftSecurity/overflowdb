@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.traversals
+package io.shiftleft.overflowdb.traversal
 
 case class PropertyKey[A](name: String) {
   def ->(value: A): PropertyKeyValue[A] = PropertyKeyValue(this, value)

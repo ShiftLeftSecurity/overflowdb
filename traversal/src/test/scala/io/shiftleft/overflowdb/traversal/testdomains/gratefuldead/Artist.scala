@@ -1,6 +1,6 @@
-package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.traversals.{NodeRefOps, PropertyKey, Traversal}
+import io.shiftleft.overflowdb.traversal.{NodeRefOps, PropertyKey, Traversal}
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
 
 import scala.jdk.CollectionConverters._

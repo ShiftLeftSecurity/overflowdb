@@ -4,7 +4,7 @@ import io.shiftleft.overflowdb.util.JIteratorCastingWrapper
 import org.apache.tinkerpop.gremlin.structure.Direction
 import scala.collection.IterableOnce
 
-package object traversals {
+package object traversal {
 
   implicit class NodeTraversal[+A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {
     def id: Traversal[Long] = traversal.map(_.id)

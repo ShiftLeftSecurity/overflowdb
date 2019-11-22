@@ -1,6 +1,6 @@
-package io.shiftleft.overflowdb.traversals.filters
+package io.shiftleft.overflowdb.traversal.filter
 
-import io.shiftleft.overflowdb.traversals.Traversal
+import io.shiftleft.overflowdb.traversal.Traversal
 
 object PropertyFilter {
   def exact[NodeType, Value](trav: Traversal[NodeType])(accessor: NodeType => Value, value: Value): Traversal[NodeType] =

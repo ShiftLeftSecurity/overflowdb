@@ -1,7 +1,7 @@
-package io.shiftleft.overflowdb.traversals.testdomains
+package io.shiftleft.overflowdb.traversal.testdomains
 
-import io.shiftleft.overflowdb.traversals.Traversal
-import io.shiftleft.overflowdb.traversals.filters.{NumberPropertyFilter, PropertyFilter, StringPropertyFilter}
+import io.shiftleft.overflowdb.traversal.Traversal
+import io.shiftleft.overflowdb.traversal.filter.{NumberPropertyFilter, PropertyFilter, StringPropertyFilter}
 
 package object gratefuldead {
 

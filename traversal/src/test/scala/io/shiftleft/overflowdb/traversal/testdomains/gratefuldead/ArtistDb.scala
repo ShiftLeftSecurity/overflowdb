@@ -1,4 +1,4 @@
-package io.shiftleft.overflowdb.traversals.testdomains.gratefuldead
+package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb.{NodeLayoutInformation, NodeRef, OdbNode}
 import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
@@ -6,7 +6,7 @@ import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
 import scala.jdk.CollectionConverters._
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 import io.shiftleft.overflowdb.OdbNodeProperty
-import io.shiftleft.overflowdb.traversals.{NodeOps, Traversal}
+import io.shiftleft.overflowdb.traversal.{NodeOps, Traversal}
 
 class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) with NodeOps {
   /* name property */
