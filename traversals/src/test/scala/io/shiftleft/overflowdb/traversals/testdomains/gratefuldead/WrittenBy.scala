@@ -10,6 +10,7 @@ object WrittenBy {
   val Label = "writtenBy"
 
   object Properties {}
+
   object PropertyNames {
     val all: Set[String] = Set.empty
   }
