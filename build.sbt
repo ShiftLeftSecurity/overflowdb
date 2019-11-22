@@ -5,7 +5,7 @@ publish/skip := true
 enablePlugins(GitVersioning)
 
 lazy val tinkerpop3 = project.in(file("tinkerpop3"))
-lazy val traversals = project.in(file("traversals")).dependsOn(tinkerpop3) //TODO factor out `core` from tinkerpop3
+lazy val traversal = project.in(file("traversal")).dependsOn(tinkerpop3) //TODO factor out `core` from tinkerpop3
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,
