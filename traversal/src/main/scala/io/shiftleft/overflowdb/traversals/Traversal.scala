@@ -3,7 +3,7 @@ package io.shiftleft.overflowdb.traversal
 import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
-import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOps, Iterator, mutable}
+import scala.collection.{Iterable, IterableOnce, IterableFactory, IterableFactoryDefaults, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
 /**
@@ -12,16 +12,12 @@ import scala.jdk.CollectionConverters._
  * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
  * Since this may trip up users, we'll log a warning
  * */
-class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
+class Traversal[+A](elements: IterableOnce[A]) extends IterableOnce[A]
   with IterableOps[A, Traversal, Traversal[A]]
   with IterableFactoryDefaults[A, Traversal] {
 
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
   def cast[B]: Traversal[B] = new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
-
-  override def className = getClass.getSimpleName
-  override def toString = className
-  override def iterableFactory: IterableFactory[Traversal] = Traversal
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
@@ -37,6 +33,11 @@ class Traversal[+A](elements: IterableOnce[A]) extends Iterable[A]
     }
     override def next(): A = wrappedIter.next
   }
+
+  override def toString = getClass.getSimpleName
+  override def iterableFactory: IterableFactory[Traversal] = Traversal
+  override def toIterable: Iterable[A] = Iterable.from(elements)
+  override protected def coll: Traversal[A] = this
 }
 
 object Traversal extends IterableFactory[Traversal] {
