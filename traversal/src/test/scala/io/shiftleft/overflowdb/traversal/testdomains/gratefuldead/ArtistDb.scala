@@ -1,9 +1,8 @@
 package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
-import io.shiftleft.overflowdb.{NodeLayoutInformation, NodeRef, OdbNode}
+import io.shiftleft.overflowdb.{NodeRef, OdbNode}
 import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
 
-import scala.jdk.CollectionConverters._
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
 import io.shiftleft.overflowdb.OdbNodeProperty
 import io.shiftleft.overflowdb.traversal.{NodeOps, Traversal}

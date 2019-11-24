@@ -13,14 +13,12 @@ ThisBuild/resolvers ++= Seq(
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
 ThisBuild/scalacOptions ++= Seq(
-  // "-Xlint"
-  // "-Xfatal-warnings",
-  // , "-Xlog-implicits"
-  //"-Ydebug",
+  "-Xlint",
+  "-Xfatal-warnings",
+  "-feature",
+  "-deprecation",
   // "-language:implicitConversions",
   // "-language:existentials",
-  // "-feature",
-  // "-deprecation" //hard to handle when supporting multiple scala versions...
 )
 
 ThisBuild/bintrayVcsUrl := Some("https://github.com/ShiftLeftSecurity/overflowdb")

@@ -4,7 +4,6 @@ import java.util
 
 import io.shiftleft.overflowdb.traversal.{Traversal, TraversalSource}
 import io.shiftleft.overflowdb.{OdbConfig, OdbGraph}
-import org.apache.tinkerpop.gremlin.structure.io.IoCore
 
 /* visual schema: https://raw.githubusercontent.com/apache/tinkerpop/347eb9a8231c48aa22eced9b07dd6241305898c6/docs/static/images/grateful-dead-schema.png */
 object GratefulDead {

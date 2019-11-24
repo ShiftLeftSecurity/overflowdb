@@ -11,9 +11,9 @@ package object traversal {
 
     def label: Traversal[String] = traversal.map(_.label)
 
-    def property[A](name: String): Traversal[A] = traversal.map(_.value[A](name))
+    def property[P](name: String): Traversal[P] = traversal.map(_.value[P](name))
 
-    def property[A](propertyKey: PropertyKey[A]): Traversal[A] = traversal.map(_.value[A](propertyKey.name))
+    def property[P](propertyKey: PropertyKey[P]): Traversal[P] = traversal.map(_.value[P](propertyKey.name))
 
     def hasProperty(name: String): Traversal[A] = traversal.filter(_.property(name).isPresent)
 
