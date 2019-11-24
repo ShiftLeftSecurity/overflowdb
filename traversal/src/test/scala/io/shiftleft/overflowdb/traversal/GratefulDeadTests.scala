@@ -7,15 +7,19 @@ import org.scalatest.{Matchers, WordSpec}
 class GratefulDeadTests extends WordSpec with Matchers {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
-  "generic graph traversal" in {
-    gratefulDead.all.size shouldBe 808
-    gratefulDead.all.id.l.sorted.head shouldBe 1
-    gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
+  "generic graph traversal" can {
+    "perform generic graph steps" in {
+      gratefulDead.all.size shouldBe 808
+      gratefulDead.all.id.l.sorted.head shouldBe 1
+      gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
 
-    gratefulDead.label(Artist.Label).size shouldBe 224
-    gratefulDead.id(1).label.head shouldBe Song.Label
-    gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
-    gratefulDead.ids(3, 4).property[String]("name").l shouldBe Seq("BERTHA", "NOT FADE AWAY")
+      gratefulDead.label(Artist.Label).size shouldBe 224
+      gratefulDead.id(1).label.head shouldBe Song.Label
+      gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
+      gratefulDead.ids(3, 4).property[String]("name").l shouldBe Seq("BERTHA", "NOT FADE AWAY")
+      gratefulDead.all.hasProperty(Song.Properties.SongType).size shouldBe 584
+      gratefulDead.all.hasProperty(Song.Properties.Performances, 2).size shouldBe 36
+    }
   }
 
   "domain specific traversal" can {

@@ -19,9 +19,9 @@ package object traversal {
 
     def hasProperty(key: PropertyKey[_]): Traversal[A] = hasProperty(key.name)
 
-    def hasProperty[P](key: String, value: String): Traversal[A] =
+    def hasProperty[P](key: PropertyKey[P], value: P): Traversal[A] =
       traversal.filter { node =>
-        val property = node.property[P](key)
+        val property = node.property[P](key.name)
         property.isPresent && property.value == value
       }
 
