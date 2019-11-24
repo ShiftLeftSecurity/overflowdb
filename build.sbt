@@ -12,7 +12,7 @@ ThisBuild/resolvers ++= Seq(
   Resolver.bintrayRepo("shiftleft", "maven"),
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
-ThisBuild/scalacOptions ++= Seq(
+ThisBuild/Compile/scalacOptions ++= Seq(
   "-Xlint",
   "-Xfatal-warnings",
   "-feature",
