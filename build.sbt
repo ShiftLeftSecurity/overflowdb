@@ -12,8 +12,20 @@ ThisBuild/resolvers ++= Seq(
   Resolver.bintrayRepo("shiftleft", "maven"),
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
+ThisBuild/scalacOptions ++= Seq(
+  // "-Xlint"
+  // "-Xfatal-warnings",
+  // , "-Xlog-implicits"
+  //"-Ydebug",
+  // "-language:implicitConversions",
+  // "-language:existentials",
+  // "-feature",
+  // "-deprecation" //hard to handle when supporting multiple scala versions...
+)
+
 ThisBuild/bintrayVcsUrl := Some("https://github.com/ShiftLeftSecurity/overflowdb")
 ThisBuild/licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-// allow to cancel sbt compilation/test/... using C-c
 Global/cancelable := true
+Global/onChangedBuildSource := ReloadOnSourceChanges
+

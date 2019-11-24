@@ -6,4 +6,9 @@ libraryDependencies ++= Seq(
 )
 
 // execute tests in root project so that they work in sbt *and* intellij
-Test/baseDirectory := (ThisBuild / Test / run / baseDirectory).value
+Test/baseDirectory := (ThisBuild/Test/run/baseDirectory).value
+
+ThisBuild/Test/console/initialCommands :=
+  """|import io.shiftleft.overflowdb.traversal._
+     |import io.shiftleft.overflowdb.traversal.testdomains.gratefuldead._
+     |val gd = GratefulDead.traversal(GratefulDead.newGraphWithData)""".stripMargin
