@@ -33,11 +33,22 @@ package object traversal {
      * Use `traversalSource.withLabel` instead, it is much faster */
     def label(value: String): Traversal[A] = traversal.filter(_.label == value)
 
-    def out[B <: NodeRef[_]](label: String): Traversal[B] =
-      nodes[B](Direction.OUT, label)
+    def out[B <: NodeRef[_]]: Traversal[B] =
+      traversal.flatMap(_.vertices(Direction.OUT).toScalaAs[B])
 
-    private def nodes[B <: NodeRef[_]](direction: Direction, label: String): Traversal[B] =
-      traversal.flatMap(_.vertices(direction, label).toScalaAs[B])
+    def out[B <: NodeRef[_]](label: String): Traversal[B] =
+      traversal.flatMap(_.vertices(Direction.OUT, label).toScalaAs[B])
+
+    def outE[B <: OdbEdge]: Traversal[B] =
+      traversal.flatMap(_.edges(Direction.OUT).toScalaAs[B])
+
+    def outE[B <: OdbEdge](label: String): Traversal[B] =
+      traversal.flatMap(_.edges(Direction.OUT, label).toScalaAs[B])
+  }
+
+  implicit class EdgeTraversal[+A <: OdbEdge](val traversal: Traversal[A]) extends AnyVal {
+    def inV[B <: NodeRef[_]]: Traversal[B] =
+      traversal.iterator.map(_.inVertex().asInstanceOf[B]).to(Traversal)
   }
 
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
