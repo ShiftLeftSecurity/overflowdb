@@ -6,7 +6,7 @@ import scala.collection.IterableOnce
 
 package object traversal {
 
-  implicit class NodeTraversal[+A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {
+  implicit class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {
     def id: Traversal[Long] = traversal.map(_.id)
 
     def label: Traversal[String] = traversal.map(_.label)
@@ -18,6 +18,8 @@ package object traversal {
     def hasProperty(name: String): Traversal[A] = traversal.filter(_.property(name).isPresent)
 
     def hasProperty(key: PropertyKey[_]): Traversal[A] = hasProperty(key.name)
+
+    def hasProperty[P](keyValue: PropertyKeyValue[P]): Traversal[A] = hasProperty[P](keyValue.key, keyValue.value)
 
     def hasProperty[P](key: PropertyKey[P], value: P): Traversal[A] =
       traversal.filter { node =>
@@ -46,7 +48,7 @@ package object traversal {
       traversal.flatMap(_.edges(Direction.OUT, label).toScalaAs[B])
   }
 
-  implicit class EdgeTraversal[+A <: OdbEdge](val traversal: Traversal[A]) extends AnyVal {
+  implicit class EdgeTraversal[A <: OdbEdge](val traversal: Traversal[A]) extends AnyVal {
     def inV[B <: NodeRef[_]]: Traversal[B] =
       traversal.iterator.map(_.inVertex().asInstanceOf[B]).to(Traversal)
   }

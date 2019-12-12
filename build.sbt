@@ -13,7 +13,6 @@ ThisBuild/resolvers ++= Seq(
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
 ThisBuild/Compile/scalacOptions ++= Seq(
-  "-Xlint",
   "-Xfatal-warnings",
   "-feature",
   "-deprecation",

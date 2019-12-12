@@ -2,8 +2,9 @@ package io.shiftleft.overflowdb.traversal
 
 import org.slf4j.LoggerFactory
 
+import scala.annotation.tailrec
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
-import scala.collection.{Iterable, IterableOnce, IterableFactory, IterableFactoryDefaults, IterableOps, Iterator, mutable}
+import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
 /**
@@ -12,12 +13,20 @@ import scala.jdk.CollectionConverters._
  * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
  * Since this may trip up users, we'll log a warning
  * */
-class Traversal[+A](elements: IterableOnce[A]) extends IterableOnce[A]
+class Traversal[A](elements: IterableOnce[A]) extends IterableOnce[A]
   with IterableOps[A, Traversal, Traversal[A]]
   with IterableFactoryDefaults[A, Traversal] {
 
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
   def cast[B]: Traversal[B] = new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
+
+  /** perform side effect without changing the contents of the traversal */
+  def sideEffect(fun: A => Unit): Traversal[A] = map { a => fun(a); a }
+
+  @tailrec
+  final def repeat(repeatTraversal: Traversal[A] => Traversal[A]): Traversal[A] =
+    if (this.isEmpty) this
+    else repeatTraversal(this).repeat(repeatTraversal)
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
@@ -42,8 +51,8 @@ class Traversal[+A](elements: IterableOnce[A]) extends IterableOnce[A]
 
 object Traversal extends IterableFactory[Traversal] {
   protected val logger = LoggerFactory.getLogger("Traversal")
-  private[this] val _empty = new Traversal(Iterator.empty)
-  def empty[A]: Traversal[A] = _empty
+//  private[this] val _empty = new Traversal(Iterator.empty)
+  def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
   def apply[A](elements: IterableOnce[A]) = new Traversal[A](elements.iterator)
   def apply[A](elements: java.util.Iterator[A]) = new Traversal[A](elements.asScala)
