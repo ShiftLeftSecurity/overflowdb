@@ -43,6 +43,12 @@ class TraversalTests extends WordSpec with Matchers {
         val results = center.repeat(_.out, _.emit).l
         results.size shouldBe 8
       }
+
+      "emit nodes that meet given condition" in {
+        val results = center.repeat(_.out, _.emit(_.value[String](Thing.PropertyNames.Name).startsWith("L")))
+          .map(_.value[String](Thing.PropertyNames.Name)).toSet
+        results shouldBe Set("L1", "L2", "L3")
+      }
     }
   }
 
