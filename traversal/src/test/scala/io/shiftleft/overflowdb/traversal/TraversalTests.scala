@@ -11,42 +11,41 @@ import scala.collection.mutable
 class TraversalTests extends WordSpec with Matchers {
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    centerThing.head.name shouldBe "Center"
+    center.head.name shouldBe "Center"
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
 
   "out step" in {
-    assertNames(centerThing.out, Set("L1", "R1"))
-    assertNames(centerThing.out.out, Set("L2", "R2"))
-    assertNames(centerThing.out(Connection.Label), Set("L1", "R1"))
-    assertNames(centerThing.out(nonExistingLabel), Set.empty)
+    assertNames(center.out, Set("L1", "R1"))
+    assertNames(center.out.out, Set("L2", "R2"))
+    assertNames(center.out(Connection.Label), Set("L1", "R1"))
+    assertNames(center.out(nonExistingLabel), Set.empty)
   }
 
   "outE step" in {
-    centerThing.outE.size shouldBe 2
-    assertNames(centerThing.outE.inV, Set("L1", "R1"))
-    assertNames(centerThing.outE.inV.outE.inV, Set("L2", "R2"))
-    assertNames(centerThing.outE(Connection.Label).inV, Set("L1", "R1"))
-    assertNames(centerThing.outE(nonExistingLabel).inV, Set.empty)
+    center.outE.size shouldBe 2
+    assertNames(center.outE.inV, Set("L1", "R1"))
+    assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
+    assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
+    assertNames(center.outE(nonExistingLabel).inV, Set.empty)
   }
 
   "repeat/until" when {
     "no `until` condition specified" should {
       "traverse over all nodes to outer limits exactly once, emitting nothing" in {
         val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
-        val results = center.repeat(_.sideEffect(traversedNodes.addOne).out).l
+        val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
         traversedNodes.size shouldBe 8
         results.size shouldBe 0
       }
 
       "emit everything along the way if so configured" in {
-        val results = center.repeat(_.out, _.emit).l
+        val results = center.repeat(_.followedBy, _.emit).l
         results.size shouldBe 8
       }
 
       "emit nodes that meet given condition" in {
-        val results = center.repeat(_.out, _.emit(_.value[String](Thing.PropertyNames.Name).startsWith("L")))
-          .map(_.value[String](Thing.PropertyNames.Name)).toSet
+        val results = center.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
         results shouldBe Set("L1", "L2", "L3")
       }
     }
@@ -65,8 +64,7 @@ class TraversalTests extends WordSpec with Matchers {
   val nonExistingLabel = "this label does not exist"
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
-  def center: Traversal[NodeRef[_]] = simpleDomain.all.hasProperty(Thing.Properties.Name.of("Center"))
-  def centerThing: Traversal[Thing] = simpleDomain.things.name("Center")
+  def center: Traversal[Thing] = simpleDomain.things.name("Center")
 
   def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
