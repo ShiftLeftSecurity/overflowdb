@@ -1,10 +1,7 @@
 package io.shiftleft.overflowdb.traversal
 
-import java.util.function.Consumer
-
 import io.shiftleft.overflowdb.NodeRef
 import io.shiftleft.overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, SimpleDomainTraversalSource, Thing}
-import org.apache.tinkerpop.gremlin.process.traversal.Traverser
 import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
 import org.scalatest.{Matchers, WordSpec}
 
@@ -35,10 +32,16 @@ class TraversalTests extends WordSpec with Matchers {
 
   "repeat/until" when {
     "no `until` condition specified" should {
-      "traverse over all nodes to outer limits exactly once" in {
+      "traverse over all nodes to outer limits exactly once, emitting nothing" in {
         val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
-        center.repeat(_.sideEffect(traversedNodes.addOne).out).l
+        val results = center.repeat(_.sideEffect(traversedNodes.addOne).out).l
         traversedNodes.size shouldBe 8
+        results.size shouldBe 0
+      }
+
+      "emit everything along the way if so configured" in {
+        val results = center.repeat(_.out, _.emit).l
+        results.size shouldBe 8
       }
     }
   }
