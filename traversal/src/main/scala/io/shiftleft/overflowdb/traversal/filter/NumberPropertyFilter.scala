@@ -6,58 +6,74 @@ import io.shiftleft.overflowdb.traversal.Traversal
 object NumberPropertyFilter {
 
   object Int {
-    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int, value: Int): Traversal[NodeType] =
+    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int,
+                                                value: Int): Traversal[NodeType] =
       trav.filter(node => accessor(node) > value)
 
-    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int, value: Int): Traversal[NodeType] =
+    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int,
+                                                 value: Int): Traversal[NodeType] =
       trav.filter(node => accessor(node) >= value)
 
-    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int, value: Int): Traversal[NodeType] =
+    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int,
+                                                value: Int): Traversal[NodeType] =
       trav.filter(node => accessor(node) < value)
 
-    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int, value: Int): Traversal[NodeType] =
+    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Int,
+                                                 value: Int): Traversal[NodeType] =
       trav.filter(node => accessor(node) <= value)
   }
 
   object Long {
-    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long, value: Long): Traversal[NodeType] =
+    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long,
+                                                value: Long): Traversal[NodeType] =
       trav.filter(node => accessor(node) > value)
 
-    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long, value: Long): Traversal[NodeType] =
+    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long,
+                                                 value: Long): Traversal[NodeType] =
       trav.filter(node => accessor(node) >= value)
 
-    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long, value: Long): Traversal[NodeType] =
+    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long,
+                                                value: Long): Traversal[NodeType] =
       trav.filter(node => accessor(node) < value)
 
-    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long, value: Long): Traversal[NodeType] =
+    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Long,
+                                                 value: Long): Traversal[NodeType] =
       trav.filter(node => accessor(node) <= value)
   }
 
   object Float {
-    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float, value: Float): Traversal[NodeType] =
+    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float,
+                                                value: Float): Traversal[NodeType] =
       trav.filter(node => accessor(node) > value)
 
-    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float, value: Float): Traversal[NodeType] =
+    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float,
+                                                 value: Float): Traversal[NodeType] =
       trav.filter(node => accessor(node) >= value)
 
-    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float, value: Float): Traversal[NodeType] =
+    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float,
+                                                value: Float): Traversal[NodeType] =
       trav.filter(node => accessor(node) < value)
 
-    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float, value: Float): Traversal[NodeType] =
+    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Float,
+                                                 value: Float): Traversal[NodeType] =
       trav.filter(node => accessor(node) <= value)
   }
 
   object Double {
-    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double, value: Double): Traversal[NodeType] =
+    def gt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double,
+                                                value: Double): Traversal[NodeType] =
       trav.filter(node => accessor(node) > value)
 
-    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double, value: Double): Traversal[NodeType] =
+    def gte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double,
+                                                 value: Double): Traversal[NodeType] =
       trav.filter(node => accessor(node) >= value)
 
-    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double, value: Double): Traversal[NodeType] =
+    def lt[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double,
+                                                value: Double): Traversal[NodeType] =
       trav.filter(node => accessor(node) < value)
 
-    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double, value: Double): Traversal[NodeType] =
+    def lte[NodeType](trav: Traversal[NodeType])(accessor: NodeType => Double,
+                                                 value: Double): Traversal[NodeType] =
       trav.filter(node => accessor(node) <= value)
   }
 

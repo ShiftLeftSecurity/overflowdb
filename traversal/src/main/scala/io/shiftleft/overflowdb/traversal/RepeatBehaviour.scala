@@ -1,36 +1,52 @@
 package io.shiftleft.overflowdb.traversal
 
 /**
- *
- */
-sealed trait RepeatBehaviour[A] {
+  * TODO denis check if it's faster to use a mutable class with members, to avoid virtual method calls
+  * n.b. this may not actually make a difference since the jit may do the same for us
+  *
+  * technically only `def emit(A): Boolean` is required, but this is intended to help performance by avoiding function calls using local fields
+  * TODO denis check if that's really any faster than just specifying 'emit'
+  *
+  * third alternative: instance
+  */
+sealed trait RepeatBehaviour[A] extends EmitBehaviour[A]
 
-  /** technically only `def emit(A): Boolean` is required, but this is intended to help performance by avoiding function calls using local fields
-   * TODO check if that's the case - alternative use a mutable object rather than a trait
-   *  */
-//  private[traversal] val hasConditionalEmitBehaviour: Boolean
-  private[traversal] val emitEverything: Boolean
-//  def emit(a: A): Boolean
+sealed trait EmitBehaviour[A] {
+  def emit(a: A): Boolean
+}
+
+trait EmitNothing[A] extends EmitBehaviour[A] {
+  override def emit(a: A): Boolean = false
+}
+
+trait EmitEverything[A] extends EmitBehaviour[A] {
+  override def emit(a: A): Boolean = true
 }
 
 object RepeatBehaviour {
+
   class Builder[A] {
-    private var _emitEverything = false
+    private[this] var emitEverything = false
+    private[this] var emitCondition: Option[A => Boolean] = None
 
-    private var emitCondition: A => Boolean =
-      _ => false //by default, emit nothing
-
-    /* change default emit behaviour (emit nothing) to 'emit everything along the way' */
+    /* configure `repeat` step to emit everything along the way' */
     def emit: Builder[A] = {
-      _emitEverything = true
-      emitCondition = _ => true
+      emitEverything = true
       this
     }
 
-    private[traversal] def build: RepeatBehaviour[A] = new RepeatBehaviour[A] {
-//      override def emit(a: A): Boolean = emitCondition(a)
-      override private[traversal] val emitEverything = _emitEverything
-    }
+    private[traversal] def build: RepeatBehaviour[A] =
+      if (emitEverything) {
+        new RepeatBehaviour[A] with EmitEverything[A]
+      } else
+        emitCondition match {
+          case None => new RepeatBehaviour[A] with EmitNothing[A]
+          case Some(condition) =>
+            new RepeatBehaviour[A] {
+              override def emit(a: A): Boolean = condition(a)
+            }
+        }
+
   }
 
 }
