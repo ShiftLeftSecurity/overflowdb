@@ -1,12 +1,5 @@
 package io.shiftleft.overflowdb.traversal
 
-/**
- * TODO denis check if it's faster to use a mutable class with members, to avoid virtual method calls
- * n.b. this may not actually make a difference since the jit may do the same for us
- *
- * technically only `def emit(A): Boolean` is required, but this is intended to help performance by avoiding function calls using local fields
- * TODO denis check if that's really any faster than just specifying 'emit'
- */
 sealed trait RepeatBehaviour[A] extends EmitBehaviour[A]
 
 sealed trait EmitBehaviour[A] {
@@ -14,11 +7,11 @@ sealed trait EmitBehaviour[A] {
 }
 
 trait EmitNothing[A] extends EmitBehaviour[A] {
-  override def emit(a: A): Boolean = false
+  final override def emit(a: A): Boolean = false
 }
 
 trait EmitEverything[A] extends EmitBehaviour[A] {
-  override def emit(a: A): Boolean = true
+  final override def emit(a: A): Boolean = true
 }
 
 object RepeatBehaviour {
@@ -42,13 +35,16 @@ object RepeatBehaviour {
     }
 
     private[traversal] def build: RepeatBehaviour[A] = {
+      // technically we could create new instances every time, but using a single instance helps the JIT compiler to inline it
       if (emitEverything) {
-        new RepeatBehaviour[A] with EmitEverything[A]
+        EmitEverything.asInstanceOf[RepeatBehaviour[A]]
       } else emitCondition match {
-        case None => new RepeatBehaviour[A] with EmitNothing[A]
+        case None => EmitNothing.asInstanceOf[RepeatBehaviour[A]]
         case Some(condition) => new RepeatBehaviour[A] { override def emit(a: A): Boolean = condition(a) }
       }
     }
+    private val EmitEverything = new RepeatBehaviour[Any] with EmitEverything[Any]
+    private val EmitNothing = new RepeatBehaviour[Any] with EmitEverything[Any]
   }
 
 }
