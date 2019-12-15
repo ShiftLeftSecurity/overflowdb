@@ -26,6 +26,15 @@ sealed trait UntilBehaviour[A] {
   def until(a: A): Boolean
 }
 
+object UntilBehaviour {
+  /* runtime optimization to avoid invoking [[UntilBehaviour.until]] for every element
+   * see [[RepeatBehaviour.Builder.build]]
+   * see [[Traversal._repeat]] */
+  sealed trait NoUntilBehaviour[A] extends UntilBehaviour[A] {
+    final override def until(a: A): Boolean = false
+  }
+}
+
 object RepeatBehaviour {
 
   class Builder[A] {
