@@ -1,8 +1,6 @@
 package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.traversal
-import io.shiftleft.overflowdb.traversal.EmitBehaviour.{EmitEverything, EmitNothing}
-import io.shiftleft.overflowdb.traversal.UntilBehaviour.NoUntilBehaviour
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
@@ -47,18 +45,18 @@ class Traversal[A](elements: IterableOnce[A])
       // we're at the end - emit whatever we collected on the way
       emitSack.to(Traversal)
     } else {
-      val travWithEmitMaybe = behaviour match {
-        case _: EmitNothing[A]    => this
-        case _: EmitEverything[A] => this.sideEffect(emitSack.addOne(_))
-        case emitBehaviour => this.sideEffect { a =>
-          if (emitBehaviour.emit(a)) emitSack.addOne(a)
+      val traversalConsideringEmit = behaviour match {
+        case _: EmitNothing    => this
+        case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
+        case conditional: EmitConditional[A] => this.sideEffect { a =>
+          if (conditional.emit(a)) emitSack.addOne(a)
         }
       }
-      val travWithUntilFilterMaybe = behaviour match {
-        case _: NoUntilBehaviour[A] => this
-        case untilBehaviour: UntilBehaviour[A] => this.filterNot(untilBehaviour.until)
+      val traversalConsideringUntil = behaviour.untilCondition match {
+        case None => traversalConsideringEmit
+        case Some(condition) => traversalConsideringEmit.filterNot(condition)
       }
-      repeatTraversal(travWithEmitMaybe)._repeat(repeatTraversal, behaviour, emitSack)
+      repeatTraversal(traversalConsideringUntil)._repeat(repeatTraversal, behaviour, emitSack)
     }
   }
 

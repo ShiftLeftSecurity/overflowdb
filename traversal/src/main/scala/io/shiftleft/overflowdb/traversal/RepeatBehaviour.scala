@@ -1,56 +1,28 @@
 package io.shiftleft.overflowdb.traversal
 
-sealed trait RepeatBehaviour[A] extends EmitBehaviour[A] with UntilBehaviour[A]
+trait RepeatBehaviour[A] { this: EmitBehaviour =>
+  val untilCondition: Option[A => Boolean] = None
+}
 
-sealed trait EmitBehaviour[A] {
+sealed trait EmitBehaviour
+trait EmitNothing extends EmitBehaviour
+trait EmitEverything extends EmitBehaviour
+trait EmitConditional[A] extends EmitBehaviour {
   def emit(a: A): Boolean
-}
-
-object EmitBehaviour {
-  /* runtime optimization to avoid invoking [[EmitBehaviour.emit]] for every element
-   * see [[RepeatBehaviour.Builder.build]]
-   * see [[Traversal._repeat]] */
-  sealed trait EmitNothing[A] extends EmitBehaviour[A] {
-    final override def emit(a: A): Boolean = false
-  }
-
-  /* runtime optimization to avoid invoking [[EmitBehaviour.emit]] for every element
-   * see [[RepeatBehaviour.Builder.build]]
-   * see [[Traversal._repeat]] */
-  sealed trait EmitEverything[A] extends EmitBehaviour[A] {
-    final override def emit(a: A): Boolean = true
-  }
-}
-
-sealed trait UntilBehaviour[A] {
-  def until(a: A): Boolean
-}
-
-object UntilBehaviour {
-  /* runtime optimization to avoid invoking [[UntilBehaviour.until]] for every element
-   * see [[RepeatBehaviour.Builder.build]]
-   * see [[Traversal._repeat]] */
-  sealed trait NoUntilBehaviour[A] extends UntilBehaviour[A] {
-    final override def until(a: A): Boolean = false
-  }
 }
 
 object RepeatBehaviour {
 
   class Builder[A] {
-    /* runtime optimization to avoid invoking [[EmitBehaviour.emit]] for every element */
     private[this] var emitNothing: Boolean = true
-    /* runtime optimization to avoid invoking [[EmitBehaviour.emit]] for every element */
     private[this] var emitEverything: Boolean = false
+    private[this] var emitCondition: Option[A => Boolean] = None
 
-    private[this] var emitCondition: A => Boolean =
-      _ => false //by default, emit nothing
-    private[this] var untilCondition: A => Boolean =
-      _ => false //by default, do not stop anywhere
+    private[this] var _untilCondition: Option[A => Boolean] = None
 
     /* configure `repeat` step to emit everything along the way */
     def emit: Builder[A] = {
-      emitCondition = _ => true
+      emitCondition = Some(_ => true)
       emitNothing = false
       emitEverything = true
       this
@@ -58,32 +30,33 @@ object RepeatBehaviour {
 
     /* configure `repeat` step to emit whatever meets the given condition */
     def emit(condition: A => Boolean): Builder[A] = {
+      emitCondition = Some(condition)
       emitNothing = false
       emitEverything = false
-      emitCondition = condition
       this
     }
 
     /* configure `repeat` step to stop traversing when given condition is true */
     def until(condition: A => Boolean): Builder[A] = {
-      untilCondition = condition
+      _untilCondition = Some(condition)
       this
     }
 
     private[traversal] def build: RepeatBehaviour[A] = {
       if (emitNothing) {
-        new RepeatBehaviour[A] with EmitBehaviour.EmitNothing[A] {
-          final override def until(a: A): Boolean = untilCondition(a)
+        new RepeatBehaviour[A] with EmitNothing {
+          final override val untilCondition: Option[A => Boolean] = _untilCondition
         }
       } else if (emitEverything) {
-        new RepeatBehaviour[A] with EmitBehaviour.EmitEverything[A] {
-          final override def until(a: A): Boolean = untilCondition(a)
+        new RepeatBehaviour[A] with EmitEverything {
+          final override val untilCondition: Option[A => Boolean] = _untilCondition
         }
-      }
-
-      new RepeatBehaviour[A] {
-        final override def emit(a: A): Boolean = emitCondition(a)
-        final override def until(a: A): Boolean = untilCondition(a)
+      } else {
+        new RepeatBehaviour[A] with EmitConditional[A] {
+          final private val _emitCondition = emitCondition.get
+          final override def emit(a: A): Boolean = _emitCondition(a)
+          final override val untilCondition: Option[A => Boolean] = _untilCondition
+        }
       }
     }
   }
