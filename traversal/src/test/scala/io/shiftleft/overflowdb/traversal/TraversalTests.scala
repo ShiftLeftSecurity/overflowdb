@@ -30,7 +30,7 @@ class TraversalTests extends WordSpec with Matchers {
     assertNames(center.outE(nonExistingLabel).inV, Set.empty)
   }
 
-  "repeat/until" when {
+  "repeat" when {
     "no `until` condition specified" should {
       "traverse over all nodes to outer limits exactly once, emitting nothing" in {
         val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
@@ -48,6 +48,11 @@ class TraversalTests extends WordSpec with Matchers {
         val results = center.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
         results shouldBe Set("L1", "L2", "L3")
       }
+    }
+
+    "using arbitrary `until` condition" in {
+      val results = center.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet
+      results shouldBe Set("Center", "L1", "L2", "R1", "R2")
     }
   }
 

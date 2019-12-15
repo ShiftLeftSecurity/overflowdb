@@ -1,19 +1,12 @@
 package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.traversal
+import io.shiftleft.overflowdb.traversal.EmitBehaviour.{EmitEverything, EmitNothing}
 import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
-import scala.collection.{
-  mutable,
-  Iterable,
-  IterableFactory,
-  IterableFactoryDefaults,
-  IterableOnce,
-  IterableOps,
-  Iterator
-}
+import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
 /**
