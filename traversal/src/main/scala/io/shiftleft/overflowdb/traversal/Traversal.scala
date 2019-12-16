@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 
 import scala.annotation.tailrec
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
-import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
+import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
 /**
@@ -19,6 +19,8 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
+  def next: A = head
+  def nextOption: Option[A] = headOption
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
 
   def cast[B]: Traversal[B] =
@@ -34,13 +36,14 @@ class Traversal[A](elements: IterableOnce[A])
              behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = identity)
     : Traversal[A] = {
     val behaviour = behaviourBuilder(new traversal.RepeatBehaviour.Builder[A]).build
-    _repeat(repeatTraversal, behaviour)
+    _repeat(repeatTraversal, behaviour, currentDepth = 0, emitSack = mutable.ListBuffer.empty)
   }
 
   @tailrec
   private def _repeat(repeatTraversal: Traversal[A] => Traversal[A],
                       behaviour: RepeatBehaviour[A],
-                      emitSack: mutable.ListBuffer[A] = mutable.ListBuffer.empty): Traversal[A] = {
+                      currentDepth: Int,
+                      emitSack: mutable.ListBuffer[A]): Traversal[A] = {
     if (this.isEmpty) {
       // we're at the end - emit whatever we collected on the way
       emitSack.to(Traversal)
@@ -56,7 +59,17 @@ class Traversal[A](elements: IterableOnce[A])
         case None => traversalConsideringEmit
         case Some(condition) => traversalConsideringEmit.filterNot(condition)
       }
-      repeatTraversal(traversalConsideringUntil)._repeat(repeatTraversal, behaviour, emitSack)
+
+      if (behaviour.maxDepthReached(currentDepth)) {
+        traversalConsideringUntil
+      } else {
+//        Iterator.continually()
+//        new AbstractIterator[A]{
+//          override def hasNext: Boolean = ???
+//          override def next(): A = ???
+//        }.to(Traversal)
+        repeatTraversal(traversalConsideringUntil)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
+      }
     }
   }
 

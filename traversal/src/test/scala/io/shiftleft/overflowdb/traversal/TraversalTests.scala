@@ -30,29 +30,54 @@ class TraversalTests extends WordSpec with Matchers {
     assertNames(center.outE(nonExistingLabel).inV, Set.empty)
   }
 
-  "repeat" when {
-    "no `until` condition specified" should {
-      "traverse over all nodes to outer limits exactly once, emitting nothing" in {
-        val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
-        val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
-        traversedNodes.size shouldBe 8
-        results.size shouldBe 0
-      }
-
-      "emit everything along the way if so configured" in {
-        val results = center.repeat(_.followedBy, _.emit).l
-        results.size shouldBe 8
-      }
-
-      "emit nodes that meet given condition" in {
-        val results = center.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
-        results shouldBe Set("L1", "L2", "L3")
-      }
+  "repeat" should {
+    "traverse all nodes to outer limits exactly once, emitting nothing" in {
+      val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
+      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
+      traversedNodes.size shouldBe 8
+      results.size shouldBe 0
     }
 
-    "using arbitrary `until` condition" in {
+    "be lazily evaluated" in {
+      val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
+//      val repeatTraversal = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+      val repeatTraversal = center.repeat(_.followedBy)
+      traversedNodes.size shouldBe 0
+      repeatTraversal.next.name shouldBe "Center"
+      traversedNodes.size shouldBe 1
+      repeatTraversal.next
+      traversedNodes.size shouldBe 2
+    }
+
+    "emit everything along the way if so configured" in {
+      val results = center.repeat(_.followedBy, _.emit).l
+      results.size shouldBe 8
+    }
+
+    "emit nodes that meet given condition" in {
+      val results = center.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
+      results shouldBe Set("L1", "L2", "L3")
+    }
+
+    "allow arbitrary `until` condition" in {
       val results = center.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet
       results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+    }
+
+    "allow `maxDepth` modulator" in {
+      val results = center.repeat(_.followedBy, _.maxDepth(2).emit).name.toSet
+      results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+    }
+
+
+    "foo" in {
+//      center.repeat(_.sideEffect(t => println(t.name)).followedBy).toList
+//      println(center.repeat(_.sideEffect(t => println(t.name)).followedBy, _.emit).take(2))
+      val iter = center.repeat(_.sideEffect(t => println("in repeat: " + t.name)).followedBy, _.emit)
+      println(iter)
+      println(iter.head)
+      println(iter.head)
+//      println(iter.next)
     }
   }
 
