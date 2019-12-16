@@ -15,14 +15,14 @@ class TraversalTests extends WordSpec with Matchers {
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
 
-  "out step" in {
+  "out step (generic)" in {
     assertNames(center.out, Set("L1", "R1"))
     assertNames(center.out.out, Set("L2", "R2"))
     assertNames(center.out(Connection.Label), Set("L1", "R1"))
     assertNames(center.out(nonExistingLabel), Set.empty)
   }
 
-  "outE step" in {
+  "outE step (generic)" in {
     center.outE.size shouldBe 2
     assertNames(center.outE.inV, Set("L1", "R1"))
     assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
@@ -31,22 +31,19 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   "repeat" should {
-    "traverse all nodes to outer limits exactly once, emitting nothing" in {
-      val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
-      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
-      traversedNodes.size shouldBe 8
-      results.size shouldBe 0
+    "be lazily evaluated" in {
+      val traversedNodes = mutable.ListBuffer.empty[Thing]
+      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+      withClue("traversal should not do anything when it's only created") {
+        traversedNodes.size shouldBe 0
+      }
     }
 
-    "be lazily evaluated" in {
-      val traversedNodes = mutable.ListBuffer.empty[NodeRef[_]]
-//      val repeatTraversal = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
-      val repeatTraversal = center.repeat(_.followedBy)
-      traversedNodes.size shouldBe 0
-      repeatTraversal.next.name shouldBe "Center"
-      traversedNodes.size shouldBe 1
-      repeatTraversal.next
-      traversedNodes.size shouldBe 2
+    "traverse all nodes to outer limits exactly once, emitting and returning nothing by default" in {
+      val traversedNodes = mutable.ListBuffer.empty[Thing]
+      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).toList
+      traversedNodes.size shouldBe 8
+      results.size shouldBe 0
     }
 
     "emit everything along the way if so configured" in {
@@ -64,20 +61,36 @@ class TraversalTests extends WordSpec with Matchers {
       results shouldBe Set("Center", "L1", "L2", "R1", "R2")
     }
 
-    "allow `maxDepth` modulator" in {
-      val results = center.repeat(_.followedBy, _.maxDepth(2).emit).name.toSet
-      results shouldBe Set("Center", "L1", "L2", "R1", "R2")
-    }
+    "support `times` modulator" when {
+      "used without emit" in {
+        val results = center.repeat(_.followedBy, _.times(2)).name.toSet
+        results shouldBe Set("L2", "R2")
+      }
 
+      "used in combination with emit" in {
+        val results = center.repeat(_.followedBy, _.times(2).emit).name.toSet
+        results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+      }
 
-    "foo" in {
-//      center.repeat(_.sideEffect(t => println(t.name)).followedBy).toList
-//      println(center.repeat(_.sideEffect(t => println(t.name)).followedBy, _.emit).take(2))
-      val iter = center.repeat(_.sideEffect(t => println("in repeat: " + t.name)).followedBy, _.emit)
-      println(iter)
-      println(iter.head)
-      println(iter.head)
-//      println(iter.next)
+      "asserting more fine-grained traversal characteristics" in {
+        val traversedNodes = mutable.ListBuffer.empty[Thing]
+        val traversal = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy, _.times(2))
+
+        withClue("`.hasNext` will run the provided repeat traversal exactly 2 times (as configured)") {
+          traversal.hasNext shouldBe true
+          traversedNodes.size shouldBe 2
+        }
+        withClue("`.hasNext` is idempotent") {
+          traversal.hasNext shouldBe true
+          traversedNodes.size shouldBe 2
+        }
+
+        traversal.next.name shouldBe "L2"
+        traversal.next.name shouldBe "R2"
+        traversedNodes.size shouldBe 3
+        traversedNodes.map(_.name).to(Set) shouldBe Set("Center", "L1", "R1")
+        traversal.hasNext shouldBe false
+      }
     }
   }
 

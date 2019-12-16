@@ -2,10 +2,10 @@ package io.shiftleft.overflowdb.traversal
 
 trait RepeatBehaviour[A] { this: EmitBehaviour =>
   val untilCondition: Option[A => Boolean]
-  val maxDepth: Option[Int]
+  val times: Option[Int]
 
-  def maxDepthReached(currentDepth: Int): Boolean =
-    maxDepth.map(_ <= currentDepth).getOrElse(false)
+  def timesReached(currentDepth: Int): Boolean =
+    times.isDefined && times.get <= currentDepth
 }
 
 sealed trait EmitBehaviour
@@ -22,7 +22,7 @@ object RepeatBehaviour {
     private[this] var emitEverything: Boolean = false
     private[this] var emitCondition: Option[A => Boolean] = None
     private[this] var _untilCondition: Option[A => Boolean] = None
-    private[this] var _maxDepth: Option[Int] = None
+    private[this] var _times: Option[Int] = None
 
     /* configure `repeat` step to emit everything along the way */
     def emit: Builder[A] = {
@@ -46,8 +46,8 @@ object RepeatBehaviour {
       this
     }
 
-    def maxDepth(value: Int): Builder[A] = {
-      _maxDepth = Some(value)
+    def times(value: Int): Builder[A] = {
+      _times = Some(value)
       this
     }
 
@@ -55,19 +55,19 @@ object RepeatBehaviour {
       if (emitNothing) {
         new RepeatBehaviour[A] with EmitNothing {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
-          final override val maxDepth: Option[Int] = _maxDepth
+          final override val times: Option[Int] = _times
         }
       } else if (emitEverything) {
         new RepeatBehaviour[A] with EmitEverything {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
-          final override val maxDepth: Option[Int] = _maxDepth
+          final override val times: Option[Int] = _times
         }
       } else {
         new RepeatBehaviour[A] with EmitConditional[A] {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final private val _emitCondition = emitCondition.get
           override final def emit(a: A): Boolean = _emitCondition(a)
-          final override val maxDepth: Option[Int] = _maxDepth
+          final override val times: Option[Int] = _times
         }
       }
     }
