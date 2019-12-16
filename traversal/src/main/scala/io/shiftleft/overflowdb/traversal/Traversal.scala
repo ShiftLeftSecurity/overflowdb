@@ -53,23 +53,23 @@ class Traversal[A](elements: IterableOnce[A])
       println("we're at the end")
       (emitSack.iterator ++ this).to(Traversal)
     } else {
-//      val traversalConsideringEmit = behaviour match {
-//        case _: EmitNothing    => this
-//        case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
-//        case conditional: EmitConditional[A] => this.sideEffect { a =>
-//          if (conditional.emit(a)) emitSack.addOne(a)
-//        }
-//      }
-//      val traversalConsideringUntil = behaviour.untilCondition match {
-//        case None => traversalConsideringEmit
-//        case Some(condition) => traversalConsideringEmit.filterNot(condition)
-//      }
+      val traversalConsideringEmit = behaviour match {
+        case _: EmitNothing    => this
+        case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
+        case conditional: EmitConditional[A] => this.sideEffect { a =>
+          if (conditional.emit(a)) emitSack.addOne(a)
+        }
+      }
+      val traversalConsideringUntil = behaviour.untilCondition match {
+        case None => traversalConsideringEmit
+        case Some(condition) => traversalConsideringEmit.filterNot(condition)
+      }
 //      repeatTraversal(traversalConsideringUntil)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
 //      repeatTraversal(traversalConsideringUntil).iterator.flatMap { a =>
 //        Traversal.fromSingle(a)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack) //.to(Traversal)
 //      }.to(Traversal)
 //      repeatTraversal(this)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-      this.flatMap { a =>
+      traversalConsideringUntil.flatMap { a =>
         val aLifted = Traversal.fromSingle(a)
         repeatTraversal(aLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
       }

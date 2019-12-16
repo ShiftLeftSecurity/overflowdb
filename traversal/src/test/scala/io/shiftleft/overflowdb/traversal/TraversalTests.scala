@@ -33,7 +33,7 @@ class TraversalTests extends WordSpec with Matchers {
   "repeat" should {
     "be lazily evaluated" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
-      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+      val traversalNotYetExecuted = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
       withClue("traversal should not do anything when it's only created") {
         traversedNodes.size shouldBe 0
       }
@@ -47,8 +47,7 @@ class TraversalTests extends WordSpec with Matchers {
     }
 
     "emit everything along the way if so configured" in {
-      val results = center.repeat(_.followedBy, _.emit).l
-      results.size shouldBe 8
+      center.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
 
     "emit nodes that meet given condition" in {
@@ -57,8 +56,11 @@ class TraversalTests extends WordSpec with Matchers {
     }
 
     "allow arbitrary `until` condition" in {
-      val results = center.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet
-      results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+      center.repeat(_.followedBy, _.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
+
+      withClue("should emit everything along the way if so configured") {
+        center.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
+      }
     }
 
     "support `times` modulator" when {
