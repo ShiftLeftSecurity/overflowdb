@@ -9,25 +9,38 @@ import scala.collection.mutable
 
 /** generic traversal steps (mostly domain independent) */
 class TraversalTests extends WordSpec with Matchers {
+
+  "can only be iterated once" in {
+    val one = Traversal.fromSingle("one")
+    one.size shouldBe 1
+    one.size shouldBe 0 // logs a warning (not tested here)
+
+    val empty = Traversal(Nil)
+    empty.size shouldBe 0
+    empty.size shouldBe 0 // logs a warning (not tested here)
+  }
+
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     center.head.name shouldBe "Center"
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
 
-  "out step (generic)" in {
-    assertNames(center.out, Set("L1", "R1"))
-    assertNames(center.out.out, Set("L2", "R2"))
-    assertNames(center.out(Connection.Label), Set("L1", "R1"))
-    assertNames(center.out(nonExistingLabel), Set.empty)
-  }
+  "generic graph steps" can {
+    "step out" in {
+      assertNames(center.out, Set("L1", "R1"))
+      assertNames(center.out.out, Set("L2", "R2"))
+      assertNames(center.out(Connection.Label), Set("L1", "R1"))
+      assertNames(center.out(nonExistingLabel), Set.empty)
+    }
 
-  "outE step (generic)" in {
-    center.outE.size shouldBe 2
-    assertNames(center.outE.inV, Set("L1", "R1"))
-    assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
-    assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
-    assertNames(center.outE(nonExistingLabel).inV, Set.empty)
+    "step outE" in {
+      center.outE.size shouldBe 2
+      assertNames(center.outE.inV, Set("L1", "R1"))
+      assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
+      assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
+      assertNames(center.outE(nonExistingLabel).inV, Set.empty)
+    }
   }
 
   "repeat" should {
@@ -112,16 +125,6 @@ class TraversalTests extends WordSpec with Matchers {
         results shouldBe Set("Center", "L1", "L2", "R1", "R2")
       }
     }
-  }
-
-  "Traversal can only be iterated once" in {
-    val one = Traversal.fromSingle("one")
-    one.size shouldBe 1
-    one.size shouldBe 0 // logs a warning (not tested here)
-
-    val empty = Traversal(Nil)
-    empty.size shouldBe 0
-    empty.size shouldBe 0 // logs a warning (not tested here)
   }
 
   val nonExistingLabel = "this label does not exist"
