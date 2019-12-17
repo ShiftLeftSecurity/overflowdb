@@ -3,9 +3,8 @@ package io.shiftleft.overflowdb.traversal
 import io.shiftleft.overflowdb.traversal
 import org.slf4j.LoggerFactory
 
-import scala.annotation.tailrec
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
-import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOnceOps, IterableOps, Iterator, mutable}
+import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 
 /**
@@ -40,70 +39,35 @@ class Traversal[A](elements: IterableOnce[A])
     _repeat(repeatTraversal, behaviour, currentDepth = 0, emitSack = mutable.ListBuffer.empty)
   }
 
-//  @tailrec
   private def _repeat(repeatTraversal: Traversal[A] => Traversal[A],
                       behaviour: RepeatBehaviour[A],
                       currentDepth: Int,
                       emitSack: mutable.ListBuffer[A]): Traversal[A] = {
-    val empty = this.isEmpty
-    val maxDepthReached = behaviour.timesReached(currentDepth)
-//    println(s"_repeat: empty=$empty, maxDepthReached=$maxDepthReached")
-    if (empty || maxDepthReached) {
+    if (isEmpty || behaviour.timesReached(currentDepth)) {
       // we're at the end - emit whatever we collected on the way plus the current position
-      println("we're at the end")
       (emitSack.iterator ++ this).to(Traversal)
     } else {
-      val traversalConsideringEmit = behaviour match {
-        case _: EmitNothing    => this
-        case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
-        case conditional: EmitConditional[A] => this.sideEffect { a =>
-          if (conditional.emit(a)) emitSack.addOne(a)
+      traversalConsideringEmit(behaviour, emitSack).flatMap { element =>
+        if (behaviour.untilCondition.isDefined && behaviour.untilCondition.get.apply(element)) {
+          // `until` condition reached - finishing the repeat traversal here, emitting the current element and the emitSack (if any)
+          Traversal.from(emitSack, element)
+        } else {
+          val aLifted = Traversal.fromSingle(element)
+          repeatTraversal(aLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
         }
       }
-      val traversalConsideringUntil = behaviour.untilCondition match {
-        case None => traversalConsideringEmit
-        case Some(condition) => traversalConsideringEmit.filterNot(condition)
-      }
-//      repeatTraversal(traversalConsideringUntil)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-//      repeatTraversal(traversalConsideringUntil).iterator.flatMap { a =>
-//        Traversal.fromSingle(a)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack) //.to(Traversal)
-//      }.to(Traversal)
-//      repeatTraversal(this)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-      traversalConsideringUntil.flatMap { a =>
-        val aLifted = Traversal.fromSingle(a)
-        repeatTraversal(aLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-      }
     }
   }
 
-  def repeat2(repeatTraversal: Traversal[A] => Traversal[A],
-             behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = identity)
-  : Traversal[A] = {
-    val behaviour = behaviourBuilder(new traversal.RepeatBehaviour.Builder[A]).build
-    _repeat2(repeatTraversal, behaviour, currentDepth = 0, emitSack = mutable.ListBuffer.empty)
-  }
-
-  //  @tailrec
-  private def _repeat2(repeatTraversal: Traversal[A] => Traversal[A],
-                      behaviour: RepeatBehaviour[A],
-                      currentDepth: Int,
-                      emitSack: mutable.ListBuffer[A]): Traversal[A] = {
-    val empty = this.isEmpty
-    val timesReached = behaviour.timesReached(currentDepth)
-        println(s"_repeat: empty=$empty, timesReached=$timesReached")
-    if (empty || timesReached) {
-      // we're at the end - emit whatever we collected on the way plus the current position
-      println("reached the end of Traversal")
-      (emitSack.iterator ++ this).to(Traversal)
-    } else {
-//      repeatTraversal(this)._repeat2(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-      this.flatMap { a =>
-        val aLifted = Traversal.fromSingle(a)
-        repeatTraversal(aLifted)._repeat2(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-      }
+  private def traversalConsideringEmit(behaviour: RepeatBehaviour[A], emitSack: mutable.ListBuffer[A]): Traversal[A] =
+    behaviour match {
+      case _: EmitNothing    => this
+      case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
+      case conditional: EmitConditional[A] =>
+        this.sideEffect { a =>
+          if (conditional.emit(a)) emitSack.addOne(a)
+        }
     }
-  }
-
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
@@ -144,8 +108,15 @@ object Traversal extends IterableFactory[Traversal] {
   def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
     Iterator.newBuilder[A].mapResult(new Traversal(_))
 
-  def from[A](source: IterableOnce[A]): Traversal[A] =
-    new Traversal(Iterator.from(source))
+  def from[A](iter: IterableOnce[A]): Traversal[A] =
+    new Traversal(Iterator.from(iter))
+
+  def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
+    val builder = Traversal.newBuilder[A]
+    builder.addAll(iter)
+    builder.addOne(a)
+    builder.result
+  }
 
   def fromSingle[A](a: A): Traversal[A] = new Traversal(Iterator.single(a))
 }

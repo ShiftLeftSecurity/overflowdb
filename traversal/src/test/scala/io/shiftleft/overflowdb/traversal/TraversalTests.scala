@@ -55,7 +55,7 @@ class TraversalTests extends WordSpec with Matchers {
       results shouldBe Set("L1", "L2", "L3")
     }
 
-    "allow arbitrary `until` condition" in {
+    "support arbitrary `until` condition" in {
       center.repeat(_.followedBy, _.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
 
       withClue("should emit everything along the way if so configured") {
