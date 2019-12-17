@@ -22,6 +22,7 @@ class Traversal[A](elements: IterableOnce[A])
   def next: A = iterator.next
   def nextOption: Option[A] = iterator.nextOption
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
+  def exec: Unit = while (hasNext) next
 
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))

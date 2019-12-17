@@ -39,7 +39,7 @@ class TraversalTests extends WordSpec with Matchers {
       }
     }
 
-    "traverse all nodes to outer limits exactly once, emitting and returning nothing by default" in {
+    "by default traverse all nodes to outer limits exactly once, emitting and returning nothing" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
       val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).toList
       traversedNodes.size shouldBe 8
