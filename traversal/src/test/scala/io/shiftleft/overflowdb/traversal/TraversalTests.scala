@@ -27,14 +27,14 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   "generic graph steps" can {
-    "step out" in {
+    "out step" in {
       assertNames(center.out, Set("L1", "R1"))
       assertNames(center.out.out, Set("L2", "R2"))
       assertNames(center.out(Connection.Label), Set("L1", "R1"))
       assertNames(center.out(nonExistingLabel), Set.empty)
     }
 
-    "step outE" in {
+    "outE step" in {
       center.outE.size shouldBe 2
       assertNames(center.outE.inV, Set("L1", "R1"))
       assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
