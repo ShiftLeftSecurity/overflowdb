@@ -28,6 +28,8 @@ import java.util.stream.StreamSupport;
  * Node that stores adjacent Nodes directly, rather than via edges.
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
+ *
+ * TODO: remove tinkerpop dependency
  */
 public abstract class OdbNode implements Vertex {
 
@@ -381,7 +383,7 @@ public abstract class OdbNode implements Vertex {
       int strideSize = getStrideSize(label);
 
       return new DummyEdgeIterator(adjacentNodesWithProperties, start, start + length, strideSize,
-          direction, label, (NodeRef) ref);
+          direction, label, ref);
     } else {
       return Collections.emptyIterator();
     }
@@ -391,9 +393,9 @@ public abstract class OdbNode implements Vertex {
     return createAdjacentNodeIteratorByOffSet( getPositionInEdgeOffsets(direction, label));
   }
 
-  // Simplify hoisting of string lookups.
-  // This is on the hot path, hence final.
-public final Iterator<NodeRef> createAdjacentNodeIteratorByOffSet(int offsetPos){
+  /* Simplify hoisting of string lookups.
+   * n.b. `final` so that the JIT compiler can inline it */
+  public final Iterator<NodeRef> createAdjacentNodeIteratorByOffSet(int offsetPos){
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
       int length = blockLength(offsetPos);

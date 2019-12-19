@@ -13,6 +13,12 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test,
 )
 
+/* it's a java-only build */
+autoScalaLibrary := false
+crossPaths := false
+
+// execute tests in root project so that they work in sbt *and* intellij
+Test/baseDirectory := (ThisBuild / Test / run / baseDirectory).value
 Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
 Test/compile/javacOptions ++= Seq("-g", "-target", "1.8")
 Test/fork := true
