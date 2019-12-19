@@ -20,6 +20,24 @@ class TraversalTests extends WordSpec with Matchers {
     empty.size shouldBe 0 // logs a warning (not tested here)
   }
 
+  "perform sideEffect" should {
+    def traversal = 1.to(10).to(Traversal)
+
+    "support normal function" in {
+      val sack = mutable.ListBuffer.empty[Int]
+      traversal.sideEffect(sack.addOne).iterate
+      sack.size shouldBe 10
+    }
+
+    "support PartialFunction and not fail for undefined cases" in {
+      val sack = mutable.ListBuffer.empty[Int]
+      traversal.sideEffectPF {
+        case i if i > 5 => sack.addOne(i)
+      }.iterate
+      sack.size shouldBe 5
+    }
+  }
+
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     center.head.name shouldBe "Center"
@@ -27,14 +45,14 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   "generic graph steps" can {
-    "out step" in {
+    "step out" in {
       assertNames(center.out, Set("L1", "R1"))
       assertNames(center.out.out, Set("L2", "R2"))
       assertNames(center.out(Connection.Label), Set("L1", "R1"))
       assertNames(center.out(nonExistingLabel), Set.empty)
     }
 
-    "outE step" in {
+    "step outE" in {
       center.outE.size shouldBe 2
       assertNames(center.outE.inV, Set("L1", "R1"))
       assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))

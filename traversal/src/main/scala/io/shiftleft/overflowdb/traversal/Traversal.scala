@@ -33,6 +33,13 @@ class Traversal[A](elements: IterableOnce[A])
     a
   }
 
+  /** perform side effect without changing the contents of the traversal
+   *  will only apply the partialFunction if it is defined for the given input - analogous to `collect` */
+  def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] = map { a =>
+    pf.applyOrElse(a, {_: A => ()})
+    a
+  }
+
   def repeat(repeatTraversal: Traversal[A] => Traversal[A],
              behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = identity)
     : Traversal[A] = {
