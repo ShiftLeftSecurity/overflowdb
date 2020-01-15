@@ -86,6 +86,13 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(l2.inE(Connection.Label).outV, Set("L1"))
       assertNames(l2.inE(nonExistingLabel).outV, Set.empty)
     }
+
+    "step bothE" in {
+      /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
+      l2.bothE.size shouldBe 2
+      l2.bothE(Connection.Label).size shouldBe 2
+      l2.bothE(nonExistingLabel).size shouldBe 0
+    }
   }
 
   "repeat" should {

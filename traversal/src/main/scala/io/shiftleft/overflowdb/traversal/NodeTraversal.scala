@@ -75,4 +75,12 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
   /** follow incoming edges of given label */
   def inE(label: String): Traversal[OdbEdge] =
     traversal.flatMap(_.edges(Direction.IN, label).toScalaAs)
+
+  /** follow incoming and outgoing edges */
+  def bothE: Traversal[OdbEdge] =
+    traversal.flatMap(_.edges(Direction.BOTH).toScalaAs)
+
+  /** follow incoming and outgoing edges of given label */
+  def bothE(label: String): Traversal[OdbEdge] =
+    traversal.flatMap(_.edges(Direction.BOTH, label).toScalaAs)
 }
