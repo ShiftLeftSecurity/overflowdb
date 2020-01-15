@@ -52,6 +52,14 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(center.out(nonExistingLabel), Set.empty)
     }
 
+    "step in" in {
+      l2.in.size shouldBe 1
+      assertNames(l2.in, Set("L1"))
+      assertNames(l2.in.in, Set("Center"))
+      assertNames(l2.in(Connection.Label), Set("L1"))
+      assertNames(l2.in(nonExistingLabel), Set.empty)
+    }
+
     "step outE" in {
       center.outE.size shouldBe 2
       assertNames(center.outE.inV, Set("L1", "R1"))
@@ -60,12 +68,12 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(center.outE(nonExistingLabel).inV, Set.empty)
     }
 
-    "step in" in {
-      l2.in.size shouldBe 1
-      assertNames(l2.in, Set("L1"))
-      assertNames(l2.in.in, Set("Center"))
-      assertNames(l2.in(Connection.Label), Set("L1"))
-      assertNames(l2.in(nonExistingLabel), Set.empty)
+    "step inE" in {
+      l2.inE.size shouldBe 1
+      assertNames(l2.inE.outV, Set("L1"))
+      assertNames(l2.inE.outV.inE.outV, Set("Center"))
+      assertNames(l2.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2.inE(nonExistingLabel).outV, Set.empty)
     }
   }
 
