@@ -59,6 +59,14 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
       assertNames(center.outE(nonExistingLabel).inV, Set.empty)
     }
+
+    "step in" in {
+      l2.in.size shouldBe 1
+      assertNames(l2.in, Set("L1"))
+      assertNames(l2.in.in, Set("Center"))
+      assertNames(l2.in(Connection.Label), Set("L1"))
+      assertNames(l2.in(nonExistingLabel), Set.empty)
+    }
   }
 
   "repeat" should {
@@ -149,6 +157,7 @@ class TraversalTests extends WordSpec with Matchers {
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
   def center: Traversal[Thing] = simpleDomain.things.name("Center")
+  def l2: Traversal[Thing] = simpleDomain.things.name("L2")
 
   def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames

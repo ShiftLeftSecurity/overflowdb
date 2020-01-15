@@ -36,15 +36,27 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
    * Use `traversalSource.withLabel` instead, it is much faster */
   def label(value: String): Traversal[A] = traversal.filter(_.label == value)
 
+  /** follow outgoing edges to adjacent nodes */
   def out: Traversal[NodeRef[_]] =
     traversal.flatMap(_.vertices(Direction.OUT).toScalaAs)
 
+  /** follow outgoing edges of given label to adjacent nodes */
   def out(label: String): Traversal[NodeRef[_]] =
     traversal.flatMap(_.vertices(Direction.OUT, label).toScalaAs)
 
+  /** follow incoming edges to adjacent nodes */
+  def in: Traversal[NodeRef[_]] =
+    traversal.flatMap(_.vertices(Direction.IN).toScalaAs)
+
+  /** follow incoming edges of given label to adjacent nodes */
+  def in(label: String): Traversal[NodeRef[_]] =
+    traversal.flatMap(_.vertices(Direction.IN, label).toScalaAs)
+
+  /** follow outgoing edges */
   def outE: Traversal[OdbEdge] =
     traversal.flatMap(_.edges(Direction.OUT).toScalaAs)
 
+  /** follow outgoing edges of given label */
   def outE(label: String): Traversal[OdbEdge] =
     traversal.flatMap(_.edges(Direction.OUT, label).toScalaAs)
 }
