@@ -52,6 +52,14 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
   def in(label: String): Traversal[NodeRef[_]] =
     traversal.flatMap(_.vertices(Direction.IN, label).toScalaAs)
 
+  /** follow incoming and outgoing edges to adjacent nodes */
+  def both: Traversal[NodeRef[_]] =
+    traversal.flatMap(_.vertices(Direction.BOTH).toScalaAs)
+
+  /** follow incoming and outgoing edges of given label to adjacent nodes */
+  def both(label: String): Traversal[NodeRef[_]] =
+    traversal.flatMap(_.vertices(Direction.BOTH, label).toScalaAs)
+
   /** follow outgoing edges */
   def outE: Traversal[OdbEdge] =
     traversal.flatMap(_.edges(Direction.OUT).toScalaAs)

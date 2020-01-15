@@ -59,6 +59,17 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(l2.in(Connection.Label), Set("L1"))
       assertNames(l2.in(nonExistingLabel), Set.empty)
     }
+    
+    "step both" in {
+      /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
+      l2.both.size shouldBe 2
+      assertNames(l2.both, Set("L1", "L3"))
+      assertNames(r2.both, Set("R1", "R3"))
+      assertNames(l2.both.both, Set("L2", "Center"))
+      assertNames(r2.both.both, Set("Center", "R2", "R4"))
+      assertNames(l2.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2.both(nonExistingLabel), Set.empty)
+    }
 
     "step outE" in {
       center.outE.size shouldBe 2
@@ -166,6 +177,7 @@ class TraversalTests extends WordSpec with Matchers {
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
   def center: Traversal[Thing] = simpleDomain.things.name("Center")
   def l2: Traversal[Thing] = simpleDomain.things.name("L2")
+  def r2: Traversal[Thing] = simpleDomain.things.name("R2")
 
   def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
