@@ -27,6 +27,6 @@ object GratefulDead {
 }
 
 class GratefulDeadTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
-  def artists: Traversal[Artist] = labelTyped(Artist.Label)
-  def songs: Traversal[Song] = labelTyped(Song.Label)
+  def artists: Traversal[Artist] = label(Artist.Label).cast[Artist]
+  def songs: Traversal[Song] = label(Song.Label).cast[Song]
 }

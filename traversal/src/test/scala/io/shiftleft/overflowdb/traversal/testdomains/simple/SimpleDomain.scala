@@ -19,5 +19,5 @@ object SimpleDomain {
 }
 
 class SimpleDomainTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
-  def things: Traversal[Thing] = labelTyped(Thing.Label)
+  def things: Traversal[Thing] = label(Thing.Label).cast[Thing]
 }
