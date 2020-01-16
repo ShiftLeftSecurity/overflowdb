@@ -52,12 +52,46 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(center.out(nonExistingLabel), Set.empty)
     }
 
+    "step in" in {
+      l2.in.size shouldBe 1
+      assertNames(l2.in, Set("L1"))
+      assertNames(l2.in.in, Set("Center"))
+      assertNames(l2.in(Connection.Label), Set("L1"))
+      assertNames(l2.in(nonExistingLabel), Set.empty)
+    }
+    
+    "step both" in {
+      /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
+      l2.both.size shouldBe 2
+      assertNames(l2.both, Set("L1", "L3"))
+      assertNames(r2.both, Set("R1", "R3"))
+      assertNames(l2.both.both, Set("L2", "Center"))
+      assertNames(r2.both.both, Set("Center", "R2", "R4"))
+      assertNames(l2.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2.both(nonExistingLabel), Set.empty)
+    }
+
     "step outE" in {
       center.outE.size shouldBe 2
       assertNames(center.outE.inV, Set("L1", "R1"))
       assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
       assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
       assertNames(center.outE(nonExistingLabel).inV, Set.empty)
+    }
+
+    "step inE" in {
+      l2.inE.size shouldBe 1
+      assertNames(l2.inE.outV, Set("L1"))
+      assertNames(l2.inE.outV.inE.outV, Set("Center"))
+      assertNames(l2.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2.inE(nonExistingLabel).outV, Set.empty)
+    }
+
+    "step bothE" in {
+      /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
+      l2.bothE.size shouldBe 2
+      l2.bothE(Connection.Label).size shouldBe 2
+      l2.bothE(nonExistingLabel).size shouldBe 0
     }
   }
 
@@ -149,6 +183,8 @@ class TraversalTests extends WordSpec with Matchers {
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
   def center: Traversal[Thing] = simpleDomain.things.name("Center")
+  def l2: Traversal[Thing] = simpleDomain.things.name("L2")
+  def r2: Traversal[Thing] = simpleDomain.things.name("R2")
 
   def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
