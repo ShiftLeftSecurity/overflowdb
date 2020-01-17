@@ -282,8 +282,23 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
+  /* specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<Edge> edgesOut(String edgeLabel) {
+    return createDummyEdgeIterator(Direction.OUT, edgeLabel);
+  }
+
+  /* specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<Edge> edgesIn(String edgeLabel) {
+    return createDummyEdgeIterator(Direction.IN, edgeLabel);
+  }
+
   @Override
   public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
+    return nodes(direction, edgeLabels);
+  }
+
+  /* lookup adjacent nodes via direction and labels */
+  public Iterator<Vertex> nodes(Direction direction, String... edgeLabels) {
     final MultiIterator2<Vertex> multiIterator = new MultiIterator2<>();
     if (direction == Direction.IN || direction == Direction.BOTH) {
       for (String label : calcInLabels(edgeLabels)) {
@@ -299,6 +314,18 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
+  /* adjacent out nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> nodesOut(String edgeLabel) {
+    return createAdjacentNodeIterator(Direction.OUT, edgeLabel);
+  }
+
+  /* adjacent out nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> nodesIn(String edgeLabel) {
+    return createAdjacentNodeIterator(Direction.IN, edgeLabel);
+  }
+
   /**
    * If there are multiple edges between the same two nodes with the same label, we use the
    * `occurrence` to differentiate between those edges. Both nodes use the same occurrence
@@ -307,7 +334,7 @@ public abstract class OdbNode implements Vertex {
    * @return the occurrence for a given edge, calculated by counting the number times the given
    * adjacent node occurred between the start of the edge-specific block and the blockOffset
    */
-  public int blockOffsetToOccurrence(Direction direction,
+  protected int blockOffsetToOccurrence(Direction direction,
                                      String label,
                                      NodeRef otherNode,
                                      int blockOffset) {
@@ -332,7 +359,7 @@ public abstract class OdbNode implements Vertex {
    *                   Both nodes use the same occurrence index for the same edge.
    * @return the index into `adjacentNodesWithProperties`
    */
-  public int occurrenceToBlockOffset(Direction direction,
+  protected int occurrenceToBlockOffset(Direction direction,
                                      String label,
                                      NodeRef adjacentNode,
                                      int occurrence) {
@@ -390,7 +417,7 @@ public abstract class OdbNode implements Vertex {
   }
 
   private Iterator<NodeRef> createAdjacentNodeIterator(Direction direction, String label) {
-    return createAdjacentNodeIteratorByOffSet( getPositionInEdgeOffsets(direction, label));
+    return createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, label));
   }
 
   /* Simplify hoisting of string lookups.

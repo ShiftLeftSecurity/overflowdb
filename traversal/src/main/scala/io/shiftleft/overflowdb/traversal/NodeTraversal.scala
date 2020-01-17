@@ -42,7 +42,7 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
 
   /** follow outgoing edges of given label to adjacent nodes */
   def out(label: String): Traversal[NodeRef[_]] =
-    traversal.flatMap(_.vertices(Direction.OUT, label).toScalaAs)
+    traversal.flatMap(_.nodesOut(label).toScalaAs)
 
   /** follow incoming edges to adjacent nodes */
   def in: Traversal[NodeRef[_]] =
@@ -50,15 +50,15 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
 
   /** follow incoming edges of given label to adjacent nodes */
   def in(label: String): Traversal[NodeRef[_]] =
-    traversal.flatMap(_.vertices(Direction.IN, label).toScalaAs)
+    traversal.flatMap(_.nodesIn(label).toScalaAs)
 
   /** follow incoming and outgoing edges to adjacent nodes */
   def both: Traversal[NodeRef[_]] =
-    traversal.flatMap(_.vertices(Direction.BOTH).toScalaAs)
+    traversal.flatMap(_.nodes(Direction.BOTH).toScalaAs)
 
   /** follow incoming and outgoing edges of given label to adjacent nodes */
   def both(label: String): Traversal[NodeRef[_]] =
-    traversal.flatMap(_.vertices(Direction.BOTH, label).toScalaAs)
+    traversal.flatMap(_.nodes(Direction.BOTH, label).toScalaAs)
 
   /** follow outgoing edges */
   def outE: Traversal[OdbEdge] =
@@ -66,7 +66,7 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
 
   /** follow outgoing edges of given label */
   def outE(label: String): Traversal[OdbEdge] =
-    traversal.flatMap(_.edges(Direction.OUT, label).toScalaAs)
+    traversal.flatMap(_.edgesOut(label).toScalaAs)
 
   /** follow incoming edges */
   def inE: Traversal[OdbEdge] =
@@ -74,7 +74,7 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
 
   /** follow incoming edges of given label */
   def inE(label: String): Traversal[OdbEdge] =
-    traversal.flatMap(_.edges(Direction.IN, label).toScalaAs)
+    traversal.flatMap(_.edgesIn(label).toScalaAs)
 
   /** follow incoming and outgoing edges */
   def bothE: Traversal[OdbEdge] =
