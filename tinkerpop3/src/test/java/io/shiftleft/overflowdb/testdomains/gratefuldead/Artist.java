@@ -28,6 +28,11 @@ public class Artist extends NodeRef<ArtistDb> {
     }
 
     @Override
+    public int forLabelId() {
+      return ArtistDb.layoutInformation.labelId;
+    }
+
+    @Override
     public ArtistDb createNode(NodeRef<ArtistDb> ref) {
       return new ArtistDb(ref);
     }

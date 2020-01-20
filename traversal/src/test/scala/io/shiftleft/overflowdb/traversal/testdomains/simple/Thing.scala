@@ -18,6 +18,7 @@ class Thing(graph: OdbGraph, id: Long) extends NodeRef[ThingDb](graph, id) with 
 
 object Thing {
   val Label = "thing"
+  val LabelId = 6
 
   object Properties {
     val Name = PropertyKey[String](PropertyNames.Name)
@@ -29,13 +30,15 @@ object Thing {
   }
 
   val factory: NodeFactory[ThingDb] = new NodeFactory[ThingDb]() {
-    override def forLabel: String = Thing.Label
+    override def forLabel: String = Label
+    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ThingDb]) = new ThingDb(ref)
     override def createNodeRef(graph: OdbGraph, id: Long) = new Thing(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
+      LabelId,
       PropertyNames.all.asJava,
       List(Connection.layoutInformation).asJava,
       List(Connection.layoutInformation).asJava

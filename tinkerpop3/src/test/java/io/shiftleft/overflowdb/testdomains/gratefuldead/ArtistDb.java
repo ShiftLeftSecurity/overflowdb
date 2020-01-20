@@ -26,7 +26,7 @@ public class ArtistDb extends OdbNode {
   }
 
   @Override
-  protected NodeLayoutInformation layoutInformation() {
+  public NodeLayoutInformation layoutInformation() {
     return layoutInformation;
   }
 
@@ -67,7 +67,8 @@ public class ArtistDb extends OdbNode {
     }
   }
 
-  private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+  public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+      3,
       new HashSet<>(Arrays.asList(Artist.NAME)),
       Arrays.asList(),
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation));

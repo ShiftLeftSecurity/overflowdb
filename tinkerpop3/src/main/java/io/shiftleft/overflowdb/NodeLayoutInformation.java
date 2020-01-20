@@ -11,13 +11,17 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Contains all static node-specific information. This could in theory be part of OverflowDbNode, but to save memory
- * we need to minimize the amount of fields per node instance. While there may be millions of node instances, there's
- * only one NodeLayoutInformation instance per node type, which holds this static information.
+ * Contains all static node-specific information for serialization / deserialization.
  * <p>
  * Please make sure to instantiate only one instance per node type to not waste memory.
  */
 public class NodeLayoutInformation {
+  /** unique id for this node's label
+   *  This is mostly an optimization for storage - we could as well serialize labels as string, but numbers are more efficient.
+   *  Since we know our schema at compile time, we can assign unique ids for each label.
+   *  */
+  public final int labelId;
+
   private final Set<String> propertyKeys;
   private final String[] allowedOutEdgeLabels;
   private final String[] allowedInEdgeLabels;
@@ -39,9 +43,11 @@ public class NodeLayoutInformation {
    * 1-based, because index `0` is the adjacent node ref */
   private final Map<LabelAndKey, Integer> edgeLabelAndKeyToStrideIndex;
 
-  public NodeLayoutInformation(Set<String> propertyKeys,
+  public NodeLayoutInformation(int labelId,
+                               Set<String> propertyKeys,
                                List<EdgeLayoutInformation> outEdgeLayouts,
                                List<EdgeLayoutInformation> inEdgeLayouts) {
+    this.labelId = labelId;
     this.propertyKeys = propertyKeys;
 
     Set<EdgeLayoutInformation> allEdgeLayouts = new HashSet<>();

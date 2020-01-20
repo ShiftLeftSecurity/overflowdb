@@ -60,7 +60,7 @@ public abstract class OdbNode implements Vertex {
     edgeOffsets = PackedIntArray.create(layoutInformation().numberOfDifferentAdjacentTypes() * 2);
   }
 
-  protected abstract NodeLayoutInformation layoutInformation();
+  public abstract NodeLayoutInformation layoutInformation();
 
   protected abstract <V> Iterator<VertexProperty<V>> specificProperties(String key);
 

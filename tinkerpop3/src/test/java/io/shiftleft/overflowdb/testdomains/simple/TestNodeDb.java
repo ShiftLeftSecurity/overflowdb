@@ -43,7 +43,7 @@ public class TestNodeDb extends OdbNode {
   }
 
   @Override
-  protected NodeLayoutInformation layoutInformation() {
+  public NodeLayoutInformation layoutInformation() {
     return layoutInformation;
   }
 
@@ -115,7 +115,8 @@ public class TestNodeDb extends OdbNode {
     }
   }
 
-  private static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+  public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+      2,
       new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY)),
       Arrays.asList(TestEdge.layoutInformation),
       Arrays.asList(TestEdge.layoutInformation));

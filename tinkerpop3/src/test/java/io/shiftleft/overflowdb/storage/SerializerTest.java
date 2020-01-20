@@ -82,8 +82,8 @@ public class SerializerTest {
   }
 
   private NodeDeserializer newDeserializer(OdbGraph graph) {
-    Map<String, NodeFactory> vertexFactories = new HashMap();
-    vertexFactories.put(TestNode.LABEL, TestNode.factory);
+    Map<Integer, NodeFactory> vertexFactories = new HashMap();
+    vertexFactories.put(TestNodeDb.layoutInformation.labelId, TestNode.factory);
     return new NodeDeserializer(graph, vertexFactories);
   }
 
