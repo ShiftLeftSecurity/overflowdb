@@ -138,7 +138,7 @@ public abstract class OdbNode implements Vertex {
     synchronized (this) {
 //            this.modifiedSinceLastSerialization = true;
       final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
-      ref.graph.indexManager.nodeIndex.putIfIndexed(key, value, ref);
+      ref.graph.indexManager.putIfIndexed(key, value, ref);
       return vp;
     }
   }
