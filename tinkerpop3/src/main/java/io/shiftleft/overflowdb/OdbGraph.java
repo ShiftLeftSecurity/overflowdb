@@ -61,7 +61,7 @@ public final class OdbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
   protected final GraphVariables variables = new GraphVariables();
-  protected OdbIndex<Vertex> nodeIndex = null;
+  protected NodePropertiesIndex<Vertex> nodeIndex = null;
   private final OdbConfig config;
   private boolean closed = false;
 
@@ -443,50 +443,34 @@ public final class OdbGraph implements Graph {
   ///////////// GRAPH SPECIFIC INDEXING METHODS ///////////////
 
   /**
-   * Create an index for said element class ({@link Vertex} or {@link Edge}) and said property key.
+   * Create an index for specified node property.
    * Whenever an element has the specified key mutated, the index is updated.
    * When the index is created, all existing elements are indexed to ensure that they are captured by the index.
-   *
-   * @param key          the property key to index
-   * @param elementClass the element class to index
-   * @param <E>          The type of the element class
    */
-  public <E extends Element> void createIndex(final String key, final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null == this.nodeIndex) this.nodeIndex = new OdbIndex<>(this, Vertex.class);
-      this.nodeIndex.createKeyIndex(key);
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
+  public void createNodePropertyIndex(final String key) {
+    if (null == this.nodeIndex) this.nodeIndex = new NodePropertiesIndex(this);
+    this.nodeIndex.createKeyIndex(key);
   }
-
+//
+//  /**
+//   * Drop the index for the specified element class ({@link Vertex} or {@link Edge}) and key.
+//   *
+//   * @param key          the property key to stop indexing
+//   * @param elementClass the element class of the index to drop
+//   * @param <E>          The type of the element class
+//   */
+//  public <E extends Element> void dropIndex(final String key, final Class<E> elementClass) {
+//    if (Vertex.class.isAssignableFrom(elementClass)) {
+//      if (null != this.nodeIndex) this.nodeIndex.dropKeyIndex(key);
+//    } else {
+//      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
+//    }
+//  }
+//
   /**
-   * Drop the index for the specified element class ({@link Vertex} or {@link Edge}) and key.
-   *
-   * @param key          the property key to stop indexing
-   * @param elementClass the element class of the index to drop
-   * @param <E>          The type of the element class
+   * Return all the keys currently being indexed for nodes.
    */
-  public <E extends Element> void dropIndex(final String key, final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null != this.nodeIndex) this.nodeIndex.dropKeyIndex(key);
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
-  }
-
-  /**
-   * Return all the keys currently being index for said element class  ({@link Vertex} or {@link Edge}).
-   *
-   * @param elementClass the element class to get the indexed keys for
-   * @param <E>          The type of the element class
-   * @return the set of keys currently being indexed
-   */
-  public <E extends Element> Set<String> getIndexedKeys(final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
+  public <E extends Element> Set<String> getIndexedNodeProperties() {
+    return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
   }
 }

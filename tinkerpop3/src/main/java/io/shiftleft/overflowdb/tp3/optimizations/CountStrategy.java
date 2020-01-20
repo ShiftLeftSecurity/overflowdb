@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.tp3.optimizations;
 
-import io.shiftleft.overflowdb.OdbIndex;
+import io.shiftleft.overflowdb.NodePropertiesIndex;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategy;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This strategy will do a direct {@link OdbIndex}
+ * This strategy will do a direct {@link NodePropertiesIndex}
  * size call if the traversal is a count of the vertices and edges of the graph or a one-to-one map chain thereof.
  *
  * @author Marko A. Rodriguez (http://markorodriguez.com)

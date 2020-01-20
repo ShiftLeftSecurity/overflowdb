@@ -14,16 +14,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class OdbIndex<T extends Element> {
+public final class NodePropertiesIndex<T extends Element> {
 
   protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
-  protected final Class<T> indexClass;
   private final Set<String> indexedKeys = new HashSet<>();
   private final OdbGraph graph;
 
-  public OdbIndex(final OdbGraph graph, final Class<T> indexClass) {
+  public NodePropertiesIndex(final OdbGraph graph) {
     this.graph = graph;
-    this.indexClass = indexClass;
   }
 
   protected void put(final String key, final Object value, final T element) {
@@ -68,11 +66,9 @@ public final class OdbIndex<T extends Element> {
   }
 
   public void removeElement(final T element) {
-    if (this.indexClass.isAssignableFrom(element.getClass())) {
-      for (Map<Object, Set<T>> map : index.values()) {
-        for (Set<T> set : map.values()) {
-          set.remove(element);
-        }
+    for (Map<Object, Set<T>> map : index.values()) {
+      for (Set<T> set : map.values()) {
+        set.remove(element);
       }
     }
   }
@@ -95,14 +91,10 @@ public final class OdbIndex<T extends Element> {
       return;
     this.indexedKeys.add(key);
 
-    if (Vertex.class.isAssignableFrom(this.indexClass)) {
-      this.graph.nodes.valueCollection().<T>parallelStream()
-          .map(e -> new Object[]{((T) e).property(key), e})
-          .filter(a -> ((Property) a[0]).isPresent())
-          .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
-    } else {
-      throw new NotImplementedException("");
-    }
+    this.graph.nodes.valueCollection().<T>parallelStream()
+        .map(e -> new Object[]{((T) e).property(key), e})
+        .filter(a -> ((Property) a[0]).isPresent())
+        .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
   }
 
   public void dropKeyIndex(final String key) {
