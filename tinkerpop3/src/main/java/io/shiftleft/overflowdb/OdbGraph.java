@@ -61,7 +61,7 @@ public final class OdbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
   protected final GraphVariables variables = new GraphVariables();
-  protected NodePropertiesIndex<Vertex> nodeIndex = null;
+  protected NodePropertiesIndex nodeIndex = null;
   private final OdbConfig config;
   private boolean closed = false;
 

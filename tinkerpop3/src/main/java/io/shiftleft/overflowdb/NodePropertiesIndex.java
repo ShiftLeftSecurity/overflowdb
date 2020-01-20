@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class NodePropertiesIndex<T extends Element> {
+public final class NodePropertiesIndex {
 
-  protected Map<String, Map<Object, Set<T>>> index = new ConcurrentHashMap<>();
+  protected Map<String, Map<Object, Set<NodeRef>>> index = new ConcurrentHashMap<>();
   private final Set<String> indexedKeys = new HashSet<>();
   private final OdbGraph graph;
 
@@ -24,27 +24,27 @@ public final class NodePropertiesIndex<T extends Element> {
     this.graph = graph;
   }
 
-  protected void put(final String key, final Object value, final T element) {
-    Map<Object, Set<T>> keyMap = this.index.get(key);
+  protected void put(final String key, final Object value, final NodeRef nodeRef) {
+    Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
     if (null == keyMap) {
       // TODO use concurrent but memory efficient map
       this.index.putIfAbsent(key, new ConcurrentHashMap<>());
       keyMap = this.index.get(key);
     }
-    Set<T> objects = keyMap.get(value);
+    Set<NodeRef> objects = keyMap.get(value);
     if (null == objects) {
       keyMap.putIfAbsent(value, ConcurrentHashMap.newKeySet());
       objects = keyMap.get(value);
     }
-    objects.add(element);
+    objects.add(nodeRef);
   }
 
-  public List<T> get(final String key, final Object value) {
-    final Map<Object, Set<T>> keyMap = this.index.get(key);
+  public List<NodeRef> get(final String key, final Object value) {
+    final Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
     if (null == keyMap) {
       return Collections.emptyList();
     } else {
-      Set<T> set = keyMap.get(value);
+      Set<NodeRef> set = keyMap.get(value);
       if (null == set)
         return Collections.emptyList();
       else
@@ -52,12 +52,12 @@ public final class NodePropertiesIndex<T extends Element> {
     }
   }
 
-  public void remove(final String key, final Object value, final T element) {
-    final Map<Object, Set<T>> keyMap = this.index.get(key);
+  public void remove(final String key, final Object value, final NodeRef nodeRef) {
+    final Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
     if (null != keyMap) {
-      Set<T> objects = keyMap.get(value);
+      Set<NodeRef> objects = keyMap.get(value);
       if (null != objects) {
-        objects.remove(element);
+        objects.remove(nodeRef);
         if (objects.size() == 0) {
           keyMap.remove(value);
         }
@@ -65,19 +65,19 @@ public final class NodePropertiesIndex<T extends Element> {
     }
   }
 
-  public void removeElement(final T element) {
-    for (Map<Object, Set<T>> map : index.values()) {
-      for (Set<T> set : map.values()) {
-        set.remove(element);
+  public void removeElement(final NodeRef nodeRef) {
+    for (Map<Object, Set<NodeRef>> map : index.values()) {
+      for (Set<NodeRef> set : map.values()) {
+        set.remove(nodeRef);
       }
     }
   }
 
-  public void autoUpdate(final String key, final Object newValue, final Object oldValue, final T element) {
+  public void autoUpdate(final String key, final Object newValue, final Object oldValue, final NodeRef nodeRef) {
     if (this.indexedKeys.contains(key)) {
       if (oldValue != null)
-        this.remove(key, oldValue, element);
-      this.put(key, newValue, element);
+        this.remove(key, oldValue, nodeRef);
+      this.put(key, newValue, nodeRef);
     }
   }
 
@@ -91,10 +91,10 @@ public final class NodePropertiesIndex<T extends Element> {
       return;
     this.indexedKeys.add(key);
 
-    this.graph.nodes.valueCollection().<T>parallelStream()
-        .map(e -> new Object[]{((T) e).property(key), e})
+    this.graph.nodes.valueCollection().parallelStream()
+        .map(e -> new Object[]{e.property(key), e})
         .filter(a -> ((Property) a[0]).isPresent())
-        .forEach(a -> this.put(key, ((Property) a[0]).value(), (T) a[1]));
+        .forEach(a -> this.put(key, ((Property) a[0]).value(), (NodeRef) a[1]));
   }
 
   public void dropKeyIndex(final String key) {
@@ -108,19 +108,19 @@ public final class NodePropertiesIndex<T extends Element> {
     return this.indexedKeys;
   }
 
-  public static List<Vertex> queryNodeIndex(final OdbGraph graph, final String key, final Object value) {
+  public static List<NodeRef> queryNodeIndex(final OdbGraph graph, final String key, final Object value) {
     return null == graph.nodeIndex ? Collections.emptyList() : graph.nodeIndex.get(key, value);
   }
 
-  public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
-    final OdbGraph graph = (OdbGraph) vertex.graph();
+  public static void autoUpdateIndex(final NodeRef nodeRef, final String key, final Object newValue, final Object oldValue) {
+    final OdbGraph graph = (OdbGraph) nodeRef.graph();
     if (graph.nodeIndex != null)
-      graph.nodeIndex.autoUpdate(key, newValue, oldValue, vertex);
+      graph.nodeIndex.autoUpdate(key, newValue, oldValue, nodeRef);
   }
 
-  public static void removeElementIndex(final Vertex vertex) {
-    final OdbGraph graph = (OdbGraph) vertex.graph();
+  public static void removeElementIndex(final NodeRef nodeRef) {
+    final OdbGraph graph = (OdbGraph) nodeRef.graph();
     if (graph.nodeIndex != null)
-      graph.nodeIndex.removeElement(vertex);
+      graph.nodeIndex.removeElement(nodeRef);
   }
 }

@@ -138,7 +138,7 @@ public abstract class OdbNode implements Vertex {
     synchronized (this) {
 //            this.modifiedSinceLastSerialization = true;
       final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
-      NodePropertiesIndex.autoUpdateIndex(this, key, value, null);
+      NodePropertiesIndex.autoUpdateIndex(ref, key, value, null);
       return vp;
     }
   }
@@ -158,7 +158,7 @@ public abstract class OdbNode implements Vertex {
         edge.remove();
       }
     }
-    NodePropertiesIndex.removeElementIndex(this);
+    NodePropertiesIndex.removeElementIndex(ref);
     graph.nodes.remove(ref.id);
     graph.nodesByLabel.get(label()).remove(this);
 

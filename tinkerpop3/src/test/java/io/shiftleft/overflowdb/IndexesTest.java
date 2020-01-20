@@ -3,7 +3,6 @@ package io.shiftleft.overflowdb;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
@@ -18,8 +17,33 @@ public class IndexesTest {
 
   @Test
   public void deleteMe() throws IOException {
-    OdbGraph graph = GratefulDead.newGraph();
-    graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
+    int loops = 100_000;
+    final double avgTimeWithIndex;
+    final double avgTimeWithoutIndex;
+
+    { // tests with index
+      OdbGraph graph = GratefulDead.newGraph();
+      graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
+      graph.createNodePropertyIndex("performances");
+      GraphTraversalSource g = graph.traversal();
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
+      graph.close();
+    }
+
+    { // tests without index
+      OdbGraph graph = GratefulDead.newGraph();
+      graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
+      GraphTraversalSource g = graph.traversal();
+      assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
+      avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
+      graph.close();
+    }
+
+    System.out.println("avgTimeWithIndex = " + avgTimeWithIndex);
+    System.out.println("avgTimeWithoutIndex = " + avgTimeWithoutIndex);
+    assertTrue("avg time with index should be (significantly) less than without index",
+        avgTimeWithIndex < avgTimeWithoutIndex);
   }
 
   @Test
