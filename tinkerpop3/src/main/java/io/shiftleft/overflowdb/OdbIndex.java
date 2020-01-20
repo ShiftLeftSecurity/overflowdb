@@ -54,19 +54,6 @@ public final class OdbIndex<T extends Element> {
     }
   }
 
-  public long count(final String key, final Object value) {
-    final Map<Object, Set<T>> keyMap = this.index.get(key);
-    if (null == keyMap) {
-      return 0;
-    } else {
-      Set<T> set = keyMap.get(value);
-      if (null == set)
-        return 0;
-      else
-        return set.size();
-    }
-  }
-
   public void remove(final String key, final Object value, final T element) {
     final Map<Object, Set<T>> keyMap = this.index.get(key);
     if (null != keyMap) {
@@ -96,11 +83,6 @@ public final class OdbIndex<T extends Element> {
         this.remove(key, oldValue, element);
       this.put(key, newValue, element);
     }
-  }
-
-  public void autoRemove(final String key, final Object oldValue, final T element) {
-    if (this.indexedKeys.contains(key))
-      this.remove(key, oldValue, element);
   }
 
   public void createKeyIndex(final String key) {
@@ -138,21 +120,6 @@ public final class OdbIndex<T extends Element> {
     return null == graph.nodeIndex ? Collections.emptyList() : graph.nodeIndex.get(key, value);
   }
 
-//    public static List<Edge> queryEdgeIndex(final OverflowDb graph, final String key, final Object value) {
-//        return Collections.emptyList();
-//    }
-//
-//    public static Map<String, List<VertexProperty>> getProperties(final TinkerVertex vertex) {
-//        return null == vertex.properties ? Collections.emptyMap() : vertex.properties;
-//    }
-
-//    public static void autoUpdateIndex(final Edge edge, final String key, final Object newValue, final Object oldValue) {
-//        final OverflowDb graph = (OverflowDb) edge.graph();
-//
-//        if (graph.edgeIndex != null)
-//            graph.edgeIndex.autoUpdate(key, newValue, oldValue, edge);
-//    }
-
   public static void autoUpdateIndex(final Vertex vertex, final String key, final Object newValue, final Object oldValue) {
     final OdbGraph graph = (OdbGraph) vertex.graph();
     if (graph.nodeIndex != null)
@@ -164,22 +131,4 @@ public final class OdbIndex<T extends Element> {
     if (graph.nodeIndex != null)
       graph.nodeIndex.removeElement(vertex);
   }
-
-//    public static void removeElementIndex(final Edge edge) {
-//        final OverflowDb graph = (OverflowDb) edge.graph();
-//        if (graph.edgeIndex != null)
-//            graph.edgeIndex.removeElement(edge);
-//    }
-//
-//    public static void removeIndex(final TinkerVertex vertex, final String key, final Object value) {
-//        final OverflowDb graph = (OverflowDb) vertex.graph();
-//        if (graph.vertexIndex != null)
-//            graph.vertexIndex.remove(key, value, vertex);
-//    }
-
-//    public static void removeIndex(final TinkerEdge edge, final String key, final Object value) {
-//        final OverflowDb graph = (OverflowDb) edge.graph();
-//        if (graph.edgeIndex != null)
-//            graph.edgeIndex.remove(key, value, edge);
-//    }
 }
