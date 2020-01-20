@@ -5,7 +5,6 @@ import org.apache.tinkerpop.gremlin.structure.Property;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,8 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class NodePropertiesIndex {
 
-  protected Map<String, Map<Object, Set<NodeRef>>> index = new ConcurrentHashMap<>();
-  private final Set<String> indexedKeys = new HashSet<>();
+  protected Map<String, Map<Object, Set<NodeRef>>> indexes = new ConcurrentHashMap<>();
   private final OdbGraph graph;
 
   public NodePropertiesIndex(final OdbGraph graph) {
@@ -22,11 +20,11 @@ public final class NodePropertiesIndex {
   }
 
   protected void put(final String key, final Object value, final NodeRef nodeRef) {
-    Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
+    Map<Object, Set<NodeRef>> keyMap = this.indexes.get(key);
     if (null == keyMap) {
       // TODO use concurrent but memory efficient map
-      this.index.putIfAbsent(key, new ConcurrentHashMap<>());
-      keyMap = this.index.get(key);
+      this.indexes.putIfAbsent(key, new ConcurrentHashMap<>());
+      keyMap = this.indexes.get(key);
     }
     Set<NodeRef> objects = keyMap.get(value);
     if (null == objects) {
@@ -37,7 +35,7 @@ public final class NodePropertiesIndex {
   }
 
   public List<NodeRef> get(final String key, final Object value) {
-    final Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
+    final Map<Object, Set<NodeRef>> keyMap = this.indexes.get(key);
     if (null == keyMap) {
       return Collections.emptyList();
     } else {
@@ -50,7 +48,7 @@ public final class NodePropertiesIndex {
   }
 
   public void remove(final String key, final Object value, final NodeRef nodeRef) {
-    final Map<Object, Set<NodeRef>> keyMap = this.index.get(key);
+    final Map<Object, Set<NodeRef>> keyMap = this.indexes.get(key);
     if (null != keyMap) {
       Set<NodeRef> objects = keyMap.get(value);
       if (null != objects) {
@@ -63,7 +61,7 @@ public final class NodePropertiesIndex {
   }
 
   public void removeElement(final NodeRef nodeRef) {
-    for (Map<Object, Set<NodeRef>> map : index.values()) {
+    for (Map<Object, Set<NodeRef>> map : indexes.values()) {
       for (Set<NodeRef> set : map.values()) {
         set.remove(nodeRef);
       }
@@ -71,7 +69,7 @@ public final class NodePropertiesIndex {
   }
 
   public void update(final String key, final Object newValue, final NodeRef nodeRef) {
-    if (this.indexedKeys.contains(key)) {
+    if (this.indexes.containsKey(key)) {
       this.put(key, newValue, nodeRef);
     }
   }
@@ -82,9 +80,8 @@ public final class NodePropertiesIndex {
     if (key.isEmpty())
       throw new IllegalArgumentException("The key for the index cannot be an empty string");
 
-    if (this.indexedKeys.contains(key))
+    if (this.indexes.containsKey(key))
       return;
-    this.indexedKeys.add(key);
 
     this.graph.nodes.valueCollection().parallelStream()
         .map(e -> new Object[]{e.property(key), e})
@@ -93,14 +90,12 @@ public final class NodePropertiesIndex {
   }
 
   public void dropKeyIndex(final String key) {
-    if (this.index.containsKey(key))
-      this.index.remove(key).clear();
-
-    this.indexedKeys.remove(key);
+    if (this.indexes.containsKey(key))
+      this.indexes.remove(key).clear();
   }
 
   public Set<String> getIndexedKeys() {
-    return this.indexedKeys;
+    return indexes.keySet();
   }
 
 }
