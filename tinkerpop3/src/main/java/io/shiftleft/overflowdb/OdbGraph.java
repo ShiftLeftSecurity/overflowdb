@@ -20,7 +20,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,7 +59,7 @@ public final class OdbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
   protected final GraphVariables variables = new GraphVariables();
-  protected NodePropertiesIndex nodeIndex = null;
+  public final OdbIndexManager indexManager = new OdbIndexManager(this);
   private final OdbConfig config;
   private boolean closed = false;
 
@@ -440,29 +438,4 @@ public final class OdbGraph implements Graph {
     }
   }
 
-  ///////////// GRAPH SPECIFIC INDEXING METHODS ///////////////
-
-  /**
-   * Create an index for specified node property.
-   * Whenever an element has the specified key mutated, the index is updated.
-   * When the index is created, all existing elements are indexed to ensure that they are captured by the index.
-   */
-  public void createNodePropertyIndex(final String key) {
-    if (null == this.nodeIndex) this.nodeIndex = new NodePropertiesIndex(this);
-    this.nodeIndex.createKeyIndex(key);
-  }
-
-  /**
-   * Drop the index for specified node property.
-   */
-  public void dropNodePropertyIndex(final String key) {
-    if (null != this.nodeIndex) this.nodeIndex.dropKeyIndex(key);
-  }
-
-  /**
-   * Return all the keys currently being indexed for nodes.
-   */
-  public Set<String> getIndexedNodeProperties() {
-    return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
-  }
 }

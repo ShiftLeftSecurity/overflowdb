@@ -70,10 +70,8 @@ public final class NodePropertiesIndex {
     }
   }
 
-  public void autoUpdate(final String key, final Object newValue, final Object oldValue, final NodeRef nodeRef) {
+  public void update(final String key, final Object newValue, final NodeRef nodeRef) {
     if (this.indexedKeys.contains(key)) {
-      if (oldValue != null)
-        this.remove(key, oldValue, nodeRef);
       this.put(key, newValue, nodeRef);
     }
   }
@@ -105,19 +103,4 @@ public final class NodePropertiesIndex {
     return this.indexedKeys;
   }
 
-  public static List<NodeRef> queryNodeIndex(final OdbGraph graph, final String key, final Object value) {
-    return null == graph.nodeIndex ? Collections.emptyList() : graph.nodeIndex.get(key, value);
-  }
-
-  public static void autoUpdateIndex(final NodeRef nodeRef, final String key, final Object newValue, final Object oldValue) {
-    final OdbGraph graph = (OdbGraph) nodeRef.graph();
-    if (graph.nodeIndex != null)
-      graph.nodeIndex.autoUpdate(key, newValue, oldValue, nodeRef);
-  }
-
-  public static void removeElementIndex(final NodeRef nodeRef) {
-    final OdbGraph graph = (OdbGraph) nodeRef.graph();
-    if (graph.nodeIndex != null)
-      graph.nodeIndex.removeElement(nodeRef);
-  }
 }

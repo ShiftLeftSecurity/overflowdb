@@ -25,7 +25,7 @@ public class IndexesTest {
     { // tests with index
       OdbGraph graph = GratefulDead.newGraph();
       graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
-      graph.createNodePropertyIndex("performances");
+      graph.indexManager.createNodePropertyIndex("performances");
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -56,7 +56,7 @@ public class IndexesTest {
 
     { // tests with index
       OdbGraph graph = GratefulDead.newGraphWithData();
-      graph.createNodePropertyIndex("performances");
+      graph.indexManager.createNodePropertyIndex("performances");
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -86,7 +86,7 @@ public class IndexesTest {
 
     { // tests with index
       OdbGraph graph = GratefulDead.newGraph();
-      graph.createNodePropertyIndex("performances");
+      graph.indexManager.createNodePropertyIndex("performances");
       GratefulDead.loadData(graph);
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
