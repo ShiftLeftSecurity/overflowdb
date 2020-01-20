@@ -1,10 +1,7 @@
 package io.shiftleft.overflowdb;
 
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import java.util.ArrayList;
 import java.util.Collections;

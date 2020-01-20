@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 public class IndexesTest {
 
+  // TODO delete me
   @Test
   public void deleteMe() throws IOException {
     int loops = 100_000;
