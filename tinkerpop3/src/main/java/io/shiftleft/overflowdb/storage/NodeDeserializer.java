@@ -24,28 +24,28 @@ import java.util.Map;
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final OdbGraph graph;
-  protected final Map<String, NodeFactory> nodeFactoryByLabel;
+  private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private int deserializedCount = 0;
   private long deserializationTimeSpentMillis = 0;
 
-  public NodeDeserializer(OdbGraph graph, Map<String, NodeFactory> nodeFactoryByLabel) {
+  public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId) {
     this.graph = graph;
-    this.nodeFactoryByLabel = nodeFactoryByLabel;
+    this.nodeFactoryByLabelId = nodeFactoryByLabelId;
   }
 
-  public OdbNode deserialize(byte[] bytes) throws IOException {
+  public final OdbNode deserialize(byte[] bytes) throws IOException {
     long start = System.currentTimeMillis();
     if (null == bytes)
       return null;
 
     try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
       final long id = unpacker.unpackLong();
-      final String label = unpacker.unpackString();
+      final int labelId = unpacker.unpackInt();
       final Map<String, Object> properties = unpackProperties(unpacker);
       final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
       final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
-      OdbNode node = createNode(id, label, properties, edgeOffsets, adjacentNodesWithProperties);
+      OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
       deserializedCount++;
       deserializationTimeSpentMillis += System.currentTimeMillis() - start;
@@ -60,16 +60,16 @@ public class NodeDeserializer {
   /**
    * only deserialize the part we're keeping in memory, used during startup when initializing from disk
    */
-  public NodeRef deserializeRef(byte[] bytes) throws IOException {
+  public final NodeRef deserializeRef(byte[] bytes) throws IOException {
     try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
       long id = unpacker.unpackLong();
-      String label = unpacker.unpackString();
+      int labelId = unpacker.unpackInt();
 
-      return createNodeRef(id, label);
+      return createNodeRef(id, labelId);
     }
   }
 
-  private Map<String, Object> unpackProperties(MessageUnpacker unpacker) throws IOException {
+  private final Map<String, Object> unpackProperties(MessageUnpacker unpacker) throws IOException {
     int propertyCount = unpacker.unpackMapHeader();
     Map<String, Object> res = new THashMap<>(propertyCount);
     for (int i = 0; i < propertyCount; i++) {
@@ -80,7 +80,7 @@ public class NodeDeserializer {
     return res;
   }
 
-  private int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
+  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
     int size = unpacker.unpackArrayHeader();
     int[] edgeOffsets = new int[size];
     for (int i = 0; i < size; i++) {
@@ -89,7 +89,7 @@ public class NodeDeserializer {
     return edgeOffsets;
   }
 
-  protected Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
+  protected final Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
     int size = unpacker.unpackArrayHeader();
     Object[] adjacentNodesWithProperties = new Object[size];
     for (int i = 0; i < size; i++) {
@@ -98,7 +98,7 @@ public class NodeDeserializer {
     return adjacentNodesWithProperties;
   }
 
-  private Object unpackValue(final ArrayValue packedValueAndType) {
+  private final Object unpackValue(final ArrayValue packedValueAndType) {
     final Iterator<Value> iter = packedValueAndType.iterator();
     final byte valueTypeId = iter.next().asIntegerValue().asByte();
     final Value value = iter.next();
@@ -140,7 +140,7 @@ public class NodeDeserializer {
     }
   }
 
-  protected Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
+  protected final Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
     List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
       final String key = entry.getKey();
@@ -159,26 +159,24 @@ public class NodeDeserializer {
     return keyValues.toArray();
   }
 
-  protected NodeRef createNodeRef(long id, String label) {
-    NodeFactory nodeFactory = nodeFactoryByLabel.get(label);
-    if (nodeFactory == null) {
-      throw new AssertionError("nodeFactory not found for label=" + label);
-    }
-
-    return nodeFactory.createNodeRef(graph, id);
+  protected final NodeRef createNodeRef(long id, int labelId) {
+    return getNodeFactory(labelId).createNodeRef(graph, id);
   }
 
-  protected OdbNode createNode(long id, String label, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
-    NodeFactory nodeFactory = nodeFactoryByLabel.get(label);
-    if (nodeFactory == null) {
-      throw new AssertionError("nodeFactory not found for label=" + label);
-    }
-    OdbNode node = nodeFactory.createNode(graph, id);
+  protected final OdbNode createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
+    OdbNode node = getNodeFactory(labelId).createNode(graph, id);
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
     node.setEdgeOffsets(edgeOffsets);
     node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
 
     return node;
+  }
+
+  private final NodeFactory getNodeFactory(int labelId) {
+    if (!nodeFactoryByLabelId.containsKey(labelId))
+      throw new AssertionError("nodeFactory not found for labelId=" + labelId);
+
+    return nodeFactoryByLabelId.get(labelId);
   }
 
 }

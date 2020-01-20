@@ -38,6 +38,11 @@ public class Song extends NodeRef<SongDb> {
     }
 
     @Override
+    public int forLabelId() {
+      return SongDb.layoutInformation.labelId;
+    }
+
+    @Override
     public SongDb createNode(NodeRef<SongDb> ref) {
       return new SongDb(ref);
     }

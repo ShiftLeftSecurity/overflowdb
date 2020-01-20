@@ -16,6 +16,7 @@ class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) wit
 
 object Artist {
   val Label = "artist"
+  val LabelId = 4
 
   object Properties {
     val Name = PropertyKey[String](PropertyNames.Name)
@@ -27,13 +28,15 @@ object Artist {
   }
 
   val factory: NodeFactory[ArtistDb] = new NodeFactory[ArtistDb]() {
-    override def forLabel: String = Artist.Label
+    override def forLabel: String = Label
+    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ArtistDb]) = new ArtistDb(ref)
     override def createNodeRef(graph: OdbGraph, id: Long) = new Artist(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
+      LabelId,
       PropertyNames.all.asJava,
       Nil.asJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation).asJava

@@ -75,15 +75,18 @@ public final class OdbGraph implements Graph {
   public static OdbGraph open(OdbConfig configuration,
                               List<NodeFactory<?>> nodeFactories,
                               List<EdgeFactory<?>> edgeFactories) {
-    Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>();
-    Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>();
+    Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
+    Map<Integer, NodeFactory> nodeFactoryByLabelId = new HashMap<>(nodeFactories.size());
+    Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
+    nodeFactories.forEach(factory -> nodeFactoryByLabelId.put(factory.forLabelId(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OdbGraph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+    return new OdbGraph(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
   }
 
   private OdbGraph(OdbConfig config,
                    Map<String, NodeFactory> nodeFactoryByLabel,
+                   Map<Integer, NodeFactory> nodeFactoryByLabelId,
                    Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
@@ -94,7 +97,7 @@ public final class OdbGraph implements Graph {
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
         Optional.empty();
 
-    NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel);
+    NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId);
     if (config.getStorageLocation().isPresent()) {
       storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, new File(config.getStorageLocation().get()));
       initElementCollections(storage);
@@ -185,9 +188,7 @@ public final class OdbGraph implements Graph {
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
     final NodeRef node;
     if (!nodeFactoryByLabel.containsKey(label)) {
-      throw new IllegalArgumentException(
-          "this instance of OverflowDb uses specialized elements, but doesn't have a factory for label " + label
-              + ". Mixing specialized and generic elements is not (yet) supported");
+      throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final OdbNode underlying = factory.createNode(this, idValue);

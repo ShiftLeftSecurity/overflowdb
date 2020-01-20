@@ -23,7 +23,7 @@ public class NodeSerializer {
     long start = System.currentTimeMillis();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       packer.packLong(node.ref.id);
-      packer.packString(node.label());
+      packer.packInt(node.layoutInformation().labelId);
 
       packProperties(packer, node.valueMap());
       packEdgeOffsets(packer, node.getEdgeOffsets());

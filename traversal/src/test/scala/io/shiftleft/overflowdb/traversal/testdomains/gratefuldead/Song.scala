@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
+import io.shiftleft.overflowdb.traversal.testdomains.gratefuldead.Artist.LabelId
 import io.shiftleft.overflowdb.traversal.{NodeRefOps, PropertyKey, Traversal}
 import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
 
@@ -18,6 +19,7 @@ class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) with No
 
 object Song {
   val Label = "song"
+  val LabelId = 5
 
   object Properties {
     val Name = PropertyKey[String](PropertyNames.Name)
@@ -33,13 +35,15 @@ object Song {
   }
 
   val factory: NodeFactory[SongDb] = new NodeFactory[SongDb]() {
-    override def forLabel: String = Song.Label
+    override def forLabel: String = Label
+    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[SongDb]) = new SongDb(ref)
     override def createNodeRef(graph: OdbGraph, id: Long) = new Song(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
+      LabelId,
       PropertyNames.all.asJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation).asJava,
       List(FollowedBy.layoutInformation).asJava
