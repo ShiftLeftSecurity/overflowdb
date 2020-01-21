@@ -27,7 +27,7 @@ public class GratefulDead {
   }
 
   public static void loadData(OdbGraph graph) throws IOException {
-    graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
+    graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
   }
 
 
