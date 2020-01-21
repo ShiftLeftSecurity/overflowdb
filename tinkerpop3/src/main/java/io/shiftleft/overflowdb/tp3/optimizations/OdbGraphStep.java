@@ -1,7 +1,6 @@
 package io.shiftleft.overflowdb.tp3.optimizations;
 
 import io.shiftleft.overflowdb.OdbGraph;
-import io.shiftleft.overflowdb.OdbIndex;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.HasContainerHolder;
@@ -52,7 +51,7 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
 
   private Iterator<? extends Vertex> vertices() {
     final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
-    final HasContainer indexedContainer = getIndexKey(Vertex.class);
+    final HasContainer indexedContainer = getIndexKey();
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
     if (null == this.ids)
@@ -67,8 +66,8 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
       if (indexedContainer == null) return this.iteratorList(graph.vertices());
       else {
         return IteratorUtils.filter(
-            OdbIndex.queryNodeIndex(graph, indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
-            vertex -> HasContainer.testAll(vertex, this.hasContainers));
+            graph.indexManager.lookup(indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
+            nodeRef -> HasContainer.testAll(nodeRef, this.hasContainers));
       }
     }
   }
@@ -84,8 +83,9 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
     return Optional.empty();
   }
 
-  private HasContainer getIndexKey(final Class<? extends Element> indexedClass) {
-    final Set<String> indexedKeys = ((OdbGraph) this.getTraversal().getGraph().get()).getIndexedKeys(indexedClass);
+  private HasContainer getIndexKey() {
+    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
+    final Set<String> indexedKeys = graph.indexManager.getIndexedNodeProperties();
 
     final Iterator<HasContainer> itty = IteratorUtils.filter(hasContainers.iterator(),
         c -> c.getPredicate().getBiPredicate() == Compare.eq && indexedKeys.contains(c.getKey()));

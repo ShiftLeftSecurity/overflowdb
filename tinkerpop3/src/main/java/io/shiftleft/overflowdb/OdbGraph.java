@@ -20,7 +20,6 @@ import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -61,7 +59,7 @@ public final class OdbGraph implements Graph {
   protected TLongObjectMap<NodeRef> nodes;
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
   protected final GraphVariables variables = new GraphVariables();
-  protected OdbIndex<Vertex> nodeIndex = null;
+  public final OdbIndexManager indexManager = new OdbIndexManager(this);
   private final OdbConfig config;
   private boolean closed = false;
 
@@ -440,53 +438,4 @@ public final class OdbGraph implements Graph {
     }
   }
 
-  ///////////// GRAPH SPECIFIC INDEXING METHODS ///////////////
-
-  /**
-   * Create an index for said element class ({@link Vertex} or {@link Edge}) and said property key.
-   * Whenever an element has the specified key mutated, the index is updated.
-   * When the index is created, all existing elements are indexed to ensure that they are captured by the index.
-   *
-   * @param key          the property key to index
-   * @param elementClass the element class to index
-   * @param <E>          The type of the element class
-   */
-  public <E extends Element> void createIndex(final String key, final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null == this.nodeIndex) this.nodeIndex = new OdbIndex<>(this, Vertex.class);
-      this.nodeIndex.createKeyIndex(key);
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
-  }
-
-  /**
-   * Drop the index for the specified element class ({@link Vertex} or {@link Edge}) and key.
-   *
-   * @param key          the property key to stop indexing
-   * @param elementClass the element class of the index to drop
-   * @param <E>          The type of the element class
-   */
-  public <E extends Element> void dropIndex(final String key, final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      if (null != this.nodeIndex) this.nodeIndex.dropKeyIndex(key);
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
-  }
-
-  /**
-   * Return all the keys currently being index for said element class  ({@link Vertex} or {@link Edge}).
-   *
-   * @param elementClass the element class to get the indexed keys for
-   * @param <E>          The type of the element class
-   * @return the set of keys currently being indexed
-   */
-  public <E extends Element> Set<String> getIndexedKeys(final Class<E> elementClass) {
-    if (Vertex.class.isAssignableFrom(elementClass)) {
-      return null == this.nodeIndex ? Collections.emptySet() : this.nodeIndex.getIndexedKeys();
-    } else {
-      throw new IllegalArgumentException("Class is not indexable: " + elementClass);
-    }
-  }
 }
