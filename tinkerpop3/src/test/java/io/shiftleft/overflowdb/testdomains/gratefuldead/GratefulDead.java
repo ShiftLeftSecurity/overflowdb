@@ -26,6 +26,13 @@ public class GratefulDead {
     return graph;
   }
 
+  public static OdbGraph newGraphWithData(String path) throws IOException {
+    OdbGraph graph = newGraph(OdbConfig.withDefaults().withStorageLocation(path));
+    loadData(graph);
+    return graph;
+  }
+
+
   public static void loadData(OdbGraph graph) throws IOException {
     graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
   }

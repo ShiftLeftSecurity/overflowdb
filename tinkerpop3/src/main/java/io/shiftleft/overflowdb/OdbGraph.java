@@ -31,6 +31,7 @@ import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.apache.tinkerpop.gremlin.util.iterator.MultiIterator;
+import org.h2.mvstore.MVMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,8 +138,23 @@ public final class OdbGraph implements Graph {
     }
 
     currentId.set(maxId + 1);
+    initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
     logger.info("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
+  }
+
+  private void initializeStoredIndices(OdbStorage storage) {
+    storage
+        .getIndexNames()
+        .stream()
+        .forEach(indexName -> loadIndex(indexName, storage));
+  }
+
+  private void loadIndex(String indexName, OdbStorage storage) {
+    assert indexName != null;
+    System.out.println("loadIndex: " + indexName);
+    final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
+    indexManager.loadNodePropertyIndex(indexName, indexMVMap);
   }
 
   ////////////// STRUCTURE API METHODS //////////////////
@@ -235,6 +251,12 @@ public final class OdbGraph implements Graph {
     heapUsageMonitor.ifPresent(monitor -> monitor.close());
     if (config.getStorageLocation().isPresent()) {
       /* persist to disk */
+      storage.clearIndices();
+      indexManager.getIndexedNodeProperties().stream().forEach(propertyName -> {
+          System.out.println("Storing prop index: " + propertyName);
+        storage.saveIndex(propertyName, indexManager.getIndexMap(propertyName));
+          }
+      );
       referenceManager.clearAllReferences();
     }
     referenceManager.close();

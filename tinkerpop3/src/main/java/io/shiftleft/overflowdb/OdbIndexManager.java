@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.LongStream;
 
 public final class OdbIndexManager {
 
@@ -25,8 +26,7 @@ public final class OdbIndexManager {
    * When the index is created, all existing elements are indexed to ensure that they are captured by the index.
    */
   public final void createNodePropertyIndex(final String propertyName) {
-    if (propertyName == null || propertyName.isEmpty())
-      throw new IllegalArgumentException("Illegal property name: " + propertyName);
+    checkPropertyName(propertyName);
 
     if (indexes.containsKey(propertyName))
       return;
@@ -35,6 +35,17 @@ public final class OdbIndexManager {
         .map(e -> new Object[]{e.property(propertyName), e})
         .filter(a -> ((Property) a[0]).isPresent())
         .forEach(a -> put(propertyName, ((Property) a[0]).value(), (NodeRef) a[1]));
+  }
+
+  private void checkPropertyName(String propertyName) {
+    if (propertyName == null || propertyName.isEmpty())
+      throw new IllegalArgumentException("Illegal property name: " + propertyName);
+  }
+
+  public final void loadNodePropertyIndex(final String propertyName, Map<Object, long[]> valueToNodeIds) {
+    valueToNodeIds.entrySet().parallelStream().forEach(entry ->
+        LongStream.of(entry.getValue())
+          .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef)graph.vertex(nodeId))));
   }
 
   public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
@@ -69,6 +80,7 @@ public final class OdbIndexManager {
    * Return all the keys currently being indexed for nodes.
    */
   public final Set<String> getIndexedNodeProperties() {
+//    indexes.keySet().forEach(s -> System.out.println("indexed prop: " + s));
     return indexes.keySet();
   }
 
@@ -106,4 +118,7 @@ public final class OdbIndexManager {
     }
   }
 
+  public Map<Object, Set<NodeRef>> getIndexMap(String propertyName) {
+    return this.indexes.get(propertyName);
+  }
 }
