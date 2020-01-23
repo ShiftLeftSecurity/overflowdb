@@ -116,7 +116,7 @@ public class IndexesTest {
   }
 
   @Test
-  public void shouldStoreIndexes() throws IOException {
+  public void shouldStoreAndRestoreIndexes() throws IOException {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
     // save indexes
