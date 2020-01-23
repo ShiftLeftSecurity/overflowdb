@@ -137,9 +137,11 @@ public final class OdbGraph implements Graph {
     }
 
     currentId.set(maxId + 1);
+    indexManager.initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
     logger.info("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
   }
+
 
   ////////////// STRUCTURE API METHODS //////////////////
   @Override
@@ -235,6 +237,7 @@ public final class OdbGraph implements Graph {
     heapUsageMonitor.ifPresent(monitor -> monitor.close());
     if (config.getStorageLocation().isPresent()) {
       /* persist to disk */
+      indexManager.storeIndexes(storage);
       referenceManager.clearAllReferences();
     }
     referenceManager.close();

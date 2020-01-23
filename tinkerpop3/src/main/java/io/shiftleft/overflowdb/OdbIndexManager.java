@@ -1,6 +1,8 @@
 package io.shiftleft.overflowdb;
 
+import io.shiftleft.overflowdb.storage.OdbStorage;
 import org.apache.tinkerpop.gremlin.structure.Property;
+import org.h2.mvstore.MVMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.LongStream;
 
 public final class OdbIndexManager {
 
@@ -25,8 +28,7 @@ public final class OdbIndexManager {
    * When the index is created, all existing elements are indexed to ensure that they are captured by the index.
    */
   public final void createNodePropertyIndex(final String propertyName) {
-    if (propertyName == null || propertyName.isEmpty())
-      throw new IllegalArgumentException("Illegal property name: " + propertyName);
+    checkPropertyName(propertyName);
 
     if (indexes.containsKey(propertyName))
       return;
@@ -35,6 +37,17 @@ public final class OdbIndexManager {
         .map(e -> new Object[]{e.property(propertyName), e})
         .filter(a -> ((Property) a[0]).isPresent())
         .forEach(a -> put(propertyName, ((Property) a[0]).value(), (NodeRef) a[1]));
+  }
+
+  private void checkPropertyName(String propertyName) {
+    if (propertyName == null || propertyName.isEmpty())
+      throw new IllegalArgumentException("Illegal property name: " + propertyName);
+  }
+
+  public final void loadNodePropertyIndex(final String propertyName, Map<Object, long[]> valueToNodeIds) {
+    valueToNodeIds.entrySet().parallelStream().forEach(entry ->
+        LongStream.of(entry.getValue())
+          .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef)graph.vertex(nodeId))));
   }
 
   public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
@@ -72,6 +85,11 @@ public final class OdbIndexManager {
     return indexes.keySet();
   }
 
+  public final int getIndexedNodeCount(String propertyName) {
+    final Map<Object, Set<NodeRef>> indexMap = this.indexes.get(propertyName);
+    return indexMap == null ? 0 : indexMap.values().stream().mapToInt(Set::size).sum();
+  }
+
   public final List<NodeRef> lookup(final String key, final Object value) {
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null == keyMap) {
@@ -106,4 +124,36 @@ public final class OdbIndexManager {
     }
   }
 
+  public Map<Object, Set<NodeRef>> getIndexMap(String propertyName) {
+    return this.indexes.get(propertyName);
+  }
+
+  public void initializeStoredIndices(OdbStorage storage) {
+    storage
+        .getIndexNames()
+        .stream()
+        .forEach(indexName -> loadIndex(indexName, storage));
+  }
+
+  public void loadIndex(String indexName, OdbStorage storage) {
+    final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
+    loadNodePropertyIndex(indexName, indexMVMap);
+  }
+
+  public void storeIndexes(OdbStorage storage) {
+    storage.clearIndices();
+    getIndexedNodeProperties()
+        .stream()
+        .forEach(propertyName ->
+            saveIndex(storage, propertyName, getIndexMap(propertyName)));
+  }
+
+  private void saveIndex(OdbStorage storage, String propertyName, Map<Object, Set<NodeRef>> indexMap) {
+    final MVMap<Object, long[]> indexStore = storage.openIndex(propertyName);
+    indexMap.entrySet().parallelStream().forEach(entry -> {
+      final Object propertyValue = entry.getKey();
+      final Set<NodeRef> nodeRefs = entry.getValue();
+      indexStore.put(propertyValue, nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray());
+    });
+  }
 }

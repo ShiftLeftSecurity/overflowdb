@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.storage;
 
+import io.shiftleft.overflowdb.NodeRef;
 import io.shiftleft.overflowdb.OdbNode;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.h2.mvstore.MVMap;
@@ -12,8 +13,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
+  private static final String INDEX_PREFIX = "index_";
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer = new NodeSerializer();
   protected final Optional<NodeDeserializer> nodeDeserializer;
@@ -98,13 +101,53 @@ public class OdbStorage implements AutoCloseable {
 
   public MVMap<Long, byte[]> getNodesMVMap() {
     if (mvstore == null) {
-      mvstore = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
-      nodesMVMap = mvstore.openMap("nodes");
+      mvstore = initializeMVStore();
     }
+    if (nodesMVMap == null)
+      nodesMVMap = mvstore.openMap("nodes");
     return nodesMVMap;
+  }
+
+  private MVStore initializeMVStore() {
+    final MVStore store = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
+    return store;
   }
 
   public Optional<NodeDeserializer> getNodeDeserializer() {
     return nodeDeserializer;
+  }
+
+  private Map<String, String> getIndexNameMap(MVStore store) {
+    return store
+        .getMapNames()
+        .stream()
+        .filter(s -> s.startsWith(INDEX_PREFIX))
+        .collect(Collectors.toConcurrentMap(s -> removeIndexPrefix(s), s -> s));
+  }
+
+  public Set<String> getIndexNames() {
+    return getIndexNameMap(mvstore).keySet();
+  }
+
+  private String removeIndexPrefix(String s) {
+    assert s.startsWith(INDEX_PREFIX);
+    return s.substring(INDEX_PREFIX.length());
+  }
+
+  public MVMap<Object, long[]> openIndex(String indexName) {
+    final String mapName = getIndexMapName(indexName);
+    return mvstore.openMap(mapName);
+  }
+
+  private String getIndexMapName(String indexName) {
+    return INDEX_PREFIX + indexName;
+  }
+
+  public void clearIndices() {
+    getIndexNames().forEach(this::clearIndex);
+  }
+
+  public void clearIndex(String indexName) {
+    openIndex(indexName).clear();
   }
 }
