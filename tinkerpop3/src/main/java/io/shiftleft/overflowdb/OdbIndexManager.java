@@ -82,7 +82,6 @@ public final class OdbIndexManager {
    * Return all the keys currently being indexed for nodes.
    */
   public final Set<String> getIndexedNodeProperties() {
-//    indexes.keySet().forEach(s -> System.out.println("indexed prop: " + s));
     return indexes.keySet();
   }
 
