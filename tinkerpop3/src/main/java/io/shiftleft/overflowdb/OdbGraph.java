@@ -138,24 +138,11 @@ public final class OdbGraph implements Graph {
     }
 
     currentId.set(maxId + 1);
-    initializeStoredIndices(storage);
+    indexManager.initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
     logger.info("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
   }
 
-  private void initializeStoredIndices(OdbStorage storage) {
-    storage
-        .getIndexNames()
-        .stream()
-        .forEach(indexName -> loadIndex(indexName, storage));
-  }
-
-  private void loadIndex(String indexName, OdbStorage storage) {
-    assert indexName != null;
-    System.out.println("loadIndex: " + indexName);
-    final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
-    indexManager.loadNodePropertyIndex(indexName, indexMVMap);
-  }
 
   ////////////// STRUCTURE API METHODS //////////////////
   @Override
@@ -251,12 +238,7 @@ public final class OdbGraph implements Graph {
     heapUsageMonitor.ifPresent(monitor -> monitor.close());
     if (config.getStorageLocation().isPresent()) {
       /* persist to disk */
-      storage.clearIndices();
-      indexManager.getIndexedNodeProperties().stream().forEach(propertyName -> {
-          System.out.println("Storing prop index: " + propertyName);
-        storage.saveIndex(propertyName, indexManager.getIndexMap(propertyName));
-          }
-      );
+      indexManager.storeIndexes(storage);
       referenceManager.clearAllReferences();
     }
     referenceManager.close();

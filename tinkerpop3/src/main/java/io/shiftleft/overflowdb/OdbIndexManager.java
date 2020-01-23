@@ -1,6 +1,8 @@
 package io.shiftleft.overflowdb;
 
+import io.shiftleft.overflowdb.storage.OdbStorage;
 import org.apache.tinkerpop.gremlin.structure.Property;
+import org.h2.mvstore.MVMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,6 +86,11 @@ public final class OdbIndexManager {
     return indexes.keySet();
   }
 
+  public final int getIndexedNodeCount(String propertyName) {
+    final Map<Object, Set<NodeRef>> indexMap = this.indexes.get(propertyName);
+    return indexMap == null ? 0 : indexMap.values().stream().mapToInt(Set::size).sum();
+  }
+
   public final List<NodeRef> lookup(final String key, final Object value) {
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null == keyMap) {
@@ -120,5 +127,34 @@ public final class OdbIndexManager {
 
   public Map<Object, Set<NodeRef>> getIndexMap(String propertyName) {
     return this.indexes.get(propertyName);
+  }
+
+  public void initializeStoredIndices(OdbStorage storage) {
+    storage
+        .getIndexNames()
+        .stream()
+        .forEach(indexName -> loadIndex(indexName, storage));
+  }
+
+  public void loadIndex(String indexName, OdbStorage storage) {
+    final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
+    loadNodePropertyIndex(indexName, indexMVMap);
+  }
+
+  public void storeIndexes(OdbStorage storage) {
+    storage.clearIndices();
+    getIndexedNodeProperties()
+        .stream()
+        .forEach(propertyName ->
+            saveIndex(storage, propertyName, getIndexMap(propertyName)));
+  }
+
+  private void saveIndex(OdbStorage storage, String propertyName, Map<Object, Set<NodeRef>> indexMap) {
+    final MVMap<Object, long[]> indexStore = storage.openIndex(propertyName);
+    indexMap.entrySet().parallelStream().forEach(entry -> {
+      final Object propertyValue = entry.getKey();
+      final Set<NodeRef> nodeRefs = entry.getValue();
+      indexStore.put(propertyValue, nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray());
+    });
   }
 }
