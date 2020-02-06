@@ -252,13 +252,11 @@ public abstract class OdbNode implements Vertex {
   public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
-
-    int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
-    int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
-
-    OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
-    dummyEdge.setOutBlockOffset(outBlockOffset);
-    dummyEdge.setInBlockOffset(inBlockOffset);
+      int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
+      int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
+      OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
+      dummyEdge.setOutBlockOffset(outBlockOffset);
+      dummyEdge.setInBlockOffset(inBlockOffset);
 
     return dummyEdge;
   }
@@ -437,18 +435,19 @@ public abstract class OdbNode implements Vertex {
                                 String edgeLabel,
                                 NodeRef nodeRef,
                                 Object... edgeKeyValues) {
-    int blockOffset = storeAdjacentNode(direction, edgeLabel, nodeRef);
+    synchronized (this) {
+      int blockOffset = storeAdjacentNode(direction, edgeLabel, nodeRef);
 
-    /* set edge properties */
-    for (int i = 0; i < edgeKeyValues.length; i = i + 2) {
-      if (!edgeKeyValues[i].equals(T.id) && !edgeKeyValues[i].equals(T.label)) {
-        String key = (String) edgeKeyValues[i];
-        Object value = edgeKeyValues[i + 1];
-        setEdgeProperty(direction, edgeLabel, key, value, blockOffset);
+      /* set edge properties */
+      for (int i = 0; i < edgeKeyValues.length; i = i + 2) {
+        if (!edgeKeyValues[i].equals(T.id) && !edgeKeyValues[i].equals(T.label)) {
+          String key = (String) edgeKeyValues[i];
+          Object value = edgeKeyValues[i + 1];
+          setEdgeProperty(direction, edgeLabel, key, value, blockOffset);
+        }
       }
+      return blockOffset;
     }
-
-    return blockOffset;
   }
 
   private int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {

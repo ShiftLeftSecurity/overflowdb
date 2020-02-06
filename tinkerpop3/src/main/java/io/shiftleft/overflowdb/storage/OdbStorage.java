@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.NodeRef;
 import io.shiftleft.overflowdb.OdbNode;
+import org.apache.commons.lang.math.IntRange;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -10,20 +11,19 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
   private static final String INDEX_PREFIX = "index_";
+  public static final int SHARDS = 4;
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer = new NodeSerializer();
   protected final Optional<NodeDeserializer> nodeDeserializer;
 
   private final File mvstoreFile;
   private MVStore mvstore; // initialized in `getNodesMVMap`
-  private MVMap<Long, byte[]> nodesMVMap;
+  private ArrayList<MVMap<Long, byte[]>> nodesMVMapList = new ArrayList(SHARDS);
   private boolean closed;
 
   public static OdbStorage createWithTempFile(final NodeDeserializer nodeDeserializer) {
@@ -68,12 +68,12 @@ public class OdbStorage implements AutoCloseable {
   public void persist(final OdbNode node) throws IOException {
     if (!closed) {
       final long id = node.ref.id;
-      getNodesMVMap().put(id, nodeSerializer.serialize(node));
+      getNodesMVMap(id).put(id, nodeSerializer.serialize(node));
     }
   }
 
   public <A extends Vertex> A readNode(final long id) throws IOException {
-    return (A) nodeDeserializer.get().deserialize(getNodesMVMap().get(id));
+    return (A) nodeDeserializer.get().deserialize(getNodesMVMap(id).get(id));
   }
 
   @Override
@@ -88,28 +88,42 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public void removeNode(final Long id) {
-    getNodesMVMap().remove(id);
+    getNodesMVMap(id).remove(id);
   }
 
   public Set<Map.Entry<Long, byte[]>> allNodes() {
-    return getNodesMVMap().entrySet();
+    final HashSet<Map.Entry<Long, byte[]>> entries = new HashSet<>();
+    for (int i=0; i < SHARDS; ++i) {
+      entries.addAll(getNodesMVMap(i).entrySet());
+    }
+    return entries;
   }
 
   public NodeSerializer getNodeSerializer() {
     return nodeSerializer;
   }
 
-  public MVMap<Long, byte[]> getNodesMVMap() {
+  public MVMap<Long, byte[]> getNodesMVMap(long nodeId) {
     if (mvstore == null) {
       mvstore = initializeMVStore();
+
     }
-    if (nodesMVMap == null)
-      nodesMVMap = mvstore.openMap("nodes");
-    return nodesMVMap;
+//    if (nodesMVMap == null)
+//      nodesMVMap = mvstore.openMap("nodes_" + getShardIndex(nodeId));
+    return nodesMVMapList.get(getShardIndex(nodeId));
+  }
+
+  private int getShardIndex(long nodeId) {
+    return (int)(nodeId % SHARDS);
   }
 
   private MVStore initializeMVStore() {
-    final MVStore store = new MVStore.Builder().fileName(mvstoreFile.getAbsolutePath()).open();
+    final MVStore store = new MVStore.Builder()
+        .fileName(mvstoreFile.getAbsolutePath())
+        .autoCommitBufferSize(1024 * 4)
+        .open();
+    for (int i = 0; i < SHARDS; ++i)
+      nodesMVMapList.add(store.openMap("nodes_" + i));
     return store;
   }
 

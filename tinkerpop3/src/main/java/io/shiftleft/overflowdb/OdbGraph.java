@@ -151,14 +151,17 @@ public final class OdbGraph implements Graph {
     }
     ElementHelper.legalPropertyKeyValueArray(keyValues);
     final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
-
-    final long idValue = determineNewNodeId(keyValues);
-    currentId.set(Long.max(idValue, currentId.get()));
-
+    long idValue = -1;
+    synchronized (nodes) {
+      idValue = determineNewNodeId(keyValues);
+      currentId.set(Long.max(idValue, currentId.get())); // TODO: This looks like it is not threadsafe
+    }
     final NodeRef node = createNode(idValue, label, keyValues);
-    nodes.put(node.id, node);
-    storeInByLabelCollection(node);
-    return node;
+    synchronized (nodes) {
+      nodes.put(node.id, node);
+      storeInByLabelCollection(node);
+      return node;
+    }
   }
 
   private long determineNewNodeId(final Object... keyValues) {
@@ -300,11 +303,13 @@ public final class OdbGraph implements Graph {
   }
 
   private void storeInByLabelCollection(NodeRef nodeRef) {
-    final String label = nodeRef.label();
-    if (!nodesByLabel.containsKey(label))
-      nodesByLabel.put(label, new THashSet<>(1));
+//    synchronized (nodesByLabel) {
+      final String label = nodeRef.label();
+      if (!nodesByLabel.containsKey(label))
+        nodesByLabel.put(label, new THashSet<>(1));
 
-    nodesByLabel.get(label).add(nodeRef);
+      nodesByLabel.get(label).add(nodeRef);
+//    }
   }
 
   public Iterator<NodeRef> nodesByLabel(final String label) {

@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb;
 
+import io.shiftleft.overflowdb.storage.OdbStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   public final int releaseCount = 100000; //TODO make configurable
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
-  private final Integer cpuCount = Runtime.getRuntime().availableProcessors();
+  private final Integer cpuCount = OdbStorage.SHARDS;//Runtime.getRuntime().availableProcessors();
   private final ExecutorService executorService = Executors.newFixedThreadPool(cpuCount);
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
@@ -74,15 +75,18 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    * using executor with one thread and capacity=1, drop `clearingInProgress` flag
    */
   private List<Future> asynchronouslyClearReferences(final int releaseCount) {
-    List<Future> futures = new ArrayList<>(cpuCount);
+    List<Future> futures = new ArrayList<>(OdbStorage.SHARDS);
     // use Math.ceil to err on the larger side
-    final int releaseCountPerThread = (int) Math.ceil(releaseCount / cpuCount.floatValue());
-    for (int i = 0; i < cpuCount; i++) {
+//    final int releaseCountPerThread = (int) Math.ceil(releaseCount / cpuCount.floatValue());
+//    final int releaseCountPerThread = releaseCount;
+    final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
+    for (int i = 0; i < OdbStorage.SHARDS; i++) {
       // doing this concurrently is tricky and won't be much faster since PriorityBlockingQueue is `blocking` anyway
-      final List<NodeRef> refsToClear = collectRefsToClear(releaseCountPerThread);
+//      final List<NodeRef> refsToClear = collectRefsToClear(releaseCountPerThread);
       if (!refsToClear.isEmpty()) {
+        final int shardIndex = i;
         futures.add(executorService.submit(() -> {
-          safelyClearReferences(refsToClear);
+          safelyClearReferences(refsToClear, shardIndex);
           logger.info("completed clearing of " + refsToClear.size() + " references");
           logger.debug("current clearable queue size: " + clearableRefs.size());
           logger.debug("references cleared in total: " + totalReleaseCount);
@@ -112,12 +116,12 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   /**
    * clear references, ensuring no exception is raised
    */
-  private void safelyClearReferences(final List<NodeRef> refsToClear) {
+  private void safelyClearReferences(final List<NodeRef> refsToClear, int shardIndex) {
     try {
       synchronized (backPressureSyncObject) {
         clearingProcessCount += 1;
       }
-      clearReferences(refsToClear);
+      clearReferences(refsToClear, shardIndex);
     } catch (Exception e) {
       logger.error("error while trying to clear " + refsToClear.size() + " references", e);
     } finally {
@@ -130,12 +134,12 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     }
   }
 
-  private void clearReferences(final List<NodeRef> refsToClear) throws IOException {
+  private void clearReferences(final List<NodeRef> refsToClear, int shardIndex) throws IOException {
     logger.info("attempting to clear " + refsToClear.size() + " references");
     final Iterator<NodeRef> refsIterator = refsToClear.iterator();
     while (refsIterator.hasNext()) {
       final NodeRef ref = refsIterator.next();
-      if (ref.isSet()) {
+      if (ref.isSet() && ref.id % OdbStorage.SHARDS == shardIndex) {
         ref.clear();
         totalReleaseCount.incrementAndGet();
       }
