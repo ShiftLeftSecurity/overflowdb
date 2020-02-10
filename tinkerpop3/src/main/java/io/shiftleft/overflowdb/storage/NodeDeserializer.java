@@ -168,6 +168,7 @@ public class NodeDeserializer {
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
     node.setEdgeOffsets(edgeOffsets);
     node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
+    node.markAsClean();
 
     return node;
   }

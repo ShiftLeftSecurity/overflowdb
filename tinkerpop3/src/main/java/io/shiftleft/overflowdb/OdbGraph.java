@@ -330,6 +330,10 @@ public final class OdbGraph implements Graph {
     return closed;
   }
 
+  public OdbStorage getStorage() {
+    return storage;
+  }
+
   public class GraphFeatures implements Features {
     private final OdbGraphFeatures graphFeatures = new OdbGraphFeatures();
     private final OdbEdgeFeatures edgeFeatures = new OdbEdgeFeatures();

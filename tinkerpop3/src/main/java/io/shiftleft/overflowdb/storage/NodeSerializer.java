@@ -22,6 +22,9 @@ public class NodeSerializer {
   public byte[] serialize(OdbNode node) throws IOException {
     long start = System.currentTimeMillis();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
+      /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
+      node.markAsClean();
+
       packer.packLong(node.ref.id);
       packer.packInt(node.layoutInformation().labelId);
 
@@ -116,4 +119,7 @@ public class NodeSerializer {
     }
   }
 
+  public final int getSerializedCount() {
+    return serializedCount;
+  }
 }
