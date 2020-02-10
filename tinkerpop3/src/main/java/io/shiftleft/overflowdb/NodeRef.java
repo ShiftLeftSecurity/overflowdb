@@ -55,30 +55,43 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   /* only called by @ReferenceManager */
   protected void clear() throws IOException {
     OdbNode node = this.node;
-    if (node != null) {
+    if (node != null && node.isDirty()) {
       graph.storage.persist(node);
     }
     this.node = null;
   }
 
-  public N get() {
-    N ref = node;
+  public final N get() {
+    final N ref = node;
     if (ref != null) {
+      /* Node is in memory, just return it */
       return ref;
     } else {
+      /* read Node from disk */
       try {
-        final N node = readFromDisk(id);
-        if (node == null) throw new IllegalStateException("unable to read node from disk; id=" + id);
-        this.node = node;
-        graph.referenceManager.registerRef(this); // so it can be cleared on low memory
-        return node;
+        return getSynchronized();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
     }
   }
 
-  public Optional<N> getOption() {
+  /** deserialize node from disk, synchronized to ensure this only happens once in a multi-threaded setup */
+  private final synchronized N getSynchronized() throws IOException {
+    final N ref = node;
+    /* checking again, in case another thread came here first and deserialized the node from disk */
+    if (ref != null) {
+      return ref;
+    } else {
+      final N node = readFromDisk(id);
+      if (node == null) throw new IllegalStateException("unable to read node from disk; id=" + id);
+      this.node = node;
+      graph.referenceManager.registerRef(this); // so it can be cleared on low memory
+      return node;
+    }
+  }
+
+  public final Optional<N> getOption() {
     return Optional.ofNullable(node);
   }
 
@@ -86,7 +99,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
     this.node = node;
   }
 
-  protected N readFromDisk(long nodeId) throws IOException {
+  private final N readFromDisk(long nodeId) throws IOException {
     return graph.storage.readNode(nodeId);
   }
 

@@ -106,17 +106,17 @@ class Traversal[A](elements: IterableOnce[A])
 object Traversal extends IterableFactory[Traversal] {
   protected val logger = LoggerFactory.getLogger("Traversal")
 
-  def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
+  override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
   def apply[A](elements: IterableOnce[A]) = new Traversal[A](elements.iterator)
 
   def apply[A](elements: java.util.Iterator[A]) =
     new Traversal[A](elements.asScala)
 
-  def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
+  override def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
     Iterator.newBuilder[A].mapResult(new Traversal(_))
 
-  def from[A](iter: IterableOnce[A]): Traversal[A] =
+  override def from[A](iter: IterableOnce[A]): Traversal[A] =
     new Traversal(Iterator.from(iter))
 
   def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
