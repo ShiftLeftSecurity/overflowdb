@@ -28,17 +28,10 @@ import java.util.stream.StreamSupport;
  * Node that stores adjacent Nodes directly, rather than via edges.
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
- *
- * TODO: remove tinkerpop dependency
  */
 public abstract class OdbNode implements Vertex {
 
   public final NodeRef ref;
-
-  @Override
-  public String label() {
-    return ref.label();
-  }
 
   /**
    * holds refs to all adjacent nodes (a.k.a. dummy edges) and the edge properties
@@ -48,6 +41,14 @@ public abstract class OdbNode implements Vertex {
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
    * i.e. each outgoing edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
+
+  /**
+   * Flag that helps us save time when serializing, both when overflowing to disk and when storing
+   * the graph on close.
+   * `true`  when node is first created, or is modified (property or edges)
+   * `false` when node is freshly serialized to disk or deserialized from disk
+   */
+  private boolean dirty;
 
   protected OdbNode(NodeRef ref) {
     this.ref = ref;
@@ -93,6 +94,11 @@ public abstract class OdbNode implements Vertex {
   }
 
   @Override
+  public String label() {
+    return ref.label();
+  }
+
+  @Override
   public Set<String> keys() {
     return layoutInformation().propertyKeys();
   }
@@ -135,12 +141,11 @@ public abstract class OdbNode implements Vertex {
   public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String key, V value, Object... keyValues) {
     ElementHelper.legalPropertyKeyValueArray(keyValues);
     ElementHelper.validateProperty(key, value);
-    synchronized (this) {
-//            this.modifiedSinceLastSerialization = true;
-      final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
-      ref.graph.indexManager.putIfIndexed(key, value, ref);
-      return vp;
-    }
+    final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
+    ref.graph.indexManager.putIfIndexed(key, value, ref);
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
+    return vp;
   }
 
   protected abstract <V> VertexProperty<V> updateSpecificProperty(
@@ -163,12 +168,17 @@ public abstract class OdbNode implements Vertex {
     graph.nodesByLabel.get(label()).remove(this);
 
     graph.storage.removeNode(ref.id);
-//        this.modifiedSinceLastSerialization = true;
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
   }
 
-//    public void setModifiedSinceLastSerialization(boolean modifiedSinceLastSerialization) {
-//        this.modifiedSinceLastSerialization = modifiedSinceLastSerialization;
-//    }
+  public void markAsDirty() {
+    this.dirty = true;
+  }
+
+  public void markAsClean() {
+    this.dirty = false;
+  }
 
   public <V> Iterator<Property<V>> getEdgeProperties(Direction direction,
                                                      OdbEdge edge,
@@ -214,6 +224,8 @@ public abstract class OdbNode implements Vertex {
       throw new RuntimeException("Edge " + edgeLabel + " does not support property " + key + ".");
     }
     adjacentNodesWithProperties[propertyPosition] = value;
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
   }
 
   private int calcAdjacentNodeIndex(Direction direction,
@@ -334,7 +346,7 @@ public abstract class OdbNode implements Vertex {
    * @return the occurrence for a given edge, calculated by counting the number times the given
    * adjacent node occurred between the start of the edge-specific block and the blockOffset
    */
-  protected int blockOffsetToOccurrence(Direction direction,
+  protected final int blockOffsetToOccurrence(Direction direction,
                                      String label,
                                      NodeRef otherNode,
                                      int blockOffset) {
@@ -359,7 +371,7 @@ public abstract class OdbNode implements Vertex {
    *                   Both nodes use the same occurrence index for the same edge.
    * @return the index into `adjacentNodesWithProperties`
    */
-  protected int occurrenceToBlockOffset(Direction direction,
+  protected final int occurrenceToBlockOffset(Direction direction,
                                      String label,
                                      NodeRef adjacentNode,
                                      int occurrence) {
@@ -391,7 +403,7 @@ public abstract class OdbNode implements Vertex {
    *
    * @param blockOffset must have been initialized
    */
-  protected void removeEdge(Direction direction, String label, int blockOffset) {
+  protected final synchronized void removeEdge(Direction direction, String label, int blockOffset) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     int start = startIndex(offsetPos) + blockOffset;
     int strideSize = getStrideSize(label);
@@ -399,6 +411,9 @@ public abstract class OdbNode implements Vertex {
     for (int i = start; i < start + strideSize; i++) {
       adjacentNodesWithProperties[i] = null;
     }
+
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
   }
 
   private Iterator<Edge> createDummyEdgeIterator(Direction direction,
@@ -448,10 +463,13 @@ public abstract class OdbNode implements Vertex {
       }
     }
 
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
+
     return blockOffset;
   }
 
-  private int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
+  private final synchronized int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
     int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
     if (offsetPos == -1) {
       throw new RuntimeException("Edge of type " + edgeLabel + " with direction " + direction +
@@ -483,7 +501,7 @@ public abstract class OdbNode implements Vertex {
    * @return number of elements reserved in `adjacentNodesWithProperties` for a given edge label
    * includes space for the node ref and all properties
    */
-  private int getStrideSize(String edgeLabel) {
+  private final int getStrideSize(String edgeLabel) {
     int sizeForNodeRef = 1;
     Set<String> allowedPropertyKeys = layoutInformation().edgePropertyKeys(edgeLabel);
     return sizeForNodeRef + allowedPropertyKeys.size();
@@ -492,7 +510,7 @@ public abstract class OdbNode implements Vertex {
   /**
    * @return The position in edgeOffsets array. -1 if the edge label is not supported
    */
-  private int getPositionInEdgeOffsets(Direction direction, String label) {
+  private final int getPositionInEdgeOffsets(Direction direction, String label) {
     final Integer positionOrNull;
     if (direction == Direction.OUT) {
       positionOrNull = layoutInformation().outEdgeToOffsetPosition(label);
@@ -510,11 +528,11 @@ public abstract class OdbNode implements Vertex {
    * Returns the length of an edge type block in the adjacentNodesWithProperties array.
    * Length means number of index positions.
    */
-  private int blockLength(int offsetPosition) {
+  private final int blockLength(int offsetPosition) {
     return edgeOffsets.get(2 * offsetPosition + 1);
   }
 
-  private String[] calcInLabels(String... edgeLabels) {
+  private final String[] calcInLabels(String... edgeLabels) {
     if (edgeLabels.length != 0) {
       return edgeLabels;
     } else {
@@ -522,7 +540,7 @@ public abstract class OdbNode implements Vertex {
     }
   }
 
-  private String[] calcOutLabels(String... edgeLabels) {
+  private final String[] calcOutLabels(String... edgeLabels) {
     if (edgeLabels.length != 0) {
       return edgeLabels;
     } else {
@@ -537,7 +555,7 @@ public abstract class OdbNode implements Vertex {
    * (tradeoff between performance and memory).
    * grows with the square root of the double of the current capacity.
    */
-  private Object[] growAdjacentNodesWithProperties(int offsetPos,
+  private final synchronized Object[] growAdjacentNodesWithProperties(int offsetPos,
                                                    int strideSize,
                                                    int insertAt,
                                                    int currentLength) {
@@ -563,18 +581,17 @@ public abstract class OdbNode implements Vertex {
   /**
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
-  protected OdbEdge instantiateDummyEdge(String label,
-                                         NodeRef outNode,
-                                         NodeRef inNode) {
+  protected final OdbEdge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
     return edgeFactory.createEdge(ref.graph, outNode, inNode);
   }
+
   /**
    * Trims the node to save storage: shrinks overallocations
    * */
-  public int trim(){
+  public synchronized int trim(){
     int newSize = 0;
     for(int offsetPos = 0; 2*offsetPos < edgeOffsets.length(); offsetPos++){
       int length = blockLength(offsetPos);
@@ -593,6 +610,10 @@ public abstract class OdbNode implements Vertex {
     int oldsize = adjacentNodesWithProperties.length;
     adjacentNodesWithProperties = newArray;
     return oldsize - newSize;
+  }
+
+  public final boolean isDirty() {
+    return dirty;
   }
 
 }

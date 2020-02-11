@@ -63,6 +63,7 @@ public class OdbNodeProperty<V> implements Element, VertexProperty<V> {
 
   @Override
   public void remove() {
+    throw new RuntimeException("Not supported.");
   }
 
   @Override

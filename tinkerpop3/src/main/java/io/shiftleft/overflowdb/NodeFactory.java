@@ -16,6 +16,7 @@ public abstract class NodeFactory<V extends OdbNode> {
   public V createNode(OdbGraph graph, long id) {
     final NodeRef<V> ref = createNodeRef(graph, id);
     final V node = createNode(ref);
+    node.markAsDirty(); //freshly created, i.e. not yet serialized
     ref.setNode(node);
     return node;
   }
