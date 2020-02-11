@@ -3,16 +3,11 @@ package io.shiftleft.overflowdb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * can clear references to disk and apply backpressure when creating new nodes, both to avoid an OutOfMemoryError
@@ -27,8 +22,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   public final int releaseCount = 100000; //TODO make configurable
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
-  private final Integer cpuCount = Runtime.getRuntime().availableProcessors();
-  private final ExecutorService executorService = Executors.newFixedThreadPool(cpuCount);
+  private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
 
@@ -65,7 +59,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
       logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
-      asynchronouslyClearReferences(releaseCount);
+      singleThreadExecutor.submit(() -> syncClearReferences(releaseCount));
     }
   }
 
@@ -73,23 +67,14 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    * run clearing of references asynchronously to not block the gc notification thread
    * using executor with one thread and capacity=1, drop `clearingInProgress` flag
    */
-  private List<Future> asynchronouslyClearReferences(final int releaseCount) {
-    List<Future> futures = new ArrayList<>(cpuCount);
-    // use Math.ceil to err on the larger side
-    final int releaseCountPerThread = (int) Math.ceil(releaseCount / cpuCount.floatValue());
-    for (int i = 0; i < cpuCount; i++) {
-      // doing this concurrently is tricky and won't be much faster since PriorityBlockingQueue is `blocking` anyway
-      final List<NodeRef> refsToClear = collectRefsToClear(releaseCountPerThread);
-      if (!refsToClear.isEmpty()) {
-        futures.add(executorService.submit(() -> {
-          safelyClearReferences(refsToClear);
-          logger.info("completed clearing of " + refsToClear.size() + " references");
-          logger.debug("current clearable queue size: " + clearableRefs.size());
-          logger.debug("references cleared in total: " + totalReleaseCount);
-        }));
-      }
+  private void syncClearReferences(final int releaseCount) {
+    final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
+    if (!refsToClear.isEmpty()) {
+      safelyClearReferences(refsToClear);
+      logger.info("completed clearing of " + refsToClear.size() + " references");
+      logger.debug("current clearable queue size: " + clearableRefs.size());
+      logger.debug("references cleared in total: " + totalReleaseCount);
     }
-    return futures;
   }
 
   private List<NodeRef> collectRefsToClear(int releaseCount) {
@@ -119,7 +104,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       }
       clearReferences(refsToClear);
     } catch (Exception e) {
-      logger.error("error while trying to clear " + refsToClear.size() + " references", e);
+      logger.error("error while trying to clear references", e);
     } finally {
       synchronized (backPressureSyncObject) {
         clearingProcessCount -= 1;
@@ -130,17 +115,40 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     }
   }
 
-  private void clearReferences(final List<NodeRef> refsToClear) throws IOException {
-    logger.info("attempting to clear " + refsToClear.size() + " references");
-    final Iterator<NodeRef> refsIterator = refsToClear.iterator();
-    while (refsIterator.hasNext()) {
-      final NodeRef ref = refsIterator.next();
-      if (ref.isSet()) {
-        ref.clear();
-        totalReleaseCount.incrementAndGet();
-      }
+  private void clearReferences(final List<NodeRef> refsToClear) {
+    serializeReferences(refsToClear.parallelStream().filter(NodeRef::isSet))
+        .sequential()
+        .forEach(serializedNode -> {
+          serializedNode.ref.persist(serializedNode.data);
+          serializedNode.ref.clear();
+          totalReleaseCount.incrementAndGet();
+        });
+  }
+
+  private static class SerializedNode {
+    public final NodeRef ref;
+    public final byte[] data;
+
+    public SerializedNode(NodeRef ref, byte[] data) {
+      this.ref = ref;
+      this.data = data;
     }
   }
+
+  private Stream<SerializedNode> serializeReferences(Stream<NodeRef> refs) {
+    return refs
+        .map(ReferenceManager::serializeReference)
+        .filter(Objects::nonNull);
+  }
+
+  private static SerializedNode serializeReference(NodeRef ref) {
+    final byte[] data = ref.serializeWhenDirty();
+    if (data != null)
+      return new SerializedNode(ref, data);
+    else
+      return null;
+  }
+
 
   /**
    * writes all references to disk overflow, blocks until complete.
@@ -150,20 +158,16 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     while (!clearableRefs.isEmpty()) {
       int clearableRefsSize = clearableRefs.size();
       logger.info("clearing " + clearableRefsSize + " references - this may take some time");
-      for (Future clearRefFuture : asynchronouslyClearReferences(clearableRefsSize)) {
-        try {
-          // block until everything is cleared
-          clearRefFuture.get();
-        } catch (Exception e) {
-          throw new RuntimeException("error while clearing references to disk", e);
-        }
+      try {
+        syncClearReferences(clearableRefsSize);
+      } catch (Exception e) {
+        throw new RuntimeException("error while clearing references to disk", e);
       }
     }
   }
 
   @Override
   public void close() {
-    executorService.shutdown();
+    singleThreadExecutor.shutdown();
   }
-
 }
