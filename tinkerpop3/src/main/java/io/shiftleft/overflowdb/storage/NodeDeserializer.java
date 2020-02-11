@@ -26,35 +26,54 @@ public class NodeDeserializer {
   protected final OdbGraph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private int deserializedCount = 0;
-  private long deserializationTimeSpentMillis = 0;
+  private long deserializationTimeSpentNanos = 0;
+  private THashMap<String, String> interner;
+
 
   public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId) {
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
+    this.interner = new THashMap<String, String>();
   }
 
+  private final String intern(String s){
+    String interned = interner.putIfAbsent(s, s);
+    return interned == null ? s : interned;
+  }
+
+
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    long start = System.currentTimeMillis();
+    // todo: benchmark that this is < 100 ns of overhead
+    // depends on CPU / uCode / hypervisor / OS kernel / java config.
+    // AFAIU this is a syscall on linux, so may be slowish in the cloud (recent spectre/meltdown mitigations)
+
+    // Alternative 1: Use JNI to call a small __asm__ rdtsc function.
+    //  Downsides: -Need assembler in toolchain (or C compiler if we are lazy),
+    //  -bites us when we want to run on windows / POWER,
+    //  -needs a little handling in case we are preempted and rescheduled
+
+    // Alternative 2: Include surrounding code in timing, i.e. only call system.nanoTime() every 1<<17 invocations
+
+    long start = System.nanoTime();
     if (null == bytes)
       return null;
 
-    try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
-      final long id = unpacker.unpackLong();
-      final int labelId = unpacker.unpackInt();
-      final Map<String, Object> properties = unpackProperties(unpacker);
-      final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-      final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
+    MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
+    final long id = unpacker.unpackLong();
+    final int labelId = unpacker.unpackInt();
+    final Map<String, Object> properties = unpackProperties(unpacker);
+    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
+    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
-      OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
-      deserializedCount++;
-      deserializationTimeSpentMillis += System.currentTimeMillis() - start;
-      if (deserializedCount % 131072 == 0) { //2^17
-        float avgDeserializationTime = deserializationTimeSpentMillis / (float) deserializedCount;
-        logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
-      }
-      return node;
+    deserializedCount++;
+    deserializationTimeSpentNanos += System.nanoTime() - start;
+    if (0 == (deserializedCount & 0x0001ffff)) {
+      float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
+      logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
     }
+    return node;
   }
 
   /**
@@ -73,7 +92,7 @@ public class NodeDeserializer {
     int propertyCount = unpacker.unpackMapHeader();
     Map<String, Object> res = new THashMap<>(propertyCount);
     for (int i = 0; i < propertyCount; i++) {
-      final String key = unpacker.unpackString();
+      final String key = intern(unpacker.unpackString());
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
       res.put(key, unpackedProperty);
     }
@@ -112,7 +131,7 @@ public class NodeDeserializer {
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
-        return value.asStringValue().asString();
+        return intern(value.asStringValue().asString());
       case BYTE:
         return value.asIntegerValue().asByte();
       case SHORT:
@@ -143,17 +162,23 @@ public class NodeDeserializer {
   protected final Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
     List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      final String key = entry.getKey();
+      final String key = intern(entry.getKey());
       final Object property = entry.getValue();
       // special handling for lists: create separate key/value entry for each list entry
       if (property instanceof List) {
         for (Object value : (List) property) {
           keyValues.add(key);
-          keyValues.add(value);
+          if(value instanceof String)
+            keyValues.add(intern((String)value));
+          else
+            keyValues.add(value);
         }
       } else {
         keyValues.add(key);
-        keyValues.add(property);
+        if(property instanceof String)
+          keyValues.add(intern((String)property));
+        else
+          keyValues.add(property);
       }
     }
     return keyValues.toArray();

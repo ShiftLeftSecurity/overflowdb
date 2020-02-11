@@ -52,6 +52,12 @@ public class OdbNodeTest {
       TestEdge testEdge = (TestEdge) e;
       assertEquals(Long.valueOf(99), testEdge.longProperty());
 
+      //trim test
+      assertEquals(2, ((NodeRef)v1).get().trim());
+      assertEquals(0, ((NodeRef)v1).get().trim());
+      assertEquals(2, ((NodeRef)v0).get().trim());
+      assertEquals(0, ((NodeRef)v0).get().trim());
+
       // vertex traversals
       assertEquals(1, __(v0).out().toList().size());
       assertEquals(0, __(v0).out("otherLabel").toList().size());
