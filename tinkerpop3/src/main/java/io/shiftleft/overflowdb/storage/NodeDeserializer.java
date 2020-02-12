@@ -44,16 +44,7 @@ public class NodeDeserializer {
 
 
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    // todo: benchmark that this is < 100 ns of overhead
-    // depends on CPU / uCode / hypervisor / OS kernel / java config.
-    // AFAIU this is a syscall on linux, so may be slowish in the cloud (recent spectre/meltdown mitigations)
-
-    // Alternative 1: Use JNI to call a small __asm__ rdtsc function.
-    //  Downsides: -Need assembler in toolchain (or C compiler if we are lazy),
-    //  -bites us when we want to run on windows / POWER,
-    //  -needs a little handling in case we are preempted and rescheduled
-
-    // Alternative 2: Include surrounding code in timing, i.e. only call system.nanoTime() every 1<<17 invocations
+    // todo: only time when some config is set
 
     long start = System.nanoTime();
     if (null == bytes)
