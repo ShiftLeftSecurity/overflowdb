@@ -588,7 +588,32 @@ public abstract class OdbNode implements Vertex {
     return edgeFactory.createEdge(ref.graph, outNode, inNode);
   }
 
+  /**
+   * Trims the node to save storage: shrinks overallocations
+   * */
+  public synchronized long trim(){
+    int newSize = 0;
+    for(int offsetPos = 0; 2*offsetPos < edgeOffsets.length(); offsetPos++){
+      int length = blockLength(offsetPos);
+      newSize += length;
+    }
+    Object[] newArray = new Object[newSize];
+
+    int off = 0;
+    for(int offsetPos = 0; 2*offsetPos < edgeOffsets.length(); offsetPos++){
+      int start = startIndex(offsetPos);
+      int length = blockLength(offsetPos);
+      System.arraycopy(adjacentNodesWithProperties, start, newArray, off, length);
+      edgeOffsets.set(2 * offsetPos, off);
+      off += length;
+    }
+    int oldsize = adjacentNodesWithProperties.length;
+    adjacentNodesWithProperties = newArray;
+    return (long)newSize + ( ((long)oldsize) << 32);
+  }
+
   public final boolean isDirty() {
     return dirty;
   }
+
 }

@@ -20,41 +20,52 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final OdbGraph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private int deserializedCount = 0;
-  private long deserializationTimeSpentMillis = 0;
+  private long deserializationTimeSpentNanos = 0;
+  private ConcurrentHashMap<String, String> interner;
+
 
   public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId) {
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
+    this.interner = new ConcurrentHashMap<String, String>();
   }
 
+  private final String intern(String s){
+    String interned = interner.putIfAbsent(s, s);
+    return interned == null ? s : interned;
+  }
+
+
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    long start = System.currentTimeMillis();
+    // todo: only time when some config is set
+
+    long start = System.nanoTime();
     if (null == bytes)
       return null;
 
-    try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
-      final long id = unpacker.unpackLong();
-      final int labelId = unpacker.unpackInt();
-      final Map<String, Object> properties = unpackProperties(unpacker);
-      final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-      final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
+    MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
+    final long id = unpacker.unpackLong();
+    final int labelId = unpacker.unpackInt();
+    final Map<String, Object> properties = unpackProperties(unpacker);
+    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
+    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
-      OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
-      deserializedCount++;
-      deserializationTimeSpentMillis += System.currentTimeMillis() - start;
-      if (deserializedCount % 131072 == 0) { //2^17
-        float avgDeserializationTime = deserializationTimeSpentMillis / (float) deserializedCount;
-        logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
-      }
-      return node;
+    deserializedCount++;
+    deserializationTimeSpentNanos += System.nanoTime() - start;
+    if (0 == (deserializedCount & 0x0001ffff)) {
+      float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
+      logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
     }
+    return node;
   }
 
   /**
@@ -73,7 +84,7 @@ public class NodeDeserializer {
     int propertyCount = unpacker.unpackMapHeader();
     Map<String, Object> res = new THashMap<>(propertyCount);
     for (int i = 0; i < propertyCount; i++) {
-      final String key = unpacker.unpackString();
+      final String key = intern(unpacker.unpackString());
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
       res.put(key, unpackedProperty);
     }
@@ -112,7 +123,7 @@ public class NodeDeserializer {
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
-        return value.asStringValue().asString();
+        return intern(value.asStringValue().asString());
       case BYTE:
         return value.asIntegerValue().asByte();
       case SHORT:
@@ -143,17 +154,23 @@ public class NodeDeserializer {
   protected final Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
     List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      final String key = entry.getKey();
+      final String key = intern(entry.getKey());
       final Object property = entry.getValue();
       // special handling for lists: create separate key/value entry for each list entry
       if (property instanceof List) {
         for (Object value : (List) property) {
           keyValues.add(key);
-          keyValues.add(value);
+          if(value instanceof String)
+            keyValues.add(intern((String)value));
+          else
+            keyValues.add(value);
         }
       } else {
         keyValues.add(key);
-        keyValues.add(property);
+        if(property instanceof String)
+          keyValues.add(intern((String)property));
+        else
+          keyValues.add(property);
       }
     }
     return keyValues.toArray();
