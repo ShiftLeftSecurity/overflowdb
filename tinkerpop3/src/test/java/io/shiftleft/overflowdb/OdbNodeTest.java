@@ -53,10 +53,10 @@ public class OdbNodeTest {
       assertEquals(Long.valueOf(99), testEdge.longProperty());
 
       //trim test
-      assertEquals(2, ((NodeRef)v1).get().trim());
-      assertEquals(0, ((NodeRef)v1).get().trim());
-      assertEquals(2, ((NodeRef)v0).get().trim());
-      assertEquals(0, ((NodeRef)v0).get().trim());
+      assertEquals(2 + (((long)4)<<32), ((NodeRef)v1).get().trim());
+      assertEquals(2 + (((long)2)<<32), ((NodeRef)v1).get().trim());
+      assertEquals(2 + (((long)4)<<32), ((NodeRef)v0).get().trim());
+      assertEquals(2 + (((long)2)<<32), ((NodeRef)v0).get().trim());
 
       // vertex traversals
       assertEquals(1, __(v0).out().toList().size());

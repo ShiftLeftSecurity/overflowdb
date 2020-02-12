@@ -591,7 +591,7 @@ public abstract class OdbNode implements Vertex {
   /**
    * Trims the node to save storage: shrinks overallocations
    * */
-  public synchronized int trim(){
+  public synchronized long trim(){
     int newSize = 0;
     for(int offsetPos = 0; 2*offsetPos < edgeOffsets.length(); offsetPos++){
       int length = blockLength(offsetPos);
@@ -609,7 +609,7 @@ public abstract class OdbNode implements Vertex {
     }
     int oldsize = adjacentNodesWithProperties.length;
     adjacentNodesWithProperties = newArray;
-    return oldsize - newSize;
+    return (long)newSize + ( ((long)oldsize) << 32);
   }
 
   public final boolean isDirty() {

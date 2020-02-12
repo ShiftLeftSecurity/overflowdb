@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -27,13 +28,13 @@ public class NodeDeserializer {
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private int deserializedCount = 0;
   private long deserializationTimeSpentNanos = 0;
-  private THashMap<String, String> interner;
+  private ConcurrentHashMap<String, String> interner;
 
 
   public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId) {
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
-    this.interner = new THashMap<String, String>();
+    this.interner = new ConcurrentHashMap<String, String>();
   }
 
   private final String intern(String s){
