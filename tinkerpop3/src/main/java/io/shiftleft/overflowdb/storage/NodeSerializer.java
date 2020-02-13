@@ -5,23 +5,15 @@ import io.shiftleft.overflowdb.OdbNode;
 import org.apache.commons.lang3.NotImplementedException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class NodeSerializer {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
-  private final boolean statsEnabled;
-  private int serializedCount = 0;
-  private long serializationTimeSpentNanos = 0;
-
+public class NodeSerializer extends BookKeeper {
   public NodeSerializer(boolean statsEnabled) {
-    this.statsEnabled = statsEnabled;
+    super(statsEnabled);
   }
 
   public byte[] serialize(OdbNode node) throws IOException {
@@ -119,17 +111,4 @@ public class NodeSerializer {
     }
   }
 
-  private void recordStatistics(long startTimeNanos) {
-    serializedCount++;
-    serializationTimeSpentNanos += System.nanoTime() - startTimeNanos;
-    if (0 == (serializedCount & 0x0001ffff)) {
-      float avgSerializationTime = 1.0f-6 * serializationTimeSpentNanos / (float) serializedCount;
-      logger.debug("stats: serialized " + serializedCount + " nodes in total (avg time: " + avgSerializationTime + "ms)");
-    }
-  }
-
-  public final int getSerializedCount() {
-    if (statsEnabled) return serializedCount;
-    else throw new RuntimeException("serialization statistics not enabled");
-  }
 }

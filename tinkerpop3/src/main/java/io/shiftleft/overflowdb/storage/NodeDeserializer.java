@@ -22,20 +22,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class NodeDeserializer {
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+public class NodeDeserializer extends BookKeeper {
   protected final OdbGraph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private ConcurrentHashMap<String, String> interner;
-  private final boolean statsEnabled;
-  private int deserializedCount = 0;
-  private long deserializationTimeSpentNanos = 0;
 
   public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
+    super(statsEnabled);
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
     this.interner = new ConcurrentHashMap<>();
-    this.statsEnabled = statsEnabled;
   }
 
   private final String intern(String s){
@@ -181,15 +177,6 @@ public class NodeDeserializer {
     node.markAsClean();
 
     return node;
-  }
-
-  private void recordStatistics(long startTimeNanos) {
-    deserializedCount++;
-    deserializationTimeSpentNanos += System.nanoTime() - startTimeNanos;
-    if (0 == (deserializedCount & 0x0001ffff)) {
-      float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
-      logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
-    }
   }
 
   private final NodeFactory getNodeFactory(int labelId) {
