@@ -98,18 +98,21 @@ public class GraphSaveRestoreTest {
     modifyAndCloseGraph(storageFile, graph -> {
       // initial import from graphml - should serialize all nodes
       loadGraphMl(graph);
-      return 808;
+      int expectedSerializationCount = 808;
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
       // no changes, not even traversing (and thus not deserializing nodes)
-      return 0;
+      int expectedSerializationCount = 0;
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
       // traversing (and thus deserializing nodes), but making no changes
       graph.traversal().V().has(Artist.NAME, "Garcia").next();
-      return 0;
+      int expectedSerializationCount = 0;
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
@@ -118,14 +121,16 @@ public class GraphSaveRestoreTest {
       newSong.property(Song.NAME, "new song");
       Vertex youngBlood = graph.traversal().V().has(Song.NAME, "YOUNG BLOOD").next();
       youngBlood.addEdge(FollowedBy.LABEL, newSong);
-      return 2; // both youngBlood and newSong should be serialized
+      int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
       // update node property
       Vertex newSong = graph.traversal().V().has(Song.NAME, "new song").next();
       newSong.property(Song.PERFORMANCES, 5);
-      return 1;
+      int expectedSerializationCount = 1;
+      return expectedSerializationCount;
     });
 
     // TODO implement property removal (both node and edge)
@@ -141,7 +146,8 @@ public class GraphSaveRestoreTest {
       Vertex newSong = graph.traversal().V().has(Song.NAME, "new song").next();
       Edge followedBy = newSong.edges(Direction.IN).next();
       followedBy.property(FollowedBy.WEIGHT, 10);
-      return 2;  // both youngBlood and newSong should be serialized
+      int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
@@ -149,14 +155,16 @@ public class GraphSaveRestoreTest {
       Vertex newSong = graph.traversal().V().has(Song.NAME, "new song").next();
       Edge followedBy = newSong.edges(Direction.IN).next();
       followedBy.remove();
-      return 2;  // both youngBlood and newSong should be serialized
+      int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
+      return expectedSerializationCount;
     });
 
     modifyAndCloseGraph(storageFile, graph -> {
       // remove node
       Vertex newSong = graph.traversal().V().has(Song.NAME, "new song").next();
       newSong.remove();
-      return 1;
+      int expectedSerializationCount = 1;
+      return expectedSerializationCount;
     });
   }
 
