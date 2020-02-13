@@ -123,7 +123,6 @@ public class OdbStorage implements AutoCloseable {
     final MVStore store = new MVStore.Builder()
         .fileName(mvstoreFile.getAbsolutePath())
         .autoCommitBufferSize(1024 * 8)
-        .fileStore()
         .open();
     return store;
   }
