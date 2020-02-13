@@ -26,15 +26,16 @@ public class NodeDeserializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final OdbGraph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
+  private ConcurrentHashMap<String, String> interner;
+  private final boolean statsEnabled;
   private int deserializedCount = 0;
   private long deserializationTimeSpentNanos = 0;
-  private ConcurrentHashMap<String, String> interner;
 
-
-  public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId) {
+  public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
-    this.interner = new ConcurrentHashMap<String, String>();
+    this.interner = new ConcurrentHashMap<>();
+    this.statsEnabled = statsEnabled;
   }
 
   private final String intern(String s){
@@ -42,10 +43,7 @@ public class NodeDeserializer {
     return interned == null ? s : interned;
   }
 
-
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    // todo: only time when some config is set
-
     long start = System.nanoTime();
     if (null == bytes)
       return null;
@@ -59,12 +57,7 @@ public class NodeDeserializer {
 
     OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
-    deserializedCount++;
-    deserializationTimeSpentNanos += System.nanoTime() - start;
-    if (0 == (deserializedCount & 0x0001ffff)) {
-      float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
-      logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
-    }
+    if (statsEnabled) recordStatistics(start);
     return node;
   }
 
@@ -188,6 +181,15 @@ public class NodeDeserializer {
     node.markAsClean();
 
     return node;
+  }
+
+  private void recordStatistics(long start) {
+    deserializedCount++;
+    deserializationTimeSpentNanos += System.nanoTime() - start;
+    if (0 == (deserializedCount & 0x0001ffff)) {
+      float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
+      logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");
+    }
   }
 
   private final NodeFactory getNodeFactory(int labelId) {

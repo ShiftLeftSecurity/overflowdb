@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class OdbStorage implements AutoCloseable {
   private static final String INDEX_PREFIX = "index_";
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  protected final NodeSerializer nodeSerializer = new NodeSerializer();
+  protected final NodeSerializer nodeSerializer;
   protected final Optional<NodeDeserializer> nodeDeserializer;
 
   private final File mvstoreFile;
@@ -25,8 +25,9 @@ public class OdbStorage implements AutoCloseable {
   private MVMap<Long, byte[]> nodesMVMap;
   private boolean closed;
 
-  public static OdbStorage createWithTempFile(final NodeDeserializer nodeDeserializer) {
-    return new OdbStorage(Optional.empty(), Optional.ofNullable(nodeDeserializer));
+  public static OdbStorage createWithTempFile(
+      final NodeDeserializer nodeDeserializer, final boolean enableSerializationStats) {
+    return new OdbStorage(Optional.empty(), Optional.ofNullable(nodeDeserializer), enableSerializationStats);
   }
 
   /**
@@ -34,21 +35,23 @@ public class OdbStorage implements AutoCloseable {
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
   public static OdbStorage createWithSpecificLocation(
-      final NodeDeserializer nodeDeserializer, final File mvstoreFile) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer));
+      final NodeDeserializer nodeDeserializer, final File mvstoreFile, final boolean enableSerializationStats) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer), enableSerializationStats);
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.empty());
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile, final boolean enableSerializationStats) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.empty(), enableSerializationStats);
   }
 
   private OdbStorage(
       final Optional<File> mvstoreFileMaybe,
-      final Optional<NodeDeserializer> nodeDeserializer) {
+      final Optional<NodeDeserializer> nodeDeserializer,
+      final boolean enableSerializationStats) {
+    this.nodeSerializer = new NodeSerializer(enableSerializationStats);
     this.nodeDeserializer = nodeDeserializer;
 
     if (mvstoreFileMaybe.isPresent()) {

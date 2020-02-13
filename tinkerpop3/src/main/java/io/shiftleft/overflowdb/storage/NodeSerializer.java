@@ -16,8 +16,13 @@ import java.util.Map;
 public class NodeSerializer {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final boolean statsEnabled;
   private int serializedCount = 0;
   private long serializationTimeSpentMillis = 0;
+
+  public NodeSerializer(boolean statsEnabled) {
+    this.statsEnabled = statsEnabled;
+  }
 
   public byte[] serialize(OdbNode node) throws IOException {
     long start = System.currentTimeMillis();
@@ -32,12 +37,7 @@ public class NodeSerializer {
       packEdgeOffsets(packer, node.getEdgeOffsets());
       packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
 
-      serializedCount++;
-      serializationTimeSpentMillis += System.currentTimeMillis() - start;
-      if (serializedCount % 131072 == 0) { //2^17
-        float avgSerializationTime = serializationTimeSpentMillis / (float) serializedCount;
-        logger.debug("stats: serialized " + serializedCount + " instances in total (avg time: " + avgSerializationTime + "ms)");
-      }
+      if (statsEnabled) recordStatistics(start);
       return packer.toByteArray();
     }
   }
@@ -119,7 +119,17 @@ public class NodeSerializer {
     }
   }
 
+  private void recordStatistics(long start) {
+    serializedCount++;
+    serializationTimeSpentMillis += System.currentTimeMillis() - start;
+    if (serializedCount % 131072 == 0) { //2^17
+      float avgSerializationTime = serializationTimeSpentMillis / (float) serializedCount;
+      logger.debug("stats: serialized " + serializedCount + " instances in total (avg time: " + avgSerializationTime + "ms)");
+    }
+  }
+
   public final int getSerializedCount() {
-    return serializedCount;
+    if (statsEnabled) return serializedCount;
+    else throw new RuntimeException("serialization statistics not enabled");
   }
 }
