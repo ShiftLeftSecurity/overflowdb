@@ -6,22 +6,19 @@ import io.shiftleft.overflowdb.util.PackedIntArray;
 import org.apache.commons.lang3.NotImplementedException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class NodeSerializer {
-
-  private final Logger logger = LoggerFactory.getLogger(getClass());
-  private int serializedCount = 0;
-  private long serializationTimeSpentMillis = 0;
+public class NodeSerializer extends BookKeeper {
+  public NodeSerializer(boolean statsEnabled) {
+    super(statsEnabled);
+  }
 
   public byte[] serialize(OdbNode node) throws IOException {
-    long start = System.currentTimeMillis();
+    long startTimeNanos = getStartTimeNanos();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
       node.markAsClean();
@@ -33,12 +30,7 @@ public class NodeSerializer {
       packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
       packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
 
-      serializedCount++;
-      serializationTimeSpentMillis += System.currentTimeMillis() - start;
-      if (serializedCount % 131072 == 0) { //2^17
-        float avgSerializationTime = serializationTimeSpentMillis / (float) serializedCount;
-        logger.debug("stats: serialized " + serializedCount + " instances in total (avg time: " + avgSerializationTime + "ms)");
-      }
+      if (statsEnabled) recordStatistics(startTimeNanos);
       return packer.toByteArray();
     }
   }
@@ -120,7 +112,4 @@ public class NodeSerializer {
     }
   }
 
-  public final int getSerializedCount() {
-    return serializedCount;
-  }
 }

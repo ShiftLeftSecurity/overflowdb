@@ -25,7 +25,7 @@ public class SerializerTest {
   @Test
   public void serializeVertex() throws IOException {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
-      NodeSerializer serializer = new NodeSerializer();
+      NodeSerializer serializer = new NodeSerializer(false);
       NodeDeserializer deserializer = newDeserializer(graph);
       TestNode testNode = (TestNode) graph.addVertex(
           T.label, TestNode.LABEL,
@@ -52,7 +52,7 @@ public class SerializerTest {
   @Test
   public void serializeWithEdge() throws IOException {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
-      NodeSerializer serializer = new NodeSerializer();
+      NodeSerializer serializer = new NodeSerializer(true);
       NodeDeserializer deserializer = newDeserializer(graph);
 
       TestNode testNode1 = (TestNode) graph.addVertex(T.label, TestNode.LABEL);
@@ -84,7 +84,7 @@ public class SerializerTest {
   private NodeDeserializer newDeserializer(OdbGraph graph) {
     Map<Integer, NodeFactory> vertexFactories = new HashMap();
     vertexFactories.put(TestNodeDb.layoutInformation.labelId, TestNode.factory);
-    return new NodeDeserializer(graph, vertexFactories);
+    return new NodeDeserializer(graph, vertexFactories, true);
   }
 
 }

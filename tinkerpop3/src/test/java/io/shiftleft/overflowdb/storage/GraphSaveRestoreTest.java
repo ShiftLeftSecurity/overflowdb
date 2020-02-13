@@ -169,6 +169,7 @@ public class GraphSaveRestoreTest {
 
   private OdbGraph newGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
     OdbConfig config = enableOverflow ? OdbConfig.withDefaults() : OdbConfig.withoutOverflow();
+    config = config.withSerializationStatsEnabled();
     return GratefulDead.newGraph(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 

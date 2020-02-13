@@ -6,6 +6,7 @@ public class OdbConfig {
   private boolean overflowEnabled = true;
   private int heapPercentageThreshold = 80;
   private Optional<String> storageLocation = Optional.empty();
+  private boolean serializationStatsEnabled = false;
 
   public static OdbConfig withDefaults() {
     return new OdbConfig();
@@ -37,6 +38,12 @@ public class OdbConfig {
     return this;
   }
 
+  /* If specified, OdbGraph will measure and report serialization / deserialization timing averages. */
+  public OdbConfig withSerializationStatsEnabled() {
+    this.serializationStatsEnabled = true;
+    return this;
+  }
+
   public boolean isOverflowEnabled() {
     return overflowEnabled;
   }
@@ -47,5 +54,9 @@ public class OdbConfig {
 
   public Optional<String> getStorageLocation() {
     return storageLocation;
+  }
+
+  public boolean isSerializationStatsEnabled() {
+    return serializationStatsEnabled;
   }
 }

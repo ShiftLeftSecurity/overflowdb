@@ -95,12 +95,17 @@ public final class OdbGraph implements Graph {
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
         Optional.empty();
 
-    NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId);
+    NodeDeserializer nodeDeserializer = new NodeDeserializer(
+        this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
     if (config.getStorageLocation().isPresent()) {
-      storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, new File(config.getStorageLocation().get()));
+      storage = OdbStorage.createWithSpecificLocation(
+          nodeDeserializer,
+          new File(config.getStorageLocation().get()),
+          config.isSerializationStatsEnabled()
+      );
       initElementCollections(storage);
     } else {
-      storage = OdbStorage.createWithTempFile(nodeDeserializer);
+      storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
       initEmptyElementCollections();
     }
   }
