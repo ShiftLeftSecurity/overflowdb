@@ -44,7 +44,7 @@ public class NodeDeserializer {
   }
 
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    long start = System.nanoTime();
+    long startTimeNanos = System.nanoTime();
     if (null == bytes)
       return null;
 
@@ -57,7 +57,7 @@ public class NodeDeserializer {
 
     OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
-    if (statsEnabled) recordStatistics(start);
+    if (statsEnabled) recordStatistics(startTimeNanos);
     return node;
   }
 
@@ -183,9 +183,9 @@ public class NodeDeserializer {
     return node;
   }
 
-  private void recordStatistics(long start) {
+  private void recordStatistics(long startTimeNanos) {
     deserializedCount++;
-    deserializationTimeSpentNanos += System.nanoTime() - start;
+    deserializationTimeSpentNanos += System.nanoTime() - startTimeNanos;
     if (0 == (deserializedCount & 0x0001ffff)) {
       float avgDeserializationTime = 1.0f-6 * deserializationTimeSpentNanos / (float) deserializedCount;
       logger.debug("stats: deserialized " + deserializedCount + " nodes in total (avg time: " + avgDeserializationTime + "ms)");

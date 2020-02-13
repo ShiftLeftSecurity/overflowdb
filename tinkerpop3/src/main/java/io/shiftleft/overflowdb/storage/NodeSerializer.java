@@ -18,14 +18,14 @@ public class NodeSerializer {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final boolean statsEnabled;
   private int serializedCount = 0;
-  private long serializationTimeSpentMillis = 0;
+  private long serializationTimeSpentNanos = 0;
 
   public NodeSerializer(boolean statsEnabled) {
     this.statsEnabled = statsEnabled;
   }
 
   public byte[] serialize(OdbNode node) throws IOException {
-    long start = System.currentTimeMillis();
+    long startTimeNanos = System.nanoTime();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
       node.markAsClean();
@@ -37,7 +37,7 @@ public class NodeSerializer {
       packEdgeOffsets(packer, node.getEdgeOffsets());
       packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
 
-      if (statsEnabled) recordStatistics(start);
+      if (statsEnabled) recordStatistics(startTimeNanos);
       return packer.toByteArray();
     }
   }
@@ -119,12 +119,12 @@ public class NodeSerializer {
     }
   }
 
-  private void recordStatistics(long start) {
+  private void recordStatistics(long startTimeNanos) {
     serializedCount++;
-    serializationTimeSpentMillis += System.currentTimeMillis() - start;
-    if (serializedCount % 131072 == 0) { //2^17
-      float avgSerializationTime = serializationTimeSpentMillis / (float) serializedCount;
-      logger.debug("stats: serialized " + serializedCount + " instances in total (avg time: " + avgSerializationTime + "ms)");
+    serializationTimeSpentNanos += System.nanoTime() - startTimeNanos;
+    if (0 == (serializedCount & 0x0001ffff)) {
+      float avgSerializationTime = 1.0f-6 * serializationTimeSpentNanos / (float) serializedCount;
+      logger.debug("stats: serialized " + serializedCount + " nodes in total (avg time: " + avgSerializationTime + "ms)");
     }
   }
 
