@@ -53,12 +53,20 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   /* only called by @ReferenceManager */
-  protected void clear() throws IOException {
+  protected void clear() {
+    this.node = null;
+  }
+
+  protected byte[] serializeWhenDirty() {
     OdbNode node = this.node;
     if (node != null && node.isDirty()) {
-      graph.storage.persist(node);
+      return graph.storage.serialize(node);
     }
-    this.node = null;
+    return null;
+  }
+
+  protected void persist(byte[] data) {
+    this.graph.storage.persist(id, data);
   }
 
   public final N get() {

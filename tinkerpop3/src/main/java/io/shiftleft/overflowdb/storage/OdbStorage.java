@@ -64,10 +64,22 @@ public class OdbStorage implements AutoCloseable {
     logger.trace("storge file: " + mvstoreFile);
   }
 
-  public void persist(final OdbNode node) throws IOException {
+  public void persist(final OdbNode node) {
+    final long id = node.ref.id;
+    persist(id, serialize(node));
+  }
+
+  public byte[] serialize(OdbNode node) {
+    try {
+      return nodeSerializer.serialize(node);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void persist(long id, byte[] node) {
     if (!closed) {
-      final long id = node.ref.id;
-      getNodesMVMap().put(id, nodeSerializer.serialize(node));
+      getNodesMVMap().put(id, node);
     }
   }
 
