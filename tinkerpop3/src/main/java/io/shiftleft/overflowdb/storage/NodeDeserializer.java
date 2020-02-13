@@ -40,7 +40,7 @@ public class NodeDeserializer extends BookKeeper {
   }
 
   public final OdbNode deserialize(byte[] bytes) throws IOException {
-    long startTimeNanos = System.nanoTime();
+    long startTimeNanos = getStartTimeNanos();
     if (null == bytes)
       return null;
 

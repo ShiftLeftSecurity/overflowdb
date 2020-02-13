@@ -13,6 +13,11 @@ public abstract class BookKeeper {
     this.statsEnabled = statsEnabled;
   }
 
+  protected final long getStartTimeNanos() {
+    // System.nanoTime is relatively expensive - only  go there if we're actually recording stats
+    return statsEnabled ? System.nanoTime() : 0;
+  }
+
   protected void recordStatistics(long startTimeNanos) {
     totalCount++;
     totalTimeSpentNanos += System.nanoTime() - startTimeNanos;

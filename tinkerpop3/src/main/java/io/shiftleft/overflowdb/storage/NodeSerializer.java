@@ -17,7 +17,7 @@ public class NodeSerializer extends BookKeeper {
   }
 
   public byte[] serialize(OdbNode node) throws IOException {
-    long startTimeNanos = System.nanoTime();
+    long startTimeNanos = getStartTimeNanos();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
       node.markAsClean();
