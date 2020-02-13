@@ -2,6 +2,7 @@ package io.shiftleft.overflowdb.storage;
 
 import io.shiftleft.overflowdb.NodeRef;
 import io.shiftleft.overflowdb.OdbNode;
+import io.shiftleft.overflowdb.util.PackedIntArray;
 import org.apache.commons.lang3.NotImplementedException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -29,7 +30,7 @@ public class NodeSerializer {
       packer.packInt(node.layoutInformation().labelId);
 
       packProperties(packer, node.valueMap());
-      packEdgeOffsets(packer, node.getEdgeOffsets());
+      packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
       packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
 
       serializedCount++;
@@ -54,10 +55,10 @@ public class NodeSerializer {
     }
   }
 
-  private void packEdgeOffsets(MessageBufferPacker packer, int[] edgeOffsets) throws IOException {
-    packer.packArrayHeader(edgeOffsets.length);
-    for (int i = 0; i < edgeOffsets.length; i++) {
-      packer.packInt(edgeOffsets[i]);
+  private void packEdgeOffsets(MessageBufferPacker packer, PackedIntArray edgeOffsets) throws IOException {
+    packer.packArrayHeader(edgeOffsets.length());
+    for (int i = 0; i < edgeOffsets.length(); i++) {
+      packer.packInt(edgeOffsets.get(i));
     }
   }
 

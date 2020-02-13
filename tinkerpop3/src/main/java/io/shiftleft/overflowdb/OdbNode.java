@@ -77,6 +77,11 @@ public abstract class OdbNode implements Vertex {
     return edgeOffsets.toIntArray();
   }
 
+  public PackedIntArray getEdgeOffsetsPackedArray() {
+    return edgeOffsets;
+  }
+
+
   public void setEdgeOffsets(int[] edgeOffsets) {
     this.edgeOffsets = PackedIntArray.of(edgeOffsets);
   }
