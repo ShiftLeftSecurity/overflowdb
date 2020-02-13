@@ -17,6 +17,7 @@ public final class OdbIndexManager {
   private final OdbGraph graph;
   // TODO use concurrent but memory efficient map
   protected Map<String, Map<Object, Set<NodeRef>>> indexes = new ConcurrentHashMap<>();
+  protected Map<String, Boolean> dirtyFlags = new ConcurrentHashMap<>();
 
   public OdbIndexManager(OdbGraph graph) {
     this.graph = graph;
@@ -33,6 +34,8 @@ public final class OdbIndexManager {
     if (indexes.containsKey(propertyName))
       return;
 
+    dirtyFlags.put(propertyName, true);
+
     graph.nodes.valueCollection().parallelStream()
         .map(e -> new Object[]{e.property(propertyName), e})
         .filter(a -> ((Property) a[0]).isPresent())
@@ -45,12 +48,14 @@ public final class OdbIndexManager {
   }
 
   public final void loadNodePropertyIndex(final String propertyName, Map<Object, long[]> valueToNodeIds) {
+    dirtyFlags.put(propertyName, false);
     valueToNodeIds.entrySet().parallelStream().forEach(entry ->
         LongStream.of(entry.getValue())
           .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef)graph.vertex(nodeId))));
   }
 
   public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
+    dirtyFlags.put(key, true);
     if (indexes.containsKey(key)) {
       put(key, newValue, nodeRef);
     }
@@ -74,8 +79,10 @@ public final class OdbIndexManager {
    * Drop the index for specified node property.
    */
   public final void dropNodePropertyIndex(final String key) {
-    if (indexes.containsKey(key))
+    if (indexes.containsKey(key)) {
       indexes.remove(key).clear();
+      dirtyFlags.remove(key);
+    }
   }
 
   /**
@@ -104,6 +111,7 @@ public final class OdbIndexManager {
   }
 
   public final void remove(final String key, final Object value, final NodeRef nodeRef) {
+    dirtyFlags.put(key, true);
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null != keyMap) {
       Set<NodeRef> objects = keyMap.get(value);
@@ -117,6 +125,8 @@ public final class OdbIndexManager {
   }
 
   public final void removeElement(final NodeRef nodeRef) {
+    for (String propertyName : indexes.keySet())
+      dirtyFlags.put(propertyName, true);
     for (Map<Object, Set<NodeRef>> map : indexes.values()) {
       for (Set<NodeRef> set : map.values()) {
         set.remove(nodeRef);
@@ -141,7 +151,6 @@ public final class OdbIndexManager {
   }
 
   public void storeIndexes(OdbStorage storage) {
-    storage.clearIndices();
     getIndexedNodeProperties()
         .stream()
         .forEach(propertyName ->
@@ -149,11 +158,15 @@ public final class OdbIndexManager {
   }
 
   private void saveIndex(OdbStorage storage, String propertyName, Map<Object, Set<NodeRef>> indexMap) {
-    final MVMap<Object, long[]> indexStore = storage.openIndex(propertyName);
-    indexMap.entrySet().parallelStream().forEach(entry -> {
-      final Object propertyValue = entry.getKey();
-      final Set<NodeRef> nodeRefs = entry.getValue();
-      indexStore.put(propertyValue, nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray());
-    });
+    if (dirtyFlags.get(propertyName)) {
+      storage.clearIndex(propertyName);
+      final MVMap<Object, long[]> indexStore = storage.openIndex(propertyName);
+      indexMap.entrySet().parallelStream().forEach(entry -> {
+        final Object propertyValue = entry.getKey();
+        final Set<NodeRef> nodeRefs = entry.getValue();
+        indexStore.put(propertyValue, nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray());
+      });
+      dirtyFlags.put(propertyName, false);
+    }
   }
 }
