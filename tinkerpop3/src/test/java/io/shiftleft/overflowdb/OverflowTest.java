@@ -3,6 +3,7 @@ package io.shiftleft.overflowdb;
 import io.shiftleft.overflowdb.testdomains.simple.TestNode;
 import io.shiftleft.overflowdb.testdomains.simple.SimpleDomain;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
