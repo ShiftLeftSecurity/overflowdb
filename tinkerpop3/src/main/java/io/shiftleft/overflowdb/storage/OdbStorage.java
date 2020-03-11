@@ -21,6 +21,7 @@ public class OdbStorage implements AutoCloseable {
   protected final Optional<NodeDeserializer> nodeDeserializer;
 
   private final File mvstoreFile;
+  private final boolean doPersist;
   private MVStore mvstore; // initialized in `getNodesMVMap`
   private MVMap<Long, byte[]> nodesMVMap;
   private boolean closed;
@@ -55,16 +56,18 @@ public class OdbStorage implements AutoCloseable {
     this.nodeDeserializer = nodeDeserializer;
 
     if (mvstoreFileMaybe.isPresent()) {
+      this.doPersist = true;
       mvstoreFile = mvstoreFileMaybe.get();
     } else {
       try {
+        this.doPersist = false;
         mvstoreFile = File.createTempFile("mvstore", ".bin");
-        mvstoreFile.deleteOnExit();
+        mvstoreFile.deleteOnExit(); // `.close` will also delete it, this is just in case users forget to call it
       } catch (IOException e) {
         throw new RuntimeException("cannot create tmp file for mvstore", e);
       }
     }
-    logger.trace("storge file: " + mvstoreFile);
+    logger.trace("storage file: " + mvstoreFile);
   }
 
   public void persist(final OdbNode node) {
@@ -95,10 +98,11 @@ public class OdbStorage implements AutoCloseable {
     closed = true;
     logger.info("closing " + getClass().getSimpleName());
     if (mvstore != null) mvstore.close();
+    if (!doPersist) mvstoreFile.delete();
   }
 
   public File getStorageFile() {
-    return new File(mvstore.getFileStore().getFileName());
+    return mvstoreFile;
   }
 
   public void removeNode(final Long id) {
