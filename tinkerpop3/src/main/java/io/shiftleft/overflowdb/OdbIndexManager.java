@@ -3,6 +3,7 @@ package io.shiftleft.overflowdb;
 import io.shiftleft.overflowdb.storage.OdbStorage;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.h2.mvstore.MVMap;
+import org.mapdb.BTreeMap;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -146,7 +147,7 @@ public final class OdbIndexManager {
   }
 
   public void loadIndex(String indexName, OdbStorage storage) {
-    final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
+    final BTreeMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
     loadNodePropertyIndex(indexName, indexMVMap);
   }
 
@@ -160,11 +161,14 @@ public final class OdbIndexManager {
   private void saveIndex(OdbStorage storage, String propertyName, Map<Object, Set<NodeRef>> indexMap) {
     if (dirtyFlags.get(propertyName)) {
       storage.clearIndex(propertyName);
-      final MVMap<Object, long[]> indexStore = storage.openIndex(propertyName);
+      final BTreeMap<Object, long[]> indexStore = storage.openIndex(propertyName);
       indexMap.entrySet().parallelStream().forEach(entry -> {
         final Object propertyValue = entry.getKey();
         final Set<NodeRef> nodeRefs = entry.getValue();
-        indexStore.put(propertyValue, nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray());
+//        System.out.println("Prop: " + propertyValue);
+        final long[] value = nodeRefs.stream().mapToLong(nodeRef -> nodeRef.id).toArray();
+        if (value.length != 0)
+          indexStore.put(propertyValue, value);
       });
       dirtyFlags.put(propertyName, false);
     }

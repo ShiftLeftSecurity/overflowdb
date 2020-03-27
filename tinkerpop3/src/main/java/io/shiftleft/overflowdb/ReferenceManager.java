@@ -59,7 +59,8 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
       logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
-      singleThreadExecutor.submit(() -> syncClearReferences(releaseCount));
+      singleThreadExecutor.submit(() ->
+          syncClearReferences(releaseCount));
     }
   }
 
@@ -69,6 +70,12 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    */
   private void syncClearReferences(final int releaseCount) {
     final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
+    refsToClear.sort(new Comparator<NodeRef>() {
+      @Override
+      public int compare(NodeRef o1, NodeRef o2) {
+        return Long.compare(o1.id, o2.id);
+      }
+    });
     if (!refsToClear.isEmpty()) {
       safelyClearReferences(refsToClear);
       logger.info("completed clearing of " + refsToClear.size() + " references");
@@ -117,7 +124,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   private void clearReferences(final List<NodeRef> refsToClear) {
     serializeReferences(refsToClear.parallelStream().filter(NodeRef::isSet))
-        .sequential()
+//        .sequential()
         .forEach(serializedNode -> {
           serializedNode.ref.persist(serializedNode.data);
           serializedNode.ref.clear();

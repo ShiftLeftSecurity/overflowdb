@@ -12,7 +12,9 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.mapdb.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,8 +29,26 @@ import static org.junit.Assert.assertEquals;
 public class GraphSaveRestoreTest {
 
   @Test
+  public void testMapDB() {
+    final File storageFile = new File("/Users/dan/Shiftleft/overflowdb/test123.mapdb");
+    storageFile.delete();
+    DB db = DBMaker.fileDB(storageFile).make();
+    BTreeMap<Integer, String> map = db.treeMap("testMap").keySerializer(Serializer.INTEGER).valueSerializer(Serializer.STRING).createOrOpen();
+    map.put(123, "hello");
+    db.commit();
+    db.close();
+    db = DBMaker.fileDB(storageFile).make();
+    map = db.treeMap("testMap").keySerializer(Serializer.INTEGER).valueSerializer(Serializer.STRING).createOrOpen();
+    assertEquals(map.get(123), "hello");
+    System.out.println("got record: " + map.get(123));
+    db.close();
+  }
+
+//  @Ignore
+  @Test
   public void greenField() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+//    final File storageFile = new File("/Users/dan/Shiftleft/overflowdb/test.mapdb");
     storageFile.deleteOnExit();
 
     final Long vertex0Id;
@@ -41,6 +61,13 @@ public class GraphSaveRestoreTest {
       vertex0Id = (Long) v0.id();
       vertex1Id = (Long) v1.id();
     } // ARM auto-close will trigger saving to disk because we specified a location
+
+
+//    DB db = DBMaker.fileDB(storageFile).make();
+//    HTreeMap<Long, byte[]> map = db.hashMap("nodes").keySerializer(Serializer.LONG).valueSerializer(Serializer.BYTE_ARRAY).createOrOpen();
+//    assertEquals(map.size(), 2);
+//    System.out.println("map size: " + map.size());
+//    db.close();
 
     // reload from disk
     try (OdbGraph graph = newGratefulDeadGraph(storageFile, false)) {
@@ -58,6 +85,7 @@ public class GraphSaveRestoreTest {
     }
   }
 
+  @Ignore
   @Test
   public void completeGratefulDeadGraph() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
@@ -74,6 +102,7 @@ public class GraphSaveRestoreTest {
     }
   }
 
+  @Ignore
   @Test
   public void completeGratefulDeadGraphWithOverflowEnabled() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
@@ -90,6 +119,7 @@ public class GraphSaveRestoreTest {
     }
   }
 
+  @Ignore
   @Test
   public void shouldOnlySerializeChangedNodes() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
