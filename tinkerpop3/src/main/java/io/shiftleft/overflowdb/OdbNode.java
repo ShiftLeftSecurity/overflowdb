@@ -367,7 +367,11 @@ public abstract class OdbNode implements Vertex {
         occurrenceCount++;
       }
     }
-    return occurrenceCount;
+
+    if (occurrenceCount == -1)
+      throw new RuntimeException("unable to calculate occurrenceCount");
+    else
+      return occurrenceCount;
   }
 
   /**
