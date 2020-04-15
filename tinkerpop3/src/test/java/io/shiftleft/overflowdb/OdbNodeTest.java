@@ -375,7 +375,7 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void shouldSupportVertexRemoval1() {
+  public void nodeRemove1() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
@@ -393,7 +393,7 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void shouldSupportVertexRemoval2() {
+  public void nodeRemove2() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
@@ -411,7 +411,7 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void shouldSupportVertexRemoval3() {
+  public void nodeRemove3() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
@@ -429,7 +429,7 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void shouldSupportVertexRemoval4() {
+  public void nodeRemove4() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
@@ -443,6 +443,41 @@ public class OdbNodeTest {
       song3.remove();
       assertNodeCount(1, graph);
       assertEdgeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove5_twoEdgesBetweenTwoNodes() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      assertNodeCount(2, graph);
+      assertEdgeCount(2, graph);
+
+      song2.remove();
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove6() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      Vertex song3 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song2.addEdge(FollowedBy.LABEL, song3);
+      song2.addEdge(FollowedBy.LABEL, song3);
+      song3.addEdge(FollowedBy.LABEL, song1);
+      song3.addEdge(FollowedBy.LABEL, song1);
+
+      song2.remove();
+      assertNodeCount(2, graph);
+      assertEdgeCount(2, graph);
     }
   }
 
