@@ -361,11 +361,17 @@ public abstract class OdbNode implements Vertex {
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
-      if (((NodeRef) adjacentNodesWithProperties[i]).id().equals(otherNode.id())) {
+      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
+      if (adjacentNodeWithProperty != null &&
+          adjacentNodeWithProperty.id().equals(otherNode.id())) {
         occurrenceCount++;
       }
     }
-    return occurrenceCount;
+
+    if (occurrenceCount == -1)
+      throw new RuntimeException("unable to calculate occurrenceCount");
+    else
+      return occurrenceCount;
   }
 
   /**
@@ -373,7 +379,7 @@ public abstract class OdbNode implements Vertex {
    * @param label      the edge label
    * @param occurrence if there are multiple edges between the same two nodes with the same label,
    *                   this is used to differentiate between those edges.
-   *                   Both nodes use the same occurrence index for the same edge.
+   *                   Both nodes use the same occurrence index in their `adjacentNodesWithProperties` array for the same edge.
    * @return the index into `adjacentNodesWithProperties`
    */
   protected final int occurrenceToBlockOffset(Direction direction,
@@ -387,7 +393,9 @@ public abstract class OdbNode implements Vertex {
 
     int currentOccurrence = 0;
     for (int i = start; i < start + length; i += strideSize) {
-      if (((NodeRef) adjacentNodesWithProperties[i]).id().equals(adjacentNode.id())) {
+      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
+      if (adjacentNodeWithProperty != null &&
+          adjacentNodeWithProperty.id().equals(adjacentNode.id())) {
         if (currentOccurrence == occurrence) {
           int adjacentNodeIndex = i - start;
           return adjacentNodeIndex;

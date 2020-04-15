@@ -327,8 +327,7 @@ public class OdbNodeTest {
       song1.property(Song.NAME, "song 1");
       song2.property(Song.NAME, "song 2");
 
-      List<Vertex> vertices = graph.traversal().V().toList();
-      assertEquals(2, vertices.size());
+      assertNodeCount(2, graph);
       Set<Object> names = graph.traversal().V().values("name").toSet();
       assertTrue(names.contains("song 1"));
       assertTrue(names.contains("song 2"));
@@ -340,53 +339,145 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void shouldSupportEdgeRemoval() {
+  public void shouldSupportEdgeRemoval1() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
       Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
-      assertEquals(2, graph.traversal().V().toList().size());
-      assertEquals(1, graph.traversal().E().toList().size());
+      assertNodeCount(2, graph);
+      assertEdgeCount(1, graph);
 
       followedBy.remove();
-      assertEquals(2, graph.traversal().V().toList().size());
-      assertEquals(0, graph.traversal().E().toList().size());
+      assertNodeCount(2, graph);
+      assertEdgeCount(0, graph);
     }
   }
 
   @Test
-  public void shouldSupportVertexRemoval1() {
+  public void shouldSupportEdgeRemoval2() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
-      song1.addEdge(FollowedBy.LABEL, song2);
-      assertEquals(2, graph.traversal().V().toList().size());
-      assertEquals(1, graph.traversal().E().toList().size());
+      Vertex song3 = graph.addVertex(Song.label);
+      Edge edge1 = song1.addEdge(FollowedBy.LABEL, song2);
+      Edge edge2 = song1.addEdge(FollowedBy.LABEL, song3);
+      assertNodeCount(3, graph);
+      assertEdgeCount(2, graph);
 
-      song1.remove();
-      assertEquals(1, graph.traversal().V().toList().size());
-      assertEquals(0, graph.traversal().E().toList().size());
+      edge1.remove();
+      assertNodeCount(3, graph);
+      assertEdgeCount(1, graph);
 
-      song2.remove();
-      assertEquals(0, graph.traversal().V().toList().size());
+      edge2.remove();
+      assertNodeCount(3, graph);
+      assertEdgeCount(0, graph);
     }
   }
 
   @Test
-  public void shouldSupportVertexRemoval2() {
+  public void nodeRemove1() {
     try (OdbGraph graph = GratefulDead.newGraph()) {
       Vertex song1 = graph.addVertex(Song.label);
       Vertex song2 = graph.addVertex(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
-      assertEquals(2, graph.traversal().V().toList().size());
-      assertEquals(1, graph.traversal().E().toList().size());
-
-      song2.remove();
-      assertEquals(1, graph.traversal().V().toList().size());
-      assertEquals(0, graph.traversal().E().toList().size());
+      assertNodeCount(2, graph);
+      assertEdgeCount(1, graph);
 
       song1.remove();
-      assertEquals(0, graph.traversal().V().toList().size());
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+
+      song2.remove();
+      assertNodeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove2() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      assertNodeCount(2, graph);
+      assertEdgeCount(1, graph);
+
+      song2.remove();
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+
+      song1.remove();
+      assertNodeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove3() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      Vertex song3 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song3);
+      assertNodeCount(3, graph);
+      assertEdgeCount(2, graph);
+
+      song3.remove();
+      song2.remove();
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove4() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      Vertex song3 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song3);
+      assertNodeCount(3, graph);
+      assertEdgeCount(2, graph);
+
+      song2.remove();
+      song3.remove();
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove5_twoEdgesBetweenTwoNodes() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      assertNodeCount(2, graph);
+      assertEdgeCount(2, graph);
+
+      song2.remove();
+      assertNodeCount(1, graph);
+      assertEdgeCount(0, graph);
+    }
+  }
+
+  @Test
+  public void nodeRemove6() {
+    try (OdbGraph graph = GratefulDead.newGraph()) {
+      Vertex song1 = graph.addVertex(Song.label);
+      Vertex song2 = graph.addVertex(Song.label);
+      Vertex song3 = graph.addVertex(Song.label);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song1.addEdge(FollowedBy.LABEL, song2);
+      song2.addEdge(FollowedBy.LABEL, song3);
+      song2.addEdge(FollowedBy.LABEL, song3);
+      song3.addEdge(FollowedBy.LABEL, song1);
+      song3.addEdge(FollowedBy.LABEL, song1);
+
+      song2.remove();
+      assertNodeCount(2, graph);
+      assertEdgeCount(2, graph);
     }
   }
 
@@ -412,6 +503,13 @@ public class OdbNodeTest {
       assertTrue(v0 instanceof NodeRef);
       assertTrue(v0.vertices(Direction.OUT).next() instanceof NodeRef);
     }
+  }
+
+  private void assertNodeCount(int expected, OdbGraph graph) {
+    assertEquals("node count different to expected", expected, graph.traversal().V().toList().size());
+  }
+  private void assertEdgeCount(int expected, OdbGraph graph) {
+    assertEquals("edge count different to expected", expected, graph.traversal().E().toList().size());
   }
 
 }

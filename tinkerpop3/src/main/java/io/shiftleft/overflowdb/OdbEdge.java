@@ -103,7 +103,7 @@ public abstract class OdbEdge implements Edge {
         initializeInFromOutOffset();
       }
     } else {
-      throw new RuntimeException("Cannot set property. In and out block offset unitialized.");
+      throw new RuntimeException("Cannot set property. In and out block offset uninitialized.");
     }
     inVertex.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
     outVertex.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
@@ -129,7 +129,7 @@ public abstract class OdbEdge implements Edge {
     } else if (outBlockOffset != -1) {
       return outVertex.get().getEdgeProperties(Direction.OUT, this, getOutBlockOffset(), propertyKeys);
     } else {
-      throw new RuntimeException("Cannot get properties. In and out block offset unitialized.");
+      throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
     }
   }
 
