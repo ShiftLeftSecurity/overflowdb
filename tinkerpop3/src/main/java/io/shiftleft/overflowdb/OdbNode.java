@@ -170,7 +170,7 @@ public abstract class OdbNode implements Vertex {
     }
     graph.indexManager.removeElement(ref);
     graph.nodes.remove(ref.id);
-    graph.nodesByLabel.get(label()).remove(this);
+    graph.nodesByLabel.get(label()).remove(ref);
 
     graph.storage.removeNode(ref.id);
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */

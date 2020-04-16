@@ -478,13 +478,15 @@ public class OdbNodeTest {
       song2.remove();
       assertNodeCount(2, graph);
       assertEdgeCount(2, graph);
+
+      assertEquals(new Long(2), graph.traversal().V().hasLabel(Song.label).count().next());
+      assertEquals(new Long(2), graph.traversal().E().hasLabel(FollowedBy.LABEL).count().next());
     }
   }
 
   @Test
   public void shouldAllowToSpecifyIds() {
     try(OdbGraph graph = GratefulDead.newGraph()) {
-
       Vertex v10 = graph.addVertex(T.id, 10l, T.label, Song.label, Song.NAME, "Song 10");
       Vertex v20 = graph.addVertex(T.id,  20, T.label, Song.label, Song.NAME, "Song 20");
       v10.addEdge(FollowedBy.LABEL, v20, FollowedBy.WEIGHT, 5);
