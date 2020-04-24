@@ -2,12 +2,17 @@ package io.shiftleft.overflowdb.traversal.testdomains
 
 import io.shiftleft.overflowdb.traversal.Traversal
 import io.shiftleft.overflowdb.traversal.filter.{PropertyFilter, StringPropertyFilter}
+import io.shiftleft.overflowdb.traversal.help.{Doc, TraversalExt}
 
 package object simple {
+
+  @TraversalExt(elementType = classOf[Thing])
   implicit class ThingTraversal(val trav: Traversal[Thing]) extends AnyVal {
     def followedBy: Traversal[Thing] = trav.flatMap(_.followedBy)
 
+    @Doc("name of the Thing")
     def name: Traversal[String] = trav.map(_.name)
+
     def name(regexp: String): Traversal[Thing] = StringPropertyFilter.regexp(trav)(_.name, regexp)
     def name(regexps: String*): Traversal[Thing] = StringPropertyFilter.regexpMultiple(trav)(_.name, regexps)
     def nameNot(regexp: String): Traversal[Thing] = StringPropertyFilter.regexpNot(trav)(_.name, regexp)

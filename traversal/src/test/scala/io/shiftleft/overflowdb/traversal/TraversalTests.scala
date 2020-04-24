@@ -179,6 +179,35 @@ class TraversalTests extends WordSpec with Matchers {
     }
   }
 
+  ".help step" should {
+
+    "provide node-specific overview" in {
+      val thingTraversal: Traversal[Thing] = Traversal.empty
+      thingTraversal.help should include("Available steps for Thing")
+      thingTraversal.help should include(".name")
+
+      thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
+      thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
+      thingTraversal.helpVerbose should include(".label") // step from NodeTraversal
+    }
+
+    "provides generic help" when {
+      "using verbose mode" when {
+        "traversing nodes" in {
+          val thingTraversal: Traversal[Thing] = Traversal.empty
+          thingTraversal.helpVerbose should include(".sideEffect")
+          thingTraversal.helpVerbose should include(".label")
+        }
+
+        "traversing non-nodes" in {
+          val stringTraversal = Traversal.empty[String]
+          stringTraversal.helpVerbose should include(".sideEffect")
+          stringTraversal.helpVerbose should not include ".label"
+        }
+      }
+    }
+  }
+
   val nonExistingLabel = "this label does not exist"
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
