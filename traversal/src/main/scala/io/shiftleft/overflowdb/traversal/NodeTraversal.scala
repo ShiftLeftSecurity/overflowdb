@@ -1,11 +1,15 @@
 package io.shiftleft.overflowdb.traversal
 
+import io.shiftleft.overflowdb.traversal.help.Doc
 import io.shiftleft.overflowdb.{NodeRef, OdbEdge}
 import org.apache.tinkerpop.gremlin.structure.Direction
 
 class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {
+
+  @Doc("Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
 
+  @Doc("Traverse to node label")
   def label: Traversal[String] = traversal.map(_.label)
 
   def property[P](name: String): Traversal[P] =

@@ -1,11 +1,13 @@
 package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.traversal
+import io.shiftleft.overflowdb.traversal.help.{Doc, TraversalHelp}
 import org.slf4j.LoggerFactory
 
 import scala.collection.immutable.{ArraySeq, IndexedSeq}
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
+import scala.reflect.ClassTag
 
 /**
   * TODO more docs
@@ -21,13 +23,30 @@ class Traversal[A](elements: IterableOnce[A])
   def hasNext: Boolean = iterator.hasNext
   def next: A = iterator.next
   def nextOption: Option[A] = iterator.nextOption
+
+  /** Execute the traversal and convert the result to a list - shorthand for `toList` */
+  @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
+
   def iterate: Unit = while (hasNext) next
+
+  /**
+   * Print help/documentation based on the current elementType `A`.
+   * Relies on all step extensions being annotated with @TraversalExt / @Doc
+   * Note that this works independently of tab completion and implicit conversions in scope - it will simply list
+   * all documented steps in the classpath
+   * */
+  def help()(implicit elementType: ClassTag[A]): String =
+    Traversal.help.renderTable(elementType.runtimeClass, verbose = false)
+
+  def helpVerbose()(implicit elementType: ClassTag[A]): String =
+    Traversal.help.renderTable(elementType.runtimeClass, verbose = true)
 
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
   /** perform side effect without changing the contents of the traversal */
+  @Doc("perform side effect without changing the contents of the traversal")
   def sideEffect(fun: A => Unit): Traversal[A] = map { a =>
     fun(a)
     a
@@ -105,6 +124,9 @@ class Traversal[A](elements: IterableOnce[A])
 
 object Traversal extends IterableFactory[Traversal] {
   protected val logger = LoggerFactory.getLogger("Traversal")
+
+  /* reconfigure with different base package if needed */
+  var help = new TraversalHelp("io.shiftleft")
 
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
