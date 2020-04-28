@@ -1,11 +1,13 @@
 package io.shiftleft.overflowdb;
 
+import io.shiftleft.overflowdb.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -22,7 +24,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   public final int releaseCount = 100000; //TODO make configurable
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
-  private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+  private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
 
