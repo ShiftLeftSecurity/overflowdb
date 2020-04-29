@@ -74,7 +74,10 @@ public class HeapUsageMonitor implements AutoCloseable {
         float heapUsage = (float) totalMemUsed / (float) totalMemMax;
         int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
         if (heapUsage > heapUsageThreshold) {
-          logger.info("heap usage after GC: " + heapUsagePercent + "% -> notifying HeapNotificationListener");
+          String msg = "heap usage after GC: " + heapUsagePercent + "% -> will clear some references (if possible)";
+          if (heapUsagePercent > 95) logger.warn(msg);
+          else logger.info(msg);
+
           notificationListener.notifyHeapAboveThreshold();
         } else {
           logger.trace("heap usage after GC: " + heapUsagePercent + "%");
