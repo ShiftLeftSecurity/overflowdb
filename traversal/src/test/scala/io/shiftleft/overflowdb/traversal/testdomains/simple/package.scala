@@ -2,11 +2,12 @@ package io.shiftleft.overflowdb.traversal.testdomains
 
 import io.shiftleft.overflowdb.traversal.Traversal
 import io.shiftleft.overflowdb.traversal.filter.{PropertyFilter, StringPropertyFilter}
-import io.shiftleft.overflowdb.traversal.help.{Doc, TraversalExt}
+import io.shiftleft.overflowdb.traversal.help
+import io.shiftleft.overflowdb.traversal.help.Doc
 
 package object simple {
 
-  @TraversalExt(elementType = classOf[Thing])
+  @help.Traversal(elementType = classOf[Thing])
   implicit class ThingTraversal(val trav: Traversal[Thing]) extends AnyVal {
     def followedBy: Traversal[Thing] = trav.flatMap(_.followedBy)
 

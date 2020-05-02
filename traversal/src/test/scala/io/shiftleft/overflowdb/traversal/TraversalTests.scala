@@ -181,7 +181,7 @@ class TraversalTests extends WordSpec with Matchers {
 
   ".help step" should {
 
-    "domain overview" in {
+    "give a domain overview" in {
       simpleDomain.help should include(".things")
       simpleDomain.help should include("all things")
     }

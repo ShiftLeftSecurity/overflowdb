@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversal.help
 
-import io.shiftleft.overflowdb.traversal.{NodeTraversal, Traversal}
+import io.shiftleft.overflowdb.traversal.{NodeTraversal, Traversal, help}
 import io.shiftleft.overflowdb.{NodeRef, OdbNode}
 import java.lang.annotation.{Annotation => JAnnotation}
 
@@ -66,8 +66,8 @@ class TraversalHelp(domainBasePackage: String) {
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
-      traversal <- findClassesAnnotatedWith(classOf[TraversalExt])
-      elementType = traversal.getAnnotation(classOf[TraversalExt]).elementType
+      traversal <- findClassesAnnotatedWith(classOf[help.Traversal])
+      elementType = traversal.getAnnotation(classOf[help.Traversal]).elementType
       stepDoc <- findStepDocs(traversal)
     } yield (elementType, stepDoc)
   }.toList.groupMap(_._1)(_._2)
