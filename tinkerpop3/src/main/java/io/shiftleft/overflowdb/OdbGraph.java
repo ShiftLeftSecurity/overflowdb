@@ -149,34 +149,34 @@ public final class OdbGraph implements Graph {
 
 
   ////////////// STRUCTURE API METHODS //////////////////
-  @Override
-  public Vertex addVertex(final Object... keyValues) {
+
+  public NodeRef addNode(final String label, final Object... keyValues) {
+    return addNode(label, currentId.incrementAndGet(), keyValues);
+  }
+
+  public NodeRef addNode(final String label, final long id, final Object... keyValues) {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
     ElementHelper.legalPropertyKeyValueArray(keyValues);
-    final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
+    if (nodes.containsKey(id)) {
+      throw Exceptions.vertexWithIdAlreadyExists(id);
+    }
 
-    final long idValue = determineNewNodeId(keyValues);
-    currentId.set(Long.max(idValue, currentId.get()));
-
-    final NodeRef node = createNode(idValue, label, keyValues);
+    currentId.set(Long.max(id, currentId.get()));
+    final NodeRef node = createNode(id, label, keyValues);
     nodes.put(node.id, node);
     storeInByLabelCollection(node);
     return node;
   }
 
-  private long determineNewNodeId(final Object... keyValues) {
-    Optional idValueMaybe = ElementHelper.getIdValue(keyValues);
-    if (idValueMaybe.isPresent()) {
-      final long idValue = parseLong(idValueMaybe.get());
-      if (nodes.containsKey(idValue)) {
-        throw Exceptions.vertexWithIdAlreadyExists(idValue);
-      }
-      return idValue;
-    } else {
-      return currentId.incrementAndGet();
-    }
+  // TODO: move to tinkerpop-specific OdbGraph wrapper
+  @Override
+  public Vertex addVertex(final Object... keyValues) {
+    final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
+    Optional<Long> suppliedId = ElementHelper.getIdValue(keyValues).map(this::parseLong);
+    long id = suppliedId.orElseGet(() -> currentId.incrementAndGet());
+    return addNode(label, id, keyValues);
   }
 
   private long parseLong(Object id) {
