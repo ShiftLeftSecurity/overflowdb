@@ -181,6 +181,11 @@ class TraversalTests extends WordSpec with Matchers {
 
   ".help step" should {
 
+    "give a domain overview" in {
+      simpleDomain.help should include(".things")
+      simpleDomain.help should include("all things")
+    }
+
     "provide node-specific overview" in {
       val thingTraversal: Traversal[Thing] = Traversal.empty
       thingTraversal.help should include("Available steps for Thing")

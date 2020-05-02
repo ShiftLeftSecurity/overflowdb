@@ -1,7 +1,9 @@
 package io.shiftleft.overflowdb.traversal.help
 
-import io.shiftleft.overflowdb.traversal.{NodeTraversal, Traversal}
+import io.shiftleft.overflowdb.traversal.{NodeTraversal, Traversal, help}
 import io.shiftleft.overflowdb.{NodeRef, OdbNode}
+import java.lang.annotation.{Annotation => JAnnotation}
+
 import org.reflections.Reflections
 
 import scala.reflect.runtime.universe.runtimeMirror
@@ -13,11 +15,11 @@ import scala.jdk.CollectionConverters._
  * Note that this restricts us to only find @Doc annotations in classes in that namespace and it's children.
  * If left empty, the scan takes considerable amount of time (depending on your classpath, obviously).
  */
-class TraversalHelp(traversalExtBasePackage: String) {
+class TraversalHelp(domainBasePackage: String) {
   val ColumnNames = Array("step", "description")
   val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 
-  def renderTable(elementClass: Class[_], verbose: Boolean): String = {
+  def forElementClass(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[OdbNode].isAssignableFrom(elementClass)
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
@@ -44,17 +46,34 @@ class TraversalHelp(traversalExtBasePackage: String) {
          |""".stripMargin
   }
 
+  lazy val forSources: String = {
+    val stepDocs = findClassesAnnotatedWith(classOf[TraversalSource]).flatMap(findStepDocs)
+    val table = Table(
+      columnNames = ColumnNames,
+      rows = stepDocs.toList.sortBy(_.methodName).map { stepDoc =>
+        List(s".${stepDoc.methodName}", stepDoc.doc.short)
+      }
+    )
+
+    s"""Available starter steps:
+       |${table.render}
+       |""".stripMargin
+  }
+
   /**
     * Scans the entire classpath for classes annotated with @TraversalExt (using java reflection),
     * to then extract the @Doc annotations for all steps, and group them by the elementType (e.g. node.Method).
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
-      traversal <- new Reflections(traversalExtBasePackage).getTypesAnnotatedWith(classOf[TraversalExt]).iterator.asScala
-      elementType = traversal.getAnnotation(classOf[TraversalExt]).elementType
+      traversal <- findClassesAnnotatedWith(classOf[help.Traversal])
+      elementType = traversal.getAnnotation(classOf[help.Traversal]).elementType
       stepDoc <- findStepDocs(traversal)
     } yield (elementType, stepDoc)
   }.toList.groupMap(_._1)(_._2)
+
+  private def findClassesAnnotatedWith[Annotation <: JAnnotation](annotationClass: Class[Annotation]): Iterator[Class[_]] =
+    new Reflections(domainBasePackage).getTypesAnnotatedWith(annotationClass).asScala.iterator
 
   lazy val genericStepDocs: Iterable[StepDoc] =
     findStepDocs(classOf[Traversal[_]])
