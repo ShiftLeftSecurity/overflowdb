@@ -19,7 +19,7 @@ class TraversalHelp(domainBasePackage: String) {
   val ColumnNames = Array("step", "description")
   val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 
-  def forElementClass(elementClass: Class[_], verbose: Boolean): String = {
+  def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[OdbNode].isAssignableFrom(elementClass)
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
@@ -46,7 +46,7 @@ class TraversalHelp(domainBasePackage: String) {
          |""".stripMargin
   }
 
-  lazy val forSources: String = {
+  lazy val forTraversalSources: String = {
     val stepDocs = findClassesAnnotatedWith(classOf[TraversalSource]).flatMap(findStepDocs)
     val table = Table(
       columnNames = ColumnNames,
