@@ -28,6 +28,6 @@ class SimpleDomainTraversalSource(graph: OdbGraph) extends TraversalSource(graph
   @Doc("all things")
   def things: Traversal[Thing] = label(Thing.Label).cast[Thing]
 
-  lazy val help: String = SimpleDomain.help.forSources
+  lazy val help: String = SimpleDomain.help.forTraversalSources
 }
 

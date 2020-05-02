@@ -37,10 +37,10 @@ class Traversal[A](elements: IterableOnce[A])
    * all documented steps in the classpath
    * */
   def help()(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementClass(elementType.runtimeClass, verbose = false)
+    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
   def helpVerbose()(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementClass(elementType.runtimeClass, verbose = true)
+    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
