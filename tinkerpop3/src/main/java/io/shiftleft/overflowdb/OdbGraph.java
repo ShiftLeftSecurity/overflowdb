@@ -321,6 +321,22 @@ public final class OdbGraph implements Graph {
       return EmptyIterator.INSTANCE;
   }
 
+  public Iterator<NodeRef> nodesByLabel(final String... labels) {
+    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+    for (String label : labels) {
+      addNodesToMultiIterator(multiIterator, label);
+    }
+    return multiIterator;
+  }
+
+  public Iterator<NodeRef> nodesByLabel(final Set<String> labels) {
+    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+    for (String label : labels) {
+      addNodesToMultiIterator(multiIterator, label);
+    }
+    return multiIterator;
+  }
+
   public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
     final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
     for (String label : nodesByLabel.keySet()) {
@@ -329,6 +345,13 @@ public final class OdbGraph implements Graph {
       }
     }
     return multiIterator;
+  }
+
+  private final void addNodesToMultiIterator(final MultiIterator<NodeRef> multiIterator, final String label) {
+    final Set<NodeRef> nodes = nodesByLabel.get(label);
+    if (nodes != null) {
+      multiIterator.addIterator(nodes.iterator());
+    }
   }
 
   @Override
