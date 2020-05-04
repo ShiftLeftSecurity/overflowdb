@@ -186,14 +186,27 @@ class TraversalTests extends WordSpec with Matchers {
       simpleDomain.help should include("all things")
     }
 
-    "provide node-specific overview" in {
-      val thingTraversal: Traversal[Thing] = Traversal.empty
-      thingTraversal.help should include("Available steps for Thing")
-      thingTraversal.help should include(".name")
+    "provide node-specific overview" when {
+      "using simple domain" in {
+        val thingTraversal: Traversal[testdomains.simple.Thing] = Traversal.empty
+        thingTraversal.help should include("Available steps for Thing")
+        thingTraversal.help should include(".name")
 
-      thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
-      thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
-      thingTraversal.helpVerbose should include(".label") // step from NodeTraversal
+        thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
+        thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
+        thingTraversal.helpVerbose should include(".label") // step from NodeTraversal
+      }
+
+      "using hierarchical domain" in {
+        import testdomains.hierarchical.{Animal, Car, Elephant}
+        Traversal.empty[Animal].help should include("species of the animal")
+        Traversal.empty[Car].help should include("name of the car")
+        Traversal.empty[Elephant].help should include("name of the elephant")
+
+        // elephant is an Animal, therefor we should inherit 'species'
+        Traversal.empty[Elephant].species // only verify that it compiles
+        Traversal.empty[Elephant].help should include("species of the animal")
+      }
     }
 
     "provides generic help" when {
