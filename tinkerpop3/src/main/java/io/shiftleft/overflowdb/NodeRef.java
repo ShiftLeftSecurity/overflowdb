@@ -117,7 +117,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   @Override
-  public Graph graph() {
+  public OdbGraph graph() {
     return graph;
   }
 
