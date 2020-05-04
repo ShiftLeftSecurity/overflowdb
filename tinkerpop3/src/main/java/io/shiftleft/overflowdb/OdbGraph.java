@@ -13,6 +13,7 @@ import io.shiftleft.overflowdb.tp3.TinkerIoRegistryV3d0;
 import io.shiftleft.overflowdb.tp3.optimizations.CountStrategy;
 import io.shiftleft.overflowdb.tp3.optimizations.OdbGraphStepStrategy;
 import io.shiftleft.overflowdb.util.MultiIterator2;
+import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
@@ -313,7 +314,27 @@ public final class OdbGraph implements Graph {
   }
 
   public Iterator<NodeRef> nodesByLabel(final String label) {
-    return nodesByLabel.get(label).iterator();
+    final Set<NodeRef> nodes = nodesByLabel.get(label);
+    if (nodes != null)
+      return nodes.iterator();
+    else
+      return EmptyIterator.INSTANCE;
+  }
+
+  public Iterator<NodeRef> nodesByLabel(final String... labels) {
+    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+    for (String label : labels) {
+      addNodesToMultiIterator(multiIterator, label);
+    }
+    return multiIterator;
+  }
+
+  public Iterator<NodeRef> nodesByLabel(final Set<String> labels) {
+    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+    for (String label : labels) {
+      addNodesToMultiIterator(multiIterator, label);
+    }
+    return multiIterator;
   }
 
   public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
@@ -324,6 +345,13 @@ public final class OdbGraph implements Graph {
       }
     }
     return multiIterator;
+  }
+
+  private final void addNodesToMultiIterator(final MultiIterator<NodeRef> multiIterator, final String label) {
+    final Set<NodeRef> nodes = nodesByLabel.get(label);
+    if (nodes != null) {
+      multiIterator.addIterator(nodes.iterator());
+    }
   }
 
   @Override
