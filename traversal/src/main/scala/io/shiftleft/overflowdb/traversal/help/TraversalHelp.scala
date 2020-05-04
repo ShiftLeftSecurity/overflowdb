@@ -24,11 +24,13 @@ class TraversalHelp(domainBasePackage: String) {
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
     val stepDocs = {
-      val base = stepDocsByElementType.get(elementClass).getOrElse(Nil)
-      if (!verbose) base
+      val relevantClasses = elementClass +: elementClass.getInterfaces
+      val elementSpecificDocs = relevantClasses.to(List).map(stepDocsByElementType.get).flatten.flatten
+
+      if (!verbose) elementSpecificDocs
       else {
-        if (isNode || isNodeRef) base ++ genericStepDocs ++ genericNodeStepDocs
-        else base ++ genericStepDocs
+        if (isNode || isNodeRef) elementSpecificDocs ++ genericStepDocs ++ genericNodeStepDocs
+        else elementSpecificDocs ++ genericStepDocs
       }
     }
 

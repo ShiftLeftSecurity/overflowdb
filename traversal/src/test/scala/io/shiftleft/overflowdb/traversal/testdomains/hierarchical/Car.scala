@@ -5,15 +5,14 @@ import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Odb
 
 import scala.jdk.CollectionConverters._
 
-class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with NodeRefOps[Elephant] with Animal {
-  override def label: String = Elephant.Label
-  override def species = "Elephant"
-  override def toString = s"Elephant(id=$id)"
+class Car(graph: OdbGraph, id: Long) extends NodeRef[CarDb](graph, id) with NodeRefOps[Car] {
+  override def label: String = Car.Label
   def name: String = get.name
+  override def toString = s"Car(id=$id)"
 }
 
-object Elephant {
-  val Label = "elephant"
+object Car {
+  val Label = "car"
   val LabelId = 7
 
   object Properties {
@@ -25,11 +24,11 @@ object Elephant {
     val all: Set[String] = Set(Name)
   }
 
-  val factory: NodeFactory[ElephantDb] = new NodeFactory[ElephantDb]() {
+  val factory: NodeFactory[CarDb] = new NodeFactory[CarDb]() {
     override def forLabel: String = Label
     override def forLabelId() = LabelId
-    override def createNode(ref: NodeRef[ElephantDb]) = new ElephantDb(ref)
-    override def createNodeRef(graph: OdbGraph, id: Long) = new Elephant(graph, id)
+    override def createNode(ref: NodeRef[CarDb]) = new CarDb(ref)
+    override def createNodeRef(graph: OdbGraph, id: Long) = new Car(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
