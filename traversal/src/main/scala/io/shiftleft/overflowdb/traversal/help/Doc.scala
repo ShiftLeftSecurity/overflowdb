@@ -2,7 +2,6 @@ package io.shiftleft.overflowdb.traversal.help
 
 import scala.annotation.StaticAnnotation
 import scala.reflect.runtime.universe._
-import scala.tools.reflect.ToolBox
 
 /**
   * Annotation used for documentation.
@@ -14,12 +13,17 @@ import scala.tools.reflect.ToolBox
 case class Doc(short: String, long: String = "", example: String = "") extends StaticAnnotation
 
 object Doc {
-  private lazy val mirror = runtimeMirror(this.getClass.getClassLoader)
-  private lazy val mirrorToolbox = mirror.mkToolBox()
 
   def docByMethodName(tpe: Type): Map[String, Doc] = {
-    def toDoc(annotation: Annotation): Doc =
-      mirrorToolbox.eval(mirrorToolbox.untypecheck(annotation.tree)).asInstanceOf[Doc]
+    def toDoc(annotation: Annotation): Doc = {
+      val constants = annotation.tree.collect { case Literal(t : Constant) => t}
+      constants.size match{
+        case 1 => new Doc(constants.head.value.toString)
+        case 2 => new Doc(constants.head.value.toString, constants.last.value.toString)
+        case 3 => new Doc(constants.head.value.toString, constants(1).value.toString, constants.last.value.toString)
+        case _ => new Doc("")
+      }
+    }
 
     tpe.members
       .filter(_.isPublic)
