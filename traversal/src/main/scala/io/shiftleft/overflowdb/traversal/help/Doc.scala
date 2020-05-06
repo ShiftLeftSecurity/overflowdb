@@ -16,12 +16,12 @@ object Doc {
 
   def docByMethodName(tpe: Type): Map[String, Doc] = {
     def toDoc(annotation: Annotation): Doc = {
-      val constants = annotation.tree.collect { case Literal(t : Constant) => t}
-      constants.size match{
-        case 1 => new Doc(constants.head.value.toString)
-        case 2 => new Doc(constants.head.value.toString, constants.last.value.toString)
-        case 3 => new Doc(constants.head.value.toString, constants(1).value.toString, constants.last.value.toString)
-        case _ => new Doc("")
+      val constants = annotation.tree.collect { case Literal(t: Constant) => t }
+      constants.map(_.value.toString) match {
+        case List(short) => Doc(short)
+        case List(short, long) => Doc(short, long)
+        case List(short, long, example) => Doc(short, long, example)
+        case _ => Doc("")
       }
     }
 
