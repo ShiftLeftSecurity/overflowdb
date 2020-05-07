@@ -198,14 +198,17 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "using hierarchical domain" in {
-        import testdomains.hierarchical.{Animal, Car, Elephant}
+        import testdomains.hierarchical.{Animal, Car, Elephant, Mammal}
         Traversal.empty[Animal].help should include("species of the animal")
-        Traversal.empty[Car].help should include("name of the car")
+        Traversal.empty[Mammal].help should include("can this mammal swim?")
         Traversal.empty[Elephant].help should include("name of the elephant")
+        Traversal.empty[Car].help should include("name of the car")
 
-        // elephant is an Animal, therefor we should inherit 'species'
+        // elephant is a mammal (and therefor an animal)
+        Traversal.empty[Elephant].canSwim // only verify that it compiles
         Traversal.empty[Elephant].species // only verify that it compiles
         Traversal.empty[Elephant].help should include("species of the animal")
+        Traversal.empty[Elephant].help should include("can this mammal swim?")
       }
     }
 

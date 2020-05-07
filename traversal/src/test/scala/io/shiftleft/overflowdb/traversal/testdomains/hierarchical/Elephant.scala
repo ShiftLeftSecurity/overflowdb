@@ -5,9 +5,10 @@ import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Odb
 
 import scala.jdk.CollectionConverters._
 
-class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with NodeRefOps[Elephant] with Animal {
+class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with NodeRefOps[Elephant] with Mammal {
   override def label: String = Elephant.Label
   override def species = "Elephant"
+  override def canSwim = true
   override def toString = s"Elephant(id=$id)"
   def name: String = get.name
 }
