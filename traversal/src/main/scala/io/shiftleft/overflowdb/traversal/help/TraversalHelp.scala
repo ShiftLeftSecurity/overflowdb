@@ -6,6 +6,7 @@ import java.lang.annotation.{Annotation => JAnnotation}
 
 import org.reflections.Reflections
 
+import scala.annotation.tailrec
 import scala.reflect.runtime.universe.runtimeMirror
 import scala.jdk.CollectionConverters._
 
@@ -24,8 +25,13 @@ class TraversalHelp(domainBasePackage: String) {
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
     val stepDocs = {
-      val relevantClasses = elementClass +: elementClass.getInterfaces
-      val elementSpecificDocs = relevantClasses.to(List).map(stepDocsByElementType.get).flatten.flatten
+      def parentTraitsRecursively(clazz: Class[_]): List[Class[_]] = {
+        val parents = clazz.getInterfaces.to(List)
+        parents ++ parents.flatMap(parentTraitsRecursively)
+      }
+
+      val relevantClasses = elementClass +: parentTraitsRecursively(elementClass)
+      val elementSpecificDocs = relevantClasses.map(stepDocsByElementType.get).flatten.flatten
 
       if (!verbose) elementSpecificDocs
       else {
