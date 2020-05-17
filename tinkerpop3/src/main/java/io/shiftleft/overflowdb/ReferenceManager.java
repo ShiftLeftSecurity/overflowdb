@@ -159,7 +159,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   public void clearAllReferences() {
     while (!clearableRefs.isEmpty()) {
       int clearableRefsSize = clearableRefs.size();
-      logger.warn("clearing " + clearableRefsSize + " references - this may take some time");
+      logger.warn("clearing all (" + clearableRefsSize + ") references - this may take some time");
       try {
         syncClearReferences(clearableRefsSize);
       } catch (Exception e) {
