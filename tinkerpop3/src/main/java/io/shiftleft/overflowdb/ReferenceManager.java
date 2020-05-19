@@ -57,7 +57,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     if (clearingProcessCount > 0) {
       logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
     } else if (clearableRefs.isEmpty()) {
-      logger.info("no refs to clear at the moment.");
+      logger.info("no refs to clear at the moment, i.e. the heap is used by other components");
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
       logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
@@ -159,14 +159,14 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   public void clearAllReferences() {
     while (!clearableRefs.isEmpty()) {
       int clearableRefsSize = clearableRefs.size();
-      logger.warn("clearing all (" + clearableRefsSize + ") references - this may take some time");
+      logger.info("clearing all (" + clearableRefsSize + ") references - this may take some time");
       try {
         syncClearReferences(clearableRefsSize);
       } catch (Exception e) {
         throw new RuntimeException("error while clearing references to disk", e);
       }
     }
-    logger.warn("cleared all clearable references");
+    logger.info("cleared all clearable references");
   }
 
   @Override

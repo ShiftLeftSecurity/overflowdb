@@ -104,7 +104,7 @@ class Traversal[A](elements: IterableOnce[A])
       val _hasNext = wrappedIter.hasNext
       if (!_hasNext) {
         if (isExhausted)
-          Traversal.logger.warn("warning: Traversal already exhausted")
+          Traversal.logger.warn("Traversal already exhausted")
         else isExhausted = true
       }
       _hasNext
