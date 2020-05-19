@@ -42,9 +42,9 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     synchronized (backPressureSyncObject) {
       while (clearingProcessCount > 0) {
         try {
-          logger.trace("wait until ref clearing completed");
+          if (logger.isTraceEnabled()) logger.trace("wait until ref clearing completed");
           backPressureSyncObject.wait();
-          logger.trace("continue");
+          if (logger.isTraceEnabled()) logger.trace("continue");
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
@@ -60,7 +60,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       logger.info("no refs to clear at the moment, i.e. the heap is used by other components");
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
-      logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
+      if (logger.isInfoEnabled()) logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
       singleThreadExecutor.submit(() -> syncClearReferences(releaseCount));
     }
   }
@@ -73,9 +73,9 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
     if (!refsToClear.isEmpty()) {
       safelyClearReferences(refsToClear);
-      logger.info("completed clearing of " + refsToClear.size() + " references");
-      logger.debug("current clearable queue size: " + clearableRefs.size());
-      logger.debug("references cleared in total: " + totalReleaseCount);
+      if (logger.isInfoEnabled()) logger.info("completed clearing of " + refsToClear.size() + " references");
+      if (logger.isDebugEnabled()) logger.debug("current clearable queue size: " + clearableRefs.size());
+      if (logger.isDebugEnabled()) logger.debug("references cleared in total: " + totalReleaseCount);
     }
   }
 
