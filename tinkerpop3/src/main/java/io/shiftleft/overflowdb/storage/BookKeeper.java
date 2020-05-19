@@ -24,7 +24,7 @@ public abstract class BookKeeper {
   protected void recordStatistics(long startTimeNanos) {
     totalCount.incrementAndGet();
     totalTimeSpentNanos.addAndGet(System.nanoTime() - startTimeNanos);
-    if (0 == (totalCount.intValue() & 0x0001ffff)) {
+    if (0 == (totalCount.intValue() & 0x0001ffff)) { //131071
       float avgSerializationTime = 1.0f-6 * totalTimeSpentNanos.floatValue() / totalCount.floatValue();
       logger.debug("stats: handled " + totalCount + " nodes in total (avg time: " + avgSerializationTime + "ms)");
     }
