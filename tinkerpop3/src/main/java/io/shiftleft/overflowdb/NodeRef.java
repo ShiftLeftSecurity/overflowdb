@@ -11,10 +11,16 @@ import java.util.Iterator;
 import java.util.Optional;
 
 /**
- * Wrapper for a node, which may be set to `null` by @ReferenceManager and persisted to storage to avoid `OutOfMemory` errors.
+ * Lightweight (w.r.t. memory usage) reference to for an OdbNode, which is stored in the `node` member.
+ * When running low on memory (as detected by {{@link HeapUsageMonitor}}), the {{@link ReferenceManager}} may set
+ * that member to `null`, so that the garbage collector can free up some heap, thus avoiding @{@link OutOfMemoryError}.
+ * Note that this model only works if nothing else holds references to the {@link OdbNode} - which is therefor strongly
+ * discouraged. Instead, the entire application should only ever hold onto {@link NodeRef} instances.
  *
- * When starting from an existing storage location, only `NodeRef` instances are created - the underlying nodes
- * are lazily fetched from storage.
+ * When the `node` member is currently null, but is then required (e.g. to lookup a property or an edge), the node will
+ * be fetched from the underlying {@link io.shiftleft.overflowdb.storage.OdbStorage}.
+ * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
+ * are lazily on demand as described above.
  */
 public abstract class NodeRef<N extends OdbNode> implements Vertex {
   public final long id;
