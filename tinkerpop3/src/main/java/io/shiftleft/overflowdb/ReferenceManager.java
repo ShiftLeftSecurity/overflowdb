@@ -1,13 +1,17 @@
 package io.shiftleft.overflowdb;
 
+import io.shiftleft.overflowdb.storage.OdbStorage;
 import io.shiftleft.overflowdb.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -27,8 +31,13 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
+  private final OdbStorage storage;
 
   private final List<NodeRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
+
+  public ReferenceManager(OdbStorage storage) {
+    this.storage = storage;
+  }
 
   public void registerRef(NodeRef ref) {
     clearableRefs.add(ref);
@@ -105,6 +114,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
         clearingProcessCount += 1;
       }
       clearReferences(refsToClear);
+      storage.flush();
     } catch (Exception e) {
       logger.error("error while trying to clear references", e);
     } finally {

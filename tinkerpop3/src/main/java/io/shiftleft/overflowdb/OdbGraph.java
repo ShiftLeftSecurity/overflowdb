@@ -91,11 +91,6 @@ public final class OdbGraph implements Graph {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    referenceManager = new ReferenceManager();
-    heapUsageMonitor = config.isOverflowEnabled() ?
-        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
-        Optional.empty();
-
     NodeDeserializer nodeDeserializer = new NodeDeserializer(
         this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
     if (config.getStorageLocation().isPresent()) {
@@ -109,6 +104,10 @@ public final class OdbGraph implements Graph {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
       initEmptyElementCollections();
     }
+    referenceManager = new ReferenceManager(storage);
+    heapUsageMonitor = config.isOverflowEnabled() ?
+        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
+        Optional.empty();
   }
 
   private void initEmptyElementCollections() {
