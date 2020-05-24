@@ -97,7 +97,10 @@ public class OdbStorage implements AutoCloseable {
   public void close() {
     closed = true;
     logger.info("closing " + getClass().getSimpleName());
-    if (mvstore != null) mvstore.close();
+    if (mvstore != null) {
+      mvstore.commit();
+      mvstore.close();
+    }
     if (!doPersist) mvstoreFile.delete();
   }
 
