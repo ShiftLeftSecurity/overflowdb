@@ -14,6 +14,7 @@ public abstract class BookKeeper {
 
   protected BookKeeper(boolean statsEnabled) {
     this.statsEnabled = statsEnabled;
+    System.out.println("bookkeeper: init. enabled=" + this.statsEnabled);
   }
 
   protected final long getStartTimeNanos() {
@@ -24,7 +25,9 @@ public abstract class BookKeeper {
   protected void recordStatistics(long startTimeNanos) {
     totalCount.incrementAndGet();
     totalTimeSpentNanos.addAndGet(System.nanoTime() - startTimeNanos);
-    if (0 == (totalCount.intValue() & 0x0001ffff)) { // print stats every 131071 times
+//    if (0 == (totalCount.intValue() & 0x0001ffff)) { // print stats every 131071 times
+    if (totalCount.intValue() % 100000 == 0) {
+      System.out.println("BookKeeper.recordStatistics. start=" + startTimeNanos);
       float avgSerializationTime = 1.0f-6 * totalTimeSpentNanos.floatValue() / totalCount.floatValue();
       logger.debug("stats: handled " + totalCount + " nodes in total (avg time: " + avgSerializationTime + "ms)");
     }

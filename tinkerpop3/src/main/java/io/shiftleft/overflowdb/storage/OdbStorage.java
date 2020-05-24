@@ -156,8 +156,9 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public MVMap<Object, long[]> openIndex(String indexName) {
-    final String mapName = getIndexMapName(indexName);
-    return mvstore.openMap(mapName);
+//    final String mapName = getIndexMapName(indexName);
+//    return mvstore.openMap(mapName);
+    return null;
   }
 
   private String getIndexMapName(String indexName) {
