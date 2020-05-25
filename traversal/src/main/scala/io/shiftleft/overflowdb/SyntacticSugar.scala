@@ -2,12 +2,13 @@ package io.shiftleft.overflowdb
 
 import io.shiftleft.overflowdb.traversal.PropertyKeyValue
 
-class GraphSugar(val wrapped: OdbGraph) extends AnyVal {
+class GraphSugar(val graph: OdbGraph) extends AnyVal {
+
   def `+`(label: String): NodeRef[_] =
-    wrapped.addNode(label)
+    graph.addNode(label)
 
   def `+`(label: String, properties: PropertyKeyValue[_]*): NodeRef[_] =
-    wrapped.addNode(label, keyValuesAsSeq(properties): _*)
+    graph.addNode(label, keyValuesAsSeq(properties): _*)
 
   private def keyValuesAsSeq(properties: Seq[PropertyKeyValue[_]]): Seq[_] = {
     val builder = Seq.newBuilder[Any]
@@ -20,12 +21,14 @@ class GraphSugar(val wrapped: OdbGraph) extends AnyVal {
   }
 }
 
-class NodeRefSugar(val wrapped: NodeRef[_]) extends AnyVal {
+class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
+
   def ---(label: String): SemiEdge =
-    new SemiEdge(wrapped, label)
+    new SemiEdge(node, label)
+
 }
 
-class SemiEdge(outNode: NodeRef[_], label: String) {
+private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String) {
   def -->(inNode: NodeRef[_]): OdbEdge =
     outNode.addEdge(label, inNode).asInstanceOf[OdbEdge]
 }
