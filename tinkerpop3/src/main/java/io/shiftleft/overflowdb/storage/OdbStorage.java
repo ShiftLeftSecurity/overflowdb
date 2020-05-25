@@ -93,14 +93,20 @@ public class OdbStorage implements AutoCloseable {
     return (A) nodeDeserializer.get().deserialize(getNodesMVMap().get(id));
   }
 
+  /** flush any remaining changes in underlying storage to disk */
+  public void flush() {
+    if (mvstore != null) {
+      logger.debug("flushing to disk");
+      mvstore.commit();
+    }
+  }
+
   @Override
   public void close() {
     closed = true;
     logger.info("closing " + getClass().getSimpleName());
-    if (mvstore != null) {
-      mvstore.commit();
-      mvstore.close();
-    }
+    flush();
+    if (mvstore != null) mvstore.close();
     if (!doPersist) mvstoreFile.delete();
   }
 
