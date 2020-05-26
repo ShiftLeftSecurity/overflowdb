@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.traversal.help.Doc
-import io.shiftleft.overflowdb.{NodeRef, OdbEdge}
+import io.shiftleft.overflowdb.{NodeRef, OdbEdge, PropertyKey, PropertyKeyValue}
 import org.apache.tinkerpop.gremlin.structure.Direction
 
 class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {

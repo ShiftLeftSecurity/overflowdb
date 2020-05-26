@@ -1,7 +1,7 @@
 package io.shiftleft.overflowdb.traversal.testdomains.hierarchical
 
-import io.shiftleft.overflowdb.traversal.{NodeRefOps, PropertyKey, Traversal}
-import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
+import io.shiftleft.overflowdb.traversal.{NodeRefOps, Traversal}
+import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
