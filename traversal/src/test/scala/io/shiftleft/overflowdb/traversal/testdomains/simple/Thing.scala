@@ -1,7 +1,8 @@
 package io.shiftleft.overflowdb.traversal.testdomains.simple
 
-import io.shiftleft.overflowdb.traversal.{NodeRefOps, PropertyKey, Traversal}
-import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
+import io.shiftleft.overflowdb.traversal.{NodeRefOps, Traversal}
+import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
+
 import scala.jdk.CollectionConverters._
 
 class Thing(graph: OdbGraph, id: Long) extends NodeRef[ThingDb](graph, id) with NodeRefOps[Thing] {

@@ -1,8 +1,8 @@
 package io.shiftleft.overflowdb.traversal.testdomains.gratefuldead
 
 import io.shiftleft.overflowdb.traversal.testdomains.gratefuldead.Artist.LabelId
-import io.shiftleft.overflowdb.traversal.{NodeRefOps, PropertyKey, Traversal}
-import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph}
+import io.shiftleft.overflowdb.traversal.{NodeRefOps, Traversal}
+import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
