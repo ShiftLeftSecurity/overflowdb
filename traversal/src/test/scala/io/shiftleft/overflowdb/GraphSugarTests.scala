@@ -12,7 +12,14 @@ class GraphSugarTests extends WordSpec with Matchers {
       graph.nodeCount shouldBe 1
     }
 
-    "or not" in {
+    "add a node with properties" in {
+      val graph = SimpleDomain.newGraph
+      graph + (Thing.Label, Thing.Properties.Name -> "one thing")
+      graph.nodeCount shouldBe 1
+      SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
+    }
+
+    "fail for unknown nodeType" in {
       val graph = SimpleDomain.newGraph
       intercept[IllegalArgumentException] {
         graph + "unknown"
