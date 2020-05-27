@@ -187,28 +187,38 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
     return this.get().nodes(direction, edgeLabels);
   }
 
-  /* adjacent out nodes (all labels) */
+  /* adjacent OUT nodes (all labels) */
   public Iterator<NodeRef> out() {
     return this.get().out();
   }
 
-  /* adjacent out nodes for a specific label
+  /* adjacent OUT nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
   public Iterator<NodeRef> out(String edgeLabel) {
     return this.get().out(edgeLabel);
   }
 
-  /* adjacent in nodes (all labels) */
+  /* adjacent IN nodes (all labels) */
   public Iterator<NodeRef> in() {
     return this.get().in();
   }
 
-  /* adjacent out nodes for a specific label
+  /* adjacent IN nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
   public Iterator<NodeRef> in(String edgeLabel) {
     return this.get().in(edgeLabel);
   }
 
+  /* adjacent OUT/IN nodes (all labels) */
+  public Iterator<NodeRef> both() {
+    return this.get().both();
+  }
+
+  /* adjacent OUT/IN nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> both(String edgeLabel) {
+    return this.get().both(edgeLabel);
+  }
   // delegate methods end
 
 }

@@ -331,7 +331,7 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
-  /* adjacent out nodes (all labels) */
+  /* adjacent OUT nodes (all labels) */
   public Iterator<NodeRef> out() {
     final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
@@ -340,13 +340,13 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
-  /* adjacent out nodes for a specific label
+  /* adjacent OUT nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
   public Iterator<NodeRef> out(String edgeLabel) {
     return createAdjacentNodeIterator(Direction.OUT, edgeLabel);
   }
 
-  /* adjacent in nodes (all labels) */
+  /* adjacent IN nodes (all labels) */
   public Iterator<NodeRef> in() {
     final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
@@ -355,10 +355,27 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
-  /* adjacent out nodes for a specific label
+  /* adjacent IN nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
   public Iterator<NodeRef> in(String edgeLabel) {
     return createAdjacentNodeIterator(Direction.IN, edgeLabel);
+  }
+
+  /* adjacent OUT/IN nodes (all labels) */
+  public Iterator<NodeRef> both() {
+    final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
+    multiIterator.addIterator(out());
+    multiIterator.addIterator(in());
+    return multiIterator;
+  }
+
+  /* adjacent OUT/IN nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> both(String edgeLabel) {
+    final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
+    multiIterator.addIterator(out(edgeLabel));
+    multiIterator.addIterator(in(edgeLabel));
+    return multiIterator;
   }
 
   /**

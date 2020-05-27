@@ -73,12 +73,19 @@ class TraversalTests extends WordSpec with Matchers {
     "step both" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
       l2Trav.both.size shouldBe 2
+      l2Node.both.size shouldBe 2
       assertNames(l2Trav.both, Set("L1", "L3"))
+      assertNames(l2Node.both, Set("L1", "L3"))
       assertNames(r2Trav.both, Set("R1", "R3"))
+      assertNames(r2Node.both, Set("R1", "R3"))
       assertNames(l2Trav.both.both, Set("L2", "Center"))
+      assertNames(l2Node.both.both, Set("L2", "Center"))
       assertNames(r2Trav.both.both, Set("Center", "R2", "R4"))
+      assertNames(r2Node.both.both, Set("Center", "R2", "R4"))
       assertNames(l2Trav.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2Node.both(Connection.Label), Set("L1", "L3"))
       assertNames(l2Trav.both(nonExistingLabel), Set.empty)
+      assertNames(l2Node.both(nonExistingLabel), Set.empty)
     }
 
     "step outE" in {
