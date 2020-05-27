@@ -50,9 +50,11 @@ class TraversalTests extends WordSpec with Matchers {
       assertNames(centerTrav.out, Set("L1", "R1"))
       assertNames(centerNode.out, Set("L1", "R1"))
       assertNames(centerTrav.out.out, Set("L2", "R2"))
+      assertNames(centerNode.out.out, Set("L2", "R2"))
       assertNames(centerTrav.out(Connection.Label), Set("L1", "R1"))
       assertNames(centerNode.out(Connection.Label), Set("L1", "R1"))
       assertNames(centerTrav.out(nonExistingLabel), Set.empty)
+      assertNames(centerNode.out(nonExistingLabel), Set.empty)
     }
 
     "step in" in {

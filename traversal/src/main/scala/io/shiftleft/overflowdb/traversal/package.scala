@@ -6,14 +6,17 @@ import scala.jdk.CollectionConverters._
 
 package object traversal {
 
-  implicit def toTraversal[A](iter: java.util.Iterator[A]): Traversal[A] =
-    toTraversal(iter.asScala)
+  implicit def jIteratortoTraversal[A](jiterator: java.util.Iterator[A]): Traversal[A] =
+    iteratorToTraversal(jiterator.asScala)
 
-  implicit def toTraversal[A](iter: Iterator[A]): Traversal[A] =
-    iter.to(Traversal)
+  implicit def iteratorToTraversal[A](iterator: Iterator[A]): Traversal[A] =
+    iterator.to(Traversal)
 
   implicit def toNodeTraversal[A <: NodeRef[_]](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
+
+  implicit def toNodeTraversalViaAdditionalImplicit[A <: NodeRef[_], Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
+    new NodeTraversal[A](toTraversal(traversable))
 
   implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
     new EdgeTraversal[A](traversal)
