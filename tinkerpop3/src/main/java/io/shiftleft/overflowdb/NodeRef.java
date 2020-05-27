@@ -2,7 +2,6 @@ package io.shiftleft.overflowdb;
 
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
@@ -169,13 +168,13 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesOut(String edgeLabel) {
-    return this.get().edgesOut(edgeLabel);
+  public Iterator<Edge> outE(String edgeLabel) {
+    return this.get().outE(edgeLabel);
   }
 
   /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesIn(String edgeLabel) {
-    return this.get().edgesIn(edgeLabel);
+  public Iterator<Edge> inE(String edgeLabel) {
+    return this.get().inE(edgeLabel);
   }
 
   @Override
@@ -190,14 +189,14 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
 
   /* adjacent out nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesOut(String edgeLabel) {
-    return this.get().nodesOut(edgeLabel);
+  public Iterator<NodeRef> out(String edgeLabel) {
+    return this.get().out(edgeLabel);
   }
 
   /* adjacent out nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesIn(String edgeLabel) {
-    return this.get().nodesIn(edgeLabel);
+  public Iterator<NodeRef> in(String edgeLabel) {
+    return this.get().in(edgeLabel);
   }
 
   // delegate methods end

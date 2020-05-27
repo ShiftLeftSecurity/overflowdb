@@ -300,12 +300,12 @@ public abstract class OdbNode implements Vertex {
   }
 
   /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesOut(String edgeLabel) {
+  public Iterator<Edge> outE(String edgeLabel) {
     return createDummyEdgeIterator(Direction.OUT, edgeLabel);
   }
 
   /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesIn(String edgeLabel) {
+  public Iterator<Edge> inE(String edgeLabel) {
     return createDummyEdgeIterator(Direction.IN, edgeLabel);
   }
 
@@ -333,13 +333,13 @@ public abstract class OdbNode implements Vertex {
 
   /* adjacent out nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesOut(String edgeLabel) {
+  public Iterator<NodeRef> out(String edgeLabel) {
     return createAdjacentNodeIterator(Direction.OUT, edgeLabel);
   }
 
   /* adjacent out nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesIn(String edgeLabel) {
+  public Iterator<NodeRef> in(String edgeLabel) {
     return createAdjacentNodeIterator(Direction.IN, edgeLabel);
   }
 

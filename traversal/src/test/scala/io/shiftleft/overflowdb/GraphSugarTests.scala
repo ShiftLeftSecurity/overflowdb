@@ -36,7 +36,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       node1 --- Connection.Label --> node2
 
       graph.nodeCount shouldBe 2
-      node1.nodesOut(Connection.Label).next shouldBe node2
+      node1.out(Connection.Label).next shouldBe node2
     }
   }
 

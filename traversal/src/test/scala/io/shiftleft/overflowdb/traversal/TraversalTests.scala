@@ -45,11 +45,20 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   "generic graph steps" can {
-    "step out" in {
-      assertNames(center.out, Set("L1", "R1"))
-      assertNames(center.out.out, Set("L2", "R2"))
-      assertNames(center.out(Connection.Label), Set("L1", "R1"))
-      assertNames(center.out(nonExistingLabel), Set.empty)
+
+    "step out" when {
+      "operating on NodeRef" in {
+        val node: NodeRef[_] = center.head
+        node.out(Connection.Label) //.toSet
+//        node.out.toSet
+      }
+
+      "operating on Traveral" in {
+        assertNames(center.out, Set("L1", "R1"))
+        assertNames(center.out.out, Set("L2", "R2"))
+        assertNames(center.out(Connection.Label), Set("L1", "R1"))
+        assertNames(center.out(nonExistingLabel), Set.empty)
+      }
     }
 
     "step in" in {
