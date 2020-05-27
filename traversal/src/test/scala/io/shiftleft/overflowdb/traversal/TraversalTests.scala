@@ -90,6 +90,7 @@ class TraversalTests extends WordSpec with Matchers {
 
     "step outE" in {
       centerTrav.outE.size shouldBe 2
+      centerNode.outE.size shouldBe 2
       assertNames(centerTrav.outE.inV, Set("L1", "R1"))
       assertNames(centerTrav.outE.inV.outE.inV, Set("L2", "R2"))
       assertNames(centerTrav.outE(Connection.Label).inV, Set("L1", "R1"))

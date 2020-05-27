@@ -299,16 +299,6 @@ public abstract class OdbNode implements Vertex {
     return multiIterator;
   }
 
-  /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> outE(String edgeLabel) {
-    return createDummyEdgeIterator(Direction.OUT, edgeLabel);
-  }
-
-  /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> inE(String edgeLabel) {
-    return createDummyEdgeIterator(Direction.IN, edgeLabel);
-  }
-
   @Override
   public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
     return nodes(direction, edgeLabels);
@@ -349,7 +339,7 @@ public abstract class OdbNode implements Vertex {
   /* adjacent IN nodes (all labels) */
   public Iterator<NodeRef> in() {
     final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
-    for (String label : layoutInformation().allowedOutEdgeLabels()) {
+    for (String label : layoutInformation().allowedInEdgeLabels()) {
       multiIterator.addIterator(in(label));
     }
     return multiIterator;
@@ -375,6 +365,53 @@ public abstract class OdbNode implements Vertex {
     final MultiIterator2<NodeRef> multiIterator = new MultiIterator2<>();
     multiIterator.addIterator(out(edgeLabel));
     multiIterator.addIterator(in(edgeLabel));
+    return multiIterator;
+  }
+
+  /* adjacent OUT edges (all labels) */
+  public Iterator<Edge> outE() {
+    final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
+    for (String label : layoutInformation().allowedOutEdgeLabels()) {
+      multiIterator.addIterator(outE(label));
+    }
+    return multiIterator;
+  }
+
+  /* adjacent OUT edges for a specific label
+   * specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<Edge> outE(String edgeLabel) {
+    return createDummyEdgeIterator(Direction.OUT, edgeLabel);
+  }
+
+  /* adjacent IN edges (all labels) */
+  public Iterator<Edge> inE() {
+    final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
+    for (String label : layoutInformation().allowedInEdgeLabels()) {
+      multiIterator.addIterator(inE(label));
+    }
+    return multiIterator;
+  }
+
+  /* adjacent IN edges for a specific label
+   * specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<Edge> inE(String edgeLabel) {
+    return createDummyEdgeIterator(Direction.IN, edgeLabel);
+  }
+
+  /* adjacent OUT/IN edges (all labels) */
+  public Iterator<Edge> bothE() {
+    final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
+    multiIterator.addIterator(outE());
+    multiIterator.addIterator(inE());
+    return multiIterator;
+  }
+
+  /* adjacent OUT/IN edges for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<Edge> bothE(String edgeLabel) {
+    final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
+    multiIterator.addIterator(outE(edgeLabel));
+    multiIterator.addIterator(inE(edgeLabel));
     return multiIterator;
   }
 
