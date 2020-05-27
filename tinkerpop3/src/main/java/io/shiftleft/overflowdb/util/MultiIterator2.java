@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Subclass-safe variant of MultiIterator
+ * Subclass-safe variant of MultiIterator from Tinkerpop
  */
 public final class MultiIterator2<T> implements Iterator<T>, Serializable {
 
