@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -264,20 +266,18 @@ public final class OdbGraph implements Graph {
   }
 
   @Override
-  public Iterator<Vertex> vertices(final Object... ids) {
-    if (ids.length == 0) { //return all nodes - that's how the tinkerpop api rolls.
+  public Iterator<Vertex> vertices(final Object... idsOrVertices) {
+    if (idsOrVertices.length == 0) { //return all nodes - that's how the tinkerpop api rolls.
       final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
       return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
-    } else if (ids.length == 1) {
-      // optimization for common case where only one id is requested
-      final Long id = convertToId(ids[0]);
-      return IteratorUtils.of(nodes.get(id));
     } else {
-      final Set<Long> idsSet = new HashSet<>(ids.length);
-      for (Object idOrNode : ids) {
-        idsSet.add(convertToId(idOrNode));
+      final long[] ids = new long[idsOrVertices.length];
+      int idx = 0;
+      for (Object idOrNode : idsOrVertices) {
+        ids[idx++] = convertToId(idOrNode);
       }
-      return IteratorUtils.map(idsSet.iterator(), id -> nodes.get(id));
+      final Iterator<NodeRef> nodeRefIter = nodes(ids);
+      return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     }
   }
 
@@ -310,6 +310,29 @@ public final class OdbGraph implements Graph {
       nodesByLabel.put(label, new THashSet<>(1));
 
     nodesByLabel.get(label).add(nodeRef);
+  }
+
+  /** Iterator over all nodes */
+  public Iterator<NodeRef> nodes() {
+    final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
+    return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+  }
+
+  /** Iterator over all nodes with provided ids
+   * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
+  public Iterator<NodeRef> nodes(long... ids) {
+    if (ids.length == 0) {
+      return EmptyIterator.INSTANCE;
+    } else if (ids.length == 1) {
+      // optimization for common case where only one id is requested
+      return IteratorUtils.of(nodes.get(ids[0]));
+    } else {
+      final Set<Long> idsSet = new HashSet<>(ids.length);
+      for (long id : ids) {
+        idsSet.add(id);
+      }
+      return IteratorUtils.map(idsSet.iterator(), id -> nodes.get(id));
+    }
   }
 
   public Iterator<NodeRef> nodesByLabel(final String label) {
