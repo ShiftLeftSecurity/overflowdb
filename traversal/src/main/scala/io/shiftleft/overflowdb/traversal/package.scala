@@ -1,10 +1,16 @@
 package io.shiftleft.overflowdb
 
 import io.shiftleft.overflowdb.util.JIteratorCastingWrapper
-import org.apache.tinkerpop.gremlin.structure.Direction
 import scala.collection.IterableOnce
+import scala.jdk.CollectionConverters._
 
 package object traversal {
+
+  implicit def toTraversal[A](iter: java.util.Iterator[A]): Traversal[A] =
+    toTraversal(iter.asScala)
+
+  implicit def toTraversal[A](iter: Iterator[A]): Traversal[A] =
+    iter.to(Traversal)
 
   implicit def toNodeTraversal[A <: NodeRef[_]](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
