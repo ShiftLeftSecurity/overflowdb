@@ -1,7 +1,5 @@
 package io.shiftleft.overflowdb
 
-import io.shiftleft.overflowdb.traversal.PropertyKeyValue
-
 class GraphSugar(val graph: OdbGraph) extends AnyVal {
 
   def `+`(label: String): NodeRef[_] =
