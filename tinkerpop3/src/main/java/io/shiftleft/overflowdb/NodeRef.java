@@ -2,7 +2,6 @@ package io.shiftleft.overflowdb;
 
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
@@ -168,16 +167,6 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
     return this.get().edges(direction, edgeLabels);
   }
 
-  /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesOut(String edgeLabel) {
-    return this.get().edgesOut(edgeLabel);
-  }
-
-  /* specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> edgesIn(String edgeLabel) {
-    return this.get().edgesIn(edgeLabel);
-  }
-
   @Override
   public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
     return nodes(direction, edgeLabels);
@@ -188,16 +177,70 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
     return this.get().nodes(direction, edgeLabels);
   }
 
-  /* adjacent out nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesOut(String edgeLabel) {
-    return this.get().nodesOut(edgeLabel);
+  /* adjacent OUT nodes (all labels) */
+  public Iterator<NodeRef> out() {
+    return this.get().out();
   }
 
-  /* adjacent out nodes for a specific label
+  /* adjacent OUT nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> nodesIn(String edgeLabel) {
-    return this.get().nodesIn(edgeLabel);
+  public Iterator<NodeRef> out(String edgeLabel) {
+    return this.get().out(edgeLabel);
+  }
+
+  /* adjacent IN nodes (all labels) */
+  public Iterator<NodeRef> in() {
+    return this.get().in();
+  }
+
+  /* adjacent IN nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> in(String edgeLabel) {
+    return this.get().in(edgeLabel);
+  }
+
+  /* adjacent OUT/IN nodes (all labels) */
+  public Iterator<NodeRef> both() {
+    return this.get().both();
+  }
+
+  /* adjacent OUT/IN nodes for a specific label
+   * specialized version of `nodes(Direction, String...)` for efficiency */
+  public Iterator<NodeRef> both(String edgeLabel) {
+    return this.get().both(edgeLabel);
+  }
+
+  /* adjacent OUT edges (all labels) */
+  public Iterator<OdbEdge> outE() {
+    return this.get().outE();
+  }
+
+  /* adjacent OUT edges for a specific label
+   * specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<OdbEdge> outE(String edgeLabel) {
+    return this.get().outE(edgeLabel);
+  }
+
+  /* adjacent IN edges (all labels) */
+  public Iterator<OdbEdge> inE() {
+    return this.get().inE();
+  }
+
+  /* adjacent IN edges for a specific label
+   * specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<OdbEdge> inE(String edgeLabel) {
+    return this.get().inE(edgeLabel);
+  }
+
+  /* adjacent OUT/IN edges (all labels) */
+  public Iterator<OdbEdge> bothE() {
+    return this.get().bothE();
+  }
+
+  /* adjacent OUT/IN edges for a specific label
+   * specialized version of `edges(Direction, String...)` for efficiency */
+  public Iterator<OdbEdge> bothE(String edgeLabel) {
+    return this.get().bothE(edgeLabel);
   }
 
   // delegate methods end

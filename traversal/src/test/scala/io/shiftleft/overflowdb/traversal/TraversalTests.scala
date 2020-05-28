@@ -40,65 +40,95 @@ class TraversalTests extends WordSpec with Matchers {
 
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    center.head.name shouldBe "Center"
+    centerTrav.head.name shouldBe "Center"
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
 
   "generic graph steps" can {
+
     "step out" in {
-      assertNames(center.out, Set("L1", "R1"))
-      assertNames(center.out.out, Set("L2", "R2"))
-      assertNames(center.out(Connection.Label), Set("L1", "R1"))
-      assertNames(center.out(nonExistingLabel), Set.empty)
+      assertNames(centerTrav.out, Set("L1", "R1"))
+      assertNames(centerNode.out, Set("L1", "R1"))
+      assertNames(centerTrav.out.out, Set("L2", "R2"))
+      assertNames(centerNode.out.out, Set("L2", "R2"))
+      assertNames(centerTrav.out(Connection.Label), Set("L1", "R1"))
+      assertNames(centerNode.out(Connection.Label), Set("L1", "R1"))
+      assertNames(centerTrav.out(nonExistingLabel), Set.empty)
+      assertNames(centerNode.out(nonExistingLabel), Set.empty)
     }
 
     "step in" in {
-      l2.in.size shouldBe 1
-      assertNames(l2.in, Set("L1"))
-      assertNames(l2.in.in, Set("Center"))
-      assertNames(l2.in(Connection.Label), Set("L1"))
-      assertNames(l2.in(nonExistingLabel), Set.empty)
+      l2Trav.in.size shouldBe 1
+      l2Node.in.size shouldBe 1
+      assertNames(l2Trav.in, Set("L1"))
+      assertNames(l2Node.in, Set("L1"))
+      assertNames(l2Trav.in.in, Set("Center"))
+      assertNames(l2Node.in.in, Set("Center"))
+      assertNames(l2Trav.in(Connection.Label), Set("L1"))
+      assertNames(l2Node.in(Connection.Label), Set("L1"))
+      assertNames(l2Trav.in(nonExistingLabel), Set.empty)
+      assertNames(l2Node.in(nonExistingLabel), Set.empty)
     }
-    
+
     "step both" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
-      l2.both.size shouldBe 2
-      assertNames(l2.both, Set("L1", "L3"))
-      assertNames(r2.both, Set("R1", "R3"))
-      assertNames(l2.both.both, Set("L2", "Center"))
-      assertNames(r2.both.both, Set("Center", "R2", "R4"))
-      assertNames(l2.both(Connection.Label), Set("L1", "L3"))
-      assertNames(l2.both(nonExistingLabel), Set.empty)
+      l2Trav.both.size shouldBe 2
+      l2Node.both.size shouldBe 2
+      assertNames(l2Trav.both, Set("L1", "L3"))
+      assertNames(l2Node.both, Set("L1", "L3"))
+      assertNames(r2Trav.both, Set("R1", "R3"))
+      assertNames(r2Node.both, Set("R1", "R3"))
+      assertNames(l2Trav.both.both, Set("L2", "Center"))
+      assertNames(l2Node.both.both, Set("L2", "Center"))
+      assertNames(r2Trav.both.both, Set("Center", "R2", "R4"))
+      assertNames(r2Node.both.both, Set("Center", "R2", "R4"))
+      assertNames(l2Trav.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2Node.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2Trav.both(nonExistingLabel), Set.empty)
+      assertNames(l2Node.both(nonExistingLabel), Set.empty)
     }
 
     "step outE" in {
-      center.outE.size shouldBe 2
-      assertNames(center.outE.inV, Set("L1", "R1"))
-      assertNames(center.outE.inV.outE.inV, Set("L2", "R2"))
-      assertNames(center.outE(Connection.Label).inV, Set("L1", "R1"))
-      assertNames(center.outE(nonExistingLabel).inV, Set.empty)
+      centerTrav.outE.size shouldBe 2
+      centerNode.outE.size shouldBe 2
+      assertNames(centerTrav.outE.inV, Set("L1", "R1"))
+      assertNames(centerNode.outE.inV, Set("L1", "R1"))
+      assertNames(centerTrav.outE.inV.outE.inV, Set("L2", "R2"))
+      assertNames(centerNode.outE.inV.outE.inV, Set("L2", "R2"))
+      assertNames(centerTrav.outE(Connection.Label).inV, Set("L1", "R1"))
+      assertNames(centerNode.outE(Connection.Label).inV, Set("L1", "R1"))
+      assertNames(centerTrav.outE(nonExistingLabel).inV, Set.empty)
+      assertNames(centerNode.outE(nonExistingLabel).inV, Set.empty)
     }
 
     "step inE" in {
-      l2.inE.size shouldBe 1
-      assertNames(l2.inE.outV, Set("L1"))
-      assertNames(l2.inE.outV.inE.outV, Set("Center"))
-      assertNames(l2.inE(Connection.Label).outV, Set("L1"))
-      assertNames(l2.inE(nonExistingLabel).outV, Set.empty)
+      l2Trav.inE.size shouldBe 1
+      l2Node.inE.size shouldBe 1
+      assertNames(l2Trav.inE.outV, Set("L1"))
+      assertNames(l2Node.inE.outV, Set("L1"))
+      assertNames(l2Trav.inE.outV.inE.outV, Set("Center"))
+      assertNames(l2Node.inE.outV.inE.outV, Set("Center"))
+      assertNames(l2Trav.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2Node.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2Trav.inE(nonExistingLabel).outV, Set.empty)
+      assertNames(l2Node.inE(nonExistingLabel).outV, Set.empty)
     }
 
     "step bothE" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
-      l2.bothE.size shouldBe 2
-      l2.bothE(Connection.Label).size shouldBe 2
-      l2.bothE(nonExistingLabel).size shouldBe 0
+      l2Trav.bothE.size shouldBe 2
+      l2Node.bothE.size shouldBe 2
+      l2Trav.bothE(Connection.Label).size shouldBe 2
+      l2Node.bothE(Connection.Label).size shouldBe 2
+      l2Trav.bothE(nonExistingLabel).size shouldBe 0
+      l2Node.bothE(nonExistingLabel).size shouldBe 0
     }
   }
 
   "repeat" should {
     "be lazily evaluated" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
-      val traversalNotYetExecuted = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+      val traversalNotYetExecuted = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
       withClue("traversal should not do anything when it's only created") {
         traversedNodes.size shouldBe 0
       }
@@ -106,27 +136,27 @@ class TraversalTests extends WordSpec with Matchers {
 
     "by default traverse all nodes to outer limits exactly once, emitting and returning nothing" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
-      val results = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy).toList
+      val results = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).toList
       traversedNodes.size shouldBe 8
       results.size shouldBe 0
     }
 
     "emit everything along the way if so configured" in {
-      center.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+      centerTrav.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
 
     "emit nodes that meet given condition" in {
-      val results = center.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
+      val results = centerTrav.repeat(_.followedBy, _.emit(_.name.startsWith("L"))).name.toSet
       results shouldBe Set("L1", "L2", "L3")
     }
 
     "support arbitrary `until` condition" when {
       "used without emit" in {
-        center.repeat(_.followedBy, _.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
+        centerTrav.repeat(_.followedBy, _.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
 
         withClue("asserting more fine-grained traversal characteristics") {
           val traversedNodes = mutable.ListBuffer.empty[Thing]
-          val traversal = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy, _.until(_.name.endsWith("2"))).name
+          val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy, _.until(_.name.endsWith("2"))).name
 
           // hasNext will run the provided repeat traversal exactly 2 times (as configured)
           traversal.hasNext shouldBe true
@@ -144,18 +174,18 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "used in combination with emit" in {
-        center.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
+        centerTrav.repeat(_.followedBy, _.until(_.name.endsWith("2")).emit).name.toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
       }
     }
 
     "support `times` modulator" when {
       "used without emit" in {
-        val results = center.repeat(_.followedBy, _.times(2)).name.toSet
+        val results = centerTrav.repeat(_.followedBy, _.times(2)).name.toSet
         results shouldBe Set("L2", "R2")
 
         withClue("asserting more fine-grained traversal characteristics") {
           val traversedNodes = mutable.ListBuffer.empty[Thing]
-          val traversal = center.repeat(_.sideEffect(traversedNodes.addOne).followedBy, _.times(2)).name
+          val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy, _.times(2)).name
 
           // hasNext will run the provided repeat traversal exactly 2 times (as configured)
           traversal.hasNext shouldBe true
@@ -173,7 +203,7 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "used in combination with emit" in {
-        val results = center.repeat(_.followedBy, _.times(2).emit).name.toSet
+        val results = centerTrav.repeat(_.followedBy, _.times(2).emit).name.toSet
         results shouldBe Set("Center", "L1", "L2", "R1", "R2")
       }
     }
@@ -232,9 +262,12 @@ class TraversalTests extends WordSpec with Matchers {
   val nonExistingLabel = "this label does not exist"
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
-  def center: Traversal[Thing] = simpleDomain.things.name("Center")
-  def l2: Traversal[Thing] = simpleDomain.things.name("L2")
-  def r2: Traversal[Thing] = simpleDomain.things.name("R2")
+  def centerTrav: Traversal[Thing] = simpleDomain.things.name("Center")
+  def centerNode: Thing = centerTrav.head
+  def l2Trav: Traversal[Thing] = simpleDomain.things.name("L2")
+  def l2Node: Thing = l2Trav.head
+  def r2Trav: Traversal[Thing] = simpleDomain.things.name("R2")
+  def r2Node: Thing = r2Trav.head
 
   def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames

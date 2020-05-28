@@ -1,16 +1,28 @@
 package io.shiftleft.overflowdb
 
 import io.shiftleft.overflowdb.util.JIteratorCastingWrapper
-import org.apache.tinkerpop.gremlin.structure.Direction
 import scala.collection.IterableOnce
+import scala.jdk.CollectionConverters._
 
 package object traversal {
+
+  implicit def jIteratortoTraversal[A](jiterator: java.util.Iterator[A]): Traversal[A] =
+    iteratorToTraversal(jiterator.asScala)
+
+  implicit def iteratorToTraversal[A](iterator: Iterator[A]): Traversal[A] =
+    iterator.to(Traversal)
 
   implicit def toNodeTraversal[A <: NodeRef[_]](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
 
   implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
     new EdgeTraversal[A](traversal)
+
+  implicit def toNodeTraversalViaAdditionalImplicit[A <: NodeRef[_], Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
+    new NodeTraversal[A](toTraversal(traversable))
+
+  implicit def toEdgeTraversalViaAdditionalImplicit[A <: OdbEdge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
+    new EdgeTraversal[A](toTraversal(traversable))
 
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
 

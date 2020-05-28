@@ -312,13 +312,24 @@ public final class OdbGraph implements Graph {
     nodesByLabel.get(label).add(nodeRef);
   }
 
+  /** Iterator over all nodes - alias for `nodes` */
+  public Iterator<NodeRef> V() {
+    return nodes();
+  }
+
   /** Iterator over all nodes */
   public Iterator<NodeRef> nodes() {
     final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
     return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
   }
 
-  /** Iterator over all nodes with provided ids
+  /** Iterator over nodes with provided ids - alias for `nodes(ids...)`
+   * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
+  public Iterator<NodeRef> V(long... ids) {
+    return nodes(ids);
+  }
+
+  /** Iterator over nodes with provided ids
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
   public Iterator<NodeRef> nodes(long... ids) {
     if (ids.length == 0) {

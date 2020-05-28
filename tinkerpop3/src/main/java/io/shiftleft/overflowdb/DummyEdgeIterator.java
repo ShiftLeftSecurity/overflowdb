@@ -6,7 +6,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DummyEdgeIterator implements Iterator<Edge> {
+public class DummyEdgeIterator implements Iterator<OdbEdge> {
   private final Object[] array;
   private int current;
   private final int begin;
@@ -38,7 +38,7 @@ public class DummyEdgeIterator implements Iterator<Edge> {
   }
 
   @Override
-  public Edge next() {
+  public OdbEdge next() {
     if (!hasNext()) throw new NoSuchElementException();
 
     NodeRef otherRef = (NodeRef) array[current];
