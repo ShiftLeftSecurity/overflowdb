@@ -92,24 +92,36 @@ class TraversalTests extends WordSpec with Matchers {
       centerTrav.outE.size shouldBe 2
       centerNode.outE.size shouldBe 2
       assertNames(centerTrav.outE.inV, Set("L1", "R1"))
+      assertNames(centerNode.outE.inV, Set("L1", "R1"))
       assertNames(centerTrav.outE.inV.outE.inV, Set("L2", "R2"))
+      assertNames(centerNode.outE.inV.outE.inV, Set("L2", "R2"))
       assertNames(centerTrav.outE(Connection.Label).inV, Set("L1", "R1"))
+      assertNames(centerNode.outE(Connection.Label).inV, Set("L1", "R1"))
       assertNames(centerTrav.outE(nonExistingLabel).inV, Set.empty)
+      assertNames(centerNode.outE(nonExistingLabel).inV, Set.empty)
     }
 
     "step inE" in {
       l2Trav.inE.size shouldBe 1
+      l2Node.inE.size shouldBe 1
       assertNames(l2Trav.inE.outV, Set("L1"))
+      assertNames(l2Node.inE.outV, Set("L1"))
       assertNames(l2Trav.inE.outV.inE.outV, Set("Center"))
+      assertNames(l2Node.inE.outV.inE.outV, Set("Center"))
       assertNames(l2Trav.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2Node.inE(Connection.Label).outV, Set("L1"))
       assertNames(l2Trav.inE(nonExistingLabel).outV, Set.empty)
+      assertNames(l2Node.inE(nonExistingLabel).outV, Set.empty)
     }
 
     "step bothE" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
       l2Trav.bothE.size shouldBe 2
+      l2Node.bothE.size shouldBe 2
       l2Trav.bothE(Connection.Label).size shouldBe 2
+      l2Node.bothE(Connection.Label).size shouldBe 2
       l2Trav.bothE(nonExistingLabel).size shouldBe 0
+      l2Node.bothE(nonExistingLabel).size shouldBe 0
     }
   }
 
