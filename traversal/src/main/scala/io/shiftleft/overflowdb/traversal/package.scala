@@ -15,11 +15,14 @@ package object traversal {
   implicit def toNodeTraversal[A <: NodeRef[_]](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
 
+  implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
+    new EdgeTraversal[A](traversal)
+
   implicit def toNodeTraversalViaAdditionalImplicit[A <: NodeRef[_], Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](toTraversal(traversable))
 
-  implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
-    new EdgeTraversal[A](traversal)
+  implicit def toEdgeTraversalViaAdditionalImplicit[A <: OdbEdge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
+    new EdgeTraversal[A](toTraversal(traversable))
 
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
 

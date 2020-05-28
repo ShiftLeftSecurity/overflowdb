@@ -211,35 +211,35 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   }
 
   /* adjacent OUT edges (all labels) */
-  public Iterator<Edge> outE() {
+  public Iterator<OdbEdge> outE() {
     return this.get().outE();
   }
 
   /* adjacent OUT edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> outE(String edgeLabel) {
+  public Iterator<OdbEdge> outE(String edgeLabel) {
     return this.get().outE(edgeLabel);
   }
 
   /* adjacent IN edges (all labels) */
-  public Iterator<Edge> inE() {
+  public Iterator<OdbEdge> inE() {
     return this.get().inE();
   }
 
   /* adjacent IN edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> inE(String edgeLabel) {
+  public Iterator<OdbEdge> inE(String edgeLabel) {
     return this.get().inE(edgeLabel);
   }
 
   /* adjacent OUT/IN edges (all labels) */
-  public Iterator<Edge> bothE() {
+  public Iterator<OdbEdge> bothE() {
     return this.get().bothE();
   }
 
   /* adjacent OUT/IN edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
-  public Iterator<Edge> bothE(String edgeLabel) {
+  public Iterator<OdbEdge> bothE(String edgeLabel) {
     return this.get().bothE(edgeLabel);
   }
 
