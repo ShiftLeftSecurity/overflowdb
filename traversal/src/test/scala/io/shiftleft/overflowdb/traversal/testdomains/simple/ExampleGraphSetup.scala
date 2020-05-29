@@ -9,7 +9,7 @@ import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
 object ExampleGraphSetup {
   val nonExistingLabel = "this label does not exist"
 
-  def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(simpleGraph)
+  def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
   def centerTrav: Traversal[Thing] = simpleDomain.things.name("Center")
   def centerNode: Thing = centerTrav.head
   def l2Trav: Traversal[Thing] = simpleDomain.things.name("L2")
@@ -17,11 +17,11 @@ object ExampleGraphSetup {
   def r2Trav: Traversal[Thing] = simpleDomain.things.name("R2")
   def r2Node: Thing = r2Trav.head
 
-  lazy val simpleGraph = {
-    val graph = SimpleDomain.newGraph
+  lazy val graph = {
+    val _graph = SimpleDomain.newGraph
 
     def addThing(name: String): Vertex =
-      graph.addVertex(T.label, Thing.Label, Thing.PropertyNames.Name, name)
+      _graph.addVertex(T.label, Thing.Label, Thing.PropertyNames.Name, name)
 
     val center = addThing("Center")
     val l1 = addThing("L1")
@@ -39,7 +39,7 @@ object ExampleGraphSetup {
     r1.addEdge(Connection.Label, r2)
     r2.addEdge(Connection.Label, r3)
     r3.addEdge(Connection.Label, r4)
-    graph
+    _graph
   }
 
 }
