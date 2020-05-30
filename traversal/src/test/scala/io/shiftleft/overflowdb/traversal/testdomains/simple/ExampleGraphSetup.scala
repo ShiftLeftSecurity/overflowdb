@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversal.testdomains.simple
 
-import io.shiftleft.overflowdb.PropertyKey
+import io.shiftleft.overflowdb._
 import io.shiftleft.overflowdb.traversal.Traversal
 import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
 
@@ -22,8 +22,8 @@ object ExampleGraphSetup {
   lazy val graph = {
     val _graph = SimpleDomain.newGraph
 
-    def addThing(name: String): Vertex =
-      _graph.addVertex(T.label, Thing.Label, Thing.PropertyNames.Name, name)
+    def addThing(name: String) =
+      _graph + (Thing.Label, Thing.Properties.Name -> name)
 
     val center = addThing("Center")
     val l1 = addThing("L1")
@@ -34,13 +34,13 @@ object ExampleGraphSetup {
     val r3 = addThing("R3")
     val r4 = addThing("R4")
 
-    center.addEdge(Connection.Label, l1)
-    l1.addEdge(Connection.Label, l2)
-    l2.addEdge(Connection.Label, l3)
-    center.addEdge(Connection.Label, r1)
-    r1.addEdge(Connection.Label, r2)
-    r2.addEdge(Connection.Label, r3)
-    r3.addEdge(Connection.Label, r4)
+    center --- Connection.Label --> l1
+    l1 --- Connection.Label --> l2
+    l2 --- Connection.Label --> l3
+    center --- Connection.Label --> r1
+    r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
+    r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
+    r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
     _graph
   }
 

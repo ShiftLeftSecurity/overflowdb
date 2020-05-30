@@ -22,11 +22,14 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
 class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
 
   def ---(label: String): SemiEdge =
-    new SemiEdge(node, label)
+    new SemiEdge(node, label, Seq.empty)
+
+  def ---(label: String, properties: PropertyKeyValue[_]*): SemiEdge =
+    new SemiEdge(node, label, properties)
 
 }
 
-private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String) {
+private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String, properties: Seq[PropertyKeyValue[_]]) {
   def -->(inNode: NodeRef[_]): OdbEdge =
     outNode.addEdge(label, inNode).asInstanceOf[OdbEdge]
 }

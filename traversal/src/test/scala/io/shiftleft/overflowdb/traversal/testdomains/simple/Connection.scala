@@ -10,12 +10,12 @@ object Connection {
   val Label = "connection"
 
   object Properties {
-    val Index = "index"
+    val Distance = PropertyKey[Int](PropertyNames.Distance)
   }
 
   object PropertyNames {
-    val Index = "index"
-    val all: Set[String] = Set(Index)
+    val Distance = "distance"
+    val all: Set[String] = Set(Distance)
   }
 
   val layoutInformation = new EdgeLayoutInformation(Label, PropertyNames.all.asJava)
