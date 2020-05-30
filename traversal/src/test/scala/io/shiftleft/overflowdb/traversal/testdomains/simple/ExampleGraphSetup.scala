@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.traversal.testdomains.simple
 
+import io.shiftleft.overflowdb.PropertyKey
 import io.shiftleft.overflowdb.traversal.Traversal
 import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
 
@@ -8,6 +9,7 @@ import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
  * */
 object ExampleGraphSetup {
   val nonExistingLabel = "this label does not exist"
+  val nonExistingPropertyKey = PropertyKey[String]("this property key does not exist")
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
   def centerTrav: Traversal[Thing] = simpleDomain.things.name("Center")
