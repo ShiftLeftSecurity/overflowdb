@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb.tp3;
 
+import io.shiftleft.overflowdb.OdbEdge;
 import io.shiftleft.overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -142,7 +143,7 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
       jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
       jsonGenerator.writeStartArray();
 
-      final Iterator<Edge> edges = graph.edges();
+      final Iterator<OdbEdge> edges = graph.edges();
       while (edges.hasNext()) {
         serializerProvider.defaultSerializeValue(edges.next(), jsonGenerator);
       }
