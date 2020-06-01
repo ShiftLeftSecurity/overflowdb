@@ -30,7 +30,9 @@ class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
 }
 
 private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String, properties: Seq[PropertyKeyValue[_]]) {
-  def -->(inNode: NodeRef[_]): OdbEdge =
+  def -->(inNode: NodeRef[_]): OdbEdge = {
+    val tinkerpopProps = new Array[AnyRef](properties.size * 2)
     outNode.addEdge(label, inNode).asInstanceOf[OdbEdge]
+  }
 }
 
