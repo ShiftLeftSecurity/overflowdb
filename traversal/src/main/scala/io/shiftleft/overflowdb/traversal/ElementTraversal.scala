@@ -8,7 +8,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
     property(propertyKey.name)
 
   def property[P](propertyKey: String): Traversal[P] =
-    traversal.map(_.property2(propertyKey))
+    traversal.map(_.property2[P](propertyKey))
 
 
 }
