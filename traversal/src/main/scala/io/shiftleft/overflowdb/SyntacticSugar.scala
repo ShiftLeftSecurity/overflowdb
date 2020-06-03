@@ -1,7 +1,6 @@
 package io.shiftleft.overflowdb
 
 class GraphSugar(val graph: OdbGraph) extends AnyVal {
-
   def `+`(label: String): NodeRef[_] =
     graph.addNode(label)
 
@@ -19,14 +18,17 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
   }
 }
 
-class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
+class ElementSugar(val element: OdbElement) extends AnyVal {
+  def propertyOption[P](propertyKey: PropertyKey[P]): Option[P] =
+    Option(element.property2[P](propertyKey.name))
+}
 
+class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
   def ---(label: String): SemiEdge =
     new SemiEdge(node, label, Seq.empty)
 
   def ---(label: String, properties: PropertyKeyValue[_]*): SemiEdge =
     new SemiEdge(node, label, properties)
-
 }
 
 private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String, properties: Seq[PropertyKeyValue[_]]) {
