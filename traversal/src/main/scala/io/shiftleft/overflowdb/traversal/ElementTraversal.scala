@@ -27,6 +27,17 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def has[P](key: PropertyKey[P], value: P): Traversal[E] =
     traversal.filter(_.property2(key.name) == value)
 
+  def hasNot(key: PropertyKey[_]): Traversal[E] = hasNot(key.name)
+
+  def hasNot(name: String): Traversal[E] =
+    traversal.filter(_.property2(name) == null)
+
+  def hasNot[P](keyValue: PropertyKeyValue[P]): Traversal[E] =
+    hasNot[P](keyValue.key, keyValue.value)
+
+  def hasNot[P](key: PropertyKey[P], value: P): Traversal[E] =
+    traversal.filter(_.property2(key.name) != value)
+
   def property[P](propertyKey: PropertyKey[P]): Traversal[P] =
     property(propertyKey.name)
 

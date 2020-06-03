@@ -44,12 +44,18 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     "filter by property key" in {
       graph.V.has(Thing.Properties.Name).size shouldBe 8
       graph.V.has(nonExistingPropertyKey).size shouldBe 0
+      graph.V.hasNot(Thing.Properties.Name).size shouldBe 0
+      graph.V.hasNot(nonExistingPropertyKey).size shouldBe 8
+
       graph.E.has(Connection.Properties.Distance).size shouldBe 3
+      graph.E.hasNot(Connection.Properties.Distance).size shouldBe 4
     }
 
     "filter by property key/value" in {
       graph.V.has(Thing.Properties.Name -> "R1").size shouldBe 1
+      graph.V.hasNot(Thing.Properties.Name -> "R1").size shouldBe 7
       graph.E.has(Connection.Properties.Distance -> 10).size shouldBe 2
+      graph.E.hasNot(Connection.Properties.Distance -> 10).size shouldBe 5
     }
   }
 
