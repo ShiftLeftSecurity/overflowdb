@@ -2,7 +2,7 @@ package io.shiftleft.overflowdb.traversal
 
 import io.shiftleft.overflowdb.{NodeRef, OdbEdge}
 
-class EdgeTraversal[A <: OdbEdge](val traversal: Traversal[A]) extends AnyVal {
+class EdgeTraversal[E <: OdbEdge](val traversal: Traversal[E]) extends AnyVal {
 
   /** traverse to outgoing node
    * A ---edge--> [B]

@@ -38,8 +38,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
 
     "filter by property key/value" in {
-      // TODO has/hasNot
-      ???
+      graph.V.has(Thing.Properties.Name -> "R1").size shouldBe 1
+      graph.E.has(Connection.Properties.Distance -> 10).size shouldBe 2
     }
   }
 

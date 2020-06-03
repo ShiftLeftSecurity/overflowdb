@@ -4,7 +4,7 @@ import io.shiftleft.overflowdb.traversal.help.Doc
 import io.shiftleft.overflowdb.{NodeRef, OdbEdge, PropertyKey, PropertyKeyValue}
 import org.apache.tinkerpop.gremlin.structure.Direction
 
-class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal {
+class NodeTraversal[E <: NodeRef[_]](val traversal: Traversal[E]) extends AnyVal {
 
   @Doc("Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
@@ -12,29 +12,15 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
   @Doc("Traverse to element label")
   def label: Traversal[String] = traversal.map(_.label)
 
-  def has(name: String): Traversal[A] =
-    traversal.filter(_.property(name).isPresent)
-
-  def has(key: PropertyKey[_]): Traversal[A] = has(key.name)
-
-  def has[P](keyValue: PropertyKeyValue[P]): Traversal[A] =
-    has[P](keyValue.key, keyValue.value)
-
-  def has[P](key: PropertyKey[P], value: P): Traversal[A] =
-    traversal.filter { node =>
-      val property = node.property[P](key.name)
-      property.isPresent && property.value == value
-    }
+  /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
+   * Use `traversalSource.withLabel` instead, it is much faster */
+  def label(value: String): Traversal[E] =
+    traversal.filter(_.label == value)
 
   /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
-  def id(value: Long): Traversal[A] =
+  def id(value: Long): Traversal[E] =
     traversal.filter(_.id == value)
-
-  /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.withLabel` instead, it is much faster */
-  def label(value: String): Traversal[A] =
-    traversal.filter(_.label == value)
 
   /** follow outgoing edges to adjacent nodes */
   def out: Traversal[NodeRef[_]] =
