@@ -21,7 +21,7 @@ import java.util.Optional;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends OdbNode> implements Vertex {
+public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
   public final long id;
   protected final OdbGraph graph;
   private N node;
@@ -126,6 +126,11 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
     return graph;
   }
 
+  @Override
+  public OdbGraph graph2() {
+    return graph;
+  }
+
   // delegate methods start
 
   @Override
@@ -160,6 +165,11 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex {
   @Override
   public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
     return this.get().properties(propertyKeys);
+  }
+
+  @Override
+  public <P> P property2(String propertyKey) {
+    return this.get().property2(propertyKey);
   }
 
   @Override

@@ -9,14 +9,8 @@ class NodeTraversal[A <: NodeRef[_]](val traversal: Traversal[A]) extends AnyVal
   @Doc("Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
 
-  @Doc("Traverse to node label")
+  @Doc("Traverse to element label")
   def label: Traversal[String] = traversal.map(_.label)
-
-  def property[P](name: String): Traversal[P] =
-    traversal.map(_.value[P](name))
-
-  def property[P](propertyKey: PropertyKey[P]): Traversal[P] =
-    traversal.map(_.value[P](propertyKey.name))
 
   def has(name: String): Traversal[A] =
     traversal.filter(_.property(name).isPresent)
