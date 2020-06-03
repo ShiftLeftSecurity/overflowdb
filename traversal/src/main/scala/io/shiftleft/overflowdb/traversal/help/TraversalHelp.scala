@@ -1,6 +1,6 @@
 package io.shiftleft.overflowdb.traversal.help
 
-import io.shiftleft.overflowdb.traversal.{NodeTraversal, Traversal, help}
+import io.shiftleft.overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import io.shiftleft.overflowdb.{NodeRef, OdbNode}
 import java.lang.annotation.{Annotation => JAnnotation}
 
@@ -87,7 +87,7 @@ class TraversalHelp(domainBasePackage: String) {
     findStepDocs(classOf[Traversal[_]])
 
   lazy val genericNodeStepDocs: Iterable[StepDoc] =
-    findStepDocs(classOf[NodeTraversal[_]])
+    findStepDocs(classOf[NodeTraversal[_]]) ++ findStepDocs(classOf[ElementTraversal[_]])
 
   private lazy val mirror = runtimeMirror(this.getClass.getClassLoader)
 

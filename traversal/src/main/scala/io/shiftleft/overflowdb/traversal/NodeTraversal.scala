@@ -15,6 +15,7 @@ class NodeTraversal[E <: NodeRef[_]](val traversal: Traversal[E]) extends AnyVal
     traversal.filter(_.id == value)
 
   /** follow outgoing edges to adjacent nodes */
+  @Doc("follow outgoing edges to adjacent nodes")
   def out: Traversal[NodeRef[_]] =
     traversal.flatMap(_.vertices(Direction.OUT).toScalaAs)
 
