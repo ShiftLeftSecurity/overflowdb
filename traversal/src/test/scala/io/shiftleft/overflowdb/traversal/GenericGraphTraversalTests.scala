@@ -18,8 +18,14 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     graph.E.size shouldBe 7
   }
 
+  "label lookup" in {
+    graph.V.label.toList shouldBe List("thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing")
+    graph.E.label.toList shouldBe List("connection", "connection", "connection", "connection", "connection", "connection", "connection")
+  }
+
   "property lookup" in {
     graph.V.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    graph.E.property(Connection.Properties.Distance).toSet shouldBe Set(10, 13)
   }
 
   "filter steps" can {
@@ -30,11 +36,14 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     "filter by label" in {
       graph.V.label(Thing.Label).size shouldBe 8
       graph.V.label(nonExistingLabel).size shouldBe 0
+      graph.E.label(Connection.Label).size shouldBe 7
+      graph.E.label(nonExistingLabel).size shouldBe 0
     }
 
     "filter by property key" in {
       graph.V.has(Thing.Properties.Name).size shouldBe 8
       graph.V.has(nonExistingPropertyKey).size shouldBe 0
+      graph.E.has(Connection.Properties.Distance).size shouldBe 3
     }
 
     "filter by property key/value" in {

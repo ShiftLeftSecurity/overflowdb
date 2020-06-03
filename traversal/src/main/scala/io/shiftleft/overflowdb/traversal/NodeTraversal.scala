@@ -9,14 +9,6 @@ class NodeTraversal[E <: NodeRef[_]](val traversal: Traversal[E]) extends AnyVal
   @Doc("Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
 
-  @Doc("Traverse to element label")
-  def label: Traversal[String] = traversal.map(_.label)
-
-  /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.withLabel` instead, it is much faster */
-  def label(value: String): Traversal[E] =
-    traversal.filter(_.label == value)
-
   /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
   def id(value: Long): Traversal[E] =
