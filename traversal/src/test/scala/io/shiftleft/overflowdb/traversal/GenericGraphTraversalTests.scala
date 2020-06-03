@@ -26,6 +26,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
   "property lookup" in {
     graph.V.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     graph.E.property(Connection.Properties.Distance).toSet shouldBe Set(10, 13)
+    graph.E.propertyOption(Connection.Properties.Distance).toSet shouldBe Set(Some(10), Some(13), None)
   }
 
   "filter steps" can {

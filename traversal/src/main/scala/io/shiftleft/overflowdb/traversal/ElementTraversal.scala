@@ -33,4 +33,10 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def property[P](propertyKey: String): Traversal[P] =
     traversal.map(_.property2[P](propertyKey)).filter(_ != null)
 
+  def propertyOption[P](propertyKey: PropertyKey[P]): Traversal[Option[P]] =
+    propertyOption(propertyKey.name)
+
+  def propertyOption[P](propertyKey: String): Traversal[Option[P]] =
+    traversal.map(element => Option(element.property2[P](propertyKey)))
+
 }
