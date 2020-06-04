@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class OdbEdge implements Edge {
+public abstract class OdbEdge implements Edge, OdbElement {
   private final OdbGraph graph;
   private final String label;
   private final NodeRef outVertex;
@@ -92,6 +92,11 @@ public abstract class OdbEdge implements Edge {
   }
 
   @Override
+  public OdbGraph graph2() {
+    return graph;
+  }
+
+  @Override
   public <V> Property<V> property(String key, V value) {
     // TODO check if it's an allowed property key
     if (inBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
@@ -108,6 +113,11 @@ public abstract class OdbEdge implements Edge {
     inVertex.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
     outVertex.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
     return new OdbProperty<>(key, value, this);
+  }
+
+  @Override
+  public <P> void setProperty(String key, P value) {
+    this.property(key, value);
   }
 
   @Override
@@ -139,6 +149,17 @@ public abstract class OdbEdge implements Edge {
       return inVertex.get().getEdgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
       return outVertex.get().getEdgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
+    } else {
+      throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
+    }
+  }
+
+  // TODO drop suffix `2` after tinkerpop interface is gone
+  public <P> P property2(String propertyKey) {
+    if (inBlockOffset != -1) {
+      return inVertex.get().getEdgeProperty2(Direction.IN, this, inBlockOffset, propertyKey);
+    } else if (outBlockOffset != -1) {
+      return outVertex.get().getEdgeProperty2(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }

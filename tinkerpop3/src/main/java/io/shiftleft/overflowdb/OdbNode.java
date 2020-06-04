@@ -29,7 +29,7 @@ import java.util.stream.StreamSupport;
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
  */
-public abstract class OdbNode implements Vertex {
+public abstract class OdbNode implements Vertex, OdbElement {
 
   public final NodeRef ref;
 
@@ -94,6 +94,11 @@ public abstract class OdbNode implements Vertex {
   }
 
   @Override
+  public OdbGraph graph2() {
+    return ref.graph;
+  }
+
+  @Override
   public Object id() {
     return ref.id;
   }
@@ -143,6 +148,11 @@ public abstract class OdbNode implements Vertex {
   }
 
   @Override
+  public <P> P property2(String propertyKey) {
+    return (P) specificProperty(propertyKey).orElse(null);
+  }
+
+  @Override
   public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String key, V value, Object... keyValues) {
     ElementHelper.legalPropertyKeyValueArray(keyValues);
     ElementHelper.validateProperty(key, value);
@@ -151,6 +161,11 @@ public abstract class OdbNode implements Vertex {
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
     return vp;
+  }
+
+  @Override
+  public <P> void setProperty(String key, P value) {
+    this.property(VertexProperty.Cardinality.single, key, value);
   }
 
   protected abstract <V> VertexProperty<V> updateSpecificProperty(
@@ -208,15 +223,23 @@ public abstract class OdbNode implements Vertex {
                                          OdbEdge edge,
                                          int blockOffset,
                                          String key) {
-    int propertyPosition = getEdgePropertyIndex(direction, edge.label(), key, blockOffset);
-    if (propertyPosition == -1) {
-      return EmptyProperty.instance();
-    }
-    V value = (V) adjacentNodesWithProperties[propertyPosition];
+    V value = getEdgeProperty2(direction, edge, blockOffset, key);
     if (value == null) {
       return EmptyProperty.instance();
     }
     return new OdbProperty<>(key, value, edge);
+  }
+
+  // TODO drop suffix `2` after tinkerpop interface is gone
+  public <P> P getEdgeProperty2(Direction direction,
+                                 OdbEdge edge,
+                                 int blockOffset,
+                                 String key) {
+    int propertyPosition = getEdgePropertyIndex(direction, edge.label(), key, blockOffset);
+    if (propertyPosition == -1) {
+      return null;
+    }
+    return (P) adjacentNodesWithProperties[propertyPosition];
   }
 
   public <V> void setEdgeProperty(Direction direction,

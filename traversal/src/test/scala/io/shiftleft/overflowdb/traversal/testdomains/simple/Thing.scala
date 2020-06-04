@@ -5,7 +5,7 @@ import io.shiftleft.overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Odb
 
 import scala.jdk.CollectionConverters._
 
-class Thing(graph: OdbGraph, id: Long) extends NodeRef[ThingDb](graph, id) with NodeRefOps[Thing] {
+class Thing(graph: OdbGraph, _id: Long) extends NodeRef[ThingDb](graph, _id) with NodeRefOps[Thing] {
   override def label: String = Thing.Label
 
   def name: String = get.name

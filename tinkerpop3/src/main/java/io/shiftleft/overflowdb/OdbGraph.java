@@ -293,6 +293,26 @@ public final class OdbGraph implements Graph {
     return nodes.size();
   }
 
+  public int edgeCount() {
+    int i = 0;
+    final Iterator<OdbEdge> edges = edges();
+    while (edges.hasNext()) {
+      edges.next();
+      i++;
+    }
+    return i;
+  }
+
+  /** Iterator over all edges - alias for `edges` */
+  public Iterator<OdbEdge> E() {
+    return edges();
+  }
+
+  /** Iterator over all edges */
+  public Iterator<OdbEdge> edges() {
+    return IteratorUtils.flatMap(nodes(), node -> node.outE());
+  }
+
   @Override
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");

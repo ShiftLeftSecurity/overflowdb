@@ -1,5 +1,6 @@
 package io.shiftleft.overflowdb
 
+import io.shiftleft.overflowdb.traversal._
 import io.shiftleft.overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
 import org.scalatest.{Matchers, WordSpec}
 
@@ -29,7 +30,7 @@ class GraphSugarTests extends WordSpec with Matchers {
   }
 
   "arrow syntax" can {
-    "add an edge: `node --- edge --> node`" in {
+    "add an edge" in {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
@@ -37,6 +38,19 @@ class GraphSugarTests extends WordSpec with Matchers {
 
       graph.nodeCount shouldBe 2
       node1.out(Connection.Label).next shouldBe node2
+    }
+
+    "add an edge with properties" in {
+      val graph = SimpleDomain.newGraph
+      val node1 = graph + Thing.Label
+      val node2 = graph + Thing.Label
+      node1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> node2
+
+      graph.nodeCount shouldBe 2
+      node1.out(Connection.Label).next shouldBe node2
+
+      node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
+      node1.outE(Connection.Label).property(Connection.PropertyNames.Distance).next shouldBe 10
     }
   }
 

@@ -142,7 +142,8 @@ class TraversalTests extends WordSpec with Matchers {
 
         thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
         thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
-        thingTraversal.helpVerbose should include(".label") // step from NodeTraversal
+        thingTraversal.helpVerbose should include(".label") // step from ElementTraversal
+        thingTraversal.helpVerbose should include(".out") // step from NodeTraversal
       }
 
       "using hierarchical domain" in {

@@ -42,6 +42,9 @@ class Traversal[A](elements: IterableOnce[A])
   def helpVerbose()(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
+  def count: Int =
+    elements.iterator.size
+
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
