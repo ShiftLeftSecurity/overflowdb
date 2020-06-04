@@ -173,6 +173,11 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
   }
 
   @Override
+  public <P> void setProperty(String key, P value) {
+    this.get().setProperty(key, value);
+  }
+
+  @Override
   public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
     return this.get().edges(direction, edgeLabels);
   }

@@ -163,6 +163,11 @@ public abstract class OdbNode implements Vertex, OdbElement {
     return vp;
   }
 
+  @Override
+  public <P> void setProperty(String key, P value) {
+    this.property(VertexProperty.Cardinality.single, key, value);
+  }
+
   protected abstract <V> VertexProperty<V> updateSpecificProperty(
       VertexProperty.Cardinality cardinality, String key, V value);
 

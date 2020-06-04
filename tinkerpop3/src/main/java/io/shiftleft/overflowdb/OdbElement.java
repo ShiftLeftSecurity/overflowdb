@@ -8,4 +8,6 @@ public interface OdbElement {
 
   // TODO drop suffix `2` after tinkerpop interface is gone
   <P> P property2(String propertyKey);
+
+  <P> void setProperty(String key, P value);
 }

@@ -116,6 +116,11 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   @Override
+  public <P> void setProperty(String key, P value) {
+    this.property(key, value);
+  }
+
+  @Override
   public Set<String> keys() {
     return specificKeys;
   }
