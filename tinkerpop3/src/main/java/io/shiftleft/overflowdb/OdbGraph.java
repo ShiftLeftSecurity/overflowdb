@@ -293,6 +293,13 @@ public final class OdbGraph implements Graph {
     return nodes.size();
   }
 
+  public int edgeCount() {
+    int i = 0;
+    final Iterator<OdbEdge> edges = edges();
+    while (edges.hasNext()) i++;
+    return i;
+  }
+
   /** Iterator over all edges - alias for `edges` */
   public Iterator<OdbEdge> E() {
     return edges();
