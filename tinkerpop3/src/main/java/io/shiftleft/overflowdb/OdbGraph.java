@@ -296,7 +296,10 @@ public final class OdbGraph implements Graph {
   public int edgeCount() {
     int i = 0;
     final Iterator<OdbEdge> edges = edges();
-    while (edges.hasNext()) i++;
+    while (edges.hasNext()) {
+      edges.next();
+      i++;
+    }
     return i;
   }
 
