@@ -24,6 +24,14 @@ class ElementSugar(val element: OdbElement) extends AnyVal {
 
   def propertyOption[P](propertyKey: PropertyKey[P]): Option[P] =
     Option(property[P](propertyKey))
+
+  // TODO drop suffix `2` after tinkerpop interface is gone
+  def setProperty2[P](propertyKeyValue: PropertyKeyValue[P]): Unit =
+    setProperty2(propertyKeyValue.key, propertyKeyValue.value)
+
+  // TODO drop suffix `2` after tinkerpop interface is gone
+  def setProperty2[P](propertyKey: PropertyKey[P], value: P): Unit =
+    element.setProperty(propertyKey.name, value)
 }
 
 class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {

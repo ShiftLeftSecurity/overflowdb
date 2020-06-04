@@ -6,7 +6,6 @@ import io.shiftleft.overflowdb.testdomains.gratefuldead.Artist;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.FollowedBy;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.GratefulDead;
 import io.shiftleft.overflowdb.testdomains.gratefuldead.Song;
-import io.shiftleft.overflowdb.testdomains.gratefuldead.SungBy;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.T;
