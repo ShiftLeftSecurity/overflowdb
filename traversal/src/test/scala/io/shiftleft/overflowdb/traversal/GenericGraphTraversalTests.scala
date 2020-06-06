@@ -57,6 +57,16 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       graph.E.has(Connection.Properties.Distance -> 10).size shouldBe 2
       graph.E.hasNot(Connection.Properties.Distance -> 10).size shouldBe 5
     }
+
+    "`where` step taking a traversal" in {
+      // find all nodes that _do_ have an OUT neighbor, i.e. find the inner nodes
+      graph.V.where(_.out).property(Thing.Properties.Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
+    }
+
+    "`not` step taking a traversal" in {
+      // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
+       graph.V.not(_.out).property(Thing.Properties.Name).toSet shouldBe Set("L3", "R4")
+    }
   }
 
   "base steps: out/in/both" can {
