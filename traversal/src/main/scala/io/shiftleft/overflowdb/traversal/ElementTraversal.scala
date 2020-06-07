@@ -13,7 +13,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
    * Use `traversalSource.withLabel` instead, it is much faster
    * TODO: make the above an automatic optimisation */
-  def label(value: String): Traversal[E] =
+  def hasLabel(value: String): Traversal[E] =
     traversal.filter(_.label == value)
 
   def has(key: PropertyKey[_]): Traversal[E] = has(key.name)
