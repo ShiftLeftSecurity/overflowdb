@@ -9,7 +9,3 @@ libraryDependencies ++= Seq(
 )
 
 Test/console/scalacOptions -= "-Xlint"
-Test/console/initialCommands :=
-  """|import io.shiftleft.overflowdb.traversal._
-     |import io.shiftleft.overflowdb.traversal.testdomains.gratefuldead._
-     |val gd = GratefulDead.traversal(GratefulDead.newGraphWithData)""".stripMargin
