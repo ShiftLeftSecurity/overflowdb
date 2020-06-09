@@ -8,6 +8,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -150,6 +151,17 @@ public abstract class OdbEdge implements Edge, OdbElement {
       return inNode.get().getEdgeProperties(Direction.IN, this, getInBlockOffset(), propertyKeys);
     } else if (outBlockOffset != -1) {
       return outNode.get().getEdgeProperties(Direction.OUT, this, getOutBlockOffset(), propertyKeys);
+    } else {
+      throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
+    }
+  }
+
+  @Override
+  public Map<String, Object> propertyMap() {
+    if (inBlockOffset != -1) {
+      return inNode.get().getEdgePropertyMap(Direction.IN, this, getInBlockOffset());
+    } else if (outBlockOffset != -1) {
+      return outNode.get().getEdgePropertyMap(Direction.OUT, this, getOutBlockOffset());
     } else {
       throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
     }

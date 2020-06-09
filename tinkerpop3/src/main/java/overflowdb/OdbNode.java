@@ -16,6 +16,7 @@ import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyProperty;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -148,6 +149,18 @@ public abstract class OdbNode implements Vertex, OdbElement {
   }
 
   @Override
+  public Map<String, Object> propertyMap() {
+    final Set<String> propertyKeys = layoutInformation().propertyKeys();
+    final Map<String, Object> results = new HashMap<>(propertyKeys.size());
+
+    for (String propertyKey : propertyKeys) {
+      results.put(propertyKey, property2(propertyKey));
+    }
+
+    return results;
+  }
+
+  @Override
   public <P> P property2(String propertyKey) {
     return (P) specificProperty(propertyKey).orElse(null);
   }
@@ -219,6 +232,17 @@ public abstract class OdbNode implements Vertex, OdbElement {
     return result.iterator();
   }
 
+  public Map<String, Object> getEdgePropertyMap(Direction direction, OdbEdge edge, int blockOffset) {
+    final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
+    final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
+
+    for (String propertyKey : edgePropertyKeys) {
+      results.put(propertyKey, getEdgeProperty2(direction, edge, blockOffset, propertyKey));
+    }
+
+    return results;
+  }
+
   public <V> Property<V> getEdgeProperty(Direction direction,
                                          OdbEdge edge,
                                          int blockOffset,
@@ -232,9 +256,9 @@ public abstract class OdbNode implements Vertex, OdbElement {
 
   // TODO drop suffix `2` after tinkerpop interface is gone
   public <P> P getEdgeProperty2(Direction direction,
-                                 OdbEdge edge,
-                                 int blockOffset,
-                                 String key) {
+                                OdbEdge edge,
+                                int blockOffset,
+                                String key) {
     int propertyPosition = getEdgePropertyIndex(direction, edge.label(), key, blockOffset);
     if (propertyPosition == -1) {
       return null;

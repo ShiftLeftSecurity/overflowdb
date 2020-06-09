@@ -7,6 +7,7 @@ import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -165,6 +166,11 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
   @Override
   public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
     return this.get().properties(propertyKeys);
+  }
+
+  @Override
+  public Map<String, Object> propertyMap() {
+    return this.get().propertyMap();
   }
 
   @Override
