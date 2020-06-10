@@ -25,16 +25,12 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) with NodeOps {
     properties
   }
 
-  override protected def specificProperties[V](key: String) =
+  override protected def specificProperty2(key: String) =
     key match {
-      case Song.PropertyNames.Name if _name != null =>
-        IteratorUtils.of(new OdbNodeProperty(this, key, _name.asInstanceOf[V]))
-      case Song.PropertyNames.SongType if _songType != null =>
-        IteratorUtils.of(new OdbNodeProperty(this, key, _songType.asInstanceOf[V]))
-      case Song.PropertyNames.Performances if _performances != null =>
-        IteratorUtils.of(new OdbNodeProperty(this, key, _performances.asInstanceOf[V]))
-      case _ =>
-        java.util.Collections.emptyIterator
+      case Song.PropertyNames.Name => _name
+      case Song.PropertyNames.SongType => _songType
+      case Song.PropertyNames.Performances => _performances
+      case _ => null
     }
 
   override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) =

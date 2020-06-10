@@ -21,12 +21,10 @@ class ThingDb(ref: NodeRef[ThingDb]) extends OdbNode(ref) with NodeOps {
     properties
   }
 
-  override protected def specificProperties[V](key: String) =
+  override protected def specificProperty2(key: String) =
     key match {
-      case Thing.PropertyNames.Name if _name != null =>
-        IteratorUtils.of(new OdbNodeProperty(this, key, _name.asInstanceOf[V]))
-      case _ =>
-        java.util.Collections.emptyIterator
+      case Thing.PropertyNames.Name => _name
+      case _ => null
     }
 
   override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) =

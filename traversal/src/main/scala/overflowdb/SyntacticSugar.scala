@@ -19,6 +19,7 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
 }
 
 class ElementSugar(val element: OdbElement) extends AnyVal {
+
   def property[P](propertyKey: PropertyKey[P]): P =
     element.property2[P](propertyKey.name)
 

@@ -41,16 +41,15 @@ public class SongDb extends OdbNode {
   }
 
   @Override
-  protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-    final VertexProperty<V> ret;
-    if (Song.NAME.equals(key) && _name != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _name));
-    } else if (key == Song.SONG_TYPE && _songType != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _songType));
-    } else if (key == Song.PERFORMANCES && _performances != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _performances));
+  protected Object specificProperty2(String key) {
+    if (Song.NAME.equals(key)) {
+      return _name;
+    } else if (key == Song.SONG_TYPE) {
+      return _songType;
+    } else if (key == Song.PERFORMANCES) {
+      return _performances;
     } else {
-      return Collections.emptyIterator();
+      return null;
     }
   }
 

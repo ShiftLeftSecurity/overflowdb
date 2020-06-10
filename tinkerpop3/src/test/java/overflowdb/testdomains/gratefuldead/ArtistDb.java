@@ -31,12 +31,11 @@ public class ArtistDb extends OdbNode {
   }
 
   @Override
-  protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-    final VertexProperty<V> ret;
-    if (Artist.NAME.equals(key) && _name != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _name));
+  protected Object specificProperty2(String key) {
+    if (Artist.NAME.equals(key)) {
+      return _name;
     } else {
-      return Collections.emptyIterator();
+      return null;
     }
   }
 

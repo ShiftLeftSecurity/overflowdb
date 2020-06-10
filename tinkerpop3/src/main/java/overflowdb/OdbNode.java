@@ -1,5 +1,6 @@
 package overflowdb;
 
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.PackedIntArray;
@@ -64,7 +65,14 @@ public abstract class OdbNode implements Vertex, OdbElement {
 
   public abstract NodeLayoutInformation layoutInformation();
 
-  protected abstract <V> Iterator<VertexProperty<V>> specificProperties(String key);
+  protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
+    final Object value = specificProperty2(key);
+    if (value != null) return IteratorUtils.of(new OdbNodeProperty(this, key, value));
+    else return Collections.emptyIterator();
+  }
+
+  // TODO drop suffix `2` after tinkerpop interface is gone
+  protected abstract Object specificProperty2(String key);
 
   public Object[] getAdjacentNodesWithProperties() {
     return adjacentNodesWithProperties;
@@ -162,7 +170,7 @@ public abstract class OdbNode implements Vertex, OdbElement {
 
   @Override
   public <P> P property2(String propertyKey) {
-    return (P) specificProperty(propertyKey).orElse(null);
+    return (P) specificProperty2(propertyKey);
   }
 
   @Override
