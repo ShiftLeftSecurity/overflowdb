@@ -122,6 +122,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
     return id;
   }
 
+  public long id2() {
+    return id;
+  }
+
   @Override
   public OdbGraph graph() {
     return graph;

@@ -112,6 +112,10 @@ public abstract class OdbNode implements Vertex, OdbElement {
     return ref.id;
   }
 
+  public long id2() {
+    return ref.id;
+  }
+
   @Override
   public String label() {
     return ref.label();
