@@ -8,14 +8,15 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 public abstract class OdbEdge implements Edge, OdbElement {
   private final OdbGraph graph;
   private final String label;
-  private final NodeRef outVertex;
-  private final NodeRef inVertex;
+  private final NodeRef outNode;
+  private final NodeRef inNode;
 
   /* When storing the inVertex in the outVertex' adjacent node array, there may be multiple edges
    * with the same (direction, label), i.e. they are stored in the same block. To be able to
@@ -36,16 +37,28 @@ public abstract class OdbEdge implements Edge, OdbElement {
 
   public OdbEdge(OdbGraph graph,
                  String label,
-                 NodeRef outVertex,
+                 NodeRef outNode,
                  NodeRef inVertex,
                  Set<String> specificKeys) {
     this.graph = graph;
     this.label = label;
-    this.outVertex = outVertex;
-    this.inVertex = inVertex;
+    this.outNode = outNode;
+    this.inNode = inVertex;
 
     this.specificKeys = specificKeys;
     graph.referenceManager.applyBackpressureMaybe();
+  }
+
+  public NodeRef outNode() {
+    return outNode;
+  }
+
+  public NodeRef inNode() {
+    return inNode;
+  }
+
+  public Iterator<NodeRef> bothNodes() {
+    return IteratorUtils.of(outNode, inNode);
   }
 
   public int getOutBlockOffset() {
@@ -68,11 +81,11 @@ public abstract class OdbEdge implements Edge, OdbElement {
   public Iterator<Vertex> vertices(Direction direction) {
     switch (direction) {
       case OUT:
-        return IteratorUtils.of(outVertex);
+        return IteratorUtils.of(outNode);
       case IN:
-        return IteratorUtils.of(inVertex);
+        return IteratorUtils.of(inNode);
       default:
-        return IteratorUtils.of(outVertex, inVertex);
+        return IteratorUtils.of(outNode, inNode);
     }
   }
 
@@ -110,8 +123,8 @@ public abstract class OdbEdge implements Edge, OdbElement {
     } else {
       throw new RuntimeException("Cannot set property. In and out block offset uninitialized.");
     }
-    inVertex.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
-    outVertex.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
+    inNode.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
+    outNode.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
     return new OdbProperty<>(key, value, this);
   }
 
@@ -128,16 +141,27 @@ public abstract class OdbEdge implements Edge, OdbElement {
   @Override
   public void remove() {
     fixupBlockOffsets();
-    outVertex.get().removeEdge(Direction.OUT, label(), outBlockOffset);
-    inVertex.get().removeEdge(Direction.IN, label(), inBlockOffset);
+    outNode.get().removeEdge(Direction.OUT, label(), outBlockOffset);
+    inNode.get().removeEdge(Direction.IN, label(), inBlockOffset);
   }
 
   @Override
   public <V> Iterator<Property<V>> properties(String... propertyKeys) {
     if (inBlockOffset != -1) {
-      return inVertex.get().getEdgeProperties(Direction.IN, this, getInBlockOffset(), propertyKeys);
+      return inNode.get().getEdgeProperties(Direction.IN, this, getInBlockOffset(), propertyKeys);
     } else if (outBlockOffset != -1) {
-      return outVertex.get().getEdgeProperties(Direction.OUT, this, getOutBlockOffset(), propertyKeys);
+      return outNode.get().getEdgeProperties(Direction.OUT, this, getOutBlockOffset(), propertyKeys);
+    } else {
+      throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
+    }
+  }
+
+  @Override
+  public Map<String, Object> propertyMap() {
+    if (inBlockOffset != -1) {
+      return inNode.get().getEdgePropertyMap(Direction.IN, this, getInBlockOffset());
+    } else if (outBlockOffset != -1) {
+      return outNode.get().getEdgePropertyMap(Direction.OUT, this, getOutBlockOffset());
     } else {
       throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
     }
@@ -146,9 +170,9 @@ public abstract class OdbEdge implements Edge, OdbElement {
   @Override
   public <V> Property<V> property(String propertyKey) {
     if (inBlockOffset != -1) {
-      return inVertex.get().getEdgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
+      return inNode.get().getEdgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
-      return outVertex.get().getEdgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
+      return outNode.get().getEdgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
@@ -157,9 +181,9 @@ public abstract class OdbEdge implements Edge, OdbElement {
   // TODO drop suffix `2` after tinkerpop interface is gone
   public <P> P property2(String propertyKey) {
     if (inBlockOffset != -1) {
-      return inVertex.get().getEdgeProperty2(Direction.IN, this, inBlockOffset, propertyKey);
+      return inNode.get().getEdgeProperty2(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
-      return outVertex.get().getEdgeProperty2(Direction.OUT, this, outBlockOffset, propertyKey);
+      return outNode.get().getEdgeProperty2(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
@@ -178,8 +202,8 @@ public abstract class OdbEdge implements Edge, OdbElement {
     OdbEdge otherEdge = (OdbEdge) other;
     fixupBlockOffsetsIfNecessary(otherEdge);
 
-    return this.inVertex.id().equals(otherEdge.inVertex.id()) &&
-        this.outVertex.id().equals(otherEdge.outVertex.id()) &&
+    return this.inNode.id().equals(otherEdge.inNode.id()) &&
+        this.outNode.id().equals(otherEdge.outNode.id()) &&
         this.label.equals(otherEdge.label) &&
         (this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
             otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
@@ -195,7 +219,7 @@ public abstract class OdbEdge implements Edge, OdbElement {
     // we do not hash over the block offsets as those may change.
     // This results in hash collisions for edges with the same label between the
     // same nodes but since those are deemed very rare this is ok.
-    return Objects.hash(inVertex.id(), outVertex.id(), label);
+    return Objects.hash(inNode.id(), outNode.id(), label);
   }
 
   private void fixupBlockOffsetsIfNecessary(OdbEdge otherEdge) {
@@ -218,15 +242,15 @@ public abstract class OdbEdge implements Edge, OdbElement {
 
   private void initializeInFromOutOffset() {
     int edgeOccurenceForSameLabelEdgesBetweenSameNodePair =
-        outVertex.get().blockOffsetToOccurrence(Direction.OUT, label(), inVertex, outBlockOffset);
-    inBlockOffset = inVertex.get().occurrenceToBlockOffset(Direction.IN, label(), outVertex,
+        outNode.get().blockOffsetToOccurrence(Direction.OUT, label(), inNode, outBlockOffset);
+    inBlockOffset = inNode.get().occurrenceToBlockOffset(Direction.IN, label(), outNode,
         edgeOccurenceForSameLabelEdgesBetweenSameNodePair);
   }
 
   private void initializeOutFromInOffset() {
     int edgeOccurenceForSameLabelEdgesBetweenSameNodePair =
-        inVertex.get().blockOffsetToOccurrence(Direction.IN, label(), outVertex, inBlockOffset);
-    outBlockOffset = outVertex.get().occurrenceToBlockOffset(Direction.OUT, label(), inVertex,
+        inNode.get().blockOffsetToOccurrence(Direction.IN, label(), outNode, inBlockOffset);
+    outBlockOffset = outNode.get().occurrenceToBlockOffset(Direction.OUT, label(), inNode,
         edgeOccurenceForSameLabelEdgesBetweenSameNodePair);
   }
 

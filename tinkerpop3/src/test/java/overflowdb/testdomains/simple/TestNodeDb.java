@@ -47,19 +47,26 @@ public class TestNodeDb extends OdbNode {
     return layoutInformation;
   }
 
-  /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
   @Override
   protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-    if (TestNode.STRING_PROPERTY.equals(key) && _stringProperty != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _stringProperty));
-    } else if (key == TestNode.STRING_LIST_PROPERTY && _stringListProperty != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _stringListProperty));
-    } else if (key == TestNode.INT_PROPERTY && _intProperty != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _intProperty));
-    } else if (key == TestNode.INT_LIST_PROPERTY && _intListProperty != null) {
-      return IteratorUtils.of(new OdbNodeProperty(this, key, _intListProperty));
+    final Object value = specificProperty2(key);
+    if (value != null) return IteratorUtils.of(new OdbNodeProperty(this, key, value));
+    else return Collections.emptyIterator();
+  }
+
+  /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
+  @Override
+  protected Object specificProperty2(String key) {
+    if (TestNode.STRING_PROPERTY.equals(key)) {
+      return _stringProperty;
+    } else if (key == TestNode.STRING_LIST_PROPERTY) {
+      return _stringListProperty;
+    } else if (key == TestNode.INT_PROPERTY) {
+      return _intProperty;
+    } else if (key == TestNode.INT_LIST_PROPERTY) {
+      return _intListProperty;
     } else {
-      return Collections.emptyIterator();
+      return null;
     }
   }
 
