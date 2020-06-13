@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
  */
-public abstract class OdbNode implements Vertex, OdbElement {
+public abstract class OdbNode implements Vertex, Node {
 
   public final NodeRef ref;
 

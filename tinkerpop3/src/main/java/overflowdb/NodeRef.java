@@ -22,7 +22,7 @@ import java.util.Optional;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
+public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   public final long id;
   protected final OdbGraph graph;
   private N node;
