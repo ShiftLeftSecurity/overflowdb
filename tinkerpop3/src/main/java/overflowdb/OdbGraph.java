@@ -4,15 +4,6 @@ import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.set.hash.THashSet;
-import overflowdb.storage.NodeDeserializer;
-import overflowdb.storage.OdbStorage;
-import overflowdb.tp3.GraphVariables;
-import overflowdb.tp3.TinkerIoRegistryV1d0;
-import overflowdb.tp3.TinkerIoRegistryV2d0;
-import overflowdb.tp3.TinkerIoRegistryV3d0;
-import overflowdb.tp3.optimizations.CountStrategy;
-import overflowdb.tp3.optimizations.OdbGraphStepStrategy;
-import overflowdb.util.MultiIterator2;
 import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
@@ -34,11 +25,18 @@ import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import org.apache.tinkerpop.gremlin.util.iterator.MultiIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.storage.NodeDeserializer;
+import overflowdb.storage.OdbStorage;
+import overflowdb.tp3.GraphVariables;
+import overflowdb.tp3.TinkerIoRegistryV1d0;
+import overflowdb.tp3.TinkerIoRegistryV2d0;
+import overflowdb.tp3.TinkerIoRegistryV3d0;
+import overflowdb.tp3.optimizations.CountStrategy;
+import overflowdb.tp3.optimizations.OdbGraphStepStrategy;
+import overflowdb.util.MultiIterator2;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -152,11 +150,11 @@ public final class OdbGraph implements Graph {
 
   ////////////// STRUCTURE API METHODS //////////////////
 
-  public NodeRef addNode(final String label, final Object... keyValues) {
+  public Node addNode(final String label, final Object... keyValues) {
     return addNode(label, currentId.incrementAndGet(), keyValues);
   }
 
-  public NodeRef addNode(final String label, final long id, final Object... keyValues) {
+  public Node addNode(final String label, final long id, final Object... keyValues) {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
@@ -276,7 +274,7 @@ public final class OdbGraph implements Graph {
       for (Object idOrNode : idsOrVertices) {
         ids[idx++] = convertToId(idOrNode);
       }
-      final Iterator<NodeRef> nodeRefIter = nodes(ids);
+      final Iterator<Node> nodeRefIter = nodes(ids);
       return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     }
   }
@@ -333,25 +331,25 @@ public final class OdbGraph implements Graph {
   }
 
   /** Iterator over all nodes - alias for `nodes` */
-  public Iterator<NodeRef> V() {
+  public Iterator<Node> V() {
     return nodes();
   }
 
   /** Iterator over all nodes */
-  public Iterator<NodeRef> nodes() {
+  public Iterator<Node> nodes() {
     final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
     return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
   }
 
   /** Iterator over nodes with provided ids - alias for `nodes(ids...)`
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public Iterator<NodeRef> V(long... ids) {
+  public Iterator<Node> V(long... ids) {
     return nodes(ids);
   }
 
   /** Iterator over nodes with provided ids
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public Iterator<NodeRef> nodes(long... ids) {
+  public Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
       return EmptyIterator.INSTANCE;
     } else if (ids.length == 1) {
@@ -366,44 +364,44 @@ public final class OdbGraph implements Graph {
     }
   }
 
-  public Iterator<NodeRef> nodesByLabel(final String label) {
+  public Iterator<Node> nodesByLabel(final String label) {
     final Set<NodeRef> nodes = nodesByLabel.get(label);
     if (nodes != null)
-      return nodes.iterator();
+      return IteratorUtils.map(nodes.iterator(), node -> node);
     else
       return EmptyIterator.INSTANCE;
   }
 
-  public Iterator<NodeRef> nodesByLabel(final String... labels) {
-    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+  public Iterator<Node> nodesByLabel(final String... labels) {
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
     return multiIterator;
   }
 
-  public Iterator<NodeRef> nodesByLabel(final Set<String> labels) {
-    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+  public Iterator<Node> nodesByLabel(final Set<String> labels) {
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
     return multiIterator;
   }
 
-  public Iterator<NodeRef> nodesByLabel(final P<String> labelPredicate) {
-    final MultiIterator<NodeRef> multiIterator = new MultiIterator<>();
+  public Iterator<Node> nodesByLabel(final P<String> labelPredicate) {
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : nodesByLabel.keySet()) {
       if (labelPredicate.test(label)) {
-        multiIterator.addIterator(nodesByLabel.get(label).iterator());
+        addNodesToMultiIterator(multiIterator, label);
       }
     }
     return multiIterator;
   }
 
-  private final void addNodesToMultiIterator(final MultiIterator<NodeRef> multiIterator, final String label) {
+  private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
     final Set<NodeRef> nodes = nodesByLabel.get(label);
     if (nodes != null) {
-      multiIterator.addIterator(nodes.iterator());
+      multiIterator.addIterator(IteratorUtils.map(nodes.iterator(), node -> node));
     }
   }
 

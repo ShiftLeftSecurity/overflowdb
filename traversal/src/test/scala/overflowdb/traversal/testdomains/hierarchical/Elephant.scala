@@ -1,11 +1,11 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.traversal.{NodeRefOps, Traversal}
+import overflowdb.traversal.Traversal
 import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with NodeRefOps[Elephant] with Mammal {
+class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with Mammal {
   override def label: String = Elephant.Label
   override def species = "Elephant"
   override def canSwim = true

@@ -1,11 +1,9 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.traversal.{NodeOps, Traversal}
-import overflowdb.{NodeRef, OdbNode, OdbNodeProperty}
-import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
+import org.apache.tinkerpop.gremlin.structure.VertexProperty
+import overflowdb.{NodeRef, OdbNode}
 
-class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) with NodeOps {
+class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
   private var _name: String = null
 
   def name: String = _name

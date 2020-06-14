@@ -1,11 +1,10 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.traversal.{NodeRefOps, Traversal}
 import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Car(graph: OdbGraph, id: Long) extends NodeRef[CarDb](graph, id) with NodeRefOps[Car] {
+class Car(graph: OdbGraph, id: Long) extends NodeRef[CarDb](graph, id) {
   override def label: String = Car.Label
   def name: String = get.name
   override def toString = s"Car(id=$id)"

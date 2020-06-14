@@ -1,5 +1,6 @@
 package overflowdb
 
+import overflowdb._
 import overflowdb.traversal._
 import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
 import org.scalatest.{Matchers, WordSpec}

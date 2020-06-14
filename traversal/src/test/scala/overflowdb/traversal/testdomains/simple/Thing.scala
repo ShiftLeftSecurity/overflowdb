@@ -1,11 +1,11 @@
 package overflowdb.traversal.testdomains.simple
 
-import overflowdb.traversal.{NodeRefOps, Traversal}
+import overflowdb.traversal._
 import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Thing(graph: OdbGraph, _id: Long) extends NodeRef[ThingDb](graph, _id) with NodeRefOps[Thing] {
+class Thing(graph: OdbGraph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
   override def label: String = Thing.Label
 
   def name: String = get.name

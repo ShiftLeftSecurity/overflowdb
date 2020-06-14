@@ -1,10 +1,12 @@
 package overflowdb
 
+import overflowdb.traversal.Traversal
+
 class GraphSugar(val graph: OdbGraph) extends AnyVal {
-  def `+`(label: String): NodeRef[_] =
+  def `+`(label: String): Node =
     graph.addNode(label)
 
-  def `+`(label: String, properties: PropertyKeyValue[_]*): NodeRef[_] =
+  def `+`(label: String, properties: PropertyKeyValue[_]*): Node =
     graph.addNode(label, keyValuesAsSeq(properties): _*)
 
   private def keyValuesAsSeq(properties: Seq[PropertyKeyValue[_]]): Seq[_] = {
@@ -35,7 +37,11 @@ class ElementSugar(val element: OdbElement) extends AnyVal {
     element.setProperty(propertyKey.name, value)
 }
 
-class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
+class NodeSugar[N <: Node](val node: N) extends AnyVal {
+  /** start a new Traversal with this Node, i.e. lift it into a Traversal */
+  def start: Traversal[N] =
+    Traversal.fromSingle(node)
+
   def ---(label: String): SemiEdge =
     new SemiEdge(node, label, Seq.empty)
 
@@ -43,8 +49,8 @@ class NodeRefSugar(val node: NodeRef[_]) extends AnyVal {
     new SemiEdge(node, label, properties)
 }
 
-private[overflowdb] class SemiEdge(outNode: NodeRef[_], label: String, properties: Seq[PropertyKeyValue[_]]) {
-  def -->(inNode: NodeRef[_]): OdbEdge = {
+private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq[PropertyKeyValue[_]]) {
+  def -->(inNode: Node): OdbEdge = {
     val tinkerpopKeyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
     properties.foreach { case PropertyKeyValue(key, value) =>

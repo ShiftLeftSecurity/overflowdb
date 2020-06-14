@@ -1,6 +1,6 @@
 package overflowdb.traversal
 
-import overflowdb.NodeRef
+import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 import org.scalatest.{Matchers, WordSpec}
 
@@ -149,7 +149,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  def assertNames[A <: NodeRef[_]](traversal: Traversal[A], expectedNames: Set[String]) = {
+  def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
   }
 }
