@@ -1,19 +1,16 @@
 package overflowdb.traversal.testdomains.simple
 
-import overflowdb.traversal.{NodeOps, Traversal}
-import overflowdb.{NodeRef, OdbNode, OdbNodeProperty}
-import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
+import org.apache.tinkerpop.gremlin.structure.VertexProperty
+import overflowdb._
+import overflowdb.traversal._
 
-class ThingDb(ref: NodeRef[ThingDb]) extends OdbNode(ref) with NodeOps {
+class ThingDb(ref: NodeRef[ThingDb]) extends OdbNode(ref) {
   private var _name: String = null
 
   def name: String = _name
 
   /* Thing --- followedBy --- Thing */
-  def followedBy: Traversal[Thing] = adjacentNodes(Direction.OUT, Connection.Label)
-
-
+  def followedBy: Traversal[Thing] = out(Connection.Label).toScalaAs[Thing]
 
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]

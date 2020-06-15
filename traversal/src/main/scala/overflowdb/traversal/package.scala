@@ -12,7 +12,10 @@ package object traversal {
   implicit def iteratorToTraversal[A](iterator: Iterator[A]): Traversal[A] =
     iterator.to(Traversal)
 
-  implicit def toNodeTraversal[A <: NodeRef[_]](traversal: Traversal[A]): NodeTraversal[A] =
+  implicit def iterableToTraversal[A](iterable: IterableOnce[A]): Traversal[A] =
+    Traversal.from(iterable)
+
+  implicit def toNodeTraversal[A <: Node](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
 
   implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
@@ -21,7 +24,7 @@ package object traversal {
   implicit def toElementTraversal[A <: OdbElement](traversal: Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](traversal)
 
-  implicit def toNodeTraversalViaAdditionalImplicit[A <: NodeRef[_], Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
+  implicit def toNodeTraversalViaAdditionalImplicit[A <: Node, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](toTraversal(traversable))
 
   implicit def toEdgeTraversalViaAdditionalImplicit[A <: OdbEdge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =

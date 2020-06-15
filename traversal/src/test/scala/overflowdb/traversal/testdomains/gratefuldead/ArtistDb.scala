@@ -1,19 +1,16 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
+import org.apache.tinkerpop.gremlin.structure.VertexProperty
+import overflowdb.traversal._
 import overflowdb.{NodeRef, OdbNode}
-import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
 
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
-import overflowdb.OdbNodeProperty
-import overflowdb.traversal.{NodeOps, Traversal}
-
-class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) with NodeOps {
+class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
   /* name property */
   def name: String = _name
   private var _name: String = null
 
   /* Artist <-- sungBy --- Song */
-  def sangSongs: Traversal[Song] = adjacentNodes(Direction.IN, SungBy.Label)
+  def sangSongs: Traversal[Song] = in(SungBy.Label).toScalaAs[Song]
 
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]

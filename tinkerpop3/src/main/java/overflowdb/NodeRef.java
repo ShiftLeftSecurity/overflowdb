@@ -22,7 +22,7 @@ import java.util.Optional;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
+public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   public final long id;
   protected final OdbGraph graph;
   private N node;
@@ -122,6 +122,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
     return id;
   }
 
+  public long id2() {
+    return id;
+  }
+
   @Override
   public OdbGraph graph() {
     return graph;
@@ -199,67 +203,79 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, OdbElement {
   }
 
   /* adjacent OUT nodes (all labels) */
-  public Iterator<NodeRef> out() {
+  @Override
+  public Iterator<Node> out() {
     return this.get().out();
   }
 
   /* adjacent OUT nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> out(String edgeLabel) {
+  @Override
+  public Iterator<Node> out(String edgeLabel) {
     return this.get().out(edgeLabel);
   }
 
   /* adjacent IN nodes (all labels) */
-  public Iterator<NodeRef> in() {
+  @Override
+  public Iterator<Node> in() {
     return this.get().in();
   }
 
   /* adjacent IN nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> in(String edgeLabel) {
+  @Override
+  public Iterator<Node> in(String edgeLabel) {
     return this.get().in(edgeLabel);
   }
 
   /* adjacent OUT/IN nodes (all labels) */
-  public Iterator<NodeRef> both() {
+  @Override
+  public Iterator<Node> both() {
     return this.get().both();
   }
 
   /* adjacent OUT/IN nodes for a specific label
    * specialized version of `nodes(Direction, String...)` for efficiency */
-  public Iterator<NodeRef> both(String edgeLabel) {
+  @Override
+  public Iterator<Node> both(String edgeLabel) {
     return this.get().both(edgeLabel);
   }
 
   /* adjacent OUT edges (all labels) */
+  @Override
   public Iterator<OdbEdge> outE() {
     return this.get().outE();
   }
 
   /* adjacent OUT edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
+  @Override
   public Iterator<OdbEdge> outE(String edgeLabel) {
     return this.get().outE(edgeLabel);
   }
 
   /* adjacent IN edges (all labels) */
+  @Override
   public Iterator<OdbEdge> inE() {
     return this.get().inE();
   }
 
   /* adjacent IN edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
+  @Override
   public Iterator<OdbEdge> inE(String edgeLabel) {
     return this.get().inE(edgeLabel);
   }
 
   /* adjacent OUT/IN edges (all labels) */
+  @Override
   public Iterator<OdbEdge> bothE() {
     return this.get().bothE();
   }
 
   /* adjacent OUT/IN edges for a specific label
    * specialized version of `edges(Direction, String...)` for efficiency */
+  @Override
   public Iterator<OdbEdge> bothE(String edgeLabel) {
     return this.get().bothE(edgeLabel);
   }

@@ -1,11 +1,9 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.traversal.{NodeOps, Traversal}
-import overflowdb.{NodeRef, OdbNode, OdbNodeProperty}
-import org.apache.tinkerpop.gremlin.structure.{Direction, VertexProperty}
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils
+import org.apache.tinkerpop.gremlin.structure.VertexProperty
+import overflowdb.{NodeRef, OdbNode}
 
-class ElephantDb(ref: NodeRef[ElephantDb]) extends OdbNode(ref) with Animal with NodeOps {
+class ElephantDb(ref: NodeRef[ElephantDb]) extends OdbNode(ref) with Animal {
   override def species = "Elephant"
 
   private var _name: String = null
