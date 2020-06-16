@@ -336,7 +336,7 @@ public final class OdbGraph implements Graph {
   }
 
   /** Iterator over all nodes */
-  public Iterator<Node> nodes() {
+  public final Iterator<Node> nodes() {
     final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
     return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
   }
@@ -347,14 +347,18 @@ public final class OdbGraph implements Graph {
     return nodes(ids);
   }
 
+  public final Node node(long id) {
+    return nodes.get(id);
+  }
+
   /** Iterator over nodes with provided ids
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public Iterator<Node> nodes(long... ids) {
+  public final Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
       return EmptyIterator.INSTANCE;
     } else if (ids.length == 1) {
       // optimization for common case where only one id is requested
-      return IteratorUtils.of(nodes.get(ids[0]));
+      return IteratorUtils.of(node(ids[0]));
     } else {
       final Set<Long> idsSet = new HashSet<>(ids.length);
       for (long id : ids) {
