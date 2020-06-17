@@ -3,6 +3,9 @@ package overflowdb
 import overflowdb.traversal.Traversal
 
 class GraphSugar(val graph: OdbGraph) extends AnyVal {
+  def nodeOption(id: Long): Option[Node] =
+    Option(graph.node(id))
+
   def `+`(label: String): Node =
     graph.addNode(label)
 

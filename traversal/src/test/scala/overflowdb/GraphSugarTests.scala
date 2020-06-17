@@ -1,9 +1,8 @@
 package overflowdb
 
-import overflowdb._
+import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal._
 import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
-import org.scalatest.{Matchers, WordSpec}
 
 class GraphSugarTests extends WordSpec with Matchers {
 
@@ -27,6 +26,15 @@ class GraphSugarTests extends WordSpec with Matchers {
         graph + "unknown"
       }
       graph.nodeCount shouldBe 0
+    }
+  }
+
+  "nodeOption" can {
+    "retrieve a node, or not" in {
+      val graph = SimpleDomain.newGraph
+      val node = graph + Thing.Label
+      graph.nodeOption(node.id2) shouldBe Some(node)
+      graph.nodeOption(node.id2 + 1) shouldBe None
     }
   }
 

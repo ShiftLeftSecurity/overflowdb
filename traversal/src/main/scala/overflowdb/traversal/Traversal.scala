@@ -26,7 +26,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** Execute the traversal and convert the result to a list - shorthand for `toList` */
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
-  def l: IndexedSeq[A] = elements.iterator.to(ArraySeq.untagged)
+  def l: Seq[A] = elements.iterator.toSeq
 
   def iterate: Unit = while (hasNext) next
 
