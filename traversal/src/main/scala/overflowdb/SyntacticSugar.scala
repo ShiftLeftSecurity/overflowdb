@@ -10,7 +10,10 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
     graph.addNode(label)
 
   def `+`(label: String, properties: Property[_]*): Node =
-    graph.addNode(label, keyValuesAsSeq(properties): _*)
+    graph.addNode(label, keyValuesAsSeq(properties))
+
+  def `+`(label: String, properties: Seq[Property[_]]): Node =
+    graph.addNode(label, keyValuesAsSeq(properties))
 
   private def keyValuesAsSeq(properties: Seq[Property[_]]): Seq[_] = {
     val builder = Seq.newBuilder[Any]
@@ -47,6 +50,9 @@ class NodeSugar[N <: Node](val node: N) extends AnyVal {
 
   def ---(label: String): SemiEdge =
     new SemiEdge(node, label, Seq.empty)
+
+  def ---(label: String, properties: Seq[Property[_]]): SemiEdge =
+    new SemiEdge(node, label, properties)
 
   def ---(label: String, properties: Property[_]*): SemiEdge =
     new SemiEdge(node, label, properties)
