@@ -9,8 +9,14 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
   def `+`(label: String): Node =
     graph.addNode(label)
 
+  def `+`(label: String, id: Long): Node =
+    graph.addNode(label, id)
+
   def `+`(label: String, properties: Property[_]*): Node =
     graph.addNode(label, keyValuesAsSeq(properties): _*)
+
+  def `+`(label: String, id: Long, properties: Property[_]*): Node =
+    graph.addNode(label, id, keyValuesAsSeq(properties): _*)
 
   private def keyValuesAsSeq(properties: Seq[Property[_]]): Seq[_] = {
     val builder = Seq.newBuilder[Any]

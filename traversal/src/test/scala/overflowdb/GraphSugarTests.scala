@@ -13,7 +13,13 @@ class GraphSugarTests extends WordSpec with Matchers {
       graph.nodeCount shouldBe 1
     }
 
-    "add a node with properties" in {
+    "add a node with given id" in {
+      val graph = SimpleDomain.newGraph
+      graph + (Thing.Label, 99)
+      graph.nodeOption(99).isDefined shouldBe true
+    }
+
+    "add a node with property" in {
       val graph = SimpleDomain.newGraph
       graph + (Thing.Label, Thing.Properties.Name -> "one thing")
       graph.nodeCount shouldBe 1
@@ -29,6 +35,13 @@ class GraphSugarTests extends WordSpec with Matchers {
         Map(("name", "one thing")),
         Map(("name", "another thing"), ("size", 42))
       )
+    }
+
+    "add a node with property and id" in {
+      val graph = SimpleDomain.newGraph
+      graph + (Thing.Label, 99, Thing.Properties.Name -> "one thing")
+      SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
+      graph.node(99).property2[String]("name") shouldBe "one thing"
     }
 
     "fail for unknown nodeType" in {
