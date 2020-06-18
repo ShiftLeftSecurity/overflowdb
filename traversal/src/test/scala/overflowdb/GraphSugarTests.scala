@@ -45,21 +45,30 @@ class GraphSugarTests extends WordSpec with Matchers {
       val node2 = graph + Thing.Label
       node1 --- Connection.Label --> node2
 
-      graph.nodeCount shouldBe 2
       node1.out(Connection.Label).next shouldBe node2
     }
 
-    "add an edge with properties" in {
+    "add an edge with one property" in {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
       node1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> node2
 
-      graph.nodeCount shouldBe 2
       node1.out(Connection.Label).next shouldBe node2
-
       node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
       node1.outE(Connection.Label).property(Connection.PropertyNames.Distance).next shouldBe 10
+    }
+
+    "add an edge with multiple properties" in {
+      import Connection.Properties._
+      val graph = SimpleDomain.newGraph
+      val node1 = graph + Thing.Label
+      val node2 = graph + Thing.Label
+      node1 --- (Connection.Label, Distance -> 10, Name -> "Route A") --> node2
+//      node1 --- (Connection.Label, Distance -> 30, Name -> "Route B") --> node2
+
+      node1.out(Connection.Label).l shouldBe List(node2)
+      node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
     }
   }
 
