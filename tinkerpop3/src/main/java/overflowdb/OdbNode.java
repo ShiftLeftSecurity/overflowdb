@@ -166,7 +166,8 @@ public abstract class OdbNode implements Vertex, Node {
     final Map<String, Object> results = new HashMap<>(propertyKeys.size());
 
     for (String propertyKey : propertyKeys) {
-      results.put(propertyKey, property2(propertyKey));
+      final Object value = property2(propertyKey);
+      if (value != null) results.put(propertyKey, value);
     }
 
     return results;
@@ -249,7 +250,8 @@ public abstract class OdbNode implements Vertex, Node {
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
 
     for (String propertyKey : edgePropertyKeys) {
-      results.put(propertyKey, getEdgeProperty2(direction, edge, blockOffset, propertyKey));
+      final Object value = getEdgeProperty2(direction, edge, blockOffset, propertyKey);
+      if (value != null) results.put(propertyKey, value);
     }
 
     return results;

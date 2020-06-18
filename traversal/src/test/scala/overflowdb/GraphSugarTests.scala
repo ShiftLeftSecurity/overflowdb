@@ -64,11 +64,14 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
-      node1 --- (Connection.Label, Distance -> 10, Name -> "Route A") --> node2
-//      node1 --- (Connection.Label, Distance -> 30, Name -> "Route B") --> node2
+      node1 --- (Connection.Label, Distance -> 10) --> node2
+      node1 --- (Connection.Label, Distance -> 30, Name -> "Alternative") --> node2
 
-      node1.out(Connection.Label).l shouldBe List(node2)
-      node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
+      node1.out(Connection.Label).toList shouldBe List(node2, node2)
+      node1.outE(Connection.Label).propertyMap.toSet shouldBe Set(
+        Map(("distance", 10)),
+        Map(("distance", 30), ("name", "Alternative"))
+      )
     }
   }
 
