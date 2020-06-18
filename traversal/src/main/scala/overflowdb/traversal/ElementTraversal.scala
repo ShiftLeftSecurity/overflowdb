@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{OdbElement, PropertyKey, PropertyKeyValue}
+import overflowdb.{OdbElement, PropertyKey, Property}
 
 class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends AnyVal {
 
@@ -21,7 +21,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def has(name: String): Traversal[E] =
     traversal.filter(_.property2(name) != null)
 
-  def has[P](keyValue: PropertyKeyValue[P]): Traversal[E] =
+  def has[P](keyValue: Property[P]): Traversal[E] =
     has[P](keyValue.key, keyValue.value)
 
   def has[P](key: PropertyKey[P], value: P): Traversal[E] =
@@ -32,7 +32,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def hasNot(name: String): Traversal[E] =
     traversal.filter(_.property2(name) == null)
 
-  def hasNot[P](keyValue: PropertyKeyValue[P]): Traversal[E] =
+  def hasNot[P](keyValue: Property[P]): Traversal[E] =
     hasNot[P](keyValue.key, keyValue.value)
 
   def hasNot[P](key: PropertyKey[P], value: P): Traversal[E] =
