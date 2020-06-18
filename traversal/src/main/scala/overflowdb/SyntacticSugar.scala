@@ -10,7 +10,7 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
     graph.addNode(label)
 
   def `+`(label: String, properties: Property[_]*): Node =
-    graph.addNode(label, keyValuesAsSeq(properties))
+    graph.addNode(label, keyValuesAsSeq(properties): _*)
 
   private def keyValuesAsSeq(properties: Seq[Property[_]]): Seq[_] = {
     val builder = Seq.newBuilder[Any]

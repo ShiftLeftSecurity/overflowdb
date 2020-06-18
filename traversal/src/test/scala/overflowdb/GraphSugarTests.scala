@@ -20,6 +20,17 @@ class GraphSugarTests extends WordSpec with Matchers {
       SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
     }
 
+    "add nodes with multiple properties" in {
+      import Thing.Properties._
+      val graph = SimpleDomain.newGraph
+      graph + (Thing.Label, Name -> "one thing")
+      graph + (Thing.Label, Name -> "another thing", Size -> 42)
+      SimpleDomain.traversal(graph).things.propertyMap.toSet shouldBe Set(
+        Map(("name", "one thing")),
+        Map(("name", "another thing"), ("size", 42))
+      )
+    }
+
     "fail for unknown nodeType" in {
       val graph = SimpleDomain.newGraph
       intercept[IllegalArgumentException] {
