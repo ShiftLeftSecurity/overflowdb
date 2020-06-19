@@ -11,14 +11,17 @@ object Connection {
 
   object Properties {
     val Distance = PropertyKey[Int](PropertyNames.Distance)
+    val Name = PropertyKey[String](PropertyNames.Name)
   }
 
   object PropertyNames {
     val Distance = "distance"
-    val all: Set[String] = Set(Distance)
+    val Name = "name"
+    val all: Set[String] = Set(Distance, Name)
   }
 
   val layoutInformation = new EdgeLayoutInformation(Label, PropertyNames.all.asJava)
+
   var factory: EdgeFactory[Connection] = new EdgeFactory[Connection] {
     override def forLabel(): String = Connection.Label
 

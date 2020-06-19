@@ -1,7 +1,8 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{OdbElement, PropertyKey, PropertyKeyValue}
+import overflowdb.{OdbElement, PropertyKey, Property}
+import scala.jdk.CollectionConverters._
 
 class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends AnyVal {
 
@@ -21,7 +22,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def has(name: String): Traversal[E] =
     traversal.filter(_.property2(name) != null)
 
-  def has[P](keyValue: PropertyKeyValue[P]): Traversal[E] =
+  def has[P](keyValue: Property[P]): Traversal[E] =
     has[P](keyValue.key, keyValue.value)
 
   def has[P](key: PropertyKey[P], value: P): Traversal[E] =
@@ -32,22 +33,25 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def hasNot(name: String): Traversal[E] =
     traversal.filter(_.property2(name) == null)
 
-  def hasNot[P](keyValue: PropertyKeyValue[P]): Traversal[E] =
+  def hasNot[P](keyValue: Property[P]): Traversal[E] =
     hasNot[P](keyValue.key, keyValue.value)
 
   def hasNot[P](key: PropertyKey[P], value: P): Traversal[E] =
     traversal.filter(_.property2(key.name) != value)
 
-  def property[P](propertyKey: PropertyKey[P]): Traversal[P] =
-    property(propertyKey.name)
+  def property[P](key: PropertyKey[P]): Traversal[P] =
+    property(key.name)
 
-  def property[P](propertyKey: String): Traversal[P] =
-    traversal.map(_.property2[P](propertyKey)).filter(_ != null)
+  def property[P](key: String): Traversal[P] =
+    traversal.map(_.property2[P](key)).filter(_ != null)
 
-  def propertyOption[P](propertyKey: PropertyKey[P]): Traversal[Option[P]] =
-    propertyOption(propertyKey.name)
+  def propertyOption[P](key: PropertyKey[P]): Traversal[Option[P]] =
+    propertyOption(key.name)
 
-  def propertyOption[P](propertyKey: String): Traversal[Option[P]] =
-    traversal.map(element => Option(element.property2[P](propertyKey)))
+  def propertyOption[P](key: String): Traversal[Option[P]] =
+    traversal.map(element => Option(element.property2[P](key)))
+
+  def propertyMap: Traversal[Map[String, Object]] =
+    traversal.map(_.propertyMap.asScala.toMap)
 
 }
