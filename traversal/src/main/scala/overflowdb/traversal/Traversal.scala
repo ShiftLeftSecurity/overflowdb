@@ -1,10 +1,9 @@
 package overflowdb.traversal
 
+import org.slf4j.LoggerFactory
 import overflowdb.traversal
 import overflowdb.traversal.help.{Doc, TraversalHelp}
-import org.slf4j.LoggerFactory
 
-import scala.collection.immutable.{ArraySeq, IndexedSeq}
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -80,24 +79,27 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  def repeat(repeatTraversal: Traversal[A] => Traversal[A],
-             behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = identity)
-    : Traversal[A] = {
-    val behaviour = behaviourBuilder(new traversal.RepeatBehaviour.Builder[A]).build
-    _repeat(repeatTraversal, behaviour, currentDepth = 0, emitSack = mutable.ListBuffer.empty)
+//  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B]): Traversal[B] =
+//    repeat(repeatTraversal)(RepeatBehaviour.noop[B] _)
+
+//  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])(
+//    //                     behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B])
+//    behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B],
+                     behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+  : Traversal[B] = {
+    val behaviour = behaviourBuilder(new traversal.RepeatBehaviour.Builder[B]).build
+    _repeat(
+      repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]],
+      behaviour,
+      currentDepth = 0,
+      emitSack = mutable.ListBuffer.empty)
   }
 
-  def repeat2(repeatTraversal: Traversal[A] => Traversal[A]): Traversal[A] = ???
-//  def repeat3[B <% A](repeatTraversal: Traversal[B] => Traversal[B]): Traversal[B] = ???
-//  def repeat3[B](repeatTraversal: Traversal[B] => Traversal[B])(implicit ev0: B => A): Traversal[B] = ???
-  def repeat3[B](repeatTraversal: Traversal[B] => Traversal[B])(implicit ev0: Traversal[B] => Traversal[A]): Traversal[B] = ???
-
-  def repeat4[B >: A](repeatTraversal: Traversal[A] => Traversal[B]): Traversal[B] = ???
-
-  private def _repeat(repeatTraversal: Traversal[A] => Traversal[A],
-                      behaviour: RepeatBehaviour[A],
+  private def _repeat[B >: A](repeatTraversal: Traversal[B] => Traversal[B],
+                      behaviour: RepeatBehaviour[B],
                       currentDepth: Int,
-                      emitSack: mutable.ListBuffer[A]): Traversal[A] = {
+                      emitSack: mutable.ListBuffer[B]): Traversal[B] = {
     if (isEmpty || behaviour.timesReached(currentDepth)) {
       // we're at the end - emit whatever we collected on the way plus the current position
       (emitSack.iterator ++ this).to(Traversal)
@@ -107,14 +109,14 @@ class Traversal[A](elements: IterableOnce[A])
           // `until` condition reached - finishing the repeat traversal here, emitting the current element and the emitSack (if any)
           Traversal.from(emitSack, element)
         } else {
-          val aLifted = Traversal.fromSingle(element)
-          repeatTraversal(aLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
+          val bLifted = Traversal.fromSingle(element)
+          repeatTraversal(bLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
         }
       }
     }
   }
 
-  private def traversalConsideringEmit(behaviour: RepeatBehaviour[A], emitSack: mutable.ListBuffer[A]): Traversal[A] =
+  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B]): Traversal[B] =
     behaviour match {
       case _: EmitNothing    => this
       case _: EmitEverything => this.sideEffect(emitSack.addOne(_))

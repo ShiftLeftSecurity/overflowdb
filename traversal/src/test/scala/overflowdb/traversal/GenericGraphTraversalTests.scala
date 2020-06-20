@@ -151,18 +151,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
 
   "repeat" should {
     "emit everything along the way if so configured" in {
-      // this works, but it's ugly
-      val x0: Traversal[Node] = centerTrav
-      // TODO try out: implicit conversion?
-      val x1 = x0.repeat(_.out)
-
-      // doesnt work
-//      implicit def xxy[Z <: Node](t: Traversal[Z]): Traversal[Node] = ???
 //      centerTrav.repeat(_.out)
-
-//      centerTrav.repeat3(_.out)
-      centerTrav.repeat4(_.out)
-
 //      centerTrav.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
   }

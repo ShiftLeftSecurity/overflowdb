@@ -46,7 +46,10 @@ class TraversalTests extends WordSpec with Matchers {
   "repeat" should {
     "be lazily evaluated" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
-      val traversalNotYetExecuted = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+      val traversalNotYetExecuted = {
+        centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+        centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)
+      }
       withClue("traversal should not do anything when it's only created") {
         traversedNodes.size shouldBe 0
       }
@@ -54,13 +57,14 @@ class TraversalTests extends WordSpec with Matchers {
 
     "by default traverse all nodes to outer limits exactly once, emitting and returning nothing" in {
       val traversedNodes = mutable.ListBuffer.empty[Thing]
-      val results = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).toList
+      val results = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).toList
       traversedNodes.size shouldBe 8
       results.size shouldBe 0
     }
 
     "emit everything along the way if so configured" in {
       centerTrav.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+//      centerTrav.repeat(_.out, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
 
     "emit nodes that meet given condition" in {
