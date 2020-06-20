@@ -87,6 +87,13 @@ class Traversal[A](elements: IterableOnce[A])
     _repeat(repeatTraversal, behaviour, currentDepth = 0, emitSack = mutable.ListBuffer.empty)
   }
 
+  def repeat2(repeatTraversal: Traversal[A] => Traversal[A]): Traversal[A] = ???
+//  def repeat3[B <% A](repeatTraversal: Traversal[B] => Traversal[B]): Traversal[B] = ???
+//  def repeat3[B](repeatTraversal: Traversal[B] => Traversal[B])(implicit ev0: B => A): Traversal[B] = ???
+  def repeat3[B](repeatTraversal: Traversal[B] => Traversal[B])(implicit ev0: Traversal[B] => Traversal[A]): Traversal[B] = ???
+
+  def repeat4[B >: A](repeatTraversal: Traversal[A] => Traversal[B]): Traversal[B] = ???
+
   private def _repeat(repeatTraversal: Traversal[A] => Traversal[A],
                       behaviour: RepeatBehaviour[A],
                       currentDepth: Int,
