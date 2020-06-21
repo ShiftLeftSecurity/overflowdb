@@ -54,5 +54,4 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def propertyMap: Traversal[Map[String, Object]] =
     traversal.map(_.propertyMap.asScala.toMap)
 
-//  def repeat2(repeatTraversal: Traversal[E] => Traversal[E]): Traversal[E] = ???
 }

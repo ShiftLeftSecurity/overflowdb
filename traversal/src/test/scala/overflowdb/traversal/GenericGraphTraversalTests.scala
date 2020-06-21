@@ -149,13 +149,6 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "repeat" should {
-    "emit everything along the way if so configured" in {
-//      centerTrav.repeat(_.out)
-//      centerTrav.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    }
-  }
-
   def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) = {
     traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
   }

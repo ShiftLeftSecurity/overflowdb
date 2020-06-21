@@ -2,20 +2,10 @@ package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
-import overflowdb.Node
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-
-//trait TravRootTrait[A] {
-//  def elements: IterableOnce[A]
-//}
-//
-//object TravRootTrait {
-//  implicit def toTraversal[A](t: TravRootTrait[A]): Traversal[A] = new Traversal(t.elements)
-//  implicit def toNodeTraversal[A <: Node](t: TravRootTrait[A]): NodeTraversal[A] = new Traversal(t.elements)
-//}
 
 /**
   * TODO more docs
@@ -23,9 +13,8 @@ import scala.reflect.ClassTag
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
   * Since this may trip up users, we'll log a warning
  **/
-class Traversal[A](val elements: IterableOnce[A])
+class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
-//    with TravRootTrait[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
@@ -89,39 +78,12 @@ class Traversal[A](val elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  def repeat2[B >: A](behaviour: RepeatBehaviour2.Builder[A] => RepeatBehaviour2.Builder[B]): Traversal[B] = {
-    val b = behaviour(new RepeatBehaviour2.Builder[A](this)).build
-    ???
-  }
-
-//  def repeat3[B >: A](behaviour: RepeatBehaviour3.Builder[A] => RepeatBehaviour3.Builder[B]): Traversal[B] = {
-//    val _elements = elements
-//    val newBuilder = new RepeatBehaviour3.Builder[A](this) with TravRootTrait[A] {
-//      override def elements: IterableOnce[A] = _elements
-//    }
-//    val b = behaviour(newBuilder).build
-//    ???
-//  }
-
-  // n.b. the only reason why the second type parameter is `implicit` is so we can omit the regular `()` when calling repeat
-  def repeat4a[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
-                      (implicit behaviour: RepeatBehaviour4.Builder[B] => RepeatBehaviour4.Builder[B] = {b: RepeatBehaviour4.Builder[B] => b}): Traversal[B] = {
-//    val b = behaviour(new RepeatBehaviour4.Builder[A](this)).build
-    ???
-  }
-
-  def repeat4b[B >: A](repeatTraversal: Traversal[A] => Traversal[B],
-                      behaviour: RepeatBehaviour4.Builder[A] => RepeatBehaviour4.Builder[B]): Traversal[B] = {
-    val b = behaviour(new RepeatBehaviour4.Builder[A](this)).build
-    ???
-  }
-
-  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B],
-                     behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
+                    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
   : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     _repeat(
-      repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]],
+      repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]], //this cast is usually :tm: safe, because `B` is a supertype of `A`
       behaviour,
       currentDepth = 0,
       emitSack = mutable.ListBuffer.empty)
