@@ -73,9 +73,11 @@ class TraversalTests extends WordSpec with Matchers {
 
     // TODO rm once working
     "foo" in {
-      val x0 = centerTrav.repeatX(x => x)
-      val x1 = centerTrav.repeatX(_.out)
-      val x2 = centerTrav.repeatX(_.out.emit)
+      val x0 = centerTrav.repeat4a(x => x)
+      val x1 = centerTrav.repeat4a(x => x.out)
+      val x2 = centerTrav.repeat4a(x => x.out)(x => x.emit)
+      val x3 = centerTrav.repeat4a(x => x.followedBy)(x => x.emit)
+//      val x2 = centerTrav.repeat3(_.out.emit)
 //      val x3 = centerTrav.repeatX(_.followedBy)
       //      val x4 = centerTrav.repeatX(_.followedBy.emit)
 //      centerTrav.repeatX(_.out.emit)
