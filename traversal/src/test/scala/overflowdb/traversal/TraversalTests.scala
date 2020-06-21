@@ -3,7 +3,7 @@ package overflowdb.traversal
 import overflowdb.traversal.testdomains.simple.ExampleGraphSetup
 import overflowdb.traversal.testdomains.simple.Thing
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.Node
+import overflowdb.{Node, traversal}
 
 import scala.collection.mutable
 
@@ -65,17 +65,29 @@ class TraversalTests extends WordSpec with Matchers {
 
     "emit everything along the way if so configured" in {
       centerTrav.repeat(_.followedBy, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-//      centerTrav.repeat(_.out, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-
-      ??? // TODO
-      centerTrav.repeat(_.out)
+      // TODO rm once working
+      //      centerTrav.repeat[Node](_.out, _.emit)
 //      centerTrav.repeat(_.out, _.emit)
-//      centerTrav.repeat[Node](
-//        repeatTraversal = x => x.out,
-//        behaviourBuilder = x => x.emit: RepeatBehaviour.Builder[Node])
-      centerTrav.repeat(
-        repeatTraversal = x => x.out,
-        behaviourBuilder = x => ???)
+//      centerTrav.repeat(_.out, _.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    }
+
+    // TODO rm once working
+    "foo" in {
+      val x0 = centerTrav.repeatX(x => x)
+      val x1 = centerTrav.repeatX(_.out)
+      val x2 = centerTrav.repeatX(_.out.emit)
+//      val x3 = centerTrav.repeatX(_.followedBy)
+      //      val x4 = centerTrav.repeatX(_.followedBy.emit)
+//      centerTrav.repeatX(_.out.emit)
+      //      centerTrav.repeat(_.out, _.emit)
+      //      centerTrav.repeat[Node](
+      //        repeatTraversal = x => x.out,
+      //        behaviourBuilder = x => x.emit: RepeatBehaviour.Builder[Node])
+      //      centerTrav.repeat(
+      //        repeatTraversal = x => x.out,
+      //        behaviourBuilder = x => ???)
+
+
     }
 
     "emit nodes that meet given condition" in {

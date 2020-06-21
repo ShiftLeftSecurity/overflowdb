@@ -1,7 +1,6 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
-import overflowdb.traversal
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
@@ -79,16 +78,15 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-//  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B]): Traversal[B] =
-//    repeat(repeatTraversal)(RepeatBehaviour.noop[B] _)
+  def repeatX[B >: A](behaviour: RepeatBehaviour2.Builder[A] => RepeatBehaviour2.Builder[B]): Traversal[B] = {
+    val b = behaviour(new RepeatBehaviour2.Builder[A](this)).build
+    ???
+  }
 
-//  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])(
-//    //                     behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B])
-//    behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B],
                      behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
   : Traversal[B] = {
-    val behaviour = behaviourBuilder(new traversal.RepeatBehaviour.Builder[B]).build
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     _repeat(
       repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]],
       behaviour,
