@@ -10,35 +10,48 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
 
 sealed trait EmitBehaviour
 trait EmitNothing extends EmitBehaviour
-trait EmitEverything extends EmitBehaviour
+trait EmitAll extends EmitBehaviour
+trait EmitAllButFirst extends EmitBehaviour
 trait EmitConditional[A] extends EmitBehaviour {
   def emit(a: A): Boolean
 }
 
 object RepeatBehaviour {
 
-  def noop[A](builder: RepeatBehaviour.Builder[A]) = builder
+  def noop[A](builder: RepeatBehaviour.Builder[A]): Builder[A] = builder
 
   class Builder[A] {
-    private[this] var emitNothing: Boolean = true
-    private[this] var emitEverything: Boolean = false
-    private[this] var emitCondition: Option[A => Boolean] = None
+    private[this] var _emitNothing: Boolean = true
+    private[this] var _emitAll: Boolean = false
+    private[this] var _emitAllButFirst: Boolean = false
+    private[this] var _emitCondition: Option[A => Boolean] = None
     private[this] var _untilCondition: Option[A => Boolean] = None
     private[this] var _times: Option[Int] = None
 
     /* configure `repeat` step to emit everything along the way */
     def emit: Builder[A] = {
-      emitCondition = Some(_ => true)
-      emitNothing = false
-      emitEverything = true
+      _emitNothing = false
+      _emitAll = true
+      _emitAllButFirst = false
+      _emitCondition = Some(_ => true)
+      this
+    }
+
+    /* configure `repeat` step to emit everything along the way, apart from the _first_ element */
+    def emitAllButFirst: Builder[A] = {
+      _emitNothing = false
+      _emitAll = false
+      _emitAllButFirst = true
+      _emitCondition = Some(_ => true)
       this
     }
 
     /* configure `repeat` step to emit whatever meets the given condition */
     def emit(condition: A => Boolean): Builder[A] = {
-      emitCondition = Some(condition)
-      emitNothing = false
-      emitEverything = false
+      _emitNothing = false
+      _emitAll = false
+      _emitAllButFirst = false
+      _emitCondition = Some(condition)
       this
     }
 
@@ -54,20 +67,26 @@ object RepeatBehaviour {
     }
 
     private[traversal] def build: RepeatBehaviour[A] = {
-      if (emitNothing) {
+      if (_emitNothing) {
         new RepeatBehaviour[A] with EmitNothing {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final override val times: Option[Int] = _times
         }
-      } else if (emitEverything) {
-        new RepeatBehaviour[A] with EmitEverything {
+      } else if (_emitAll) {
+        new RepeatBehaviour[A] with EmitAll {
+          override final val untilCondition: Option[A => Boolean] = _untilCondition
+          final override val times: Option[Int] = _times
+        }
+      } else if (_emitAllButFirst) {
+        new RepeatBehaviour[A] with EmitAllButFirst {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final override val times: Option[Int] = _times
         }
       } else {
+        val __emitCondition = _emitCondition
         new RepeatBehaviour[A] with EmitConditional[A] {
           override final val untilCondition: Option[A => Boolean] = _untilCondition
-          final private val _emitCondition = emitCondition.get
+          final private val _emitCondition = __emitCondition.get
           override final def emit(a: A): Boolean = _emitCondition(a)
           final override val times: Option[Int] = _times
         }

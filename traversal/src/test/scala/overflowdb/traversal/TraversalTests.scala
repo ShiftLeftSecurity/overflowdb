@@ -1,7 +1,6 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.traversal.testdomains.gratefuldead.GratefulDead
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
@@ -67,6 +66,11 @@ class TraversalTests extends WordSpec with Matchers {
     "emit everything along the way if so configured" in {
       centerTrav.repeat(_.followedBy)(_.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
       centerTrav.repeat(_.out)(_.emit).property("name").toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    }
+
+    "emit everything but the first element (starting point)" in {
+      centerTrav.repeat(_.followedBy)(_.emitAllButFirst).name.toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+      centerTrav.repeat(_.out)(_.emitAllButFirst).property("name").toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
     }
 
     "emit nodes that meet given condition" in {
