@@ -327,7 +327,7 @@ public abstract class OdbNode implements Vertex, Node {
   }
 
   @Override
-  public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
+  public OdbEdge addEdge2(String label, Node inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
 
@@ -339,6 +339,30 @@ public abstract class OdbNode implements Vertex, Node {
     dummyEdge.setInBlockOffset(inBlockOffset);
 
     return dummyEdge;
+  }
+
+  @Override
+  public OdbEdge addEdge2(String label, Node inNode, Map<String, Object> keyValues) {
+    return addEdge2(label, inNode, toKeyValueArray(keyValues));
+  }
+
+  @Override
+  public void addEdgeSilent(String label, Node inNode, Object... keyValues) {
+    final NodeRef inNodeRef = (NodeRef) inNode;
+    NodeRef thisNodeRef = ref;
+
+    storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
+    inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
+  }
+
+  @Override
+  public void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues) {
+    addEdgeSilent(label, inNode, toKeyValueArray(keyValues));
+  }
+
+  @Override
+  public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
+    return addEdge2(label, (Node) inNode, keyValues);
   }
 
   @Override
@@ -772,6 +796,18 @@ public abstract class OdbNode implements Vertex, Node {
 
   public final boolean isDirty() {
     return dirty;
+  }
+
+  private Object[] toKeyValueArray(Map<String, Object> keyValues) {
+    final Object[] keyValuesArray = new Object[keyValues.size() * 2];
+    int i = 0;
+    final Iterator<Map.Entry<String, Object>> iterator = keyValues.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Map.Entry<String, Object> entry = iterator.next();
+      keyValuesArray[i++] = entry.getKey();
+      keyValuesArray[i++] = entry.getValue();
+    }
+    return keyValuesArray;
   }
 
 }
