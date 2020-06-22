@@ -2,19 +2,18 @@ package overflowdb.traversal
 
 import overflowdb.{Node, OdbGraph}
 
-// TODO stop using `cast` step once we have our own core api
 abstract class TraversalSource(graph: OdbGraph) {
   def all: Traversal[Node] =
-    Traversal(graph.vertices()).cast[Node]
+    Traversal(graph.nodes())
 
   def id(id: Long): Traversal[Node] =
-    Traversal(graph.vertices(id)).cast[Node]
+    Traversal(graph.node(id))
 
   def idTyped[A <: Node](id: Long): Traversal[A] =
-    Traversal(graph.vertices(id)).cast[A]
+    Traversal(graph.node(id)).cast[A]
 
   def ids(ids: Long*): Traversal[Node] =
-    Traversal(graph.vertices(ids: _*)).cast[Node]
+    Traversal(graph.nodes(ids: _*))
 
   def label(label: String): Traversal[Node] =
     Traversal(graph.nodesByLabel(label))
