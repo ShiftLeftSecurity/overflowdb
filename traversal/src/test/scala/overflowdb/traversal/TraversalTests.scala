@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb.traversal.testdomains.gratefuldead.GratefulDead
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable

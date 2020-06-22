@@ -7,6 +7,7 @@ package object gratefuldead {
 
   implicit class ArtistTraversal(val trav: Traversal[Artist]) extends AnyVal {
     def sangSongs: Traversal[Song] = trav.flatMap(_.sangSongs)
+    def wroteSongs: Traversal[Song] = trav.flatMap(_.wroteSongs)
 
     def name: Traversal[String] = trav.map(_.name)
     def name(regexp: String): Traversal[Artist] = StringPropertyFilter.regexp(trav)(_.name, regexp)
@@ -23,7 +24,10 @@ package object gratefuldead {
 
   implicit class SongTraversal(val trav: Traversal[Song]) extends AnyVal {
     def followedBy: Traversal[Song] = trav.flatMap(_.followedBy)
-    
+
+    def writtenBy: Traversal[Artist] = trav.flatMap(_.writtenBy)
+    def sungBy: Traversal[Artist] = trav.flatMap(_.sungBy)
+
     def name: Traversal[String] = trav.map(_.name)
     def name(regexp: String): Traversal[Song] = StringPropertyFilter.regexp(trav)(_.name, regexp)
     def name(regexps: String*): Traversal[Song] = StringPropertyFilter.regexpMultiple(trav)(_.name, regexps)
