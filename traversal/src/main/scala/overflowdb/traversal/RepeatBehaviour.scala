@@ -17,6 +17,8 @@ trait EmitConditional[A] extends EmitBehaviour {
 
 object RepeatBehaviour {
 
+  def noop[A](builder: RepeatBehaviour.Builder[A]) = builder
+
   class Builder[A] {
     private[this] var emitNothing: Boolean = true
     private[this] var emitEverything: Boolean = false

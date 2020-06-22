@@ -16,6 +16,12 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) {
   /* Song --- followedBy --- Song */
   def followedBy: Traversal[Song] = out(FollowedBy.Label).toScalaAs[Song]
 
+  /* Artist <-- sungBy --- Song */
+  def sungBy: Traversal[Artist] = out(SungBy.Label).toScalaAs[Artist]
+
+  /* Artist <-- writtenBy --- Song */
+  def writtenBy: Traversal[Artist] = out(WrittenBy.Label).toScalaAs[Artist]
+
   override def valueMap = {
     val properties = new java.util.HashMap[String, Any]
     if (_name != null) properties.put(Song.PropertyNames.Name, _name)

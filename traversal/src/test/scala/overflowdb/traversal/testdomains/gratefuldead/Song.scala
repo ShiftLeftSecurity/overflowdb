@@ -14,6 +14,12 @@ class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) {
 
   /* Song --- followedBy --- Song */
   def followedBy: Traversal[Song] = get.followedBy
+
+  /* Artist <-- sungBy --- Song */
+  def sungBy: Traversal[Artist] = get.sungBy
+
+  /* Artist <-- writtenBy --- Song */
+  def writtenBy: Traversal[Artist] = get.writtenBy
 }
 
 object Song {

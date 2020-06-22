@@ -12,6 +12,9 @@ class Artist(graph: OdbGraph, id: Long) extends NodeRef[ArtistDb](graph, id) {
 
   /* Artist <-- sungBy --- Song */
   def sangSongs: Traversal[Song] = get.sangSongs
+
+  /* Artist <-- writtenBy --- Song */
+  def wroteSongs: Traversal[Song] = get.wroteSongs
 }
 
 object Artist {

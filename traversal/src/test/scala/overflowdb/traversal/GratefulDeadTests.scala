@@ -93,4 +93,15 @@ class GratefulDeadTests extends WordSpec with Matchers {
       Traversal.from(artists).sangSongs.size shouldBe 31
     }
   }
+
+  "repeat step" can {
+    "across all playlists, how many distinct singers appear 3 places after songs sang by 'Hunter'?" in {
+      gratefulDead.artists.name("Hunter")
+        .sangSongs
+        .repeat(_.followedBy)(_.times(3))
+        .sungBy
+        .toSet
+        .size shouldBe 43
+    }
+  }
 }
