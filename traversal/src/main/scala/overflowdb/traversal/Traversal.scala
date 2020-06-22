@@ -97,7 +97,7 @@ class Traversal[A](elements: IterableOnce[A])
       // we're at the end - emit whatever we collected on the way plus the current position
       (emitSack.iterator ++ this).to(Traversal)
     } else {
-      traversalConsideringEmit(behaviour, emitSack).flatMap { element =>
+      traversalConsideringEmit(behaviour, emitSack, currentDepth).flatMap { element =>
         if (behaviour.untilCondition.isDefined && behaviour.untilCondition.get.apply(element)) {
           // `until` condition reached - finishing the repeat traversal here, emitting the current element and the emitSack (if any)
           Traversal.from(emitSack, element)
@@ -109,10 +109,12 @@ class Traversal[A](elements: IterableOnce[A])
     }
   }
 
-  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B]): Traversal[B] =
+  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B], currentDepth: Int): Traversal[B] =
     behaviour match {
       case _: EmitNothing    => this
-      case _: EmitEverything => this.sideEffect(emitSack.addOne(_))
+      case _: EmitAll => this.sideEffect(emitSack.addOne(_))
+      case _: EmitAllButFirst if currentDepth > 0 => this.sideEffect(emitSack.addOne(_))
+      case _: EmitAllButFirst => this
       case conditional: EmitConditional[A] =>
         this.sideEffect { a =>
           if (conditional.emit(a)) emitSack.addOne(a)
