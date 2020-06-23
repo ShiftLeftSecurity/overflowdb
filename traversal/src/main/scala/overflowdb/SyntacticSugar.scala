@@ -60,16 +60,16 @@ class NodeSugar[N <: Node](val node: N) extends AnyVal {
 
 private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq[Property[_]]) {
   def -->(inNode: Node): OdbEdge = {
-    val tinkerpopKeyValues = new Array[Any](properties.size * 2)
+    val keyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
     properties.foreach { case Property(key, value) =>
-      tinkerpopKeyValues.update(i, key.name)
+      keyValues.update(i, key.name)
       i += 1
-      tinkerpopKeyValues.update(i, value)
+      keyValues.update(i, value)
       i += 1
     }
 
-    outNode.addEdge(label, inNode, tinkerpopKeyValues: _*).asInstanceOf[OdbEdge]
+    outNode.addEdge2(label, inNode, keyValues: _*)
   }
 }
 
