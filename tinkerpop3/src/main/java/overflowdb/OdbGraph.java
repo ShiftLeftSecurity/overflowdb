@@ -151,10 +151,10 @@ public final class OdbGraph implements Graph {
   ////////////// STRUCTURE API METHODS //////////////////
 
   public Node addNode(final String label, final Object... keyValues) {
-    return addNode(label, currentId.incrementAndGet(), keyValues);
+    return addNode(currentId.incrementAndGet(), label, keyValues);
   }
 
-  public Node addNode(final String label, final long id, final Object... keyValues) {
+  public Node addNode(final long id, final String label, final Object... keyValues) {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
@@ -176,7 +176,7 @@ public final class OdbGraph implements Graph {
     final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
     Optional<Long> suppliedId = ElementHelper.getIdValue(keyValues).map(this::parseLong);
     long id = suppliedId.orElseGet(() -> currentId.incrementAndGet());
-    return addNode(label, id, keyValues);
+    return addNode(id, label, keyValues);
   }
 
   private long parseLong(Object id) {

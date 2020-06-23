@@ -111,6 +111,12 @@ public abstract class OdbEdge implements Edge, OdbElement {
 
   @Override
   public <V> Property<V> property(String key, V value) {
+    setProperty(key, value);
+    return new OdbProperty<>(key, value, this);
+  }
+
+  @Override
+  public <P> void setProperty(String key, P value) {
     // TODO check if it's an allowed property key
     if (inBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
       if (outBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
@@ -125,12 +131,6 @@ public abstract class OdbEdge implements Edge, OdbElement {
     }
     inNode.get().setEdgeProperty(Direction.IN, label, key, value, inBlockOffset);
     outNode.get().setEdgeProperty(Direction.OUT, label, key, value, outBlockOffset);
-    return new OdbProperty<>(key, value, this);
-  }
-
-  @Override
-  public <P> void setProperty(String key, P value) {
-    this.property(key, value);
   }
 
   @Override

@@ -150,8 +150,8 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
 
   @Override
   public boolean equals(final Object obj) {
-    if (obj instanceof NodeRef) {
-      return id().equals(((NodeRef) obj).id());
+    if (obj instanceof Node) {
+      return id().equals(((Node) obj).id());
     } else {
       return false;
     }
@@ -160,6 +160,26 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
     return this.get().addEdge(label, inVertex, keyValues);
+  }
+
+  @Override
+  public OdbEdge addEdge2(String label, Node inNode, Object... keyValues) {
+    return this.get().addEdge2(label, inNode, keyValues);
+  }
+
+  @Override
+  public OdbEdge addEdge2(String label, Node inNode, Map<String, Object> keyValues) {
+    return this.get().addEdge2(label, inNode, keyValues);
+  }
+
+  @Override
+  public void addEdgeSilent(String label, Node inNode, Object... keyValues) {
+    this.get().addEdgeSilent(label, inNode, keyValues);
+  }
+
+  @Override
+  public void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues) {
+    this.get().addEdgeSilent(label, inNode, keyValues);
   }
 
   @Override

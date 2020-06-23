@@ -2,7 +2,6 @@ package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
 import overflowdb.{Node, OdbEdge}
-import org.apache.tinkerpop.gremlin.structure.Direction
 
 class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
 

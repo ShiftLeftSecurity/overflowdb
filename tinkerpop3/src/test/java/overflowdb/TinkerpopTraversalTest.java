@@ -21,7 +21,8 @@ import static org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class TraversalTest {
+// TODO move to tinkerpop-subproject once it's factored out
+public class TinkerpopTraversalTest {
 
   @Test
   public void addV() {

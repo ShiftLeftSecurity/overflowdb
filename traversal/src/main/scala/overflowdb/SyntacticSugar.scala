@@ -9,14 +9,14 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
   def `+`(label: String): Node =
     graph.addNode(label)
 
-  def `+`(label: String, id: Long): Node =
-    graph.addNode(label, id)
+  def `+`(id: Long, label: String): Node =
+    graph.addNode(id, label)
 
   def `+`(label: String, properties: Property[_]*): Node =
     graph.addNode(label, keyValuesAsSeq(properties): _*)
 
   def `+`(label: String, id: Long, properties: Property[_]*): Node =
-    graph.addNode(label, id, keyValuesAsSeq(properties): _*)
+    graph.addNode(id, label, keyValuesAsSeq(properties): _*)
 
   private def keyValuesAsSeq(properties: Seq[Property[_]]): Seq[_] = {
     val builder = Seq.newBuilder[Any]
@@ -60,16 +60,16 @@ class NodeSugar[N <: Node](val node: N) extends AnyVal {
 
 private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq[Property[_]]) {
   def -->(inNode: Node): OdbEdge = {
-    val tinkerpopKeyValues = new Array[Any](properties.size * 2)
+    val keyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
     properties.foreach { case Property(key, value) =>
-      tinkerpopKeyValues.update(i, key.name)
+      keyValues.update(i, key.name)
       i += 1
-      tinkerpopKeyValues.update(i, value)
+      keyValues.update(i, value)
       i += 1
     }
 
-    outNode.addEdge(label, inNode, tinkerpopKeyValues: _*).asInstanceOf[OdbEdge]
+    outNode.addEdge2(label, inNode, keyValues: _*)
   }
 }
 
