@@ -1,6 +1,5 @@
 package overflowdb.storage;
 
-import org.apache.tinkerpop.gremlin.structure.T;
 import org.junit.Test;
 import overflowdb.OdbConfig;
 import overflowdb.OdbGraph;
@@ -22,7 +21,7 @@ public class OdbStorageTest {
     OdbConfig config = OdbConfig.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     try (OdbGraph graph = GratefulDead.newGraph(config)) {
-      graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+      graph.addNode(Song.label, Song.NAME, "Song 1");
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     assertTrue("storage should be persistent", storageFile.exists());
@@ -35,7 +34,7 @@ public class OdbStorageTest {
     final File tmpStorageFile;
 
     try (OdbGraph graph = GratefulDead.newGraph()) {
-      graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
+      graph.addNode(Song.label, Song.NAME, "Song 1");
       tmpStorageFile = graph.getStorage().getStorageFile();
     } // ARM auto-close will trigger saving to disk because we specified a location
 

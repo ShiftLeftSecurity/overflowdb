@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 // TODO move to tinkerpop-subproject once it's factored out
-public class TraversalTest {
+public class TinkerpopTraversalTest {
 
   @Test
   public void addV() {

@@ -1,9 +1,7 @@
 package overflowdb;
 
-import overflowdb.testdomains.simple.TestNode;
 import overflowdb.testdomains.simple.SimpleDomain;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.junit.Test;
+import overflowdb.testdomains.simple.TestNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +24,12 @@ public class OverflowTest {
         if (i % 1000 == 0) {
           System.out.println(i + " nodes created");
         }
-        Vertex v = graph.addVertex(TestNode.LABEL);
+        Node n = graph.addNode(TestNode.LABEL);
         List<Integer> ints = new ArrayList<>();
         for (int j = 0; j < 1000; j++) {
           ints.add(currentInt++);
         }
-        v.property(TestNode.INT_LIST_PROPERTY, ints);
+        n.setProperty(TestNode.INT_LIST_PROPERTY, ints);
       }
     }
   }
