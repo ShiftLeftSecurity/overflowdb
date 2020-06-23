@@ -15,4 +15,6 @@ public interface OdbElement {
   Map<String, Object> propertyMap();
 
   <P> void setProperty(String key, P value);
+
+  void remove();
 }
