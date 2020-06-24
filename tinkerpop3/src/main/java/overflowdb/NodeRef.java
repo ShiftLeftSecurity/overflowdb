@@ -1,9 +1,9 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import overflowdb.tp3.Converters;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -208,13 +208,13 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   }
 
   @Override
-  public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
+  public Iterator<Edge> edges(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
     return this.get().edges(direction, edgeLabels);
   }
 
   @Override
-  public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
-    return nodes(direction, edgeLabels);
+  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
+    return nodes(Converters.fromTinker(direction), edgeLabels);
   }
 
   /* lookup adjacent nodes via direction and labels */

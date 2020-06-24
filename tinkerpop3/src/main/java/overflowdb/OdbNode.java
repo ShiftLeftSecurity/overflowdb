@@ -1,10 +1,10 @@
 package overflowdb;
 
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import overflowdb.tp3.Converters;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.PackedIntArray;
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
@@ -203,7 +203,7 @@ public abstract class OdbNode implements Vertex, Node {
   public void remove() {
     OdbGraph graph = ref.graph;
     final List<Edge> edges = new ArrayList<>();
-    this.edges(Direction.BOTH).forEachRemaining(edges::add);
+    bothE().forEachRemaining(edges::add);
     for (Edge edge : edges) {
       if (!((OdbEdge) edge).isRemoved()) {
         edge.remove();
@@ -366,7 +366,8 @@ public abstract class OdbNode implements Vertex, Node {
   }
 
   @Override
-  public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
+  public Iterator<Edge> edges(org.apache.tinkerpop.gremlin.structure.Direction tinkerDirection, String... edgeLabels) {
+    Direction direction = Converters.fromTinker(tinkerDirection);
     final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
     if (direction == Direction.IN || direction == Direction.BOTH) {
       for (String label : calcInLabels(edgeLabels)) {
@@ -385,8 +386,8 @@ public abstract class OdbNode implements Vertex, Node {
   }
 
   @Override
-  public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
-    return nodes(direction, edgeLabels);
+  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
+    return nodes(Converters.fromTinker(direction), edgeLabels);
   }
 
   /* lookup adjacent nodes via direction and labels */
