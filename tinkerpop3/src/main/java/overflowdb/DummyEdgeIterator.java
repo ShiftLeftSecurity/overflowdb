@@ -1,7 +1,5 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

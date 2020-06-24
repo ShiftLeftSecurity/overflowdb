@@ -1,6 +1,5 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
@@ -78,7 +77,7 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   @Override
-  public Iterator<Vertex> vertices(Direction direction) {
+  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction) {
     switch (direction) {
       case OUT:
         return IteratorUtils.of(outNode);
