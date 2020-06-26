@@ -1,8 +1,11 @@
 package overflowdb.traversal
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
+import scala.annotation.tailrec
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -78,6 +81,75 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
+  // simplified version of `repeat`, try to make tailrec, unsuccessfully though
+//  @tailrec
+  def repeat2(repeatTraversal: Traversal[A] => Traversal[A], repeatCount: Int): Traversal[A] = {
+    if (isEmpty || repeatCount <= 0) {
+      this
+    } else {
+      this.flatMap { element =>
+        val elementLifted = Traversal.fromSingle(element)
+        //todo to allow to make this tail recursive, ensure that it always calls exactly itself as the last statement
+        repeatTraversal(elementLifted).repeat2(repeatTraversal, repeatCount - 1)
+      }
+    }
+  }
+
+  // loopy version of above _repeat2: also results in a stackoverflowerror... make it eager?
+  def repeat3(repeatTraversal: Traversal[A] => Traversal[A], repeatCount: Int): Traversal[A] = {
+    var _repeatCount = repeatCount
+    var ret: Traversal[A] = this
+    // TODO also check for `isEmpty`
+    while (_repeatCount > 0) {
+      // TODO this also results in a stackoverflowerror... make it eager? or flatMap?
+      ret = repeatTraversal(ret)
+      _repeatCount -= 1
+    }
+    ret
+  }
+
+  // A => Traversal[A] version of `repeat3` - internal flatMap loop still results in SOError
+  def repeat4(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+    var _repeatCount = repeatCount
+    var ret: Traversal[A] = this
+    // TODO also check for `isEmpty` for non-cyclic graphs
+    while (_repeatCount > 0) {
+      ret = ret.flatMap(repeatTraversal)
+      _repeatCount -= 1
+    }
+    ret
+  }
+
+  // first actual tail recursive version, but still fails with SO - kinda makes sense - what does TP do differently, if anything?
+  @tailrec
+  final def repeat5(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+    if (repeatCount <= 0) this
+    else {
+      flatMap(repeatTraversal).repeat5(repeatTraversal, repeatCount - 1)
+    }
+  }
+
+  // try without recursive calls and using eager evaluation
+  final def repeat6(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+    var e = elements.toBuffer
+    // idea: evaluating eagerly is the key - put it inside a `map` step to make it lazy again?
+    0.until(repeatCount).foreach { _ =>
+      e = e.flatMap(repeatTraversal)
+    }
+    Traversal(e)
+  }
+
+  // using non-lazy buffer, but put it inside a `map` step to make it lazy again
+  final def repeat7(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+    flatMap { a: A =>
+      var ret = mutable.Buffer(a)
+      0.until(repeatCount).foreach { _ =>
+        ret = ret.flatMap(repeatTraversal)
+      }
+      Traversal(ret)
+    }
+  }
+
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
                     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
   : Traversal[B] = {
@@ -132,6 +204,8 @@ class Traversal[A](elements: IterableOnce[A])
           Traversal.logger.warn("Traversal already exhausted")
         else isExhausted = true
       }
+//      println(s"XXX hasNext=${_hasNext}")
+      GlobalCounter.hasNextInvocationCount.incrementAndGet()
       _hasNext
     }
 
@@ -174,4 +248,8 @@ object Traversal extends IterableFactory[Traversal] {
   }
 
   def fromSingle[A](a: A): Traversal[A] = new Traversal(Iterator.single(a))
+}
+
+object GlobalCounter {
+  var hasNextInvocationCount = new AtomicInteger(0)
 }

@@ -2,8 +2,8 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
-
 import scala.collection.mutable
+
 
 class TraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
