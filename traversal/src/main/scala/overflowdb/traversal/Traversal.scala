@@ -139,16 +139,44 @@ class Traversal[A](elements: IterableOnce[A])
     Traversal(e)
   }
 
-  // using non-lazy buffer, but put it inside a `map` step to make it lazy again
+  // using non-lazy buffer, but put it inside a `map` step to make it lazy again - this works! it's BFS
   final def repeat7(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
     flatMap { a: A =>
-      var ret = mutable.Buffer(a)
+      var ret = mutable.Buffer(a) //TODO use immutable?
       0.until(repeatCount).foreach { _ =>
         ret = ret.flatMap(repeatTraversal)
       }
       Traversal(ret)
     }
   }
+
+  // like repeat7, but DFS, and doesn't fail with StackOverflow!
+  // TODO do more for thread safety?
+  final def repeat8(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] =
+    flatMap { a: A =>
+      val ret = new Iterator[A]{
+        var buffer: Traversal[A] = Traversal.empty
+
+        override def hasNext: Boolean = {
+          if (buffer.isEmpty) attemptFillBuffer
+          buffer.nonEmpty
+        }
+
+        override def next(): A =
+          if (!hasNext) throw new NoSuchElementException("next on empty iterator")
+          else buffer.head
+
+        private def attemptFillBuffer: Unit = {
+          var ret = Traversal.fromSingle(a)
+          0.until(repeatCount).foreach { _ =>
+            ret = ret.flatMap(repeatTraversal)
+          }
+          buffer = ret
+        }
+      }
+
+      Traversal(ret)
+    }
 
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
                     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
