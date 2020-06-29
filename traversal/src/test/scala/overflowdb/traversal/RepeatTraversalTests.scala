@@ -71,40 +71,12 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   "support arbitrary `until` condition" when {
     "used without emit" in {
       centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
-
-      withClue("asserting more fine-grained traversal characteristics") {
-        val traversedNodes = mutable.ListBuffer.empty[Thing]
-        val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.until(_.name.endsWith("2"))).name
-
-        // hasNext will run the provided repeat traversal exactly 2 times (as configured)
-        traversal.hasNext shouldBe true
-        traversedNodes.size shouldBe 2
-        // hasNext is idempotent
-        traversal.hasNext shouldBe true
-        traversedNodes.size shouldBe 2
-
-        traversal.next shouldBe "L2"
-        traversal.next shouldBe "R2"
-        traversedNodes.size shouldBe 3
-        traversedNodes.map(_.name).to(Set) shouldBe Set("Center", "L1", "R1")
-        traversal.hasNext shouldBe false
-      }
     }
 
     "used in combination with emit" in {
       centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2")).emit).name.toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
       centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2")).emit).property(Name).toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
     }
-  }
-
-  "uses DFS (depth first search) by default" ignore {
-    // TODO detailed step analysis as at the bottom
-    ???
-  }
-
-  "uses DFS (depth first search) if configured" ignore {
-    // TODO detailed step analysis as at the bottom
-    ???
   }
 
   "is lazy" in {
@@ -120,6 +92,16 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
+  "uses DFS (depth first search) by default" ignore {
+    // TODO detailed step analysis as at the bottom
+    ???
+  }
+
+  "uses DFS (depth first search) if configured" ignore {
+    // TODO detailed step analysis as at the bottom
+    ???
+  }
+
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     def test(traverse: => Iterable[_]) = {
@@ -129,10 +111,10 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       results.size shouldBe 0
     }
 
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).l)
+    test(centerTrav.repeatX{ node => traversedNodes.addOne(node); node.followedBy}.l)
+    test(centerTrav.repeatX{ node => traversedNodes.addOne(node); node.followedBy}(_.breadthFirstSearch).l)
+    test(centerTrav.repeatX{ node => traversedNodes.addOne(node); node.out}.l)
+    test(centerTrav.repeatX{ node => traversedNodes.addOne(node); node.out}(_.breadthFirstSearch).l)
 
     withClue("for reference: this behaviour is adapted from tinkerpop") {
       import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
