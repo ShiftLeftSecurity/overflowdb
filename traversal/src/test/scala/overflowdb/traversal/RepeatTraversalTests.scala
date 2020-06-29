@@ -5,47 +5,23 @@ import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import Thing.Properties.Name
 
 
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
-  "be lazy" in {
-    val traversedNodes = mutable.ListBuffer.empty[Node]
-    val traversalNotYetExecuted = {
-      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))
-      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
-      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))
-      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
-    }
-    withClue("traversal should not do anything when it's only created") {
-      traversedNodes.size shouldBe 0
-    }
-  }
-
-  "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
-    val traversedNodes = mutable.ListBuffer.empty[Thing]
-    def test(traverse: => Iterable[_]) = {
-      traversedNodes.clear
-      val results = traverse
-      traversedNodes.size shouldBe 8
-      results.size shouldBe 0
+  "support `times` modulator" when {
+    "used without emit" in {
+      val expectedResults = Set("L2", "R2")
+      centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe expectedResults
     }
 
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l)
-    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).l)
-
-    withClue("for reference: this behaviour is adapted from tinkerpop") {
-      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-      import org.apache.tinkerpop.gremlin.process.traversal.Traverser
-      import org.apache.tinkerpop.gremlin.process.traversal.{Traversal => TPTraversal}
-      test(
-        __(centerNode).repeat(
-          __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
-              .out().asInstanceOf[TPTraversal[_, Thing]]
-        ).toList.asScala)
+    "used in combination with emit" in {
+      val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
+      centerTrav.repeatX(_.followedBy)(_.times(2).emit).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.followedBy)(_.times(2).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
     }
   }
 
@@ -89,24 +65,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
     "used in combination with emit" in {
       centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2")).emit).name.toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
-
-      import Thing.Properties.Name
       centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2")).emit).property(Name).toSet shouldBe Set("Center", "L1", "L2", "R1", "R2")
-    }
-  }
-
-  "support `times` modulator" when {
-
-    "used without emit" in {
-      val expectedResults = Set("L2", "R2")
-      centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe expectedResults
-      centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe expectedResults
-    }
-
-    "used in combination with emit" in {
-      val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
-      centerTrav.repeatX(_.followedBy)(_.times(2).emit).name.toSet shouldBe expectedResults
-      centerTrav.repeatX(_.followedBy)(_.times(2).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
     }
   }
 
@@ -118,6 +77,45 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   "uses DFS (depth first search) if configured" in {
     // TODO detailed step analysis as at the bottom
     ???
+  }
+
+  "is lazy" in {
+    val traversedNodes = mutable.ListBuffer.empty[Node]
+    val traversalNotYetExecuted = {
+      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))
+      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
+      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))
+      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
+    }
+    withClue("traversal should not do anything when it's only created") {
+      traversedNodes.size shouldBe 0
+    }
+  }
+
+  "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
+    val traversedNodes = mutable.ListBuffer.empty[Thing]
+    def test(traverse: => Iterable[_]) = {
+      traversedNodes.clear
+      val results = traverse
+      traversedNodes.size shouldBe 8
+      results.size shouldBe 0
+    }
+
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).l)
+
+    withClue("for reference: this behaviour is adapted from tinkerpop") {
+      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+      import org.apache.tinkerpop.gremlin.process.traversal.Traverser
+      import org.apache.tinkerpop.gremlin.process.traversal.{Traversal => TPTraversal}
+      test(
+        __(centerNode).repeat(
+          __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
+            .out().asInstanceOf[TPTraversal[_, Thing]]
+        ).toList.asScala)
+    }
   }
 
 }
