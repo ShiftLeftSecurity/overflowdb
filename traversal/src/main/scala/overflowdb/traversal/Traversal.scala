@@ -140,7 +140,11 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   // using non-lazy buffer, but put it inside a `map` step to make it lazy again - this works! it's BFS
-  final def repeatBfs(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+  final def repeatBfs(repeatTraversal: A => Traversal[A])
+                     (implicit behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = RepeatBehaviour.noop[A] _)
+                     : Traversal[A] = {
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[A]).build
+    val repeatCount = behaviour.times.get
     flatMap { a: A =>
       val ret = (0 until repeatCount).foldLeft(List(a)){(trav, _) =>
         trav.flatMap(repeatTraversal)
@@ -150,30 +154,35 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   // like repeat7, but DFS, and doesn't fail with StackOverflow!
-  final def repeatDfs(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] =
+  final def repeatDfs(repeatTraversal: A => Traversal[A])
+                     (implicit behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = RepeatBehaviour.noop[A] _)
+                     : Traversal[A] = {
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[A]).build
+    val repeatCount = behaviour.times.get
     flatMap { a: A =>
-      Traversal(new Iterator[A]{
-        var buffer: Traversal[A] = Traversal.empty
-        var exhausted = false
+        Traversal(new Iterator[A]{
+          var buffer: Traversal[A] = Traversal.empty
+          var exhausted = false
 
-        override def hasNext: Boolean = {
-          if (buffer.isEmpty) attemptFillBuffer
-          buffer.nonEmpty
-        }
+          override def hasNext: Boolean = {
+            if (buffer.isEmpty) attemptFillBuffer
+            buffer.nonEmpty
+          }
 
-        override def next: A =
-          buffer.head
+          override def next: A =
+            buffer.head
 
-        private def attemptFillBuffer: Unit =
-          synchronized {
-            if (buffer.isEmpty && !exhausted) {
-              exhausted = true
-              buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
-                trav.flatMap(repeatTraversal)
+          private def attemptFillBuffer: Unit =
+            synchronized {
+              if (buffer.isEmpty && !exhausted) {
+                exhausted = true
+                buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
+                  trav.flatMap(repeatTraversal)
+                }
               }
             }
-          }
-      })
+        })
+      }
     }
 
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])

@@ -85,32 +85,40 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "support `times` modulator" when {
-    "used without emit" in {
-      val results = centerTrav.repeat(_.followedBy)(_.times(2)).name.toSet
-      results shouldBe Set("L2", "R2")
+    "used without emit" when {
 
-      withClue("asserting more fine-grained traversal characteristics") {
-        val traversedNodes = mutable.ListBuffer.empty[Thing]
-        val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.times(2)).name
-
-        // hasNext will run the provided repeat traversal exactly 2 times (as configured)
-        traversal.hasNext shouldBe true
-        traversedNodes.size shouldBe 2
-        // hasNext is idempotent
-        traversal.hasNext shouldBe true
-        traversedNodes.size shouldBe 2
-
-        traversal.next shouldBe "L2"
-        traversal.next shouldBe "R2"
-        traversedNodes.size shouldBe 3
-        traversedNodes.map(_.name).to(Set) shouldBe Set("Center", "L1", "R1")
-        traversal.hasNext shouldBe false
+      "using DFS" in {
+        centerTrav.repeatDfs(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
       }
-    }
 
-    "used in combination with emit" in {
-      val results = centerTrav.repeat(_.followedBy)(_.times(2).emit).name.toSet
-      results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+      "using BFS" in {
+        centerTrav.repeatDfs(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
+      }
+
+      "used in combination with emit" in {
+        ???
+//        val results = centerTrav.repeat(_.followedBy)(_.times(2).emit).name.toSet
+//        results shouldBe Set("Center", "L1", "L2", "R1", "R2")
+      }
     }
   }
 }
+
+// TODO
+//withClue("asserting more fine-grained traversal characteristics") {
+//  val traversedNodes = mutable.ListBuffer.empty[Thing]
+//  val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.times(2)).name
+//
+//  // hasNext will run the provided repeat traversal exactly 2 times (as configured)
+//  traversal.hasNext shouldBe true
+//  traversedNodes.size shouldBe 2
+//  // hasNext is idempotent
+//  traversal.hasNext shouldBe true
+//  traversedNodes.size shouldBe 2
+//
+//  traversal.next shouldBe "L2"
+//  traversal.next shouldBe "R2"
+//  traversedNodes.size shouldBe 3
+//  traversedNodes.map(_.name).to(Set) shouldBe Set("Center", "L1", "R1")
+//  traversal.hasNext shouldBe false
+//}
