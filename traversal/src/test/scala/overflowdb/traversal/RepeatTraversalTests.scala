@@ -10,37 +10,54 @@ import Thing.Properties.Name
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
+  "typical case for both domain-specific steps" in {
+    centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
+  }
+
+  "typical case for both generic graph steps" in {
+    centerTrav.repeatX(_.out)(_.times(2)).property(Name).toSet shouldBe Set("L2", "R2")
+  }
+
   "repeat given traversal X times" should {
     "return only the final elements" in {
       val expectedResults = Set("L2", "R2")
       centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe expectedResults
       centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(2)).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(2).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
 
     "return only the final elements - if any" in {
       val expectedResults = Set("R4") // there is no L4
       centerTrav.repeatX(_.followedBy)(_.times(4)).name.toSet shouldBe expectedResults
       centerTrav.repeatX(_.followedBy)(_.times(4).breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(4)).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(4).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
 
     "return everything along the way also, if used in combination with emit" in {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
       centerTrav.repeatX(_.followedBy)(_.times(2).emit).name.toSet shouldBe expectedResults
       centerTrav.repeatX(_.followedBy)(_.times(2).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(2).emit).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.times(2).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
   }
 
   "emit everything along the way if so configured" in {
     val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
     centerTrav.repeatX(_.followedBy)(_.emit).name.toSet shouldBe expectedResults
-    centerTrav.repeatX(_.out)(_.emit).property("name").toSet shouldBe expectedResults
     centerTrav.repeatX(_.followedBy)(_.emit.breadthFirstSearch).name.toSet shouldBe expectedResults
+    centerTrav.repeatX(_.out)(_.emit).property("name").toSet shouldBe expectedResults
     centerTrav.repeatX(_.out)(_.emit.breadthFirstSearch).property("name").toSet shouldBe expectedResults
   }
 
   "emit everything but the first element (starting point)" in {
-    centerTrav.repeat(_.followedBy)(_.emitAllButFirst).name.toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
-    centerTrav.repeat(_.out)(_.emitAllButFirst).property("name").toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+    centerTrav.repeatX(_.followedBy)(_.emitAllButFirst).name.toSet shouldBe expectedResults
+    centerTrav.repeatX(_.followedBy)(_.emitAllButFirst.breadthFirstSearch).name.toSet shouldBe expectedResults
+    centerTrav.repeatX(_.out)(_.emitAllButFirst).property("name").toSet shouldBe expectedResults
+    centerTrav.repeatX(_.out)(_.emitAllButFirst.breadthFirstSearch).property("name").toSet shouldBe expectedResults
   }
 
   "emit nodes that meet given condition" in {

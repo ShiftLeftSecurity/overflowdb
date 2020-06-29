@@ -119,7 +119,7 @@ class Traversal[A](elements: IterableOnce[A])
                   var traversal = Traversal.fromSingle(element)
                   var currentDepth = 0
                   while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
-                    traversal = traversalConsideringEmit3(traversal)
+                    traversal = traversalConsideringEmit3(traversal, currentDepth)
                     currentDepth += 1
                   }
 
@@ -137,13 +137,13 @@ class Traversal[A](elements: IterableOnce[A])
             emitSack = Nil
           }
 
-          private def traversalConsideringEmit3(traversal: Traversal[B]): Traversal[B] = {
+          private def traversalConsideringEmit3(traversal: Traversal[B], currentDepth: Int): Traversal[B] = {
+            // TODO refactor: remove duplication
             behaviour match {
               case _: EmitNothing    => traversal.flatMap(repeatTraversal)
-              case _: EmitAll => traversal.sideEffect(addToSack).flatMap(repeatTraversal)
-              // TODO bring in other cases of `traversalConsideringEmit`
-//              case _: EmitAllButFirst if currentDepth > 0 => traversal.sideEffect(emitSack.addOne(_))
-//              case _: EmitAllButFirst => this
+              case _: EmitAll => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
+              case _: EmitAllButFirst if currentDepth > 0 => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
+              case _: EmitAllButFirst => traversal.flatMap(repeatTraversal)
 //              case conditional: EmitConditional[A] =>
 //                this.sideEffect { a =>
 //                  if (conditional.emit(a)) emitSack.addOne(a)
@@ -161,12 +161,13 @@ class Traversal[A](elements: IterableOnce[A])
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     val emitSack = mutable.ListBuffer.empty[B]
 
-    def traversalConsideringEmit2(results: List[B]): List[B] = {
+    def traversalConsideringEmit2(results: List[B], currentDepth: Int): List[B] = {
+      // TODO refactor: remove duplication
       behaviour match {
         case _: EmitNothing => results.flatMap(repeatTraversal)
         case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-//        case _: EmitAllButFirst if currentDepth > 0 => this.sideEffect(emitSack.addOne(_))
-//        case _: EmitAllButFirst => this
+        case _: EmitAllButFirst if currentDepth > 0 => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
+        case _: EmitAllButFirst => results.flatMap(repeatTraversal)
 //        case conditional: EmitConditional[A] =>
 //          this.sideEffect { a =>
 //            if (conditional.emit(a)) emitSack.addOne(a)
@@ -178,7 +179,7 @@ class Traversal[A](elements: IterableOnce[A])
       var traversalResults = List(element)
       var currentDepth = 0
       while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
-        traversalResults = traversalConsideringEmit2(traversalResults)
+        traversalResults = traversalConsideringEmit2(traversalResults, currentDepth)
         currentDepth += 1
       }
       Traversal(traversalResults ++ emitSack)
