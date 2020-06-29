@@ -13,6 +13,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     val traversalNotYetExecuted = {
       centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
+//      centerTrav.repeatBfs(_.sideEffect(traversedNodes.addOne).followedBy)
       centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)
     }
     withClue("traversal should not do anything when it's only created") {
@@ -27,6 +28,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
     traversedNodes.size shouldBe 16
     results.size shouldBe 0
+  }
+
+  "uses DFS (depth first search) by default" in {
+    ???
+  }
+
+  "uses DFS (depth first search) if configured" in {
+    ???
   }
 
   "emit everything along the way if so configured" in {

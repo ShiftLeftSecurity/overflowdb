@@ -142,9 +142,8 @@ class Traversal[A](elements: IterableOnce[A])
   // using non-lazy buffer, but put it inside a `map` step to make it lazy again - this works! it's BFS
   final def repeatBfs(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
     flatMap { a: A =>
-      var ret = List(a)
-      0.until(repeatCount).foreach { _ =>
-        ret = ret.flatMap(repeatTraversal)
+      val ret = (0 until repeatCount).foldLeft(List(a)){(trav, _) =>
+        trav.flatMap(repeatTraversal)
       }
       Traversal(ret)
     }
@@ -169,7 +168,7 @@ class Traversal[A](elements: IterableOnce[A])
           synchronized {
             if (buffer.isEmpty && !exhausted) {
               exhausted = true
-              buffer  = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
+              buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
                 trav.flatMap(repeatTraversal)
               }
             }
