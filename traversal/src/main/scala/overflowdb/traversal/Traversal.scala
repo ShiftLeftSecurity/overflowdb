@@ -8,9 +8,11 @@ import overflowdb.traversal.help.{Doc, TraversalHelp}
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
+import overflowdb.traversal.RepeatBehaviour._
+import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
 
 /**
-  * TODO more docs
+ * TODO more docs
   *
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
   * Since this may trip up users, we'll log a warning
@@ -83,7 +85,6 @@ class Traversal[A](elements: IterableOnce[A])
   final def repeatX[B >: A](repeatTraversal: A => Traversal[B])
                            (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
   : Traversal[B] = {
-    import RepeatBehaviour.SearchAlgorithm._
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
     behaviour.searchAlgorithm match {
@@ -126,7 +127,6 @@ class Traversal[A](elements: IterableOnce[A])
           }
 
           private def traversalConsideringEmit(traversal: Traversal[B]): Traversal[B] = {
-            import RepeatBehaviour._
             behaviour match {
               case _: EmitNothing    => traversal.flatMap(repeatTraversal)
               case _: EmitAll => traversal.sideEffect(addToSack).flatMap(repeatTraversal)
@@ -151,12 +151,31 @@ class Traversal[A](elements: IterableOnce[A])
 
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     lazy val repeatCount = behaviour.times.get
+    val emitSack = mutable.ListBuffer.empty[B]
+
+    def traversalConsideringEmit2(results: List[B]): List[B] = {
+      behaviour match {
+        case _: EmitNothing => results.flatMap(repeatTraversal)
+        case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
+//        case _: EmitAll => results.sideEffect(emitSack.addOne(_)).flatMap(repeatTraversal)
+//        case _: EmitAllButFirst if currentDepth > 0 => this.sideEffect(emitSack.addOne(_))
+//        case _: EmitAllButFirst => this
+//        case conditional: EmitConditional[A] =>
+//          this.sideEffect { a =>
+//            if (conditional.emit(a)) emitSack.addOne(a)
+//          }
+      }
+    }
+
     flatMap { element: B =>
-      Traversal((0 until repeatCount).foldLeft(List(element)){ (trav, _) =>
-        trav.flatMap(repeatTraversal)
-      })
+      val traversalResults =
+        (0 until repeatCount).foldLeft(List(element)){ (results, _) =>
+          traversalConsideringEmit2(results)
+        }
+      Traversal(traversalResults ++ emitSack)
     }
   }
+
 
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
                     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
@@ -189,8 +208,7 @@ class Traversal[A](elements: IterableOnce[A])
     }
   }
 
-  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B], currentDepth: Int): Traversal[B] = {
-    import RepeatBehaviour._
+  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B], currentDepth: Int): Traversal[B] =
     behaviour match {
       case _: EmitNothing    => this
       case _: EmitAll => this.sideEffect(emitSack.addOne(_))
@@ -201,7 +219,6 @@ class Traversal[A](elements: IterableOnce[A])
           if (conditional.emit(a)) emitSack.addOne(a)
         }
     }
-  }
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
