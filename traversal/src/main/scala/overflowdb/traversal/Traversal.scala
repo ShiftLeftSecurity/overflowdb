@@ -150,14 +150,12 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    lazy val repeatCount = behaviour.times.get
     val emitSack = mutable.ListBuffer.empty[B]
 
     def traversalConsideringEmit2(results: List[B]): List[B] = {
       behaviour match {
         case _: EmitNothing => results.flatMap(repeatTraversal)
         case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-//        case _: EmitAll => results.sideEffect(emitSack.addOne(_)).flatMap(repeatTraversal)
 //        case _: EmitAllButFirst if currentDepth > 0 => this.sideEffect(emitSack.addOne(_))
 //        case _: EmitAllButFirst => this
 //        case conditional: EmitConditional[A] =>
@@ -168,10 +166,12 @@ class Traversal[A](elements: IterableOnce[A])
     }
 
     flatMap { element: B =>
-      val traversalResults =
-        (0 until repeatCount).foldLeft(List(element)){ (results, _) =>
-          traversalConsideringEmit2(results)
-        }
+      var traversalResults = List(element)
+      var currentDepth = 0
+      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
+        traversalResults = traversalConsideringEmit2(traversalResults)
+        currentDepth += 1
+      }
       Traversal(traversalResults ++ emitSack)
     }
   }

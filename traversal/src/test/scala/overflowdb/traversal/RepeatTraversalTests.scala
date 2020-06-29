@@ -31,8 +31,11 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "emit everything along the way if so configured" in {
-    centerTrav.repeat(_.followedBy)(_.emit).name.toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    centerTrav.repeat(_.out)(_.emit).property("name").toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    centerTrav.repeatX(_.followedBy)(_.emit).name.toSet shouldBe expectedResults
+    centerTrav.repeatX(_.out)(_.emit).property("name").toSet shouldBe expectedResults
+    centerTrav.repeatX(_.followedBy)(_.emit.breadthFirstSearch).name.toSet shouldBe expectedResults
+    centerTrav.repeatX(_.out)(_.emit.breadthFirstSearch).property("name").toSet shouldBe expectedResults
   }
 
   "emit everything but the first element (starting point)" in {

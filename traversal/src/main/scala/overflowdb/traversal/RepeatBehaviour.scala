@@ -11,8 +11,6 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
     times.isDefined && times.get <= currentDepth
 }
 
-
-
 object RepeatBehaviour {
   sealed trait EmitBehaviour
   trait EmitNothing extends EmitBehaviour
