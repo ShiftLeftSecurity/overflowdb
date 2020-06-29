@@ -85,6 +85,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "support `times` modulator" when {
+
     "used without emit" when {
 
       "using DFS" in {

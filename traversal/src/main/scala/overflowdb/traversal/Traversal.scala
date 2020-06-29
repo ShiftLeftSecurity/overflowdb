@@ -80,20 +80,20 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  private def repeatBfs(repeatTraversal: A => Traversal[A], behaviour: RepeatBehaviour[A]) : Traversal[A] = {
+  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     val repeatCount = behaviour.times.get
-    flatMap { a: A =>
-      Traversal((0 until repeatCount).foldLeft(List(a)){(trav, _) =>
+    flatMap { element: B =>
+      Traversal((0 until repeatCount).foldLeft(List(element)){ (trav, _) =>
         trav.flatMap(repeatTraversal)
       })
     }
   }
 
-  private def repeatDfs(repeatTraversal: A => Traversal[A], behaviour: RepeatBehaviour[A]) : Traversal[A] = {
+  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     val repeatCount = behaviour.times.get
-    flatMap { a: A =>
-        Traversal(new Iterator[A]{
-          var buffer: Traversal[A] = Traversal.empty
+    flatMap { element: B =>
+        Traversal(new Iterator[B]{
+          var buffer: Traversal[B] = Traversal.empty
           var exhausted = false
 
           override def hasNext: Boolean = {
@@ -101,14 +101,14 @@ class Traversal[A](elements: IterableOnce[A])
             buffer.nonEmpty
           }
 
-          override def next: A =
+          override def next: B =
             buffer.head
 
           private def attemptFillBuffer: Unit =
             synchronized {
               if (buffer.isEmpty && !exhausted) {
                 exhausted = true
-                buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
+                buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(element)){ (trav, _) =>
                   trav.flatMap(repeatTraversal)
                 }
               }
@@ -117,14 +117,15 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
-  final def repeatX(repeatTraversal: A => Traversal[A])
-                   (implicit behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = RepeatBehaviour.noop[A] _)
-                   : Traversal[A] = {
+  final def repeatX[B >: A](repeatTraversal: A => Traversal[B])
+                   (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+                   : Traversal[B] = {
     import RepeatBehaviour.SearchAlgorithm._
-    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[A]).build
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
+    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
     behaviour.searchAlgorithm match {
-      case DepthFirstSearch => repeatDfs(repeatTraversal, behaviour)
-      case BreadthFirstSearch => repeatBfs(repeatTraversal, behaviour)
+      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
+      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
     }
   }
 
