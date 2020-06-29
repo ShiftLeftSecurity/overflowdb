@@ -144,10 +144,11 @@ class Traversal[A](elements: IterableOnce[A])
               case _: EmitAll => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
               case _: EmitAllButFirst if currentDepth > 0 => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
               case _: EmitAllButFirst => traversal.flatMap(repeatTraversal)
-//              case conditional: EmitConditional[A] =>
-//                this.sideEffect { a =>
-//                  if (conditional.emit(a)) emitSack.addOne(a)
-//                }
+              case condition: EmitConditional[B] @unchecked =>
+                traversal.flatMap { element =>
+                  if (condition.emit(element)) addToSack(element)
+                  repeatTraversal(element)
+                }
             }
 
           }
@@ -168,10 +169,10 @@ class Traversal[A](elements: IterableOnce[A])
         case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
         case _: EmitAllButFirst if currentDepth > 0 => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
         case _: EmitAllButFirst => results.flatMap(repeatTraversal)
-//        case conditional: EmitConditional[A] =>
-//          this.sideEffect { a =>
-//            if (conditional.emit(a)) emitSack.addOne(a)
-//          }
+        case condition: EmitConditional[B] @unchecked =>
+          results.flatMap { element =>
+            if (condition.emit(element)) emitSack.addOne(element)
+            repeatTraversal(element) }
       }
     }
 
