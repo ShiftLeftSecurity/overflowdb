@@ -7,7 +7,6 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import Thing.Properties.Name
 
-
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
@@ -69,12 +68,12 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "uses DFS (depth first search) by default" in {
+  "uses DFS (depth first search) by default" ignore {
     // TODO detailed step analysis as at the bottom
     ???
   }
 
-  "uses DFS (depth first search) if configured" in {
+  "uses DFS (depth first search) if configured" ignore {
     // TODO detailed step analysis as at the bottom
     ???
   }

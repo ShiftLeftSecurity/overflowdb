@@ -80,20 +80,25 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    lazy val repeatCount = behaviour.times.get
-    flatMap { element: B =>
-      Traversal((0 until repeatCount).foldLeft(List(element)){ (trav, _) =>
-        trav.flatMap(repeatTraversal)
-      })
+  final def repeatX[B >: A](repeatTraversal: A => Traversal[B])
+                           (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+  : Traversal[B] = {
+    import RepeatBehaviour.SearchAlgorithm._
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
+    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
+    behaviour.searchAlgorithm match {
+      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
+      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
     }
   }
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     lazy val repeatCount = behaviour.times.get
     flatMap { element: B =>
+        // TODO refactor/cleanup: extract to RepeatDfsIterator?
         Traversal(new Iterator[B]{
           var buffer: Traversal[B] = Traversal.empty
+          var emitSack: List[B] = Nil
           var exhausted = false
 
           override def hasNext: Boolean = {
@@ -104,28 +109,52 @@ class Traversal[A](elements: IterableOnce[A])
           override def next: B =
             buffer.head
 
-          private def attemptFillBuffer: Unit =
+          private def attemptFillBuffer: Unit = {
             synchronized {
-              if (buffer.isEmpty && !exhausted) {
-                exhausted = true
-                buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(element)){ (trav, _) =>
-                  trav.flatMap(repeatTraversal)
+              if (buffer.isEmpty) {
+                if (emitSack.nonEmpty) {
+                  buffer = Traversal(emitSack)
+                  emitSack = Nil
+                } else if (!exhausted) {
+                  exhausted = true
+                  buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(element)){ (traversal, _) =>
+                    traversalConsideringEmit(traversal)
+                  }
                 }
               }
             }
-        })
-      }
-    }
+          }
 
-  final def repeatX[B >: A](repeatTraversal: A => Traversal[B])
-                   (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
-                   : Traversal[B] = {
-    import RepeatBehaviour.SearchAlgorithm._
-    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
-    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
-    behaviour.searchAlgorithm match {
-      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
-      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
+          private def traversalConsideringEmit(traversal: Traversal[B]): Traversal[B] = {
+            import RepeatBehaviour._
+            behaviour match {
+              case _: EmitNothing    => traversal.flatMap(repeatTraversal)
+              case _: EmitAll => traversal.sideEffect(addToSack).flatMap(repeatTraversal)
+              // TODO bring in other cases of `traversalConsideringEmit`
+//              case _: EmitNothing    => this
+//              case _: EmitAll => this.sideEffect(emitSack.addOne(_))
+//              case _: EmitAllButFirst if currentDepth > 0 => traversal.sideEffect(emitSack.addOne(_))
+//              case _: EmitAllButFirst => this
+//              case conditional: EmitConditional[A] =>
+//                this.sideEffect { a =>
+//                  if (conditional.emit(a)) emitSack.addOne(a)
+//                }
+            }
+
+          }
+
+          private def addToSack(element: B): Unit =
+            emitSack = emitSack :+ element
+        })
+    }
+  }
+
+  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
+    lazy val repeatCount = behaviour.times.get
+    flatMap { element: B =>
+      Traversal((0 until repeatCount).foldLeft(List(element)){ (trav, _) =>
+        trav.flatMap(repeatTraversal)
+      })
     }
   }
 
