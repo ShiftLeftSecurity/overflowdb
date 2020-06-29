@@ -83,10 +83,9 @@ class Traversal[A](elements: IterableOnce[A])
   private def repeatBfs(repeatTraversal: A => Traversal[A], behaviour: RepeatBehaviour[A]) : Traversal[A] = {
     val repeatCount = behaviour.times.get
     flatMap { a: A =>
-      val ret = (0 until repeatCount).foldLeft(List(a)){(trav, _) =>
+      Traversal((0 until repeatCount).foldLeft(List(a)){(trav, _) =>
         trav.flatMap(repeatTraversal)
-      }
-      Traversal(ret)
+      })
     }
   }
 
