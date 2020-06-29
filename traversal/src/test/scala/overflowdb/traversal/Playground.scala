@@ -28,8 +28,8 @@ object Foo3 extends App {
 //  val odbTrav = Traversal.fromSingle(a).repeat7(_.out, repeatCount).property(Name)
 //  println(s"repeat7: ${odbTrav.head}")
 
-  val odbTrav = Traversal.fromSingle(a).repeat7(_.out, repeatCount).property(Name)
-  println(s"repeat8: ${odbTrav.head}")
+  val odbTrav = Traversal.fromSingle(a).repeatDfs(_.out, repeatCount).property(Name)
+  println(s"repeatDfs: ${odbTrav.head}")
 
   // TP3
 //  import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
@@ -50,8 +50,14 @@ object Foo4 extends App {
    * odb bfs: L3
    */
 
-  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeat8(t => {println(t.property2(Name.name)); t.out}, repeatCount).property(Name)
+//  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(t => {println(t.property2(Name.name)); t.out}, repeatCount).property(Name)
+  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(_.out, repeatCount).property(Name)
+//  println(s"odb dfs: ${odbTravDfs.l}")
   println(s"odb dfs: ${odbTravDfs.head}")
+  println(s"odb dfs: ${odbTravDfs.head}")
+  println(s"odb dfs: ${odbTravDfs.head}")
+//  println(s"odb dfs: ${odbTravDfs.head}")
+//  println(s"odb dfs: ${odbTravDfs.head}")
 
   // original repeat is DFS - but runs entirely on stack, i.e. has issues with stack size...
 //  val odbOrig = Traversal.fromSingle(centerNode: Node).repeat(t => {println(t.property(Name.name)); t.out})(_.times(repeatCount)).property(Name)

@@ -2,7 +2,6 @@ package overflowdb.traversal.testdomains.simple
 
 import overflowdb._
 import overflowdb.traversal.Traversal
-import org.apache.tinkerpop.gremlin.structure.{T, Vertex}
 
 /* simple example graph:
  * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4

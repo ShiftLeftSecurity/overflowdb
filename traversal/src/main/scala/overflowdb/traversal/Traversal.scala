@@ -140,9 +140,9 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   // using non-lazy buffer, but put it inside a `map` step to make it lazy again - this works! it's BFS
-  final def repeat7(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
+  final def repeatBfs(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] = {
     flatMap { a: A =>
-      var ret = mutable.Buffer(a) //TODO use immutable?
+      var ret = List(a)
       0.until(repeatCount).foreach { _ =>
         ret = ret.flatMap(repeatTraversal)
       }
@@ -151,10 +151,9 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   // like repeat7, but DFS, and doesn't fail with StackOverflow!
-  // TODO do more for thread safety?
-  final def repeat8(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] =
+  final def repeatDfs(repeatTraversal: A => Traversal[A], repeatCount: Int): Traversal[A] =
     flatMap { a: A =>
-      val ret = new Iterator[A]{
+      Traversal(new Iterator[A]{
         var buffer: Traversal[A] = Traversal.empty
 
         override def hasNext: Boolean = {
@@ -163,19 +162,19 @@ class Traversal[A](elements: IterableOnce[A])
         }
 
         override def next(): A =
-          if (!hasNext) throw new NoSuchElementException("next on empty iterator")
-          else buffer.head
+          buffer.head
 
-        private def attemptFillBuffer: Unit = {
-          var ret = Traversal.fromSingle(a)
-          0.until(repeatCount).foreach { _ =>
-            ret = ret.flatMap(repeatTraversal)
+        private def attemptFillBuffer: Unit =
+          synchronized {
+            if (buffer.isEmpty) {
+              var ret = Traversal.fromSingle(a)
+              0.until(repeatCount).foreach(_ =>
+                ret = ret.flatMap(repeatTraversal)
+              )
+              buffer = ret
+            }
           }
-          buffer = ret
-        }
-      }
-
-      Traversal(ret)
+      })
     }
 
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
