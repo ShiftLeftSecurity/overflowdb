@@ -81,7 +81,7 @@ class Traversal[A](elements: IterableOnce[A])
     }
 
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    val repeatCount = behaviour.times.get
+    lazy val repeatCount = behaviour.times.get
     flatMap { element: B =>
       Traversal((0 until repeatCount).foldLeft(List(element)){ (trav, _) =>
         trav.flatMap(repeatTraversal)
@@ -90,7 +90,7 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    val repeatCount = behaviour.times.get
+    lazy val repeatCount = behaviour.times.get
     flatMap { element: B =>
         Traversal(new Iterator[B]{
           var buffer: Traversal[B] = Traversal.empty

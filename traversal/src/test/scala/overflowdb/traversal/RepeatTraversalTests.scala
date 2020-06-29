@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
@@ -10,11 +11,12 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
   "be lazy" in {
-    val traversedNodes = mutable.ListBuffer.empty[Thing]
+    val traversedNodes = mutable.ListBuffer.empty[Node]
     val traversalNotYetExecuted = {
-      centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)
-//      centerTrav.repeatBfs(_.sideEffect(traversedNodes.addOne).followedBy)
-      centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)
+      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))
+      centerTrav.repeatX(_.followedBy.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
+      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))
+      centerTrav.repeatX(_.out.sideEffect(traversedNodes.addOne))(_.breadthFirstSearch)
     }
     withClue("traversal should not do anything when it's only created") {
       traversedNodes.size shouldBe 0
@@ -89,11 +91,11 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     "used without emit" when {
 
       "using DFS" in {
-        centerTrav.repeat(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
+        centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
       }
 
       "using BFS" in {
-        centerTrav.repeat(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe Set("L2", "R2")
+        centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe Set("L2", "R2")
       }
 
       "used in combination with emit" in {
