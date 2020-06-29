@@ -3,8 +3,8 @@ package overflowdb.traversal
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
-
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 
 class RepeatTraversalTests extends WordSpec with Matchers {
@@ -25,11 +25,28 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "by default traverse all nodes to outer limits exactly once, emitting and returning nothing" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
-    val results =
-      centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l ++
-      centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l
-    traversedNodes.size shouldBe 16
-    results.size shouldBe 0
+    def test(traverse: => Iterable[_]) = {
+      traversedNodes.clear
+      val results = traverse
+      traversedNodes.size shouldBe 8
+      results.size shouldBe 0
+    }
+
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).l)
+    test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).l)
+
+    withClue("for reference: this behaviour is adapted from tinkerpop") {
+      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+      import org.apache.tinkerpop.gremlin.process.traversal.Traverser
+      import org.apache.tinkerpop.gremlin.process.traversal.{Traversal => TPTraversal}
+      test(
+        __(centerNode).repeat(
+          __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
+              .out().asInstanceOf[TPTraversal[_, Thing]]
+        ).toList.asScala)
+    }
   }
 
   "uses DFS (depth first search) by default" in {
