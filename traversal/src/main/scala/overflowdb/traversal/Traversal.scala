@@ -155,6 +155,7 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap { a: A =>
       Traversal(new Iterator[A]{
         var buffer: Traversal[A] = Traversal.empty
+        var exhausted = false
 
         override def hasNext: Boolean = {
           if (buffer.isEmpty) attemptFillBuffer
@@ -166,7 +167,8 @@ class Traversal[A](elements: IterableOnce[A])
 
         private def attemptFillBuffer: Unit =
           synchronized {
-            if (buffer.isEmpty) {
+            if (buffer.isEmpty && !exhausted) {
+              exhausted = true
               buffer  = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
                 trav.flatMap(repeatTraversal)
               }
