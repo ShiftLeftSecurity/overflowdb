@@ -3,13 +3,13 @@ package overflowdb.traversal
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.slf4j.LoggerFactory
+import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
+import overflowdb.traversal.RepeatBehaviour._
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-import overflowdb.traversal.RepeatBehaviour._
-import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
 
 /**
  * TODO more docs
@@ -94,7 +94,6 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    lazy val repeatCount = behaviour.times.get
     flatMap { element: B =>
         // TODO refactor/cleanup: extract to RepeatDfsIterator?
         Traversal(new Iterator[B]{
@@ -114,25 +113,35 @@ class Traversal[A](elements: IterableOnce[A])
             synchronized {
               if (buffer.isEmpty) {
                 if (emitSack.nonEmpty) {
-                  buffer = Traversal(emitSack)
-                  emitSack = Nil
+                  fillBufferWithSack
                 } else if (!exhausted) {
                   exhausted = true
-                  buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(element)){ (traversal, _) =>
-                    traversalConsideringEmit(traversal)
+                  var traversal = Traversal.fromSingle(element)
+                  var currentDepth = 0
+                  while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
+                    traversal = traversalConsideringEmit3(traversal)
+                    currentDepth += 1
                   }
+
+                  if (traversal.nonEmpty)
+                    buffer = traversal
+                  else if (emitSack.nonEmpty)
+                    fillBufferWithSack
                 }
               }
             }
           }
 
-          private def traversalConsideringEmit(traversal: Traversal[B]): Traversal[B] = {
+          private def fillBufferWithSack: Unit = {
+            buffer = Traversal(emitSack)
+            emitSack = Nil
+          }
+
+          private def traversalConsideringEmit3(traversal: Traversal[B]): Traversal[B] = {
             behaviour match {
               case _: EmitNothing    => traversal.flatMap(repeatTraversal)
               case _: EmitAll => traversal.sideEffect(addToSack).flatMap(repeatTraversal)
               // TODO bring in other cases of `traversalConsideringEmit`
-//              case _: EmitNothing    => this
-//              case _: EmitAll => this.sideEffect(emitSack.addOne(_))
 //              case _: EmitAllButFirst if currentDepth > 0 => traversal.sideEffect(emitSack.addOne(_))
 //              case _: EmitAllButFirst => this
 //              case conditional: EmitConditional[A] =>
