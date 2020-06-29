@@ -23,7 +23,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "by default traverse all nodes to outer limits exactly once, emitting and returning nothing" in {
+  "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     def test(traverse: => Iterable[_]) = {
       traversedNodes.clear
@@ -47,14 +47,6 @@ class RepeatTraversalTests extends WordSpec with Matchers {
               .out().asInstanceOf[TPTraversal[_, Thing]]
         ).toList.asScala)
     }
-  }
-
-  "uses DFS (depth first search) by default" in {
-    ???
-  }
-
-  "uses DFS (depth first search) if configured" in {
-    ???
   }
 
   "emit everything along the way if so configured" in {
@@ -105,23 +97,29 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "support `times` modulator" when {
 
-    "used without emit" when {
+    "used without emit" in {
+      val expectedResults = Set("L2", "R2")
+      centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe expectedResults
+    }
 
-      "using DFS" in {
-        centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
-      }
-
-      "using BFS" in {
-        centerTrav.repeatX(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe Set("L2", "R2")
-      }
-
-      "used in combination with emit" in {
-        ???
-//        val results = centerTrav.repeat(_.followedBy)(_.times(2).emit).name.toSet
-//        results shouldBe Set("Center", "L1", "L2", "R1", "R2")
-      }
+    "used in combination with emit" in {
+      val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
+      centerTrav.repeatX(_.followedBy)(_.times(2).emit).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.followedBy)(_.times(2).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
     }
   }
+
+  "uses DFS (depth first search) by default" in {
+    // TODO detailed step analysis as at the bottom
+    ???
+  }
+
+  "uses DFS (depth first search) if configured" in {
+    // TODO detailed step analysis as at the bottom
+    ???
+  }
+
 }
 
 // TODO
