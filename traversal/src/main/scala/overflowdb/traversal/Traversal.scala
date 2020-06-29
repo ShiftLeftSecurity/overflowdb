@@ -161,17 +161,15 @@ class Traversal[A](elements: IterableOnce[A])
           buffer.nonEmpty
         }
 
-        override def next(): A =
+        override def next: A =
           buffer.head
 
         private def attemptFillBuffer: Unit =
           synchronized {
             if (buffer.isEmpty) {
-              var ret = Traversal.fromSingle(a)
-              0.until(repeatCount).foreach(_ =>
-                ret = ret.flatMap(repeatTraversal)
-              )
-              buffer = ret
+              buffer  = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
+                trav.flatMap(repeatTraversal)
+              }
             }
           }
       })

@@ -50,12 +50,12 @@ object Foo4 extends App {
    * odb bfs: L3
    */
 
-//  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(t => {println(t.property2(Name.name)); t.out}, repeatCount).property(Name)
-  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(_.out, repeatCount).property(Name)
+  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(t => {println(t.property2(Name.name)); t.out}, repeatCount).property(Name)
+//  val odbTravDfs = Traversal.fromSingle(centerNode: Node).repeatDfs(_.out, repeatCount).property(Name)
 //  println(s"odb dfs: ${odbTravDfs.l}")
   println(s"odb dfs: ${odbTravDfs.head}")
-  println(s"odb dfs: ${odbTravDfs.head}")
-  println(s"odb dfs: ${odbTravDfs.head}")
+//  println(s"odb dfs: ${odbTravDfs.head}")
+//  println(s"odb dfs: ${odbTravDfs.head}")
 //  println(s"odb dfs: ${odbTravDfs.head}")
 //  println(s"odb dfs: ${odbTravDfs.head}")
 
