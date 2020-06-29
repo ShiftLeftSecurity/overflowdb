@@ -88,11 +88,11 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     "used without emit" when {
 
       "using DFS" in {
-        centerTrav.repeatDfs(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
+        centerTrav.repeat(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
       }
 
       "using BFS" in {
-        centerTrav.repeatDfs(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
+        centerTrav.repeat(_.followedBy)(_.times(2).breadthFirstSearch).name.toSet shouldBe Set("L2", "R2")
       }
 
       "used in combination with emit" in {

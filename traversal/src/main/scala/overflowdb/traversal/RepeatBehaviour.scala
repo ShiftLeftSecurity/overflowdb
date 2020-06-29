@@ -39,11 +39,11 @@ object RepeatBehaviour {
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirstSearch
 
     /* configure repeat traversal to search "Breadth First", rather than the default "Breadth First" */
-    def useBreadthFirstSearch: Builder[A] = {
+    def breadthFirstSearch: Builder[A] = {
       _searchAlgorithm = SearchAlgorithm.BreadthFirstSearch
       this
     }
-    def useBfs: Builder[A] = useBreadthFirstSearch
+    def bfs: Builder[A] = breadthFirstSearch
 
     /* configure `repeat` step to emit everything along the way */
     def emit: Builder[A] = {
