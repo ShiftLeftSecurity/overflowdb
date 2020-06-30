@@ -119,6 +119,13 @@ class Traversal[A](elements: IterableOnce[A])
                   var traversal = Traversal.fromSingle(element)
                   var currentDepth = 0
                   while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
+                    if (behaviour.untilCondition.isDefined) {
+                      traversal = traversal.filter { element =>
+                        val untilConditionReached = behaviour.untilCondition.get.apply(element)
+                        if (untilConditionReached) addToSack(element)
+                        !untilConditionReached
+                      }
+                    }
                     traversal = traversalConsideringEmit3(traversal, currentDepth)
                     currentDepth += 1
                   }
@@ -150,7 +157,6 @@ class Traversal[A](elements: IterableOnce[A])
                   repeatTraversal(element)
                 }
             }
-
           }
 
           private def addToSack(element: B): Unit =
@@ -179,7 +185,14 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap { element: B =>
       var traversalResults = List(element)
       var currentDepth = 0
-      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
+      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)/* && !behaviour.untilConditionReached(element)*/) {
+        if (behaviour.untilCondition.isDefined) {
+          traversalResults = traversalResults.filter { element =>
+            val untilConditionReached = behaviour.untilCondition.get.apply(element)
+            if (untilConditionReached) emitSack.addOne(element)
+            !untilConditionReached
+          }
+        }
         traversalResults = traversalConsideringEmit2(traversalResults, currentDepth)
         currentDepth += 1
       }

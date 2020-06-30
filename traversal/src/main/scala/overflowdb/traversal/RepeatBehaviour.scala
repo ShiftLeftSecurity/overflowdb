@@ -9,6 +9,9 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
 
   def timesReached(currentDepth: Int): Boolean =
     times.isDefined && times.get <= currentDepth
+
+  def untilConditionReached(element: A): Boolean =
+    untilCondition.isDefined && untilCondition.get.apply(element)
 }
 
 object RepeatBehaviour {

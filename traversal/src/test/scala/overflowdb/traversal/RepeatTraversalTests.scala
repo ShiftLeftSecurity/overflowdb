@@ -9,6 +9,9 @@ import Thing.Properties.Name
 
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
+  /* most tests work with this simple graph:
+   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
+   */
 
   "typical case for both domain-specific steps" in {
     centerTrav.repeatX(_.followedBy)(_.times(2)).name.toSet shouldBe Set("L2", "R2")
@@ -70,7 +73,11 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "support arbitrary `until` condition" when {
     "used without emit" in {
-      centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2"))).name.toSet shouldBe Set("L2", "R2")
+      val expectedResults = Set("L2", "R2")
+      centerTrav.repeatX(_.followedBy)(_.until(_.name.endsWith("2"))).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.followedBy)(_.until(_.name.endsWith("2")).breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.until(_.property(Name).endsWith("2"))).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeatX(_.out)(_.until(_.property(Name).endsWith("2")).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
 
     "used in combination with emit" in {
