@@ -93,6 +93,42 @@ class Traversal[A](elements: IterableOnce[A])
     }
   }
 
+  def repeatDfs2[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
+    flatMap { element: B =>
+      Traversal(new Iterator[B]{
+        var buffer: Traversal[B] = Traversal.empty
+        var exhausted = false
+
+        override def hasNext: Boolean = {
+          // TODO second time it's called, buffer.hasNext results in a stack overflow...
+          // semantically it's doing the right thing, but somehow it's moving computation onto the stack...
+          //  simplify traversal: take out emit/until etc.
+          if (!buffer.hasNext) attemptFillBuffer
+          buffer.hasNext
+        }
+
+        override def next: B = buffer.head
+
+        private def attemptFillBuffer: Unit =
+          if (buffer.isEmpty) {
+            if (!exhausted) {
+              exhausted = true
+              var traversal = Traversal.fromSingle(element)
+              var currentDepth = 0
+              while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
+                traversal = traversal.flatMap(repeatTraversal) //here we're moving it onto the stack...
+                currentDepth += 1
+              }
+
+              if (traversal.nonEmpty)
+                buffer = traversal
+            }
+          }
+
+      })
+    }
+  }
+
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     flatMap { element: B =>
         // TODO refactor/cleanup: extract to RepeatDfsIterator?
@@ -119,13 +155,13 @@ class Traversal[A](elements: IterableOnce[A])
                   var traversal = Traversal.fromSingle(element)
                   var currentDepth = 0
                   while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
-                    if (behaviour.untilCondition.isDefined) {
-                      traversal = traversal.filter { element =>
-                        val untilConditionReached = behaviour.untilCondition.get.apply(element)
-                        if (untilConditionReached) addToSack(element)
-                        !untilConditionReached
-                      }
-                    }
+//                    if (behaviour.untilCondition.isDefined) {
+//                      traversal = traversal.filter { element =>
+//                        val untilConditionReached = behaviour.untilCondition.get.apply(element)
+//                        if (untilConditionReached) addToSack(element)
+//                        !untilConditionReached
+//                      }
+//                    }
                     traversal = traversalConsideringEmit3(traversal, currentDepth)
                     currentDepth += 1
                   }
@@ -255,7 +291,6 @@ class Traversal[A](elements: IterableOnce[A])
           Traversal.logger.warn("Traversal already exhausted")
         else isExhausted = true
       }
-//      println(s"XXX hasNext=${_hasNext}")
       GlobalCounter.hasNextInvocationCount.incrementAndGet()
       _hasNext
     }

@@ -226,7 +226,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
     "repeating very very often" in {
       val repeatCount = 100000
-//      Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount)).property(Name).l shouldBe List("b")
+      Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount)).property(Name).l shouldBe List("b")
       Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount).breadthFirstSearch).property(Name).l shouldBe List("b")
 
       // for reference: tinkerpop becomes very slow with large iteration counts:
@@ -235,6 +235,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 //      __(a).repeat(
 //        __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
 //      ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
+    }
+
+    "foo" in {
+      val repeatCount = 9000
+//      val repeatCount = 900
+      val trav = Traversal.fromSingle(a).repeatDfs2(_.out, new RepeatBehaviour.Builder[Node].times(repeatCount).build)
+      println("first: " + trav.next)
+      trav.hasNext //stackoverflow
     }
   }
 
