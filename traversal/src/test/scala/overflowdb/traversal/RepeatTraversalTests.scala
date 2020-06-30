@@ -110,16 +110,6 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "uses DFS (depth first search) by default" ignore {
-    // TODO detailed step analysis as at the bottom
-    ???
-  }
-
-  "uses DFS (depth first search) if configured" ignore {
-    // TODO detailed step analysis as at the bottom
-    ???
-  }
-
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     def test(traverse: => Iterable[_]) = {
@@ -146,23 +136,80 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-}
+  "uses DFS (depth first search) by default" in {
+    // asserting exact traversed path, in order to verify it's really DFS
+    val traversedNodeNames = mutable.ListBuffer.empty[String]
+    val traversal = centerTrav.repeatX { thing =>
+      traversedNodeNames.addOne(thing.name)
+      thing.followedBy
+    }(_.times(3)).name
 
-// TODO
-//withClue("asserting more fine-grained traversal characteristics") {
-//  val traversedNodes = mutable.ListBuffer.empty[Thing]
-//  val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.times(2)).name
-//
-//  // hasNext will run the provided repeat traversal exactly 2 times (as configured)
-//  traversal.hasNext shouldBe true
-//  traversedNodes.size shouldBe 2
-//  // hasNext is idempotent
-//  traversal.hasNext shouldBe true
-//  traversedNodes.size shouldBe 2
-//
-//  traversal.next shouldBe "L2"
-//  traversal.next shouldBe "R2"
-//  traversedNodes.size shouldBe 3
-//  traversedNodes.map(_.name).to(Set) shouldBe Set("Center", "L1", "R1")
-//  traversal.hasNext shouldBe false
-//}
+    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 3
+    traversedNodeNames.toList shouldBe List("Center", "L1", "L2")
+    traversal.next shouldBe "L3"
+
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 5
+    traversedNodeNames.toList shouldBe List("Center", "L1", "L2", "R1", "R2")
+    traversal.next shouldBe "R3"
+
+    traversal.hasNext shouldBe false
+  }
+
+  "uses BFS (breadth first search) if configured" in {
+    // asserting exact traversed path, in order to verify it's really DFS
+    val traversedNodeNames = mutable.ListBuffer.empty[String]
+    val traversal = centerTrav.repeatX { thing =>
+      traversedNodeNames.addOne(thing.name)
+      thing.followedBy
+    }(_.times(3).breadthFirstSearch).name
+
+    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 5
+    traversedNodeNames.toList shouldBe List("Center", "L1", "R1", "L2", "R2")
+    traversal.next shouldBe "L3"
+
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 5
+    traversedNodeNames.toList shouldBe List("Center", "L1", "R1", "L2", "R2")
+    traversal.next shouldBe "R3"
+
+    traversal.hasNext shouldBe false
+  }
+
+  "hasNext is idempotent: DFS" in {
+    val traversedNodeNames = mutable.ListBuffer.empty[String]
+    val traversal = centerTrav.repeatX { thing =>
+      traversedNodeNames.addOne(thing.name)
+      thing.followedBy
+    }(_.times(3))
+
+    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 3
+    traversedNodeNames.toList shouldBe List("Center", "L1", "L2")
+    // hasNext is idempotent - calling it again doesn't result in any further traversing
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 3
+  }
+
+  "hasNext is idempotent: BFS" in {
+    val traversedNodeNames = mutable.ListBuffer.empty[String]
+    val traversal = centerTrav.repeatX { thing =>
+      traversedNodeNames.addOne(thing.name)
+      thing.followedBy
+    }(_.times(2).breadthFirstSearch)
+
+    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 3
+    traversedNodeNames.toList shouldBe List("Center", "L1", "R1")
+    // hasNext is idempotent - calling it again doesn't result in any further traversing
+    traversal.hasNext shouldBe true
+    traversedNodeNames.size shouldBe 3
+  }
+
+}
