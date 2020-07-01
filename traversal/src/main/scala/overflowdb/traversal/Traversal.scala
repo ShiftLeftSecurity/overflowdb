@@ -82,11 +82,29 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
+  /**
+   * Repeat the given traversal
+   * By default it will continue repeating until there's no more results, not emit anything along the way, and use a
+   * 'depth first search' (DFS) algorithm, i.e. go deep before wide.
+   *
+   * The @param behaviourBuilder allows you to configure all of the above - here are some typical use cases:
+   * {{{
+   * .repeat(_.out)(_.times(3))                               // perform exactly three repeat iterations
+   * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
+   * .repeat(_.out)(_.emit)                                   // emit everything along the way
+   * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
+   * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
+   * }}}
+   * See RepeatTraversalTests for more examples!
+   *
+   * Note that this works for domain-specific steps as well as generic graph steps - for details please take a look at
+   * the examples in RepeatTraversalTests: both {{{.followedBy}}} and {{{.out}}} work.
+   */
   final def repeat[B >: A](repeatTraversal: A => Traversal[B])
-                          (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
-  : Traversal[B] = {
+    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+    : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
-    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
+    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
     behaviour.searchAlgorithm match {
       case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
       case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
