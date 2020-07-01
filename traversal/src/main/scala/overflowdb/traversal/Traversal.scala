@@ -112,7 +112,7 @@ class Traversal[A](elements: IterableOnce[A])
   }
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
-    flatMap(RepeatStep.repeatDfs(repeatTraversal, behaviour))
+    flatMap(RepeatStep.DepthFirst(repeatTraversal, behaviour))
 
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     val emitSack = mutable.ListBuffer.empty[B]
