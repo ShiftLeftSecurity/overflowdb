@@ -111,77 +111,14 @@ class Traversal[A](elements: IterableOnce[A])
     }
   }
 
-  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    flatMap { element: B =>
-      // TODO extract to RepeatStep?
-      Traversal(new Iterator[B]{
-        import RepeatStep.StackItem
-        val emitSack: mutable.Queue[B] = mutable.Queue.empty
-        val stack: mutable.Stack[StackItem[B]] = mutable.Stack.empty
-        val startTraversal = Traversal.fromSingle(element)
-        stack.push(StackItem(startTraversal, 0))
-
-        // TODO refactor for style - no return statements?
-        override def hasNext: Boolean = {
-          if (emitSack.nonEmpty) return true
-          while (stack.nonEmpty) {
-            val StackItem(trav, depth) = stack.top
-            if (trav.isEmpty) stack.pop()
-            else if (behaviour.timesReached(depth)) return true
-            else {
-              val element = trav.next
-              if (behaviour.untilConditionReached(element)) {
-                emitSack.enqueue(element)
-                return true
-              } else {
-                maybeAddToEmitSack(element, depth)
-                stack.push(StackItem(repeatTraversal(element), depth + 1))
-                if (emitSack.nonEmpty) return true
-              }
-            }
-          }
-          false
-        }
-
-        // TODO refactor: cache behaviour to avoid matching for every element?
-        private def maybeAddToEmitSack(element: B, currentDepth: Int): Unit = {
-          behaviour match {
-            case _: EmitNothing =>
-            case _: EmitAll => addToSack(element)
-            case _: EmitAllButFirst =>
-              if (currentDepth > 0)
-                addToSack(element)
-            case condition: EmitConditional[B] @unchecked =>
-              if (condition.emit(element))
-                addToSack(element)
-          }
-        }
-
-        private def addToSack(element: B): Unit =
-          emitSack.enqueue(element)
-
-        // TODO refactor
-        override def next: B = {
-          if (emitSack.hasNext) {
-            emitSack.dequeue
-          } else {
-            if (hasNext) {
-              // at this point it's guaranteed to have the next non-empty traversal at the top of the stack
-              stack.top.traversal.next
-            } else {
-              throw new NoSuchElementException("next on empty iterator")
-            }
-          }
-        }
-
-      })
-    }
-  }
+  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
+    flatMap(RepeatStep.repeatDfs(repeatTraversal, behaviour))
 
   private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     val emitSack = mutable.ListBuffer.empty[B]
 
-    def traversalConsideringEmit2(results: List[B], currentDepth: Int): List[B] = {
+    // TODO cache the match on behaviour?
+    def traversalConsideringEmit(results: List[B], currentDepth: Int): List[B] = {
       // TODO refactor: remove duplication
       behaviour match {
         case _: EmitNothing => results.flatMap(repeatTraversal)
@@ -206,7 +143,7 @@ class Traversal[A](elements: IterableOnce[A])
             !untilConditionReached
           }
         }
-        traversalResults = traversalConsideringEmit2(traversalResults, currentDepth)
+        traversalResults = traversalConsideringEmit(traversalResults, currentDepth)
         currentDepth += 1
       }
       Traversal(traversalResults ++ emitSack)
