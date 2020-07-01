@@ -3,6 +3,7 @@ package overflowdb.traversal
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.slf4j.LoggerFactory
+import overflowdb.Node
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
 import overflowdb.traversal.RepeatBehaviour._
 import overflowdb.traversal.help.{Doc, TraversalHelp}
@@ -88,7 +89,7 @@ class Traversal[A](elements: IterableOnce[A])
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast is usually :tm: safe, because `B` is a supertype of `A`
     behaviour.searchAlgorithm match {
-      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
+      case DepthFirstSearch => repeatDfs4(_repeatTraversal, behaviour)
       case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
     }
   }
@@ -204,6 +205,99 @@ class Traversal[A](elements: IterableOnce[A])
 //    }
 //  }
 
+  // TODO refactor/cleanup: extract to RepeatDfsIterator?
+  private def repeatDfs4[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
+    lazy val repeatCount = behaviour.times.get
+    flatMap { element: B =>
+
+      Traversal(new Iterator[B]{
+        type Depth = Int
+        val stack: mutable.Stack[(Traversal[B], Depth)] = mutable.Stack.empty
+        val startTraversal = Traversal.fromSingle(element)
+        stack.push((startTraversal, 0))
+//        var buffer: Traversal[B] = Traversal.empty
+//        var emitSack: List[B] = Nil
+//        var exhausted = false
+
+        override def hasNext: Boolean = {
+//          if (buffer.isEmpty) attemptFillBuffer
+//          buffer.nonEmpty
+          while (stack.nonEmpty) {
+            val (trav, depth) = stack.top
+            if (trav.isEmpty) stack.pop()
+            else if (depth == repeatCount) return true
+            else {
+              val element = trav.next
+              stack.push((repeatTraversal(element), depth + 1))
+            }
+          }
+          false
+        }
+
+        override def next: B = {
+          if (hasNext) {
+            // at this point it's guaranteed to have the next non-empty traversal at the top of the stack
+            stack.top._1.next
+          } else {
+            throw new NoSuchElementException("next on empty iterator")
+          }
+        }
+
+//        private def attemptFillBuffer: Unit = {
+//          synchronized {
+//            if (buffer.isEmpty) {
+//              if (emitSack.nonEmpty) {
+//                fillBufferWithSack
+//              } else if (!exhausted) {
+//                exhausted = true
+//                var traversal = Traversal.fromSingle(element)
+//                var currentDepth = 0
+//                while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
+//                  //                    if (behaviour.untilCondition.isDefined) {
+//                  //                      traversal = traversal.filter { element =>
+//                  //                        val untilConditionReached = behaviour.untilCondition.get.apply(element)
+//                  //                        if (untilConditionReached) addToSack(element)
+//                  //                        !untilConditionReached
+//                  //                      }
+//                  //                    }
+//                  traversal = traversalConsideringEmit3(traversal, currentDepth)
+//                  currentDepth += 1
+//                }
+//
+//                if (traversal.nonEmpty)
+//                  buffer = traversal
+//                else if (emitSack.nonEmpty)
+//                  fillBufferWithSack
+//              }
+//            }
+//          }
+//        }
+
+//        private def fillBufferWithSack: Unit = {
+//          buffer = Traversal(emitSack)
+//          emitSack = Nil
+//        }
+
+//        private def traversalConsideringEmit3(traversal: Traversal[B], currentDepth: Int): Traversal[B] = {
+//          // TODO refactor: remove duplication
+//          behaviour match {
+//            case _: EmitNothing    => traversal.flatMap(repeatTraversal)
+//            case _: EmitAll => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
+//            case _: EmitAllButFirst if currentDepth > 0 => traversal.flatMap { element => addToSack(element); repeatTraversal(element) }
+//            case _: EmitAllButFirst => traversal.flatMap(repeatTraversal)
+//            case condition: EmitConditional[B] @unchecked =>
+//              traversal.flatMap { element =>
+//                if (condition.emit(element)) addToSack(element)
+//                repeatTraversal(element)
+//              }
+//          }
+//        }
+//
+//        private def addToSack(element: B): Unit =
+//          emitSack = emitSack :+ element
+      })
+    }
+  }
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     flatMap { element: B =>
