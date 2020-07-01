@@ -7,6 +7,20 @@ import scala.collection.{Iterator, mutable}
 object RepeatStep {
 
   def repeatDfs[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
+
+    def maybeAddToEmitSack(element: B, currentDepth: Int, emitSack: mutable.Queue[B]): Unit = {
+      behaviour match {
+        case _: EmitNothing =>
+        case _: EmitAll => emitSack.enqueue(element)
+        case _: EmitAllButFirst =>
+          if (currentDepth > 0)
+            emitSack.enqueue(element)
+        case condition: EmitConditional[B]@unchecked =>
+          if (condition.emit(element))
+            emitSack.enqueue(element)
+      }
+    }
+
     element: B => Traversal(new Iterator[B] {
       val emitSack: mutable.Queue[B] = mutable.Queue.empty
       val stack: mutable.Stack[StackItem[B]] = mutable.Stack.empty
@@ -26,7 +40,7 @@ object RepeatStep {
               emitSack.enqueue(element)
               return true
             } else {
-              maybeAddToEmitSack(element, depth)
+              maybeAddToEmitSack(element, depth, emitSack)
               stack.push(StackItem(repeatTraversal(element), depth + 1))
               if (emitSack.nonEmpty) return true
             }
@@ -35,32 +49,10 @@ object RepeatStep {
         false
       }
 
-      // TODO refactor: cache behaviour to avoid matching for every element?
-      private def maybeAddToEmitSack(element: B, currentDepth: Int): Unit = {
-        behaviour match {
-          case _: EmitNothing =>
-          case _: EmitAll => emitSack.enqueue(element)
-          case _: EmitAllButFirst =>
-            if (currentDepth > 0)
-              emitSack.enqueue(element)
-          case condition: EmitConditional[B]@unchecked =>
-            if (condition.emit(element))
-              emitSack.enqueue(element)
-        }
-      }
-
-      // TODO refactor
       override def next: B = {
-        if (emitSack.hasNext) {
-          emitSack.dequeue
-        } else {
-          if (hasNext) {
-            // at this point it's guaranteed to have the next non-empty traversal at the top of the stack
-            stack.top.traversal.next
-          } else {
-            throw new NoSuchElementException("next on empty iterator")
-          }
-        }
+        if (emitSack.hasNext) emitSack.dequeue
+        else if (hasNext) stack.top.traversal.next
+        else throw new NoSuchElementException("next on empty iterator")
       }
 
     })
