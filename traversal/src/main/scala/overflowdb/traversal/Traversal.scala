@@ -207,9 +207,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   // TODO refactor/cleanup: extract to RepeatDfsIterator?
   private def repeatDfs4[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    lazy val repeatCount = behaviour.times.get
     flatMap { element: B =>
-
       Traversal(new Iterator[B]{
         type Depth = Int
         val stack: mutable.Stack[(Traversal[B], Depth)] = mutable.Stack.empty
@@ -225,7 +223,7 @@ class Traversal[A](elements: IterableOnce[A])
           while (stack.nonEmpty) {
             val (trav, depth) = stack.top
             if (trav.isEmpty) stack.pop()
-            else if (depth == repeatCount) return true
+            else if (behaviour.timesReached(depth)) return true
             else {
               val element = trav.next
               stack.push((repeatTraversal(element), depth + 1))
