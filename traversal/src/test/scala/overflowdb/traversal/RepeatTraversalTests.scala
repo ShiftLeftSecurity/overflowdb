@@ -213,7 +213,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     traversedNodeNames.size shouldBe 3
   }
 
-  "supports arbitrary amount of iterations" when {
+  "supports large amount of iterations" in {
     // using circular graph so that we can repeat any number of times
     val graph = SimpleDomain.newGraph
 
@@ -226,17 +226,15 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     b --- Connection.Label --> c
     c --- Connection.Label --> a
 
-    "repeating very very often" in {
-      val repeatCount = 100000
-      Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount)).property(Name).l shouldBe List("b")
-      Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount).breadthFirstSearch).property(Name).l shouldBe List("b")
+    val repeatCount = 100000
+    Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount)).property(Name).l shouldBe List("b")
+    Traversal.fromSingle(a).repeatX(_.out)(_.times(repeatCount).breadthFirstSearch).property(Name).l shouldBe List("b")
 
-      // for reference: tinkerpop becomes very slow with large iteration counts:
-      // on my machine this didn't terminate within 5mins, hence commenting out
-      //      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-      //      __(a).repeat(
-      //        __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
-      //      ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
-    }
+    // for reference: tinkerpop becomes very slow with large iteration counts:
+    // on my machine this didn't terminate within 5mins, hence commenting out
+//    import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+//    __(a).repeat(
+//      __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
+//    ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
   }
 }
