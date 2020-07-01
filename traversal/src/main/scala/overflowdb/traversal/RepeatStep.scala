@@ -29,27 +29,35 @@ object RepeatStep {
         val startTraversal = Traversal.fromSingle(element)
         stack.push(StackItem(startTraversal, 0))
 
-        // TODO refactor for style - no return statements?
-        override def hasNext: Boolean = {
-          if (emitSack.nonEmpty) return true
+        def hasNext: Boolean = {
+          if (emitSack.isEmpty) {
+            // this may add elements to the emit sack and/or modify the stack
+            traverseOnStack
+          }
+          emitSack.nonEmpty || stackTopTraversalHasNext
+        }
+
+        private def traverseOnStack: Unit = {
           while (stack.nonEmpty) {
             val StackItem(trav, depth) = stack.top
             if (trav.isEmpty) stack.pop()
-            else if (behaviour.timesReached(depth)) return true
+            else if (behaviour.timesReached(depth)) return
             else {
               val element = trav.next
               if (behaviour.untilConditionReached(element)) {
                 emitSack.enqueue(element)
-                return true
+                return
               } else {
                 maybeAddToEmitSack(element, depth, emitSack)
                 stack.push(StackItem(repeatTraversal(element), depth + 1))
-                if (emitSack.nonEmpty) return true
+                if (emitSack.nonEmpty) return
               }
             }
           }
-          false
         }
+
+        private def stackTopTraversalHasNext: Boolean =
+          stack.nonEmpty && stack.top.traversal.hasNext
 
         override def next: B = {
           if (emitSack.hasNext) emitSack.dequeue
