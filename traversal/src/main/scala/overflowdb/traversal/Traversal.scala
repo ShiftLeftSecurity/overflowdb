@@ -224,9 +224,14 @@ class Traversal[A](elements: IterableOnce[A])
             else if (behaviour.timesReached(depth)) return true
             else {
               val element = trav.next
-              maybeAddToEmitSack(element, depth)
-              stack.push((repeatTraversal(element), depth + 1))
-              if (emitSack.nonEmpty) return true
+              if (behaviour.untilConditionReached(element)) {
+                emitSack.enqueue(element)
+                return true
+              } else {
+                maybeAddToEmitSack(element, depth)
+                stack.push((repeatTraversal(element), depth + 1))
+                if (emitSack.nonEmpty) return true
+              }
             }
           }
           false
