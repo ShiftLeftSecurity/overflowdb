@@ -226,6 +226,7 @@ class Traversal[A](elements: IterableOnce[A])
               val element = trav.next
               maybeAddToEmitSack(element, depth)
               stack.push((repeatTraversal(element), depth + 1))
+              if (emitSack.nonEmpty) return true
             }
           }
           false
