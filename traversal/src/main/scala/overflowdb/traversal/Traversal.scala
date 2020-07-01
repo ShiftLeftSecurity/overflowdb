@@ -113,18 +113,19 @@ class Traversal[A](elements: IterableOnce[A])
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     flatMap { element: B =>
+      // TODO extract to RepeatStep?
       Traversal(new Iterator[B]{
+        import RepeatStep.StackItem
         val emitSack: mutable.Queue[B] = mutable.Queue.empty
-        type Depth = Int
-        val stack: mutable.Stack[(Traversal[B], Depth)] = mutable.Stack.empty
+        val stack: mutable.Stack[StackItem[B]] = mutable.Stack.empty
         val startTraversal = Traversal.fromSingle(element)
-        stack.push((startTraversal, 0))
+        stack.push(StackItem(startTraversal, 0))
 
         // TODO refactor for style - no return statements?
         override def hasNext: Boolean = {
           if (emitSack.nonEmpty) return true
           while (stack.nonEmpty) {
-            val (trav, depth) = stack.top
+            val StackItem(trav, depth) = stack.top
             if (trav.isEmpty) stack.pop()
             else if (behaviour.timesReached(depth)) return true
             else {
@@ -134,7 +135,7 @@ class Traversal[A](elements: IterableOnce[A])
                 return true
               } else {
                 maybeAddToEmitSack(element, depth)
-                stack.push((repeatTraversal(element), depth + 1))
+                stack.push(StackItem(repeatTraversal(element), depth + 1))
                 if (emitSack.nonEmpty) return true
               }
             }
@@ -166,7 +167,7 @@ class Traversal[A](elements: IterableOnce[A])
           } else {
             if (hasNext) {
               // at this point it's guaranteed to have the next non-empty traversal at the top of the stack
-              stack.top._1.next
+              stack.top.traversal.next
             } else {
               throw new NoSuchElementException("next on empty iterator")
             }
@@ -197,7 +198,7 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap { element: B =>
       var traversalResults = List(element)
       var currentDepth = 0
-      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)/* && !behaviour.untilConditionReached(element)*/) {
+      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
         if (behaviour.untilCondition.isDefined) {
           traversalResults = traversalResults.filter { element =>
             val untilConditionReached = behaviour.untilCondition.get.apply(element)
