@@ -14,7 +14,7 @@ class Thing(graph: OdbGraph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
   /* Thing --- followedBy --- Thing */
   def followedBy: Traversal[Thing] = get.followedBy
 
-  override def toString = s"Thing(id=$id)"
+  override def toString = s"Thing(id=$id;name=$name)"
 }
 
 

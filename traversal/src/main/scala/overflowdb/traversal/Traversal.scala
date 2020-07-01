@@ -101,8 +101,7 @@ class Traversal[A](elements: IterableOnce[A])
 
         override def hasNext: Boolean = {
           // TODO second time it's called, buffer.hasNext results in a stack overflow...
-          // semantically it's doing the right thing, but somehow it's moving computation onto the stack...
-          //  simplify traversal: take out emit/until etc.
+          // semantically it's doing the right thing, but the flatMap below moves the computation onto the stack...
           if (!buffer.hasNext) attemptFillBuffer
           buffer.hasNext
         }
@@ -128,6 +127,83 @@ class Traversal[A](elements: IterableOnce[A])
       })
     }
   }
+
+  def repeatDfs3[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
+    flatMap { element: B =>
+      Traversal(new Iterator[B]{
+        var buffer: List[B] = Nil
+        var buffer2: List[Traversal[B]] = Nil
+        var exhausted = false
+
+        override def hasNext: Boolean = {
+            // TODO second time it's called, buffer.hasNext results in a stack overflow...
+            // semantically it's doing the right thing, but the flatMap below moves the computation onto the stack...
+            if (!buffer.hasNext) attemptFillBuffer
+            buffer.hasNext
+        }
+
+        override def next: B = buffer.head
+
+        private def attemptFillBuffer: Unit =
+          if (buffer.isEmpty) {
+            if (!exhausted) {
+              exhausted = true
+              var traversal = Traversal.fromSingle(element)
+              var currentDepth = 0
+
+//              var currElem: B = element
+//              0.until(behaviour.times.get).foreach {_ =>
+//                repeatTraversal(currElem).foreach { nextElem: B =>
+//                }
+//              }
+
+              while (traversal.nonEmpty && !behaviour.timesReached(currentDepth)) {
+                buffer2 = buffer2 :+ traversal
+                traversal = traversal.flatMap(repeatTraversal) //here we're moving it onto the stack...
+                currentDepth += 1
+              }
+
+              if (traversal.nonEmpty)
+                buffer = traversal.toList
+            }
+          }
+
+      })
+    }
+  }
+
+  // like repeat7, but DFS, and doesn't fail with StackOverflow! actually, it does...? search further in git history?
+//  final def repeat8(repeatTraversal: A => Traversal[A])
+//                      (implicit behaviourBuilder: RepeatBehaviour.Builder[A] => RepeatBehaviour.Builder[A] = RepeatBehaviour.noop[A] _)
+//  : Traversal[A] = {
+//    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[A]).build
+//    val repeatCount = behaviour.times.get
+//    flatMap { a: A =>
+//      Traversal(new Iterator[A]{
+//        var buffer: Traversal[A] = Traversal.empty
+//        var exhausted = false
+//
+//        override def hasNext: Boolean = {
+//          if (buffer.isEmpty) attemptFillBuffer
+//          buffer.nonEmpty
+//        }
+//
+//        override def next: A =
+//          buffer.head
+//
+//        private def attemptFillBuffer: Unit =
+//          synchronized {
+//            if (buffer.isEmpty && !exhausted) {
+//              exhausted = true
+//              buffer = (0 until repeatCount).foldLeft(Traversal.fromSingle(a)){(trav, _) =>
+//                trav.flatMap(repeatTraversal)
+//              }
+//            }
+//          }
+//      })
+//    }
+//  }
+
 
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
     flatMap { element: B =>
