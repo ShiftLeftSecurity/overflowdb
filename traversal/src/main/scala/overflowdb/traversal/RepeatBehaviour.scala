@@ -25,7 +25,7 @@ object RepeatBehaviour {
 
   object SearchAlgorithm extends Enumeration {
     type SearchAlgorithm = Value
-    val DepthFirstSearch, BreadthFirstSearch = Value
+    val DepthFirst, BreadthFirst = Value
   }
 
   def noop[A](builder: RepeatBehaviour.Builder[A]): Builder[A] = builder
@@ -37,11 +37,11 @@ object RepeatBehaviour {
     private[this] var _emitCondition: Option[A => Boolean] = None
     private[this] var _untilCondition: Option[A => Boolean] = None
     private[this] var _times: Option[Int] = None
-    private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirstSearch
+    private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
 
     /* configure search algorithm to go "breadth first", rather than the default "depth first" */
     def breadthFirstSearch: Builder[A] = {
-      _searchAlgorithm = SearchAlgorithm.BreadthFirstSearch
+      _searchAlgorithm = SearchAlgorithm.BreadthFirst
       this
     }
     def bfs: Builder[A] = breadthFirstSearch

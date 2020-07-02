@@ -1,117 +1,93 @@
 package overflowdb.traversal
 
+import RepeatBehaviour.SearchAlgorithm
 import scala.collection.{Iterator, mutable}
 
 object RepeatStep {
 
-  /**
-   * Depth first repeat step implementation
-   * https://en.wikipedia.org/wiki/Depth-first_search
+  /** @see [[Traversal.repeat]] for a detailed overview
    *
-   * Given the following example graph:
-   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
-   * the traversal
-   * {{{ center.repeat(_.out).iterate }}}
-   * will iterate the nodes in the following order:
-   * Center, L1, L2, L3, R1, R2, R3, R4
-   *
-   * See RepeatTraversalTests for more detail (and a test for the above).
-   *
-   * Note re implementation: using recursion results in nicer code, but uses the JVM stack, which only has enough space for
-   * ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
+   * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space
+   * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
    * The RepeatTraversalTests cover this case.
-   */
-  object DepthFirst {
-    case class StackItem[A](traversal: Traversal[A], depth: Int)
-
-    def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      element: B => Traversal(new Iterator[B] {
-        val emitSack: mutable.Queue[B] = mutable.Queue.empty
-        val stack: mutable.Stack[StackItem[B]] = mutable.Stack.empty
-        val startTraversal = Traversal.fromSingle(element)
-        stack.push(StackItem(startTraversal, 0))
-
-        def hasNext: Boolean = {
-          if (emitSack.isEmpty) {
-            // this may add elements to the emit sack and/or modify the stack
-            traverseOnStack
-          }
-          emitSack.nonEmpty || stackTopTraversalHasNext
-        }
-
-        private def traverseOnStack: Unit = {
-          var stop = false
-          while (stack.nonEmpty && !stop) {
-            val StackItem(trav, depth) = stack.top
-            if (trav.isEmpty) stack.pop()
-            else if (behaviour.timesReached(depth)) stop = true
-            else {
-              val element = trav.next
-              if (behaviour.untilConditionReached(element)) {
-                // we just consumed an element from the traversal, so in lieu adding to the emit sack
-                emitSack.enqueue(element)
-                stop = true
-              } else {
-                stack.push(StackItem(repeatTraversal(element), depth + 1))
-                if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
-                if (emitSack.nonEmpty) stop = true
-              }
-            }
-          }
-        }
-
-        private def stackTopTraversalHasNext: Boolean =
-          stack.nonEmpty && stack.top.traversal.hasNext
-
-        override def next: B = {
-          if (emitSack.hasNext) emitSack.dequeue
-          else if (hasNext) stack.top.traversal.next
-          else throw new NoSuchElementException("next on empty iterator")
-        }
-
-      })
+   * */
+  def apply[A](repeatTraversal: A => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
+    val worklist: Worklist[A] = behaviour.searchAlgorithm match {
+      case SearchAlgorithm.DepthFirst   => new LifoWorklist[A]
+      case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
     }
-  }
 
-  /**
-   * Breadth first repeat step implementation
-   * https://en.wikipedia.org/wiki/Breadth-first_search
-   *
-   * Given the following example graph:
-   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
-   * the traversal
-   * {{{ center.repeat(_.out)(_.breadthFirstSearch).iterate }}}
-   * will iterate the nodes in the following order:
-   * Center, L1, R1, R1, R2, L3, R3, R4
-   *
-   * See RepeatTraversalTests for more detail (and a test for the above).
-   */
-  object BreadthFirst {
+    element: A => Traversal(new Iterator[A] {
+      val emitSack: mutable.Queue[A] = mutable.Queue.empty
+      val startTraversal = Traversal.fromSingle(element)
+      worklist.addItem(WorklistItem(startTraversal, 0))
 
-    def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      element: B => {
-        val emitSack = mutable.ListBuffer.empty[B]
-        // using an eagerly evaluated collection type is the key for making this 'breadth first'
-        var traversalResults = List(element)
-        var currentDepth = 0
-        while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
-          if (behaviour.untilCondition.isDefined) {
-            traversalResults = traversalResults.filter { element =>
-              val untilConditionReached = behaviour.untilCondition.get.apply(element)
-              if (untilConditionReached) emitSack.addOne(element)
-              !untilConditionReached
-            }
-          }
-
-          traversalResults = traversalResults.flatMap { element =>
-            if (behaviour.shouldEmit(element, currentDepth)) emitSack.addOne(element)
-            repeatTraversal(element)
-          }
-          currentDepth += 1
+      def hasNext: Boolean = {
+        if (emitSack.isEmpty) {
+          // this may add elements to the emit sack and/or modify the stack
+          traverseOnStack
         }
-        Traversal(traversalResults ++ emitSack)
+        emitSack.nonEmpty || stackTopTraversalHasNext
       }
-    }
+
+      private def traverseOnStack: Unit = {
+        var stop = false
+        while (worklist.nonEmpty && !stop) {
+          val WorklistItem(trav, depth) = worklist.head
+          if (trav.isEmpty) worklist.removeHead
+          else if (behaviour.timesReached(depth)) stop = true
+          else {
+            val element = trav.next
+            if (behaviour.untilConditionReached(element)) {
+              // we just consumed an element from the traversal, so in lieu adding to the emit sack
+              emitSack.enqueue(element)
+              stop = true
+            } else {
+              worklist.addItem(WorklistItem(repeatTraversal(element), depth + 1))
+              if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
+              if (emitSack.nonEmpty) stop = true
+            }
+          }
+        }
+      }
+
+      private def stackTopTraversalHasNext: Boolean =
+        worklist.nonEmpty && worklist.head.traversal.hasNext
+
+      override def next: A = {
+        if (emitSack.hasNext) emitSack.dequeue
+        else if (hasNext) worklist.head.traversal.next
+        else throw new NoSuchElementException("next on empty iterator")
+      }
+
+    })
   }
 
+  /** stores work still to do. depending on the underlying collection type, the behaviour of the repeat step changes */
+  trait Worklist[A] {
+    def addItem(item: WorklistItem[A]): Unit
+    def nonEmpty: Boolean
+    def head: WorklistItem[A]
+    def removeHead: Unit
+  }
+
+  /** stack based worklist for [[RepeatBehaviour.SearchAlgorithm.DepthFirst]] */
+  class LifoWorklist[A] extends Worklist[A] {
+    private val stack = mutable.Stack.empty[WorklistItem[A]]
+    override def addItem(item: WorklistItem[A]) = stack.push(item)
+    override def nonEmpty = stack.nonEmpty
+    override def head = stack.top
+    override def removeHead = stack.pop
+  }
+
+  /** queue based worklist for [[RepeatBehaviour.SearchAlgorithm.BreadthFirst]] */
+  class FifoWorklist[A] extends Worklist[A] {
+    private val queue = mutable.Queue.empty[WorklistItem[A]]
+    override def addItem(item: WorklistItem[A]) = queue.enqueue(item)
+    override def nonEmpty = queue.nonEmpty
+    override def head = queue.head
+    override def removeHead = queue.dequeue
+  }
+
+  case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 }
