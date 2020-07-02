@@ -84,10 +84,14 @@ class Traversal[A](elements: IterableOnce[A])
 
   /**
    * Repeat the given traversal
-   * By default it will continue repeating until there's no more results, not emit anything along the way, and use a
-   * 'depth first search' (DFS) algorithm, i.e. go deep before wide.
    *
-   * The @param behaviourBuilder allows you to configure all of the above - here are some typical use cases:
+   * The @param behaviourBuilder allows you to configure 1) when the repeat step will end (times/until),
+   * 2) whether it should emit elements it passes by, and 3) which search algorithm to use (depth-first or breadth-first).
+   *
+   * By default it will continue repeating until there's no more results, not emit anything along the way, and use
+   * depth first search, i.e. go deep before wide.
+   *
+   * Here are some popular alternative behaviour configurations:
    * {{{
    * .repeat(_.out)(_.times(3))                               // perform exactly three repeat iterations
    * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
@@ -95,7 +99,7 @@ class Traversal[A](elements: IterableOnce[A])
    * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
    * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
    * }}}
-   * See RepeatTraversalTests for more examples!
+   * See RepeatTraversalTests for more examples.
    *
    * Note that this works for domain-specific steps as well as generic graph steps - for details please take a look at
    * the examples in RepeatTraversalTests: both {{{.followedBy}}} and {{{.out}}} work.
