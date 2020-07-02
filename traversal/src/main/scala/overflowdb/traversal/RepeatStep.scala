@@ -1,7 +1,5 @@
 package overflowdb.traversal
 
-import overflowdb.traversal.RepeatBehaviour.{EmitAll, EmitAllButFirst, EmitConditional, EmitNothing}
-
 import scala.collection.{Iterator, mutable}
 
 object RepeatStep {
@@ -10,19 +8,6 @@ object RepeatStep {
     case class StackItem[A](traversal: Traversal[A], depth: Int)
 
     def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      def emitMaybe(element: B, currentDepth: Int, emitSack: mutable.Queue[B]): Unit = {
-        behaviour match {
-          case _: EmitNothing =>
-          case _: EmitAll => emitSack.enqueue(element)
-          case _: EmitAllButFirst =>
-            if (currentDepth > 0)
-              emitSack.enqueue(element)
-          case condition: EmitConditional[B]@unchecked =>
-            if (condition.emit(element))
-              emitSack.enqueue(element)
-        }
-      }
-
       element: B => Traversal(new Iterator[B] {
         val emitSack: mutable.Queue[B] = mutable.Queue.empty
         val stack: mutable.Stack[StackItem[B]] = mutable.Stack.empty
@@ -51,7 +36,7 @@ object RepeatStep {
                 stop = true
               } else {
                 stack.push(StackItem(repeatTraversal(element), depth + 1))
-                emitMaybe(element, depth, emitSack)
+                if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
                 if (emitSack.nonEmpty) stop = true
               }
             }
@@ -74,17 +59,6 @@ object RepeatStep {
   object BreadthFirst {
 
     def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      def emitMaybe(element: B, currentDepth: Int, emitSack: mutable.ListBuffer[B]): Unit = {
-        behaviour match {
-          case _: EmitNothing =>
-          case _: EmitAll => emitSack.addOne(element)
-          case _: EmitAllButFirst if currentDepth > 0 => emitSack.addOne(element)
-          case _: EmitAllButFirst =>
-          case condition: EmitConditional[B] @unchecked =>
-            if (condition.emit(element)) emitSack.addOne(element)
-        }
-      }
-
       element: B => {
         val emitSack = mutable.ListBuffer.empty[B]
         // using an eagerly evaluated collection type is the key for making this 'breadth first'
@@ -100,7 +74,7 @@ object RepeatStep {
           }
 
           traversalResults = traversalResults.flatMap { element =>
-            emitMaybe(element, currentDepth, emitSack)
+            if (behaviour.shouldEmit(element, currentDepth)) emitSack.addOne(element)
             repeatTraversal(element)
           }
           currentDepth += 1

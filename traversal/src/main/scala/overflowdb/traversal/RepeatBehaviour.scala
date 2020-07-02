@@ -12,6 +12,8 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
 
   def untilConditionReached(element: A): Boolean =
     untilCondition.isDefined && untilCondition.get.apply(element)
+
+  def shouldEmit(element: A, currentDepth: Int): Boolean
 }
 
 object RepeatBehaviour {
@@ -19,9 +21,7 @@ object RepeatBehaviour {
   trait EmitNothing extends EmitBehaviour
   trait EmitAll extends EmitBehaviour
   trait EmitAllButFirst extends EmitBehaviour
-  trait EmitConditional[A] extends EmitBehaviour {
-    def emit(a: A): Boolean
-  }
+  trait EmitConditional[A] extends EmitBehaviour
 
   object SearchAlgorithm extends Enumeration {
     type SearchAlgorithm = Value
@@ -90,18 +90,21 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition: Option[A => Boolean] = _untilCondition
           final override val times: Option[Int] = _times
+          override def shouldEmit(element: A, currentDepth: Int): Boolean = false
         }
       } else if (_emitAll) {
         new RepeatBehaviour[A] with EmitAll {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final override val times: Option[Int] = _times
+          override def shouldEmit(element: A, currentDepth: Int): Boolean = true
         }
       } else if (_emitAllButFirst) {
         new RepeatBehaviour[A] with EmitAllButFirst {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final override val times: Option[Int] = _times
+          override def shouldEmit(element: A, currentDepth: Int): Boolean = currentDepth > 0
         }
       } else {
         val __emitCondition = _emitCondition
@@ -109,7 +112,7 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition: Option[A => Boolean] = _untilCondition
           final private val _emitCondition = __emitCondition.get
-          override final def emit(a: A): Boolean = _emitCondition(a)
+          override final def shouldEmit(element: A, currentDepth: Int): Boolean = _emitCondition(element)
           final override val times: Option[Int] = _times
         }
       }
