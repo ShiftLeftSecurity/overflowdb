@@ -114,41 +114,8 @@ class Traversal[A](elements: IterableOnce[A])
   private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
     flatMap(RepeatStep.DepthFirst(repeatTraversal, behaviour))
 
-  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] = {
-    val emitSack = mutable.ListBuffer.empty[B]
-
-    // TODO cache the match on behaviour?
-    def traversalConsideringEmit(results: List[B], currentDepth: Int): List[B] = {
-      // TODO refactor: remove duplication
-      behaviour match {
-        case _: EmitNothing => results.flatMap(repeatTraversal)
-        case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-        case _: EmitAllButFirst if currentDepth > 0 => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-        case _: EmitAllButFirst => results.flatMap(repeatTraversal)
-        case condition: EmitConditional[B] @unchecked =>
-          results.flatMap { element =>
-            if (condition.emit(element)) emitSack.addOne(element)
-            repeatTraversal(element) }
-      }
-    }
-
-    flatMap { element: B =>
-      var traversalResults = List(element)
-      var currentDepth = 0
-      while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
-        if (behaviour.untilCondition.isDefined) {
-          traversalResults = traversalResults.filter { element =>
-            val untilConditionReached = behaviour.untilCondition.get.apply(element)
-            if (untilConditionReached) emitSack.addOne(element)
-            !untilConditionReached
-          }
-        }
-        traversalResults = traversalConsideringEmit(traversalResults, currentDepth)
-        currentDepth += 1
-      }
-      Traversal(traversalResults ++ emitSack)
-    }
-  }
+  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
+    flatMap(RepeatStep.BreadthFirst(repeatTraversal, behaviour))
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator

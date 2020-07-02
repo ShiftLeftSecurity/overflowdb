@@ -71,4 +71,41 @@ object RepeatStep {
     }
   }
 
+  object BreadthFirst {
+
+    def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
+      def traversalConsideringEmit(results: List[B], currentDepth: Int, emitSack: mutable.ListBuffer[B]): List[B] = {
+        behaviour match {
+          case _: EmitNothing => results.flatMap(repeatTraversal)
+          case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
+          case _: EmitAllButFirst if currentDepth > 0 => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
+          case _: EmitAllButFirst => results.flatMap(repeatTraversal)
+          case condition: EmitConditional[B] @unchecked =>
+            results.flatMap { element =>
+              if (condition.emit(element)) emitSack.addOne(element)
+              repeatTraversal(element) }
+        }
+      }
+
+      element: B => {
+        val emitSack = mutable.ListBuffer.empty[B]
+        // using an eagerly evaluated collection type is the key for making this 'breadth first'
+        var traversalResults = List(element)
+        var currentDepth = 0
+        while (traversalResults.nonEmpty && !behaviour.timesReached(currentDepth)) {
+          if (behaviour.untilCondition.isDefined) {
+            traversalResults = traversalResults.filter { element =>
+              val untilConditionReached = behaviour.untilCondition.get.apply(element)
+              if (untilConditionReached) emitSack.addOne(element)
+              !untilConditionReached
+            }
+          }
+          traversalResults = traversalConsideringEmit(traversalResults, currentDepth, emitSack)
+          currentDepth += 1
+        }
+        Traversal(traversalResults ++ emitSack)
+      }
+    }
+  }
+
 }
