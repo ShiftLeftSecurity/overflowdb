@@ -138,47 +138,23 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "uses DFS (depth first search) by default" in {
-    // asserting exact traversed path, in order to verify it's really DFS
     val traversedNodeNames = mutable.ListBuffer.empty[String]
-    val traversal = centerTrav.repeat { thing =>
+    centerTrav.repeat { thing =>
       traversedNodeNames.addOne(thing.name)
       thing.followedBy
-    }(_.times(3)).name
+    }.iterate
 
-    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
-    traversal.hasNext shouldBe true
-    traversedNodeNames.size shouldBe 3
-    traversedNodeNames.toList shouldBe List("Center", "L1", "L2")
-    traversal.next shouldBe "L3"
-
-    traversal.hasNext shouldBe true
-    traversedNodeNames.size shouldBe 5
-    traversedNodeNames.toList shouldBe List("Center", "L1", "L2", "R1", "R2")
-    traversal.next shouldBe "R3"
-
-    traversal.hasNext shouldBe false
+    traversedNodeNames.toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4")
   }
 
   "uses BFS (breadth first search) if configured" in {
-    // asserting exact traversed path, in order to verify it's really DFS
     val traversedNodeNames = mutable.ListBuffer.empty[String]
-    val traversal = centerTrav.repeat { thing =>
+    centerTrav.repeat { thing =>
       traversedNodeNames.addOne(thing.name)
       thing.followedBy
-    }(_.times(3).breadthFirstSearch).name
+    }(_.breadthFirstSearch).iterate
 
-    // hasNext will run the provided repeat traversal exactly 3 times (as configured)
-    traversal.hasNext shouldBe true
-    traversedNodeNames.size shouldBe 5
-    traversedNodeNames.toList shouldBe List("Center", "L1", "R1", "L2", "R2")
-    traversal.next shouldBe "L3"
-
-    traversal.hasNext shouldBe true
-    traversedNodeNames.size shouldBe 5
-    traversedNodeNames.toList shouldBe List("Center", "L1", "R1", "L2", "R2")
-    traversal.next shouldBe "R3"
-
-    traversal.hasNext shouldBe false
+    traversedNodeNames.toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4")
   }
 
   "hasNext is idempotent: DFS" in {
