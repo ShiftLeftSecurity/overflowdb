@@ -74,16 +74,14 @@ object RepeatStep {
   object BreadthFirst {
 
     def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      def traversalConsideringEmit(results: List[B], currentDepth: Int, emitSack: mutable.ListBuffer[B]): List[B] = {
+      def emitMaybe(element: B, currentDepth: Int, emitSack: mutable.ListBuffer[B]): Unit = {
         behaviour match {
-          case _: EmitNothing => results.flatMap(repeatTraversal)
-          case _: EmitAll => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-          case _: EmitAllButFirst if currentDepth > 0 => results.flatMap { element => emitSack.addOne(element); repeatTraversal(element) }
-          case _: EmitAllButFirst => results.flatMap(repeatTraversal)
+          case _: EmitNothing =>
+          case _: EmitAll => emitSack.addOne(element)
+          case _: EmitAllButFirst if currentDepth > 0 => emitSack.addOne(element)
+          case _: EmitAllButFirst =>
           case condition: EmitConditional[B] @unchecked =>
-            results.flatMap { element =>
-              if (condition.emit(element)) emitSack.addOne(element)
-              repeatTraversal(element) }
+            if (condition.emit(element)) emitSack.addOne(element)
         }
       }
 
@@ -100,7 +98,11 @@ object RepeatStep {
               !untilConditionReached
             }
           }
-          traversalResults = traversalConsideringEmit(traversalResults, currentDepth, emitSack)
+
+          traversalResults = traversalResults.flatMap { element =>
+            emitMaybe(element, currentDepth, emitSack)
+            repeatTraversal(element)
+          }
           currentDepth += 1
         }
         Traversal(traversalResults ++ emitSack)
