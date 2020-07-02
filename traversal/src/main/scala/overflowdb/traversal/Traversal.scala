@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
+import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
@@ -78,48 +79,44 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
-                    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
-  : Traversal[B] = {
+  /**
+   * Repeat the given traversal
+   *
+   * The @param behaviourBuilder allows you to configure 1) when the repeat step will end (times/until),
+   * 2) whether it should emit elements it passes by, and 3) which search algorithm to use (depth-first or breadth-first).
+   *
+   * By default it will continue repeating until there's no more results, not emit anything along the way, and use
+   * depth first search, i.e. go deep before wide.
+   *
+   * Here are some popular alternative behaviour configurations:
+   * {{{
+   * .repeat(_.out)(_.times(3))                               // perform exactly three repeat iterations
+   * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
+   * .repeat(_.out)(_.emit)                                   // emit everything along the way
+   * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
+   * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
+   * }}}
+   * See RepeatTraversalTests for more examples.
+   *
+   * Note that this works for domain-specific steps as well as generic graph steps - for details please take a look at
+   * the examples in RepeatTraversalTests: both {{{.followedBy}}} and {{{.out}}} work.
+   */
+  final def repeat[B >: A](repeatTraversal: A => Traversal[B])
+    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+    : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
-    _repeat(
-      repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]], //this cast is usually :tm: safe, because `B` is a supertype of `A`
-      behaviour,
-      currentDepth = 0,
-      emitSack = mutable.ListBuffer.empty)
-  }
-
-  private def _repeat[B >: A](repeatTraversal: Traversal[B] => Traversal[B],
-                      behaviour: RepeatBehaviour[B],
-                      currentDepth: Int,
-                      emitSack: mutable.ListBuffer[B]): Traversal[B] = {
-    if (isEmpty || behaviour.timesReached(currentDepth)) {
-      // we're at the end - emit whatever we collected on the way plus the current position
-      (emitSack.iterator ++ this).to(Traversal)
-    } else {
-      traversalConsideringEmit(behaviour, emitSack, currentDepth).flatMap { element =>
-        if (behaviour.untilCondition.isDefined && behaviour.untilCondition.get.apply(element)) {
-          // `until` condition reached - finishing the repeat traversal here, emitting the current element and the emitSack (if any)
-          Traversal.from(emitSack, element)
-        } else {
-          val bLifted = Traversal.fromSingle(element)
-          repeatTraversal(bLifted)._repeat(repeatTraversal, behaviour, currentDepth + 1, emitSack)
-        }
-      }
+    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
+    behaviour.searchAlgorithm match {
+      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
+      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
     }
   }
 
-  private def traversalConsideringEmit[B >: A](behaviour: RepeatBehaviour[B], emitSack: mutable.ListBuffer[B], currentDepth: Int): Traversal[B] =
-    behaviour match {
-      case _: EmitNothing    => this
-      case _: EmitAll => this.sideEffect(emitSack.addOne(_))
-      case _: EmitAllButFirst if currentDepth > 0 => this.sideEffect(emitSack.addOne(_))
-      case _: EmitAllButFirst => this
-      case conditional: EmitConditional[A] =>
-        this.sideEffect { a =>
-          if (conditional.emit(a)) emitSack.addOne(a)
-        }
-    }
+  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
+    flatMap(RepeatStep.DepthFirst(repeatTraversal, behaviour))
+
+  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
+    flatMap(RepeatStep.BreadthFirst(repeatTraversal, behaviour))
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
