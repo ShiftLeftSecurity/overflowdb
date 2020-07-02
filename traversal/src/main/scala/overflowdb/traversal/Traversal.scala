@@ -1,10 +1,7 @@
 package overflowdb.traversal
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
-import overflowdb.traversal.RepeatBehaviour._
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
@@ -12,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 /**
- * TODO more docs
+  * TODO more docs
   *
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
   * Since this may trip up users, we'll log a warning
@@ -132,7 +129,6 @@ class Traversal[A](elements: IterableOnce[A])
           Traversal.logger.warn("Traversal already exhausted")
         else isExhausted = true
       }
-      GlobalCounter.hasNextInvocationCount.incrementAndGet()
       _hasNext
     }
 
@@ -175,8 +171,4 @@ object Traversal extends IterableFactory[Traversal] {
   }
 
   def fromSingle[A](a: A): Traversal[A] = new Traversal(Iterator.single(a))
-}
-
-object GlobalCounter {
-  var hasNextInvocationCount = new AtomicInteger(0)
 }

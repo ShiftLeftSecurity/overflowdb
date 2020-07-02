@@ -39,7 +39,7 @@ object RepeatBehaviour {
     private[this] var _times: Option[Int] = None
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirstSearch
 
-    /* configure repeat traversal to search "Breadth First", rather than the default "Breadth First" */
+    /* configure search algorithm to go "breadth first", rather than the default "depth first" */
     def breadthFirstSearch: Builder[A] = {
       _searchAlgorithm = SearchAlgorithm.BreadthFirstSearch
       this
