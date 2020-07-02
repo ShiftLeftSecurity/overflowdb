@@ -10,7 +10,7 @@ object RepeatStep {
     case class StackItem[A](traversal: Traversal[A], depth: Int)
 
     def apply[B](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]): B => Traversal[B] = {
-      def maybeAddToEmitSack(element: B, currentDepth: Int, emitSack: mutable.Queue[B]): Unit = {
+      def emitMaybe(element: B, currentDepth: Int, emitSack: mutable.Queue[B]): Unit = {
         behaviour match {
           case _: EmitNothing =>
           case _: EmitAll => emitSack.enqueue(element)
@@ -38,19 +38,21 @@ object RepeatStep {
         }
 
         private def traverseOnStack: Unit = {
-          while (stack.nonEmpty) {
+          var stop = false
+          while (stack.nonEmpty && !stop) {
             val StackItem(trav, depth) = stack.top
             if (trav.isEmpty) stack.pop()
-            else if (behaviour.timesReached(depth)) return
+            else if (behaviour.timesReached(depth)) stop = true
             else {
               val element = trav.next
               if (behaviour.untilConditionReached(element)) {
+                // we just consumed an element from the traversal, so in lieu adding to the emit sack
                 emitSack.enqueue(element)
-                return
+                stop = true
               } else {
-                maybeAddToEmitSack(element, depth, emitSack)
                 stack.push(StackItem(repeatTraversal(element), depth + 1))
-                if (emitSack.nonEmpty) return
+                emitMaybe(element, depth, emitSack)
+                if (emitSack.nonEmpty) stop = true
               }
             }
           }
@@ -67,12 +69,6 @@ object RepeatStep {
 
       })
     }
-
   }
 
 }
-
-class RepeatStep {
-
-}
-
