@@ -107,16 +107,10 @@ class Traversal[A](elements: IterableOnce[A])
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
     behaviour.searchAlgorithm match {
-      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
-      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
+      case DepthFirstSearch   => flatMap(RepeatStep.DepthFirst  (_repeatTraversal, behaviour))
+      case BreadthFirstSearch => flatMap(RepeatStep.BreadthFirst(_repeatTraversal, behaviour))
     }
   }
-
-  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
-    flatMap(RepeatStep.DepthFirst(repeatTraversal, behaviour))
-
-  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
-    flatMap(RepeatStep.BreadthFirst(repeatTraversal, behaviour))
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
