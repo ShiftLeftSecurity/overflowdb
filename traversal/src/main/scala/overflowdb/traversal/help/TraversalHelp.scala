@@ -74,10 +74,10 @@ class TraversalHelp(domainBasePackage: String) {
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
-      traversal <- findClassesAnnotatedWith(classOf[help.Traversal])
-      elementType = traversal.getAnnotation(classOf[help.Traversal]).elementType
-      stepDoc <- findStepDocs(traversal)
-    } yield (elementType, stepDoc)
+      traversal  <- findClassesAnnotatedWith(classOf[help.Traversal])
+      annotation <- Option(traversal.getAnnotation(classOf[help.Traversal])).iterator
+      stepDoc    <- findStepDocs(traversal)
+    } yield (annotation.elementType, stepDoc)
   }.toList.groupMap(_._1)(_._2)
 
   private def findClassesAnnotatedWith[Annotation <: JAnnotation](annotationClass: Class[Annotation]): Iterator[Class[_]] =
