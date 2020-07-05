@@ -46,6 +46,16 @@ class Traversal[A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
+  def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder = DedupBehaviour.noop _)
+    : Traversal[A] = {
+     behaviourBuilder(new DedupBehaviour.Builder).build.comparisonStyle match {
+       case DedupBehaviour.ComparisonStyle.HashAndEquals =>
+         Traversal(elements.to(LazyList).distinct)
+       case DedupBehaviour.ComparisonStyle.HashOnly =>
+         Traversal(new DedupByHashIterator(elements))
+     }
+  }
+
   /** perform side effect without changing the contents of the traversal */
   @Doc("perform side effect without changing the contents of the traversal")
   def sideEffect(fun: A => Unit): Traversal[A] = map { a =>

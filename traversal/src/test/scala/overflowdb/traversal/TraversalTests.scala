@@ -41,6 +41,43 @@ class TraversalTests extends WordSpec with Matchers {
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
 
+  ".dedup step" should {
+    "remove duplicates: simple scenario" in {
+      Traversal(Iterator(1,2,1,3)).dedup.l shouldBe List(1,2,3)
+      Traversal(Iterator(1,2,1,3)).dedup(_.hashComparisonOnly).l shouldBe List(1,2,3)
+    }
+
+    "allow method only based on hashCode - to ensure the traversal doesn't hold onto elements after they've been consumed" in {
+      // when run with -Xmx128m we can hold ~7 of these at a time
+      def infiniteTraversalWithLargeElements = Traversal(new Iterator[Any] {
+        var i = 0
+        def hasNext = true
+        def next(): Any = {
+          val arr = Array.ofDim[Long](2048, 1024)
+          // assign unique value to make the arrays unique
+          arr(i)(i) = i
+          i += 1
+          arr
+        }
+      })
+
+      /** using dedup by hash comparison, we can traverse over these elements - already consumed elements are garbage collected */
+      val traversal = infiniteTraversalWithLargeElements.dedup(_.hashComparisonOnly)
+      0.to(128).foreach { i =>
+        traversal.next
+      }
+
+      /** This is a copy of the above, but using the default dedup comparison style (hashAndEquals). To be able to
+       * compare objects via `.equals` it has to hold onto already consumed objects, making it run out of memory
+       * eventually. When run with -Xmx128m this happens after ~5 iterations. */
+//      val traversal2 = infiniteTraversalWithLargeElements.dedup
+//      0.to(128).foreach { i =>
+//        println(i)
+//        traversal2.next
+//      }
+    }
+  }
+
   ".help step" should {
 
     "give a domain overview" in {
