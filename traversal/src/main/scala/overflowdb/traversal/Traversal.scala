@@ -46,6 +46,24 @@ class Traversal[A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
+  /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ...
+   * Preserves order and laziness semantics of Traversal.
+   *
+   * By default, it's determining duplicates based on equals and hashCode, just like java.util.Set.
+   * While that's usually fine, be aware that it has to maintain references to those elements even after they've been
+   * traversed, i.e. they can't be garbage collected while the traversal has not yet completed. In other words, the
+   * semantics are like LazyList, and not like Iterator.
+   *
+   * It can be configured to determine duplicates based on hashCode only instead, in which case elements can get freed.
+   *
+   * @example
+   * {{{
+   * .dedup
+   * .dedup(_.hashComparisonOnly)
+   * }}}
+   *
+   * see TraversalTests.scala
+   */
   def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder = DedupBehaviour.noop _)
     : Traversal[A] = {
      behaviourBuilder(new DedupBehaviour.Builder).build.comparisonStyle match {
