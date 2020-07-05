@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
-[![bintray](https://api.bintray.com/packages/shiftleft/maven/overflowdb-tinkerpop3/images/download.svg)](https://bintray.com/shiftleft/maven/overflowdb-tinkerpop3/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
 ## ShiftLeft OverflowDB
 * in-memory graph database with low memory footprint
@@ -49,7 +49,7 @@ If the `graphLocation` file already exists, OverflowDB will initialize all NodeR
 Note that there's no guarantees what happens on jvm crash.
 
 ### Usage
-**1)** add a dependency - depending on your build tool. Latest release: [![bintray](https://api.bintray.com/packages/shiftleft/maven/overflowdb-tinkerpop3/images/download.svg)](https://bintray.com/shiftleft/maven/overflowdb-tinkerpop3/_latestVersion)
+**1)** add a dependency - depending on your build tool. Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 ```xml
 <dependency> <!-- maven -->
   <groupId>io.shiftleft</groupId>
@@ -62,9 +62,8 @@ implementation 'io.shiftleft:overflowdb-tinkerpop3:x.y' // gradle
 ```
 ```scala
 libraryDependencies += "io.shiftleft" % "overflowdb-tinkerpop3" % "x.y" // sbt
-resolvers += Resolver.bintrayRepo("shiftleft", "maven")
 ```
-Other build tools: see [bintray instructions](https://bintray.com/shiftleft/maven/overflowdb-tinkerpop3/_latestVersion). Note that you'll have to add a resolver for maven and gradle as well, which is included in the 'bintray instructions' link under 'set me up'. 
+[Other build tools and versions](https://search.maven.org/search?q=g:io.shiftleft%20AND%20a:overflowdb-tinkerpop3&core=gav)
 
 **2)** Implement your domain-specific nodes/edges and factories. It's probably best to follow the example implementations 
 of [simple](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/simple) 

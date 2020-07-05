@@ -12,6 +12,7 @@ ThisBuild/resolvers ++= Seq(
   Resolver.bintrayRepo("shiftleft", "maven"),
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
+
 ThisBuild/Compile/scalacOptions ++= Seq(
   "-Xfatal-warnings",
   "-feature",
@@ -20,8 +21,17 @@ ThisBuild/Compile/scalacOptions ++= Seq(
   // "-language:existentials",
 )
 
-ThisBuild/bintrayVcsUrl := Some("https://github.com/ShiftLeftSecurity/overflowdb")
+ThisBuild/useGpg := false
+ThisBuild/publishTo := sonatypePublishToBundle.value
+Global/useGpgPinentry := false
+ThisBuild/scmInfo := Some(ScmInfo(url("https://github.com/ShiftLeftSecurity/overflowdb"),
+                                      "scm:git@github.com:ShiftLeftSecurity/overflowdb.git"))
+ThisBuild/homepage := Some(url("https://github.com/ShiftLeftSecurity/overflowdb/"))
+
 ThisBuild/licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
+ThisBuild/developers := List(
+  Developer("mpollmeier", "Michael Pollmeier", "michael@michaelpollmeier.com", url("http://www.michaelpollmeier.com/")),
+  Developer("ml86", "Markus Lottmann", "markus@shiftleft.io", url("https://github.com/ml86")))
 
 Global/cancelable := true
 Global/onChangedBuildSource := ReloadOnSourceChanges
