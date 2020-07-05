@@ -1,7 +1,6 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
-import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm._
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
@@ -79,44 +78,42 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  /**
-   * Repeat the given traversal
-   *
-   * The @param behaviourBuilder allows you to configure 1) when the repeat step will end (times/until),
-   * 2) whether it should emit elements it passes by, and 3) which search algorithm to use (depth-first or breadth-first).
+  /** Repeat the given traversal
    *
    * By default it will continue repeating until there's no more results, not emit anything along the way, and use
-   * depth first search, i.e. go deep before wide.
+   * depth first search.
    *
-   * Here are some popular alternative behaviour configurations:
+   * The @param behaviourBuilder allows you to configure end conditions (times/until), whether it should emit
+   * elements it passes by, and which search algorithm to use (depth-first or breadth-first).
+   *
+   * Search algorithm: Depth First Search (DFS) vs Breadth First Search (BFS):
+   * DFS means the repeat step will go deep before wide. BFS does the opposite: wide before deep.
+   * For example, given the graph {{{ L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 }}}
+   * DFS will iterate the nodes in the order: {{{ Center, L1, L2, L3, R1, R2, R3, R4 }}}
+   * BFS will iterate the nodes in the order: {{{ Center, L1, R1, R1, R2, L3, R3, R4 }}}
+   *
+   * @example
    * {{{
+   * .repeat(_.out)                            // repeat until there's no more elements, emit nothing, use DFS
    * .repeat(_.out)(_.times(3))                               // perform exactly three repeat iterations
    * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
    * .repeat(_.out)(_.emit)                                   // emit everything along the way
    * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
    * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
    * }}}
-   * See RepeatTraversalTests for more examples.
    *
-   * Note that this works for domain-specific steps as well as generic graph steps - for details please take a look at
-   * the examples in RepeatTraversalTests: both {{{.followedBy}}} and {{{.out}}} work.
+   * @note this works for domain-specific steps as well as generic graph steps - for details please take a look at
+   * the examples in RepeatTraversalTests: both '''.followedBy''' and '''.out''' work.
+   *
+   * @see RepeatTraversalTests for more detail and examples for all of the above.
    */
   final def repeat[B >: A](repeatTraversal: A => Traversal[B])
     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
     : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
-    behaviour.searchAlgorithm match {
-      case DepthFirstSearch => repeatDfs(_repeatTraversal, behaviour)
-      case BreadthFirstSearch => repeatBfs(_repeatTraversal, behaviour)
-    }
+    flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
-
-  private def repeatDfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
-    flatMap(RepeatStep.DepthFirst(repeatTraversal, behaviour))
-
-  private def repeatBfs[B >: A](repeatTraversal: B => Traversal[B], behaviour: RepeatBehaviour[B]) : Traversal[B] =
-    flatMap(RepeatStep.BreadthFirst(repeatTraversal, behaviour))
 
   override val iterator: Iterator[A] = new Iterator[A] {
     private val wrappedIter = elements.iterator
