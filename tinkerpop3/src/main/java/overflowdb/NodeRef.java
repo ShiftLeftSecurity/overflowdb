@@ -8,6 +8,7 @@ import overflowdb.tp3.Converters;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -145,16 +146,12 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
 
   @Override
   public int hashCode() {
-    return id().hashCode();
+    return Objects.hash(id2(), label());
   }
 
   @Override
   public boolean equals(final Object obj) {
-    if (obj instanceof Node) {
-      return id().equals(((Node) obj).id());
-    } else {
-      return false;
-    }
+    return (obj instanceof Node) && id2() == ((Node) obj).id2();
   }
 
   @Override

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -811,4 +812,13 @@ public abstract class OdbNode implements Vertex, Node {
     return keyValuesArray;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(id2(), label());
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    return (obj instanceof OdbNode) && id2() == ((OdbNode) obj).id2();
+  }
 }
