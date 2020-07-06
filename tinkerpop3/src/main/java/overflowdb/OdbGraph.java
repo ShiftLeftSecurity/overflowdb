@@ -311,6 +311,11 @@ public final class OdbGraph implements Graph {
     return IteratorUtils.flatMap(nodes(), node -> node.outE());
   }
 
+  /** Iterator over edges with given label */
+  public Iterator<OdbEdge> edges(String label) {
+    return IteratorUtils.flatMap(nodes(), node -> node.outE(label));
+  }
+
   @Override
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
