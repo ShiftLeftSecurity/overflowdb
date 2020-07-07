@@ -1,8 +1,11 @@
 package overflowdb.traversal
 
-import overflowdb.Node
-import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb.Node
+import overflowdb.traversal.filter.P
+import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
+import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
+import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 
 /** generic graph traversals, i.e. domain independent */
 class GenericGraphTraversalTests extends WordSpec with Matchers {
@@ -24,14 +27,14 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
   }
 
   "property lookup" in {
-    graph.V.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    graph.E.property(Connection.Properties.Distance).toSet shouldBe Set(10, 13)
-    graph.E.propertyOption(Connection.Properties.Distance).toSet shouldBe Set(Some(10), Some(13), None)
+    graph.V.property(Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    graph.E.property(Distance).toSet shouldBe Set(10, 13)
+    graph.E.propertyOption(Distance).toSet shouldBe Set(Some(10), Some(13), None)
   }
 
   "filter steps" can {
     "filter by id" in {
-      graph.V.hasId(centerNode.id).property(Thing.Properties.Name).toList shouldBe List("Center")
+      graph.V.hasId(centerNode.id).property(Name).toList shouldBe List("Center")
     }
 
     "filter by label" in {
@@ -42,30 +45,39 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
 
     "filter by property key" in {
-      graph.V.has(Thing.Properties.Name).size shouldBe 8
+      graph.V.has(Name).size shouldBe 8
       graph.V.has(nonExistingPropertyKey).size shouldBe 0
-      graph.V.hasNot(Thing.Properties.Name).size shouldBe 0
+      graph.V.hasNot(Name).size shouldBe 0
       graph.V.hasNot(nonExistingPropertyKey).size shouldBe 8
 
-      graph.E.has(Connection.Properties.Distance).size shouldBe 3
-      graph.E.hasNot(Connection.Properties.Distance).size shouldBe 4
+      graph.E.has(Distance).size shouldBe 3
+      graph.E.hasNot(Distance).size shouldBe 4
     }
 
     "filter by property key/value" in {
-      graph.V.has(Thing.Properties.Name -> "R1").size shouldBe 1
-      graph.V.hasNot(Thing.Properties.Name -> "R1").size shouldBe 7
-      graph.E.has(Connection.Properties.Distance -> 10).size shouldBe 2
-      graph.E.hasNot(Connection.Properties.Distance -> 10).size shouldBe 5
+      graph.V.has(Name, "R1").size shouldBe 1
+      graph.V.has(Name -> "R1").size shouldBe 1
+      graph.V.has(Name.where(_.endsWith("1"))).size shouldBe 2
+      graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 7
+      graph.V.has(Name.where(P.eq("R1"))).size shouldBe 1
+      graph.V.has(Name.where(P.neq("R1"))).size shouldBe 7
+      graph.V.has(Name.where(P.within(Set("L1", "L2")))).size shouldBe 2
+      graph.V.has(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 3
+      graph.V.has(Name.where(P.matches("[LR]."))).size shouldBe 7
+
+      graph.V.hasNot(Name -> "R1").size shouldBe 7
+      graph.E.has(Distance -> 10).size shouldBe 2
+      graph.E.hasNot(Distance -> 10).size shouldBe 5
     }
 
     "`where` step taking a traversal" in {
       // find all nodes that _do_ have an OUT neighbor, i.e. find the inner nodes
-      graph.V.where(_.out).property(Thing.Properties.Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
+      graph.V.where(_.out).property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
     }
 
     "`not` step taking a traversal" in {
       // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
-       graph.V.not(_.out).property(Thing.Properties.Name).toSet shouldBe Set("L3", "R4")
+       graph.V.not(_.out).property(Name).toSet shouldBe Set("L3", "R4")
     }
   }
 
@@ -150,6 +162,6 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
   }
 
   def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) = {
-    traversal.property(Thing.Properties.Name).toSet shouldBe expectedNames
+    traversal.property(Name).toSet shouldBe expectedNames
   }
 }

@@ -1,7 +1,9 @@
 package overflowdb.traversal
 
+import overflowdb.traversal.filter.P
 import overflowdb.traversal.help.Doc
-import overflowdb.{OdbElement, PropertyKey, Property}
+import overflowdb.{OdbElement, Property, PropertyPredicate, PropertyKey}
+
 import scala.jdk.CollectionConverters._
 
 class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends AnyVal {
@@ -17,39 +19,61 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def hasLabel(value: String): Traversal[E] =
     traversal.filter(_.label == value)
 
+  /** Filter elements by existence of property (irrespective of value) */
   def has(key: PropertyKey[_]): Traversal[E] = has(key.name)
 
+  /** Filter elements by existence of property (irrespective of value) */
   def has(name: String): Traversal[E] =
     traversal.filter(_.property2(name) != null)
 
-  def has[P](keyValue: Property[P]): Traversal[E] =
-    has[P](keyValue.key, keyValue.value)
+  /** Filter elements by property value */
+  def has[A](keyValue: Property[A]): Traversal[E] =
+    has[A](keyValue.key, keyValue.value)
 
-  def has[P](key: PropertyKey[P], value: P): Traversal[E] =
+  /** Filter elements by property value */
+  def has[A](key: PropertyKey[A], value: A): Traversal[E] =
     traversal.filter(_.property2(key.name) == value)
+
+  /** Filter elements by property with given predicate.
+   * @example from GenericGraphTraversalTest
+   * {{{
+   * .has(Name.where(_.endsWith("1")))
+   * .has(Name.where(_.matches("[LR].")))
+   * .has(Name.where(P.eq("R1")))
+   * .has(Name.where(P.neq("R1")))
+   * .has(Name.where(P.within(Set("L1", "L2"))))
+   * .has(Name.where(P.within("L1", "L2", "L3")))
+   * .has(Name.where(P.matches("[LR].")))
+   * }}}
+   */
+  def has[A](propertyPredicate: PropertyPredicate[A]): Traversal[E] =
+    traversal.filter(element => propertyPredicate.predicate(element.property(propertyPredicate.key)))
 
   def hasNot(key: PropertyKey[_]): Traversal[E] = hasNot(key.name)
 
   def hasNot(name: String): Traversal[E] =
     traversal.filter(_.property2(name) == null)
 
-  def hasNot[P](keyValue: Property[P]): Traversal[E] =
-    hasNot[P](keyValue.key, keyValue.value)
+  def hasNot[A](keyValue: Property[A]): Traversal[E] =
+    hasNot[A](keyValue.key, keyValue.value)
 
-  def hasNot[P](key: PropertyKey[P], value: P): Traversal[E] =
+  def hasNot[A](key: PropertyKey[A], value: A): Traversal[E] =
     traversal.filter(_.property2(key.name) != value)
 
-  def property[P](key: PropertyKey[P]): Traversal[P] =
+  def hasNot[A](key: PropertyKey[A], predicate: A => Boolean): Traversal[E] =
+    traversal.filter(element => predicate(element.property2(key.name)))
+
+  def property[A](key: PropertyKey[A]): Traversal[A] =
     property(key.name)
 
-  def property[P](key: String): Traversal[P] =
-    traversal.map(_.property2[P](key)).filter(_ != null)
+  def property[A](key: String): Traversal[A] =
+    traversal.map(_.property2[A](key)).filter(_ != null)
 
-  def propertyOption[P](key: PropertyKey[P]): Traversal[Option[P]] =
+  def propertyOption[A](key: PropertyKey[A]): Traversal[Option[A]] =
     propertyOption(key.name)
 
-  def propertyOption[P](key: String): Traversal[Option[P]] =
-    traversal.map(element => Option(element.property2[P](key)))
+  def propertyOption[A](key: String): Traversal[Option[A]] =
+    traversal.map(element => Option(element.property2[A](key)))
 
   def propertyMap: Traversal[Map[String, Object]] =
     traversal.map(_.propertyMap.asScala.toMap)
