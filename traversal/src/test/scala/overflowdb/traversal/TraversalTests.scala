@@ -10,11 +10,11 @@ class TraversalTests extends WordSpec with Matchers {
   "can only be iterated once" in {
     val one = Traversal.fromSingle("one")
     one.size shouldBe 1
-    one.size shouldBe 0 // logs a warning (not tested here)
+    one.size shouldBe 0
 
     val empty = Traversal(Nil)
     empty.size shouldBe 0
-    empty.size shouldBe 0 // logs a warning (not tested here)
+    empty.size shouldBe 0
   }
 
   "perform sideEffect" should {

@@ -143,29 +143,10 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
-  override val iterator: Iterator[A] = new Iterator[A] {
-    private val wrappedIter = elements.iterator
-    private var isExhausted = false
-
-    override def hasNext: Boolean = {
-      val _hasNext = wrappedIter.hasNext
-      if (!_hasNext) {
-        if (isExhausted)
-          Traversal.logger.warn("Traversal already exhausted")
-        else isExhausted = true
-      }
-      _hasNext
-    }
-
-    override def next(): A = wrappedIter.next
-  }
-
-  override def toString = getClass.getSimpleName
-
-  override def iterableFactory: IterableFactory[Traversal] = Traversal
-
+  override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
-
+  override def iterableFactory: IterableFactory[Traversal] = Traversal
+  override def toString = getClass.getSimpleName
   override protected def coll: Traversal[A] = this
 }
 
