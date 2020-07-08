@@ -57,16 +57,28 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     "filter by property key/value" in {
       graph.V.has(Name, "R1").size shouldBe 1
       graph.V.has(Name -> "R1").size shouldBe 1
-      graph.V.has(Name.where(_.endsWith("1"))).size shouldBe 2
-      graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 7
       graph.V.has(Name.where(P.eq("R1"))).size shouldBe 1
+      graph.V.has(Name.where(P.regexMatches("[LR]."))).size shouldBe 7
+      graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 7
       graph.V.has(Name.where(P.neq("R1"))).size shouldBe 7
       graph.V.has(Name.where(P.within(Set("L1", "L2")))).size shouldBe 2
       graph.V.has(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 3
-      graph.V.has(Name.where(P.matches("[LR]."))).size shouldBe 7
-
-      graph.V.hasNot(Name -> "R1").size shouldBe 7
+      graph.V.has(Name.where(P.without(Set("L1", "L2")))).size shouldBe 6
+      graph.V.has(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 5
+      graph.V.has(Name.where(_.endsWith("1"))).size shouldBe 2
       graph.E.has(Distance -> 10).size shouldBe 2
+
+      graph.V.hasNot(Name, "R1").size shouldBe 7
+      graph.V.hasNot(Name -> "R1").size shouldBe 7
+      graph.V.hasNot(Name.where(P.eq("R1"))).size shouldBe 7
+      graph.V.hasNot(Name.where(P.regexMatches("[LR]."))).size shouldBe 1
+      graph.V.hasNot(Name.where(_.matches("[LR]."))).size shouldBe 1
+      graph.V.hasNot(Name.where(P.neq("R1"))).size shouldBe 1
+      graph.V.hasNot(Name.where(P.within(Set("L1", "L2")))).size shouldBe 6
+      graph.V.hasNot(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 5
+      graph.V.hasNot(Name.where(P.without(Set("L1", "L2")))).size shouldBe 2
+      graph.V.hasNot(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 3
+      graph.V.hasNot(Name.where(_.endsWith("1"))).size shouldBe 6
       graph.E.hasNot(Distance -> 10).size shouldBe 5
     }
 

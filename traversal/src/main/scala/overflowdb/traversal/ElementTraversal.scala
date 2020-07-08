@@ -22,17 +22,32 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   /** Filter elements by existence of property (irrespective of value) */
   def has(key: PropertyKey[_]): Traversal[E] = has(key.name)
 
+  /** Filter elements by (non-)existence of property (irrespective of value) */
+  def hasNot(key: PropertyKey[_]): Traversal[E] = hasNot(key.name)
+
   /** Filter elements by existence of property (irrespective of value) */
   def has(name: String): Traversal[E] =
     traversal.filter(_.property2(name) != null)
+
+  /** Filter elements by (non-)existence of property (irrespective of value) */
+  def hasNot(name: String): Traversal[E] =
+    traversal.filter(_.property2(name) == null)
 
   /** Filter elements by property value */
   def has[A](keyValue: Property[A]): Traversal[E] =
     has[A](keyValue.key, keyValue.value)
 
   /** Filter elements by property value */
+  def hasNot[A](keyValue: Property[A]): Traversal[E] =
+    hasNot[A](keyValue.key, keyValue.value)
+
+  /** Filter elements by property value */
   def has[A](key: PropertyKey[A], value: A): Traversal[E] =
     traversal.filter(_.property2(key.name) == value)
+
+  /** Filter elements by property value */
+  def hasNot[A](key: PropertyKey[A], value: A): Traversal[E] =
+    traversal.filter(_.property2(key.name) != value)
 
   /** Filter elements by property with given predicate.
    * @example from GenericGraphTraversalTest
@@ -49,19 +64,20 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def has[A](propertyPredicate: PropertyPredicate[A]): Traversal[E] =
     traversal.filter(element => propertyPredicate.predicate(element.property(propertyPredicate.key)))
 
-  def hasNot(key: PropertyKey[_]): Traversal[E] = hasNot(key.name)
-
-  def hasNot(name: String): Traversal[E] =
-    traversal.filter(_.property2(name) == null)
-
-  def hasNot[A](keyValue: Property[A]): Traversal[E] =
-    hasNot[A](keyValue.key, keyValue.value)
-
-  def hasNot[A](key: PropertyKey[A], value: A): Traversal[E] =
-    traversal.filter(_.property2(key.name) != value)
-
-  def hasNot[A](key: PropertyKey[A], predicate: A => Boolean): Traversal[E] =
-    traversal.filter(element => predicate(element.property2(key.name)))
+  /** Filter elements by property with given predicate.
+   * @example from GenericGraphTraversalTest
+   * {{{
+   * .hasNot(Name.where(_.endsWith("1")))
+   * .hasNot(Name.where(_.matches("[LR].")))
+   * .hasNot(Name.where(P.eq("R1")))
+   * .hasNot(Name.where(P.neq("R1")))
+   * .hasNot(Name.where(P.within(Set("L1", "L2"))))
+   * .hasNot(Name.where(P.within("L1", "L2", "L3")))
+   * .hasNot(Name.where(P.matches("[LR].")))
+   * }}}
+   */
+  def hasNot[A](propertyPredicate: PropertyPredicate[A]): Traversal[E] =
+    traversal.filterNot(element => propertyPredicate.predicate(element.property(propertyPredicate.key)))
 
   def property[A](key: PropertyKey[A]): Traversal[A] =
     property(key.name)
