@@ -106,6 +106,11 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
+  def or(trav: Traversal[A] => Traversal[_]): Traversal[A] =
+    filter { a: A =>
+      trav(Traversal.fromSingle(a)).hasNext
+    }
+
   /** Repeat the given traversal
    *
    * By default it will continue repeating until there's no more results, not emit anything along the way, and use
