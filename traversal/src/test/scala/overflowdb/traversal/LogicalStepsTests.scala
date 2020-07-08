@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
+import overflowdb.traversal._
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
@@ -19,7 +20,7 @@ class LogicalStepsTests extends WordSpec with Matchers {
 
     centerTrav.out.or(
       _.label("does not exist"),
-//      _.property(Name, "R1")
+      _.has(Name, "R1")
     ).size shouldBe 1
   }
 

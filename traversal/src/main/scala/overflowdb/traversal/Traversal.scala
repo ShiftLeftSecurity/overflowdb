@@ -106,9 +106,17 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  def or(trav: Traversal[A] => Traversal[_]): Traversal[A] =
+  /** Filter step: only preserves elements for which at least one of the given traversals has at least one result.
+   * Works for arbitrary amount of 'OR' traversals.
+   * @example {{{
+   *   .or(_.label("someLabel"),
+   *       _.has("someProperty"))
+   * }}} */
+  def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
     filter { a: A =>
-      trav(Traversal.fromSingle(a)).hasNext
+      traversals.exists { trav =>
+        trav(Traversal.fromSingle(a)).hasNext
+      }
     }
 
   /** Repeat the given traversal
