@@ -88,19 +88,15 @@ class Traversal[A](elements: IterableOnce[A])
     a
   }
 
-  /**
-   * filters out objects from the traversal stream when the traversal provided as an argument returns an object.
-   * inverse of {{{not}}}
-   */
+  /** Filter step: only preserves elements if the provided traversal has at least one result.
+   * inverse: {{{not}}} */
   def where(trav: A => Traversal[_]): Traversal[A] =
     filter { a: A =>
       trav(a).hasNext
     }
 
-  /**
-   * filters out objects from the traversal stream when the traversal provided as an argument returns an object.
-   * inverse of {{{where}}}
-   */
+  /** Filter step: only preserves elements if the provided traversal does _not_ have any results.
+   * inverse: {{{where}}} */
   def not(trav: A => Traversal[_]): Traversal[A] =
     filterNot { a: A =>
       trav(a).hasNext
