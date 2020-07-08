@@ -484,7 +484,7 @@ public class OdbNodeTest {
       assertNodeCount(2, graph);
       assertEdgeCount(2, graph);
 
-      assertSize(2, graph.nodesByLabel(Song.label));
+      assertSize(2, graph.nodes(Song.label));
       // TODO move to tinkerpop-subproject once it's factored out
       assertEquals(new Long(2), graph.traversal().E().hasLabel(FollowedBy.LABEL).count().next());
     }

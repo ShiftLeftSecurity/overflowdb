@@ -16,5 +16,5 @@ abstract class TraversalSource(graph: OdbGraph) {
     Traversal(graph.nodes(ids: _*))
 
   def label(label: String): Traversal[Node] =
-    Traversal(graph.nodesByLabel(label))
+    Traversal(graph.nodes(label))
 }
