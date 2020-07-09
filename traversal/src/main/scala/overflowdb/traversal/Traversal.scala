@@ -102,7 +102,7 @@ class Traversal[A](elements: IterableOnce[A])
       trav(a).hasNext
     }
 
-  /** Filter step: only preserves elements for which at least one of the given traversals has at least one result.
+  /** Filter step: only preserves elements for which _at least one of_ the given traversals has at least one result.
    * Works for arbitrary amount of 'OR' traversals.
    * @example {{{
    *   .or(_.label("someLabel"),
@@ -111,6 +111,19 @@ class Traversal[A](elements: IterableOnce[A])
   def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
     filter { a: A =>
       traversals.exists { trav =>
+        trav(Traversal.fromSingle(a)).hasNext
+      }
+    }
+
+  /** Filter step: only preserves elements for which _all of_ the given traversals has at least one result.
+   * Works for arbitrary amount of 'AND' traversals.
+   * @example {{{
+   *   .and(_.label("someLabel"),
+   *        _.has("someProperty"))
+   * }}} */
+  def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
+    filter { a: A =>
+      traversals.forall { trav =>
         trav(Traversal.fromSingle(a)).hasNext
       }
     }
