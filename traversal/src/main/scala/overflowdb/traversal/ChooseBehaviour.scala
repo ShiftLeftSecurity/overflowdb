@@ -10,6 +10,8 @@ trait ChooseBehaviour[TraversalElement, BranchOn, NewEnd] {
 }
 
 object ChooseBehaviour {
+  val Default: Nothing = ???
+
     class Builder[TraversalElement, BranchOn, NewEnd] {
 //      private[this] var _comparisonStyle: ComparisonStyle.Value = ComparisonStyle.HashAndEquals
 
