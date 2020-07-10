@@ -165,6 +165,21 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
+  def choose[BranchOn, NewEnd](on: Traversal[A] => Traversal[BranchOn])
+                              (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
+    flatMap { a: A =>
+      on(Traversal.fromSingle(a)).headOption match {
+        case None => ??? // TODO invoke 'otherwise' branch?
+        case Some(branchOnValue) =>
+          if (options.isDefinedAt(branchOnValue)) {
+            options(branchOnValue)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
+          } else {
+            Traversal.empty
+          }
+      }
+    }
+
+
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
   override def iterableFactory: IterableFactory[Traversal] = Traversal

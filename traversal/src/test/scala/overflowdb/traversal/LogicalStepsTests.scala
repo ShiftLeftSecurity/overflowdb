@@ -3,6 +3,7 @@ package overflowdb.traversal
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
 import overflowdb.traversal._
+import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
@@ -40,35 +41,22 @@ class LogicalStepsTests extends WordSpec with Matchers {
     ).size shouldBe 1
   }
 
-  "choose" should {
-//    "provide simple version for if/else semantic" in {
-//      graph.V
-//        .choose(
-//          _.value(Age).is(P.gt(30)),
-//          onTrue = _.value(Height),
-//          onFalse = _.value(Shoesize)
-//        )
-//        .toSet shouldBe Set(190,
-//        176, // Michael and Steffi are >30 - take their height
-//        5) // Karlotta is <=30 - take her shoesize
-//    }
+  "choose step" should {
+    "provide if/elseif semantics" in {
+      graph.nodes(Thing.Label)
+        .choose(_.property(Name)) {
+          case "L1" => _.out
+          case "R1" => _.repeat(_.out)(_.times(3))
+        }.property(Name).toSet shouldBe Set("L2", "R4")
+    }
 
-    "choose step" should {
-      "provide if/elseif semantics" in {
-//        simpleDomain.things.has(Name.("[LR]1") //L1, R1
-
-        val chooseTrav = trav.choose(_.property(Name)(
-          BranchCase("L1", _.out),
-          BranchCase("R1", _.repeat(_.out)(_.times(3))
-        )
-
-        chooseTrav.property(Name).toSet shouldBe Set(
-          ""
-        )
-  //        .toSet shouldBe Set(190, // Michael is 34 - take his height
-  //        41, //Steffi is 32 - take her shoesize
-  //        2015) // Karlotta is case `Otherwise` - take her year of birth
-      }
+    "provide if/elseif/else semantics" in {
+      graph.nodes(Thing.Label)
+        .choose(_.property(Name)) {
+          case "L1" => _.out
+          case "R1" => _.repeat(_.out)(_.times(3))
+          case _ => _.in
+        }.property(Name).toSet shouldBe Set("L1", "L2", "R1", "R2", "R3", "R4")
     }
   }
 
