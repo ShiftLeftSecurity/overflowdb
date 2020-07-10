@@ -814,7 +814,7 @@ public abstract class OdbNode implements Vertex, Node {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id2(), label());
+    return Objects.hash(id2());
   }
 
   @Override
