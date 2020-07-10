@@ -165,6 +165,25 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
+  /** Branch step: based on the current element, match on something given a traversal, and provide resulting traversals
+   * based on the matched element. Allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...
+   *
+   * @param on Traversal to get to what you want to match on
+   * @tparam BranchOn required to be >: Null because the implementation is using `null` as the default value. I didn't
+   *                  find a better way to implement all semantics with the niceties of PartialFunction, and also yolo...
+   * @param options PartialFunction from the matched element to the resulting traversal
+   * @tparam NewEnd The element type of the resulting traversal
+   *
+   * @example
+   * {{{
+   * .choose(_.property(Name)) {
+   *   case "L1" => _.out
+   *   case "R1" => _.repeat(_.out)(_.times(3))
+   *   case _ => _.in
+   * }
+   * }}}
+   * @see LogicalStepsTests
+   */
   def choose[BranchOn >: Null, NewEnd]
     (on: Traversal[A] => Traversal[BranchOn])
     (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
