@@ -88,22 +88,44 @@ class Traversal[A](elements: IterableOnce[A])
     a
   }
 
-  /**
-   * filters out objects from the traversal stream when the traversal provided as an argument returns an object.
-   * inverse of {{{not}}}
-   */
+  /** Filter step: only preserves elements if the provided traversal has at least one result.
+   * inverse: {{{not}}} */
   def where(trav: A => Traversal[_]): Traversal[A] =
     filter { a: A =>
       trav(a).hasNext
     }
 
-  /**
-   * filters out objects from the traversal stream when the traversal provided as an argument returns an object.
-   * inverse of {{{where}}}
-   */
+  /** Filter step: only preserves elements if the provided traversal does _not_ have any results.
+   * inverse: {{{where}}} */
   def not(trav: A => Traversal[_]): Traversal[A] =
     filterNot { a: A =>
       trav(a).hasNext
+    }
+
+  /** Filter step: only preserves elements for which _at least one of_ the given traversals has at least one result.
+   * Works for arbitrary amount of 'OR' traversals.
+   * @example {{{
+   *   .or(_.label("someLabel"),
+   *       _.has("someProperty"))
+   * }}} */
+  def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
+    filter { a: A =>
+      traversals.exists { trav =>
+        trav(Traversal.fromSingle(a)).hasNext
+      }
+    }
+
+  /** Filter step: only preserves elements for which _all of_ the given traversals has at least one result.
+   * Works for arbitrary amount of 'AND' traversals.
+   * @example {{{
+   *   .and(_.label("someLabel"),
+   *        _.has("someProperty"))
+   * }}} */
+  def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
+    filter { a: A =>
+      traversals.forall { trav =>
+        trav(Traversal.fromSingle(a)).hasNext
+      }
     }
 
   /** Repeat the given traversal
@@ -142,6 +164,37 @@ class Traversal[A](elements: IterableOnce[A])
     val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
+
+  /** Branch step: based on the current element, match on something given a traversal, and provide resulting traversals
+   * based on the matched element. Allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...
+   *
+   * @param on Traversal to get to what you want to match on
+   * @tparam BranchOn required to be >: Null because the implementation is using `null` as the default value. I didn't
+   *                  find a better way to implement all semantics with the niceties of PartialFunction, and also yolo...
+   * @param options PartialFunction from the matched element to the resulting traversal
+   * @tparam NewEnd The element type of the resulting traversal
+   *
+   * @example
+   * {{{
+   * .choose(_.property(Name)) {
+   *   case "L1" => _.out
+   *   case "R1" => _.repeat(_.out)(_.times(3))
+   *   case _ => _.in
+   * }
+   * }}}
+   * @see LogicalStepsTests
+   */
+  def choose[BranchOn >: Null, NewEnd]
+    (on: Traversal[A] => Traversal[BranchOn])
+    (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
+    flatMap { a: A =>
+      val branchOnValue: BranchOn = on(Traversal.fromSingle(a)).headOption.getOrElse(null)
+      if (options.isDefinedAt(branchOnValue)) {
+        options(branchOnValue)(Traversal.fromSingle(a))
+      } else {
+        Traversal.empty
+      }
+    }
 
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
