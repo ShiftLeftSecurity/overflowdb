@@ -55,8 +55,34 @@ class LogicalStepsTests extends WordSpec with Matchers {
     "handle empty `on` matching case" in {
       graph.nodes(Thing.Label)
         .choose(_.has("nonExistingProperty")) {
-          case _ => _.out
+          case node => _.out
         }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+    }
+
+    "foo" in {
+      import overflowdb.Node
+      val b = new ChooseBehaviour.Builder[Node, String, Node]
+      b.withBranch { case "asd" => _.out }
+
+      graph.nodes(Thing.Label)
+        .choose2(_.has("nonExistingProperty")){ b: ChooseBehaviour.Builder[Node, String, Node] =>
+//          _.withBranch { case "L1" => _.out }
+//          _.withBranch[Node] { case "L1" => {x: Traversal[Node] => x.out }}
+            b.withBranch[Node] {
+              val pf: PartialFunction[String, Traversal[Node] => Traversal[Node]] = ???
+              pf
+            }
+//        _.withBranch { ??? }
+//           .otherwise(_.in)
+        }
+        //.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+//      graph.nodes(Thing.Label)
+////        .choose(_.has("name")) {
+//        .choose(_.property(Name)) {
+//          case "L2" => _.out
+//          case _ => _.in
+//        }
+
     }
   }
 

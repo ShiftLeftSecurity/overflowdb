@@ -174,12 +174,13 @@ class Traversal[A](elements: IterableOnce[A])
           //Traversal.empty // Traversal.fromSingle(a)
           // TODO fix proper
 //          val defaultCase: BranchOn = new overflowdb.Node(){}.asInstanceOf[BranchOn]
-          val defaultCase: BranchOn = null//new overflowdb.Node(){}.asInstanceOf[BranchOn]
-          if (options.isDefinedAt(defaultCase)) {
-            options(defaultCase)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
-          } else {
-            Traversal.empty
-          }
+//          val defaultCase: BranchOn = null//new overflowdb.Node(){}.asInstanceOf[BranchOn]
+//          if (options.isDefinedAt(defaultCase)) {
+//            options(defaultCase)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
+//          } else {
+//            Traversal.empty
+//          }
+          ???
         case Some(branchOnValue) =>
           if (options.isDefinedAt(branchOnValue)) {
             options(branchOnValue)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
@@ -189,6 +190,13 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
+  def choose2[BranchOn, NewEnd](on: Traversal[A] => Traversal[BranchOn])
+                              (behaviourBuilder: ChooseBehaviour.Builder[A, BranchOn, NewEnd] => ChooseBehaviour.Builder[A, BranchOn, NewEnd]): Traversal[NewEnd] = {
+    val behaviour: ChooseBehaviour[A, BranchOn, NewEnd] = behaviourBuilder(new ChooseBehaviour.Builder[A, BranchOn, NewEnd]).build
+    flatMap { a: A =>
+      ???
+    }
+  }
 
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
