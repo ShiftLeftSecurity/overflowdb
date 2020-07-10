@@ -169,7 +169,7 @@ class Traversal[A](elements: IterableOnce[A])
                               (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
     flatMap { a: A =>
       on(Traversal.fromSingle(a)).headOption match {
-        case None => ??? // TODO invoke 'otherwise' branch?
+        case None => Traversal.empty
         case Some(branchOnValue) =>
           if (options.isDefinedAt(branchOnValue)) {
             options(branchOnValue)(Traversal.fromSingle(a)) // do not lose the already consumed `a`

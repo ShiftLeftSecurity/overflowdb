@@ -54,9 +54,15 @@ class LogicalStepsTests extends WordSpec with Matchers {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
           case "L1" => _.out
-          case "R1" => _.repeat(_.out)(_.times(3))
           case _ => _.in
-        }.property(Name).toSet shouldBe Set("L1", "L2", "R1", "R2", "R3", "R4")
+        }.property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
+    }
+
+    "handle empty `on` matching case" in {
+      graph.nodes(Thing.Label)
+        .choose(_.filter(_ => false)) {
+          case _ => _.out
+        }.property(Name).size shouldBe 0
     }
   }
 
