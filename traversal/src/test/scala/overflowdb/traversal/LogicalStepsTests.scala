@@ -36,55 +36,44 @@ class LogicalStepsTests extends WordSpec with Matchers {
   }
 
   "choose step" should {
+    "provide if semantics" in {
+      graph.nodes(Thing.Label)
+        .choose(_.property(Name)) {
+          case "L1" => _.out // -> L2
+        }.property(Name).toSet shouldBe Set("L2")
+    }
+
     "provide if/elseif semantics" in {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
-          case "L1" => _.out
-          case "R1" => _.repeat(_.out)(_.times(3))
+          case "L1" => _.out // -> L2
+          case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
         }.property(Name).toSet shouldBe Set("L2", "R4")
     }
 
     "provide if/else semantics" in {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
-          case "L1" => _.out // will traverse to L2
+          case "L1" => _.out // -> L2
+          case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
           case _ => _.in
-        }.property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
+        }.property(Name).toSet shouldBe Set("L2", "L1", "R1", "R2", "R3", "R4")
     }
 
-    "handle empty `on` matching case" in {
+    "handle empty `on` traversal: if semantics" in {
+      graph.nodes(Thing.Label)
+        .choose(_.property(Name).filter(_ => false)) {
+          case "L1" => _.out
+        }.property(Name).size shouldBe 0
+    }
+
+    "handle empty `on` traversal: if/else semantics" in {
       graph.nodes(Thing.Label)
         .choose(_.property(Name).filter(_ => false)) {
           case "L1" => _.in
-          case ChooseBehaviour.Default => _.out
+          case _ => _.out
         }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
     }
-
-//    "foo" in {
-//      import overflowdb.Node
-//      val b = new ChooseBehaviour.Builder[Node, String, Node]
-//      b.withBranch { case "asd" => _.out }
-//
-//      graph.nodes(Thing.Label)
-//        .choose2(_.has("nonExistingProperty")){ b: ChooseBehaviour.Builder[Node, String, Node] =>
-////          _.withBranch { case "L1" => _.out }
-////          _.withBranch[Node] { case "L1" => {x: Traversal[Node] => x.out }}
-//            b.withBranch[Node] {
-//              val pf: PartialFunction[String, Traversal[Node] => Traversal[Node]] = ???
-//              pf
-//            }
-////        _.withBranch { ??? }
-////           .otherwise(_.in)
-//        }
-//        //.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
-////      graph.nodes(Thing.Label)
-//////        .choose(_.has("name")) {
-////        .choose(_.property(Name)) {
-////          case "L2" => _.out
-////          case _ => _.in
-////        }
-//
-//    }
   }
 
 }

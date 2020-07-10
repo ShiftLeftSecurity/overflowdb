@@ -165,25 +165,17 @@ class Traversal[A](elements: IterableOnce[A])
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
-  def choose[BranchOn, NewEnd](on: Traversal[A] => Traversal[BranchOn])
-                              (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
+  def choose[BranchOn >: Null, NewEnd](on: Traversal[A] => Traversal[BranchOn])
+                              (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] = {
     flatMap { a: A =>
-      // TODO refactor
       on(Traversal.fromSingle(a)).headOption match {
         case None =>
-          //Traversal.empty // Traversal.fromSingle(a)
-          // TODO fix proper
-//          val defaultCase: BranchOn = new overflowdb.Node(){}.asInstanceOf[BranchOn]
-          val defaultCase: BranchOn = ChooseBehaviour.Default
+          val defaultCase: BranchOn = null
           if (options.isDefinedAt(defaultCase)) {
             options(defaultCase)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
           } else {
             Traversal.empty
           }
-
-//          if (options.isDefinedAt(ChooseBehaviour.Default))
-//
-//          ???
         case Some(branchOnValue) =>
           if (options.isDefinedAt(branchOnValue)) {
             options(branchOnValue)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
@@ -191,13 +183,6 @@ class Traversal[A](elements: IterableOnce[A])
             Traversal.empty
           }
       }
-    }
-
-  def choose2[BranchOn, NewEnd](on: Traversal[A] => Traversal[BranchOn])
-                              (behaviourBuilder: ChooseBehaviour.Builder[A, BranchOn, NewEnd] => ChooseBehaviour.Builder[A, BranchOn, NewEnd]): Traversal[NewEnd] = {
-    val behaviour: ChooseBehaviour[A, BranchOn, NewEnd] = behaviourBuilder(new ChooseBehaviour.Builder[A, BranchOn, NewEnd]).build
-    flatMap { a: A =>
-      ???
     }
   }
 
