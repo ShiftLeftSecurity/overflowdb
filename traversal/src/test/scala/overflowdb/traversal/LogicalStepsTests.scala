@@ -1,14 +1,8 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb._
-import overflowdb.traversal._
-import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
-import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
-
-import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 class LogicalStepsTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -50,19 +44,19 @@ class LogicalStepsTests extends WordSpec with Matchers {
         }.property(Name).toSet shouldBe Set("L2", "R4")
     }
 
-    "provide if/elseif/else semantics" in {
+    "provide if/else semantics" in {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
-          case "L1" => _.out
+          case "L1" => _.out // will traverse to L2
           case _ => _.in
         }.property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
     }
 
     "handle empty `on` matching case" in {
       graph.nodes(Thing.Label)
-        .choose(_.filter(_ => false)) {
+        .choose(_.has("nonExistingProperty")) {
           case _ => _.out
-        }.property(Name).size shouldBe 0
+        }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
     }
   }
 

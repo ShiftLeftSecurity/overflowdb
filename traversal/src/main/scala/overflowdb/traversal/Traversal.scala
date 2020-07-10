@@ -168,8 +168,18 @@ class Traversal[A](elements: IterableOnce[A])
   def choose[BranchOn, NewEnd](on: Traversal[A] => Traversal[BranchOn])
                               (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
     flatMap { a: A =>
+      // TODO refactor
       on(Traversal.fromSingle(a)).headOption match {
-        case None => Traversal.empty
+        case None =>
+          //Traversal.empty // Traversal.fromSingle(a)
+          // TODO fix proper
+//          val defaultCase: BranchOn = new overflowdb.Node(){}.asInstanceOf[BranchOn]
+          val defaultCase: BranchOn = null//new overflowdb.Node(){}.asInstanceOf[BranchOn]
+          if (options.isDefinedAt(defaultCase)) {
+            options(defaultCase)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
+          } else {
+            Traversal.empty
+          }
         case Some(branchOnValue) =>
           if (options.isDefinedAt(branchOnValue)) {
             options(branchOnValue)(Traversal.fromSingle(a)) // do not lose the already consumed `a`
