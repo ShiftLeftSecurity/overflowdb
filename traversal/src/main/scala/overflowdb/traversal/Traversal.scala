@@ -196,6 +196,15 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
+  def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
+    flatMap { a: A =>
+      val x = options.find { trav =>
+        trav(Traversal.fromSingle(a)).hasNext
+      }.getOrElse{_: Traversal[A] => Traversal.empty[NewEnd]}
+      val y = x(Traversal.fromSingle(a))
+      y
+    }
+
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
   override def iterableFactory: IterableFactory[Traversal] = Traversal

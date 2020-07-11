@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
@@ -74,6 +75,45 @@ class LogicalStepsTests extends WordSpec with Matchers {
           case _ => _.out
         }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
     }
+  }
+
+  "foo" in {
+    import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+    import org.apache.tinkerpop.gremlin.process.traversal.Traverser
+    import org.apache.tinkerpop.gremlin.structure.Vertex
+    import Thing.PropertyNames.Name
+    import scala.jdk.CollectionConverters._
+    def tp = graph.traversal.V(centerNode.id)
+    println(tp.coalesce().toList)
+    println(tp.coalesce(__()).toList)
+    println(tp.coalesce(__(), __()).toList)
+    println(tp.coalesce(__(), __().out()).toList)
+    println(tp.coalesce(__().out()).toList)
+  }
+
+  "coalesce step takes arbitrary number of traversals and follows the first one that returns at least one element" in {
+    centerTrav.coalesce(_.out).property(Name).toSet shouldBe Set("L1", "R1")
+
+    centerTrav.coalesce().size shouldBe 0
+    centerTrav.coalesce(_.out("doesn't exist")).size shouldBe 0
+
+    // verify it doesn't invoke the third traversal
+    var thirdTraversalInvoked = false
+    centerTrav.coalesce(
+      _.out("doesn't exist"),
+      _.out,
+      _.sideEffect(_ => thirdTraversalInvoked = true).out
+    ).property(Name).toSet shouldBe Set("L1", "R1")
+    thirdTraversalInvoked shouldBe false
+
+    centerTrav.coalesce(
+      _.name("doesn't exist"),
+      _.followedBy
+    ).name.toSet shouldBe Set("L1", "R1")
+
+    // we can even mix generic graph steps (.out) and domain-specific steps (.followedBy), but need to help the type
+    // inferencer by specifying `[Node]` as the result type
+    centerTrav.coalesce[Node](_.out, _.followedBy).property(Name).toSet shouldBe Set("L1", "R1")
   }
 
 }
