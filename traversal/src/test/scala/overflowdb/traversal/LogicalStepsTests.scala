@@ -77,20 +77,6 @@ class LogicalStepsTests extends WordSpec with Matchers {
     }
   }
 
-  "foo" in {
-    import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-    import org.apache.tinkerpop.gremlin.process.traversal.Traverser
-    import org.apache.tinkerpop.gremlin.structure.Vertex
-    import Thing.PropertyNames.Name
-    import scala.jdk.CollectionConverters._
-    def tp = graph.traversal.V(centerNode.id)
-    println(tp.coalesce().toList)
-    println(tp.coalesce(__()).toList)
-    println(tp.coalesce(__(), __()).toList)
-    println(tp.coalesce(__(), __().out()).toList)
-    println(tp.coalesce(__().out()).toList)
-  }
-
   "coalesce step takes arbitrary number of traversals and follows the first one that returns at least one element" in {
     centerTrav.coalesce(_.out).property(Name).toSet shouldBe Set("L1", "R1")
 

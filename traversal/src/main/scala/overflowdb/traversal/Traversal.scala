@@ -198,11 +198,9 @@ class Traversal[A](elements: IterableOnce[A])
 
   def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
     flatMap { a: A =>
-      val x = options.find { trav =>
-        trav(Traversal.fromSingle(a)).hasNext
-      }.getOrElse{_: Traversal[A] => Traversal.empty[NewEnd]}
-      val y = x(Traversal.fromSingle(a))
-      y
+      options.iterator.map(_.apply(Traversal.fromSingle(a))).collectFirst {
+        case option if option.nonEmpty => option
+      }.getOrElse(Traversal.empty)
     }
 
   override val iterator: Iterator[A] = elements.iterator
