@@ -196,6 +196,18 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
+  /** Branch step: evaluates the provided traversals in order and returns the first traversal that emits at least one element.
+   *
+   * @example
+   * {{{
+   *  .coalesce(
+   *    _.out("label1"),
+   *    _.in("label2"),
+   *    _.in("label3")
+   *  )
+   * }}}
+   * @see LogicalStepsTests
+   */
   def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
     flatMap { a: A =>
       options.iterator.map(_.apply(Traversal.fromSingle(a))).collectFirst {
