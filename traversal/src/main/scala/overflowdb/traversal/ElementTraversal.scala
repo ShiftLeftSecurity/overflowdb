@@ -1,6 +1,5 @@
 package overflowdb.traversal
 
-import overflowdb.traversal.filter.P
 import overflowdb.traversal.help.Doc
 import overflowdb.{OdbElement, Property, PropertyPredicate, PropertyKey}
 
@@ -18,10 +17,6 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
    * TODO: make the above an automatic optimisation */
   def label(value: String): Traversal[E] =
     traversal.filter(_.label == value)
-
-  /** alias for `label`: filter by the element label
-   * @see {{{ElementTraversal.label(String)}}} */
-  def hasLabel(value: String): Traversal[E] = label(value)
 
   /** Filter elements by existence of property (irrespective of value) */
   def has(key: PropertyKey[_]): Traversal[E] = has(key.name)

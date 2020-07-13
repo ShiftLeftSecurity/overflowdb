@@ -38,10 +38,10 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
 
     "filter by label" in {
-      graph.V.hasLabel(Thing.Label).size shouldBe 8
-      graph.V.hasLabel(nonExistingLabel).size shouldBe 0
-      graph.E.hasLabel(Connection.Label).size shouldBe 7
-      graph.E.hasLabel(nonExistingLabel).size shouldBe 0
+      graph.V.label(Thing.Label).size shouldBe 8
+      graph.V.label(nonExistingLabel).size shouldBe 0
+      graph.E.label(Connection.Label).size shouldBe 7
+      graph.E.label(nonExistingLabel).size shouldBe 0
     }
 
     "filter by property key" in {
