@@ -37,6 +37,7 @@ import overflowdb.util.MultiIterator2;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -425,6 +426,31 @@ public final class OdbGraph implements Graph {
 
   public OdbStorage getStorage() {
     return storage;
+  }
+
+  /** Copies all nodes/edges into the given empty graph, preserving their ids and properties. */
+  public void copyTo(OdbGraph destination) {
+    if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
+    nodes().forEachRemaining(node -> {
+      destination.addNode(node.id2(), node.label(), createPropertiesArray(node.propertyMap()));
+    });
+
+    edges().forEachRemaining(edge -> {
+      final Node inNode = destination.node(edge.inNode().id2());
+      final Node outNode = destination.node(edge.outNode().id2());
+      outNode.addEdge2(edge.label(), inNode, createPropertiesArray(edge.propertyMap()));
+    });
+  }
+
+  // TODO move elsewhere, deduplicate with same impl from OdbNode
+  private Object[] createPropertiesArray(Map<String, Object> propertyMap) {
+    final Object[] properties = new Object[propertyMap.size() * 2];
+    int idx = 0;
+    for (Map.Entry<String, Object> property : propertyMap.entrySet()) {
+      properties[idx++] = property.getKey();
+      properties[idx++] = property.getValue();
+    }
+    return properties;
   }
 
   public class GraphFeatures implements Features {
