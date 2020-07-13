@@ -34,6 +34,7 @@ import overflowdb.tp3.TinkerIoRegistryV3d0;
 import overflowdb.tp3.optimizations.CountStrategy;
 import overflowdb.tp3.optimizations.OdbGraphStepStrategy;
 import overflowdb.util.MultiIterator2;
+import overflowdb.util.PropertyHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -425,6 +426,20 @@ public final class OdbGraph implements Graph {
 
   public OdbStorage getStorage() {
     return storage;
+  }
+
+  /** Copies all nodes/edges into the given empty graph, preserving their ids and properties. */
+  public void copyTo(OdbGraph destination) {
+    if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
+    nodes().forEachRemaining(node -> {
+      destination.addNode(node.id2(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));
+    });
+
+    edges().forEachRemaining(edge -> {
+      final Node inNode = destination.node(edge.inNode().id2());
+      final Node outNode = destination.node(edge.outNode().id2());
+      outNode.addEdge2(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertyMap()));
+    });
   }
 
   public class GraphFeatures implements Features {
