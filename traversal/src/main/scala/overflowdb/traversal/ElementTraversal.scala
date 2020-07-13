@@ -13,14 +13,14 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
 
   /** filter by the element label
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.withLabel` instead, it is much faster
+   * Use `traversalSource.label` instead, it is much faster
    * TODO: make the above an automatic optimisation */
   def label(value: String): Traversal[E] =
     traversal.filter(_.label == value)
 
   /** filter by the element labels
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.withLabel` instead, it is much faster
+   * Use `traversalSource.label` instead, it is much faster
    * TODO: make the above an automatic optimisation */
   def label(value1: String, valueN: String*): Traversal[E] = {
     val wanted = (valueN :+ value1).toSet
