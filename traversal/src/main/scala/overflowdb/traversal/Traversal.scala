@@ -90,16 +90,16 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** Filter step: only preserves elements if the provided traversal has at least one result.
    * inverse: {{{not}}} */
-  def where(trav: A => Traversal[_]): Traversal[A] =
+  def where(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     filter { a: A =>
-      trav(a).hasNext
+      trav(Traversal.fromSingle(a)).hasNext
     }
 
   /** Filter step: only preserves elements if the provided traversal does _not_ have any results.
    * inverse: {{{where}}} */
-  def not(trav: A => Traversal[_]): Traversal[A] =
+  def not(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     filterNot { a: A =>
-      trav(a).hasNext
+      trav(Traversal.fromSingle(a)).hasNext
     }
 
   /** Filter step: only preserves elements for which _at least one of_ the given traversals has at least one result.
