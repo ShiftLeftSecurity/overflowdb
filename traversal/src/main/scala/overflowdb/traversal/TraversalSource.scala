@@ -2,7 +2,7 @@ package overflowdb.traversal
 
 import overflowdb.{Node, OdbGraph}
 
-abstract class TraversalSource(graph: OdbGraph) {
+class TraversalSource(graph: OdbGraph) {
   def all: Traversal[Node] =
     Traversal(graph.nodes())
 
