@@ -18,6 +18,25 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def label(value: String): Traversal[E] =
     traversal.filter(_.label == value)
 
+  /** filter by the element labels
+   * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
+   * Use `traversalSource.withLabel` instead, it is much faster
+   * TODO: make the above an automatic optimisation */
+  def label(value1: String, valueN: String*): Traversal[E] = {
+    val wanted = (valueN :+ value1).toSet
+    traversal.filter(element => wanted.contains(element.label))
+  }
+
+  /** filter by the element label (inverse) */
+  def labelNot(value: String): Traversal[E] =
+    traversal.filterNot(_.label == value)
+
+  /** filter by the element labels (inverse) */
+  def labelNot(value1: String, valueN: String*): Traversal[E] = {
+    val unwanted = (valueN :+ value1).toSet
+    traversal.filterNot(element => unwanted.contains(element.label))
+  }
+
   /** Filter elements by existence of property (irrespective of value) */
   def has(key: PropertyKey[_]): Traversal[E] = has(key.name)
 
