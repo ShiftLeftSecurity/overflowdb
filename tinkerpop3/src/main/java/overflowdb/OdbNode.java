@@ -13,6 +13,7 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyProperty;
+import overflowdb.util.PropertyHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -344,7 +345,7 @@ public abstract class OdbNode implements Vertex, Node {
 
   @Override
   public OdbEdge addEdge2(String label, Node inNode, Map<String, Object> keyValues) {
-    return addEdge2(label, inNode, toKeyValueArray(keyValues));
+    return addEdge2(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 
   @Override
@@ -358,7 +359,7 @@ public abstract class OdbNode implements Vertex, Node {
 
   @Override
   public void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues) {
-    addEdgeSilent(label, inNode, toKeyValueArray(keyValues));
+    addEdgeSilent(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 
   @Override
@@ -798,18 +799,6 @@ public abstract class OdbNode implements Vertex, Node {
 
   public final boolean isDirty() {
     return dirty;
-  }
-
-  private Object[] toKeyValueArray(Map<String, Object> keyValues) {
-    final Object[] keyValuesArray = new Object[keyValues.size() * 2];
-    int i = 0;
-    final Iterator<Map.Entry<String, Object>> iterator = keyValues.entrySet().iterator();
-    while (iterator.hasNext()) {
-      Map.Entry<String, Object> entry = iterator.next();
-      keyValuesArray[i++] = entry.getKey();
-      keyValuesArray[i++] = entry.getValue();
-    }
-    return keyValuesArray;
   }
 
   @Override
