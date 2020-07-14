@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Vector;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class OdbGraph implements Graph {
@@ -60,11 +59,12 @@ public final class OdbGraph implements Graph {
 
   private final GraphFeatures features = new GraphFeatures();
   protected final AtomicLong currentId = new AtomicLong(-1L);
-  //TODO make these `final`?
+  // TODO: make these `final`?
   // TODO: this collection is only growing - intermittently trim it, e.g. if many elements have been deleted, after a GC run - note: must reeindex nodeIndexByNodeId
   protected ArrayList<NodeRef> nodes;
   protected TLongIntMap nodeIndexByNodeId; //index into `nodes` array by node id
   protected THashMap<String, Set<NodeRef>> nodesByLabel;
+
   protected final GraphVariables variables = new GraphVariables();
   public final OdbIndexManager indexManager = new OdbIndexManager(this);
   private final OdbConfig config;
@@ -357,18 +357,11 @@ public final class OdbGraph implements Graph {
 
   /** Iterator over all nodes - alias for `nodes` */
   public Iterator<? extends Node> V() {
-//    return nodes();
     return nodes();
   }
 
   /** Iterator over all nodes */
   public final Iterator<? extends Node> nodes() {
-//    final Iterator<NodeRef> nodeRefIter = nodes.iterator();
-//    final ArrayList<Node> n1 = (ArrayList<Node>) nodes;
-    final ArrayList<? extends Node> n1 = nodes;
-//    return this.nodes.iterator();
-//    return null;
-//    return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     return nodes.iterator();
   }
 
