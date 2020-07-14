@@ -203,7 +203,6 @@ public abstract class OdbNode implements Vertex, Node {
 
   @Override
   public void remove() {
-    OdbGraph graph = ref.graph;
     final List<Edge> edges = new ArrayList<>();
     bothE().forEachRemaining(edges::add);
     for (Edge edge : edges) {
@@ -211,11 +210,9 @@ public abstract class OdbNode implements Vertex, Node {
         edge.remove();
       }
     }
-    graph.indexManager.removeElement(ref);
-    graph.nodes.remove(ref.id);
-    graph.nodesByLabel.get(label()).remove(ref);
 
-    graph.storage.removeNode(ref.id);
+    ref.graph.removeNode(this);
+
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
   }
