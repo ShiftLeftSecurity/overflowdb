@@ -7,6 +7,7 @@ import gnu.trove.set.hash.THashSet;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
 
+import java.util.Iterator;
 import java.util.Set;
 
 // TODO: this collection is only growing - intermittently trim it, e.g. if many elements have been deleted, after a GC run - note: must reeindex nodeIndexByNodeId
@@ -33,6 +34,23 @@ public class NodesList {
     nodeIndexByNodeId = new TLongIntHashMap(10000);
     nodesByLabel = new THashMap<>(10);
   }
+
+  public Iterator<NodeRef> iterator() {
+    return new Iterator<NodeRef>() {
+      // TODO copy array to avoid concurrent modification?
+      private int currIdx = 0;
+      @Override
+      public boolean hasNext() {
+        return currIdx < size;
+      }
+
+      @Override
+      public NodeRef next() {
+        return nodes[currIdx++];
+      }
+    };
+  }
+
 
   /** store NodeRef in internal collections */
   public synchronized void add(NodeRef node) {
