@@ -36,7 +36,7 @@ public final class OdbIndexManager {
 
     dirtyFlags.put(propertyName, true);
 
-    graph.nodes.valueCollection().parallelStream()
+    graph.nodes.parallelStream()
         .map(e -> new Object[]{e.property(propertyName), e})
         .filter(a -> ((Property) a[0]).isPresent())
         .forEach(a -> put(propertyName, ((Property) a[0]).value(), (NodeRef) a[1]));
