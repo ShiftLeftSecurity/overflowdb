@@ -85,6 +85,28 @@ public class NodesListTest {
     assertNull(nl.nodeById(1L));
   }
 
+  @Test
+  public void removeNodeThenAddMoreNodes() {
+    NodesList nl = new NodesList();
+
+    NodeRef ref1 = createDummyRef(1L, "A");
+    NodeRef ref2 = createDummyRef(2L, "B");
+    nl.add(ref1);
+    nl.add(ref2);
+
+    nl.remove(ref1);
+    NodeRef ref3 = createDummyRef(3L, "A");
+    nl.add(ref3);
+
+    assertEquals(2, nl.size());
+    assertEquals(1, nl.nodesByLabel("A").size());
+    assertTrue(nl.nodesByLabel("A").contains(ref3));
+    assertTrue(nl.nodesByLabel("B").contains(ref2));
+    assertNull(nl.nodeById(1L));
+    assertEquals(ref2, nl.nodeById(2L));
+    assertEquals(ref3, nl.nodeById(3L));
+  }
+
 
 
   private NodeRef createDummyRef(long id, String label) {

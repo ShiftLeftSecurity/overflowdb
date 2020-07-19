@@ -5,7 +5,6 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.hash.THashSet;
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -54,12 +53,26 @@ public class NodesList {
 
   /** store NodeRef in internal collections */
   public synchronized void add(NodeRef node) {
-    ensureCapacity(size + 1);
+    int index = tryClaimEmptySlot();
+    if (index == -1) {
+      // no empty spot available - append to nodes array instead
+      index = size;
+      ensureCapacity(size + 1);
+    }
 
-    int index = size++;
     nodes[index] = node;
     nodeIndexByNodeId.put(node.id, index);
     nodesByLabel(node.label()).add(node);
+    size++;
+  }
+
+  /** @return -1 if no available empty slots, otherwise the successfully claimed slot */
+  private int tryClaimEmptySlot() {
+    final int nextEmptySlot = emptySlots.nextSetBit(0);
+    if (nextEmptySlot != -1) {
+      emptySlots.clear(nextEmptySlot);
+    }
+    return nextEmptySlot;
   }
 
   public NodeRef nodeById(long id) {
