@@ -8,10 +8,10 @@ import overflowdb.NodeRef;
 import overflowdb.OdbNode;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Set;
 
-// TODO: this collection is only growing - intermittently trim it, e.g. if many elements have been deleted, after a GC run - note: must reeindex nodeIndexByNodeId
 public class NodesList {
   private NodeRef[] nodes;
   private int size = 0;
@@ -21,7 +21,7 @@ public class NodesList {
   private final THashMap<String, Set<NodeRef>> nodesByLabel;
 
   /** list of available slots in `nodes` array. slots become available after nodes have been removed */
-//  private final int[] emptySlots;
+  private final BitSet emptySlots;
 
   private static final int DEFAULT_CAPACITY = 10000;
 
@@ -31,7 +31,8 @@ public class NodesList {
 
   public NodesList(int initialCapacity) {
     nodes = new NodeRef[initialCapacity];
-    nodeIndexByNodeId = new TLongIntHashMap(10000);
+    emptySlots = new BitSet(initialCapacity);
+    nodeIndexByNodeId = new TLongIntHashMap(initialCapacity);
     nodesByLabel = new THashMap<>(10);
   }
 
@@ -76,13 +77,12 @@ public class NodesList {
     return nodesByLabel.get(label);
   }
 
-  protected void removeNode(OdbNode node) {
-//    int index = nodeIndexByNodeId.remove(node.id2());
-//    nodes.remove(index);
-//
-//    indexManager.removeElement(node.ref);
-//    nodesByLabel.get(node.label()).remove(node.ref);
-//    storage.removeNode(node.id2());
+  protected void remove(NodeRef node) {
+    int index = nodeIndexByNodeId.remove(node.id2());
+    nodes[index] = null;
+    emptySlots.set(index);
+    nodesByLabel.get(node.label()).remove(node);
+    size--;
   }
 
   public int size() {

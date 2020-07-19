@@ -8,7 +8,7 @@ import overflowdb.OdbGraph;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class NodesListTest {
@@ -17,9 +17,9 @@ public class NodesListTest {
   public void addElements() {
     NodesList nl = new NodesList();
 
-    NodeRef ref1 = dummyRef(1L, "A");
-    NodeRef ref2 = dummyRef(2L, "A");
-    NodeRef ref3 = dummyRef(3L, "B");
+    NodeRef ref1 = createDummyRef(1L, "A");
+    NodeRef ref2 = createDummyRef(2L, "A");
+    NodeRef ref3 = createDummyRef(3L, "B");
     nl.add(ref1);
     nl.add(ref2);
     nl.add(ref3);
@@ -39,9 +39,9 @@ public class NodesListTest {
   public void growsAboveInitialCapacity() {
     NodesList nl = new NodesList(2);
 
-    NodeRef ref1 = dummyRef(1L, "A");
-    NodeRef ref2 = dummyRef(2L, "A");
-    NodeRef ref3 = dummyRef(3L, "B");
+    NodeRef ref1 = createDummyRef(1L, "A");
+    NodeRef ref2 = createDummyRef(2L, "A");
+    NodeRef ref3 = createDummyRef(3L, "B");
     nl.add(ref1);
     nl.add(ref2);
     nl.add(ref3);
@@ -62,15 +62,32 @@ public class NodesListTest {
     NodesList nl = new NodesList(2);
 
     for (int i = 0; i< 50000; i++) {
-      nl.add(dummyRef(i, "A" + i));
+      nl.add(createDummyRef(i, "A" + i));
     }
 
     assertEquals(50000, nl.size());
   }
 
-  // TODO test: remove nodes, reuse space
+  @Test
+  public void removeNode() {
+    NodesList nl = new NodesList();
 
-  private NodeRef dummyRef(long id, String label) {
+    NodeRef ref1 = createDummyRef(1L, "A");
+    NodeRef ref2 = createDummyRef(2L, "A");
+    nl.add(ref1);
+    nl.add(ref2);
+
+    nl.remove(ref1);
+    assertEquals(1, nl.size());
+    assertEquals(1, nl.nodesByLabel("A").size());
+    assertTrue(nl.nodesByLabel("A").contains(ref2));
+    assertEquals(ref2, nl.nodeById(2L));
+    assertNull(nl.nodeById(1L));
+  }
+
+
+
+  private NodeRef createDummyRef(long id, String label) {
     return new NodeRef(dummyGraph, id) {
       public String label() {
         return label;
