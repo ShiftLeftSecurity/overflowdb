@@ -57,7 +57,17 @@ public class NodesListTest {
     assertTrue(nl.nodesByLabel("B").contains(ref3));
   }
 
-  // TODO test: grow above initial capacity
+  @Test
+  public void growsAboveInitialCapacity2() {
+    NodesList nl = new NodesList(2);
+
+    for (int i = 0; i< 50000; i++) {
+      nl.add(dummyRef(i, "A" + i));
+    }
+
+    assertEquals(50000, nl.size());
+  }
+
   // TODO test: remove nodes, reuse space
 
   private NodeRef dummyRef(long id, String label) {

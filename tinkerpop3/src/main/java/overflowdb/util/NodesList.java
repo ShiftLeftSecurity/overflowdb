@@ -7,6 +7,7 @@ import gnu.trove.set.hash.THashSet;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -14,9 +15,6 @@ import java.util.Set;
 public class NodesList {
   private NodeRef[] nodes;
   private int size = 0;
-  // TODO make use when adding elements
-//  private static final int MAX_ARRAY_SIZE = 2147483639;
-  private static final int DEFAULT_CAPACITY = 10000;
 
   //index into `nodes` array by node id
   private final TLongIntMap nodeIndexByNodeId;
@@ -24,6 +22,8 @@ public class NodesList {
 
   /** list of available slots in `nodes` array. slots become available after nodes have been removed */
 //  private final int[] emptySlots;
+
+  private static final int DEFAULT_CAPACITY = 10000;
 
   public NodesList() {
     this(DEFAULT_CAPACITY);
@@ -51,9 +51,10 @@ public class NodesList {
     };
   }
 
-
   /** store NodeRef in internal collections */
   public synchronized void add(NodeRef node) {
+    ensureCapacity(size + 1);
+
     int index = size++;
     nodes[index] = node;
     nodeIndexByNodeId.put(node.id, index);
@@ -86,5 +87,41 @@ public class NodesList {
 
   public int size() {
     return size;
+  }
+
+  private void ensureCapacity(int minCapacity) {
+    if (nodes.length < minCapacity) grow(minCapacity);
+  }
+
+  /** The maximum size of array to allocate.
+   * Some VMs reserve some header words in an array.
+   * Attempts to allocate larger arrays may result in
+   * OutOfMemoryError: Requested array size exceeds VM limit
+   * @see java.util.ArrayList (copied from there)
+   */
+  private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+
+  /** Increases the capacity to ensure that it can hold at least the
+   * number of elements specified by the minimum capacity argument.
+   * @see java.util.ArrayList (copied from there) */
+  private void grow(int minCapacity) {
+    // overflow-conscious code
+    int oldCapacity = nodes.length;
+    int newCapacity = oldCapacity + (oldCapacity >> 1);
+    if (newCapacity - minCapacity < 0)
+      newCapacity = minCapacity;
+    if (newCapacity - MAX_ARRAY_SIZE > 0)
+      newCapacity = hugeCapacity(minCapacity);
+    // minCapacity is usually close to size, so this is a win:
+    nodes = Arrays.copyOf(nodes, newCapacity);
+  }
+
+ /** @see java.util.ArrayList (copied from there) */
+  private static int hugeCapacity(int minCapacity) {
+    if (minCapacity < 0) // overflow
+      throw new OutOfMemoryError();
+    return (minCapacity > MAX_ARRAY_SIZE) ?
+        Integer.MAX_VALUE :
+        MAX_ARRAY_SIZE;
   }
 }
