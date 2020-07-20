@@ -9,10 +9,12 @@ import overflowdb.Node;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -120,7 +122,7 @@ public class NodesList {
   }
 
   public Iterator<Node> iterator() {
-    return Arrays.stream(nodes).filter(Objects::nonNull).iterator();
+    return new NodesIterator(Arrays.copyOf(nodes, nodes.length));
   }
 
   private void ensureCapacity(int minCapacity) {
@@ -136,19 +138,24 @@ public class NodesList {
     }
   }
 
-
-  /** trims down internal collections to just about the necessary size, in order to allow the remainder to be garbage collected */
+  /** trims down internal collections to just about the necessary size, in order to allow the remainder to be
+   * garbage collected */
   public void compact() {
-    nodes = Arrays.stream(nodes).filter(Objects::nonNull).toArray(Node[]::new);
+    final ArrayList<Node> newNodes = new ArrayList<>(size);
+    Iterator<Node> iter = iterator();
+    while (iter.hasNext()) {
+      newNodes.add(iter.next());
+    }
+    nodes = newNodes.toArray(new Node[size]);
 
     //reindex helper collections
     emptySlots.clear();
-    nodeIndexByNodeId = new TLongIntHashMap(nodes.length);
+    nodeIndexByNodeId = new TLongIntHashMap(this.nodes.length);
     nodesByLabel = new THashMap<>(10);
 
     int idx = 0;
-    while (idx < nodes.length) {
-      Node node = nodes[idx];
+    while (idx < this.nodes.length) {
+      Node node = this.nodes[idx];
       nodeIndexByNodeId.put(node.id2(), idx);
       nodesByLabel(node.label()).add(node);
       idx++;
@@ -191,4 +198,33 @@ public class NodesList {
   protected int _elementDataSize() {
     return nodes.length;
   }
+
+  public static class NodesIterator implements Iterator<Node> {
+    final Node[] nodes;
+    int idx = 0;
+    Node nextPeeked = null;
+
+    public NodesIterator(Node[] nodes) {
+      this.nodes = nodes;
+    }
+
+    @Override
+    public boolean hasNext() {
+      while (nextPeeked == null && idx < nodes.length) {
+        nextPeeked = nodes[idx++];
+      }
+      return nextPeeked != null;
+    }
+
+    @Override
+    public Node next() {
+      if (!hasNext()) throw new NoSuchElementException("next on empty iterator");
+      else {
+        Node ret = nextPeeked;
+        nextPeeked = null;
+        return ret;
+      }
+    }
+  }
+
 }
