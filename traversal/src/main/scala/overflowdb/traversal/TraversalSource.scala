@@ -4,8 +4,7 @@ import overflowdb.{Node, OdbGraph}
 
 class TraversalSource(graph: OdbGraph) {
   def all: Traversal[Node] =
-    ???
-//    Traversal(graph.nodes())
+    Traversal(graph.nodes())
 
   def id(id: Long): Traversal[Node] =
     Traversal(graph.node(id))

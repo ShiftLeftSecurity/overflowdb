@@ -9,7 +9,9 @@ import overflowdb.Node;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -69,6 +71,10 @@ public class NodesList {
     return nextEmptySlot;
   }
 
+  public boolean contains(long id) {
+    return nodeIndexByNodeId.containsKey(id);
+  }
+
   public Node nodeById(long id) {
     if (nodeIndexByNodeId.containsKey(id)) {
       return nodes[nodeIndexByNodeId.get(id)];
@@ -77,7 +83,7 @@ public class NodesList {
     }
   }
 
-  protected void remove(Node node) {
+  public void remove(Node node) {
     int index = nodeIndexByNodeId.remove(node.id2());
     nodes[index] = null;
     emptySlots.set(index);
@@ -95,6 +101,16 @@ public class NodesList {
       nodesByLabel.put(label, new THashSet<>(10));
 
     return nodesByLabel.get(label);
+  }
+
+  public Set<String> nodeLabels() {
+    Set<String> ret = new HashSet<>(nodesByLabel.size());
+    nodesByLabel.entrySet().forEach(entry -> {
+      if (!entry.getValue().isEmpty()) {
+        ret.add(entry.getKey());
+      }
+    });
+    return ret;
   }
 
   public Iterator<Node> iterator() {
@@ -181,5 +197,4 @@ public class NodesList {
   protected int _elementDataSize() {
     return nodes.length;
   }
-
 }

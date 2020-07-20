@@ -211,7 +211,7 @@ public abstract class OdbNode implements Vertex, Node {
       }
     }
 
-    ref.graph.removeNode(this);
+    ref.graph.remove(this);
 
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
