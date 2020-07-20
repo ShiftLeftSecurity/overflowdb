@@ -5,7 +5,7 @@ import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.hash.THashSet;
-import overflowdb.NodeRef;
+import overflowdb.Node;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -14,12 +14,12 @@ import java.util.Objects;
 import java.util.Set;
 
 public class NodesList {
-  private NodeRef[] nodes;
+  private Node[] nodes;
   private int size = 0;
 
   //index into `nodes` array by node id
   private TLongIntMap nodeIndexByNodeId;
-  private TMap<String, Set<NodeRef>> nodesByLabel;
+  private TMap<String, Set<Node>> nodesByLabel;
 
   /** list of available slots in `nodes` array. slots become available after nodes have been removed */
   private final BitSet emptySlots;
@@ -31,30 +31,14 @@ public class NodesList {
   }
 
   public NodesList(int initialCapacity) {
-    nodes = new NodeRef[initialCapacity];
+    nodes = new Node[initialCapacity];
     emptySlots = new BitSet(initialCapacity);
     nodeIndexByNodeId = new TLongIntHashMap(initialCapacity);
     nodesByLabel = new THashMap<>(10);
   }
 
-  public Iterator<NodeRef> iterator() {
-    return new Iterator<NodeRef>() {
-      // TODO copy array to avoid concurrent modification?
-      private int currIdx = 0;
-      @Override
-      public boolean hasNext() {
-        return currIdx < size;
-      }
-
-      @Override
-      public NodeRef next() {
-        return nodes[currIdx++];
-      }
-    };
-  }
-
-  /** store NodeRef in internal collections */
-  public synchronized void add(NodeRef node) {
+  /** store Node in internal collections */
+  public synchronized void add(Node node) {
     verifyUniqueId(node);
     int index = tryClaimEmptySlot();
     if (index == -1) {
@@ -64,14 +48,14 @@ public class NodesList {
     }
 
     nodes[index] = node;
-    nodeIndexByNodeId.put(node.id, index);
+    nodeIndexByNodeId.put(node.id2(), index);
     nodesByLabel(node.label()).add(node);
     size++;
   }
 
-  private void verifyUniqueId(NodeRef node) {
-    if (nodeIndexByNodeId.containsKey(node.id)) {
-      NodeRef existingNode = nodeById(node.id);
+  private void verifyUniqueId(Node node) {
+    if (nodeIndexByNodeId.containsKey(node.id2())) {
+      Node existingNode = nodeById(node.id2());
       throw new AssertionError("different Node with same id already exists in this NodesList: " + existingNode);
     }
   }
@@ -85,7 +69,7 @@ public class NodesList {
     return nextEmptySlot;
   }
 
-  public NodeRef nodeById(long id) {
+  public Node nodeById(long id) {
     if (nodeIndexByNodeId.containsKey(id)) {
       return nodes[nodeIndexByNodeId.get(id)];
     } else {
@@ -93,14 +77,7 @@ public class NodesList {
     }
   }
 
-  public Set<NodeRef> nodesByLabel(String label) {
-    if (!nodesByLabel.containsKey(label))
-      nodesByLabel.put(label, new THashSet<>(10));
-
-    return nodesByLabel.get(label);
-  }
-
-  protected void remove(NodeRef node) {
+  protected void remove(Node node) {
     int index = nodeIndexByNodeId.remove(node.id2());
     nodes[index] = null;
     emptySlots.set(index);
@@ -111,6 +88,29 @@ public class NodesList {
 
   public int size() {
     return size;
+  }
+
+  public Set<Node> nodesByLabel(String label) {
+    if (!nodesByLabel.containsKey(label))
+      nodesByLabel.put(label, new THashSet<>(10));
+
+    return nodesByLabel.get(label);
+  }
+
+  public Iterator<Node> iterator() {
+    return new Iterator<Node>() {
+      // TODO copy array to avoid concurrent modification?
+      private int currIdx = 0;
+      @Override
+      public boolean hasNext() {
+        return currIdx < size;
+      }
+
+      @Override
+      public Node next() {
+        return nodes[currIdx++];
+      }
+    };
   }
 
   private void ensureCapacity(int minCapacity) {
@@ -129,7 +129,7 @@ public class NodesList {
 
   /** trims down internal collections to just about the necessary size, in order to allow the remainder to be garbage collected */
   public void compact() {
-    nodes = Arrays.stream(nodes).filter(Objects::nonNull).toArray(NodeRef[]::new);
+    nodes = Arrays.stream(nodes).filter(Objects::nonNull).toArray(Node[]::new);
 
     //reindex helper collections
     emptySlots.clear();
@@ -138,8 +138,8 @@ public class NodesList {
 
     int idx = 0;
     while (idx < nodes.length) {
-      NodeRef node = nodes[idx];
-      nodeIndexByNodeId.put(node.id, idx);
+      Node node = nodes[idx];
+      nodeIndexByNodeId.put(node.id2(), idx);
       nodesByLabel(node.label()).add(node);
       idx++;
     }
