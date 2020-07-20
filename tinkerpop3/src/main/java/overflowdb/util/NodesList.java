@@ -1,6 +1,7 @@
 package overflowdb.util;
 
 import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.hash.THashSet;
@@ -9,6 +10,7 @@ import overflowdb.NodeRef;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 public class NodesList {
@@ -16,8 +18,8 @@ public class NodesList {
   private int size = 0;
 
   //index into `nodes` array by node id
-  private final TLongIntMap nodeIndexByNodeId;
-  private final THashMap<String, Set<NodeRef>> nodesByLabel;
+  private TLongIntMap nodeIndexByNodeId;
+  private TMap<String, Set<NodeRef>> nodesByLabel;
 
   /** list of available slots in `nodes` array. slots become available after nodes have been removed */
   private final BitSet emptySlots;
@@ -114,6 +116,24 @@ public class NodesList {
     if (nodes.length < minCapacity) grow(minCapacity);
   }
 
+  /** trims down internal collections to just about the necessary size, in order to allow the remainder to be garbage collected */
+  public void compact() {
+    nodes = Arrays.stream(nodes).filter(Objects::nonNull).toArray(NodeRef[]::new);
+
+    //reindex helper collections
+    emptySlots.clear();
+    nodeIndexByNodeId = new TLongIntHashMap(nodes.length);
+    nodesByLabel = new THashMap<>(10);
+
+    int idx = 0;
+    while (idx < nodes.length) {
+      NodeRef node = nodes[idx];
+      nodeIndexByNodeId.put(node.id, idx);
+      nodesByLabel(node.label()).add(node);
+      idx++;
+    }
+  }
+
   /** The maximum size of array to allocate.
    * Some VMs reserve some header words in an array.
    * Attempts to allocate larger arrays may result in
@@ -145,4 +165,10 @@ public class NodesList {
         Integer.MAX_VALUE :
         MAX_ARRAY_SIZE;
   }
+
+  /** just for unit test */
+  protected int _elementDataSize() {
+    return nodes.length;
+  }
+
 }

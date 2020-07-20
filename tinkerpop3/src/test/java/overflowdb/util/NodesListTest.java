@@ -6,6 +6,7 @@ import overflowdb.OdbConfig;
 import overflowdb.OdbGraph;
 
 import java.util.ArrayList;
+import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -114,6 +115,45 @@ public class NodesListTest {
     nl.add(createDummyRef(1L, "B"));
   }
 
+  @Test
+  public void compact() {
+    NodesList nl = new NodesList(10);
+
+    // insert two nodes we'll check on later, and lot's of dummy nodes that we only insert to take up some space
+    NodeRef ref1 = createDummyRef(500000L, "A");
+    nl.add(ref1);
+    Vector<NodeRef> bulkRefs = new Vector<>(20000);
+    for (int i = 0; i < 10000; i++) {
+      NodeRef dummyRef = createDummyRef(i, "A");
+      nl.add(dummyRef);
+      bulkRefs.add(dummyRef);
+    }
+    NodeRef ref2 = createDummyRef(500001L, "B");
+    nl.add(ref2);
+    for (int i = 10000; i < 20000; i++) {
+      NodeRef dummyRef = createDummyRef(i, "B");
+      nl.add(dummyRef);
+      bulkRefs.add(dummyRef);
+    }
+    assertTrue(
+        "internal element array should be large enough to hold all nodes (>= 20k), but has size " + nl._elementDataSize(),
+        nl._elementDataSize() >= 20000);
+
+    // delete all the bulk dummy nodes, then compact/trim and verify that remaining elements are still ok
+    bulkRefs.forEach(it -> nl.remove(it));
+    nl.compact();
+    assertTrue(
+        "internal element array should have been compacted (< 100), but has size " + nl._elementDataSize(),
+        nl._elementDataSize() < 100);
+
+    assertEquals(2, nl.size());
+    assertEquals(1, nl.nodesByLabel("A").size());
+    assertEquals(1, nl.nodesByLabel("B").size());
+    assertTrue(nl.nodesByLabel("A").contains(ref1));
+    assertTrue(nl.nodesByLabel("B").contains(ref2));
+    assertEquals(ref1, nl.nodeById(ref1.id));
+    assertEquals(ref2, nl.nodeById(ref2.id));
+  }
 
 
 
