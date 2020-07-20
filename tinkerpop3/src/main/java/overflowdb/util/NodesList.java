@@ -53,6 +53,7 @@ public class NodesList {
 
   /** store NodeRef in internal collections */
   public synchronized void add(NodeRef node) {
+    verifyUniqueId(node);
     int index = tryClaimEmptySlot();
     if (index == -1) {
       // no empty spot available - append to nodes array instead
@@ -64,6 +65,13 @@ public class NodesList {
     nodeIndexByNodeId.put(node.id, index);
     nodesByLabel(node.label()).add(node);
     size++;
+  }
+
+  private void verifyUniqueId(NodeRef node) {
+    if (nodeIndexByNodeId.containsKey(node.id)) {
+      NodeRef existingNode = nodeById(node.id);
+      throw new AssertionError("different Node with same id already exists in this NodesList: " + existingNode);
+    }
   }
 
   /** @return -1 if no available empty slots, otherwise the successfully claimed slot */

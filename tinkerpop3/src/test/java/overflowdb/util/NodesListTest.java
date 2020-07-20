@@ -107,6 +107,14 @@ public class NodesListTest {
     assertEquals(ref3, nl.nodeById(3L));
   }
 
+  @Test(expected = AssertionError.class)
+  public void idsAreUnique() {
+    NodesList nl = new NodesList();
+    nl.add(createDummyRef(1L, "A"));
+    nl.add(createDummyRef(1L, "B"));
+  }
+
+
 
 
   private NodeRef createDummyRef(long id, String label) {
