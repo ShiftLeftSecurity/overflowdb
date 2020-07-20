@@ -106,6 +106,7 @@ public class NodesList {
     emptySlots.set(index);
     nodesByLabel.get(node.label()).remove(node);
     size--;
+    compactMaybe();
   }
 
   public int size() {
@@ -115,6 +116,16 @@ public class NodesList {
   private void ensureCapacity(int minCapacity) {
     if (nodes.length < minCapacity) grow(minCapacity);
   }
+
+  /** compact if there are many empty slots, and they make up >= 30% of the node array */
+  private void compactMaybe() {
+    final int emptyCount = emptySlots.cardinality();
+    if (emptyCount > 10000 &&
+        emptyCount * 100 / nodes.length >= 30) {
+      compact();
+    }
+  }
+
 
   /** trims down internal collections to just about the necessary size, in order to allow the remainder to be garbage collected */
   public void compact() {

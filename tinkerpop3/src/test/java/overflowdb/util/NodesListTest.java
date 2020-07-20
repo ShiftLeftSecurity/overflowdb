@@ -155,6 +155,32 @@ public class NodesListTest {
     assertEquals(ref2, nl.nodeById(ref2.id));
   }
 
+  @Test
+  public void compactsAutomatically() {
+    NodesList nl = new NodesList();
+
+    final int nodeCount = 200_000;
+    Vector<NodeRef> bulkRefs = new Vector<>(nodeCount);
+    for (int i = 0; i < nodeCount; i++) {
+      NodeRef dummyRef = createDummyRef(i, "A");
+      nl.add(dummyRef);
+      bulkRefs.add(dummyRef);
+    }
+    assertEquals(nodeCount, nl.size());
+    assertTrue(
+        "internal element array should be large enough to hold all nodes (>= 200k), but has size " + nl._elementDataSize(),
+        nl._elementDataSize() >= nodeCount);
+
+    // delete all the bulk dummy nodes - this should (intermittently) automatically call 'collect'
+    bulkRefs.forEach(it -> nl.remove(it));
+    assertTrue(
+        "internal element array should have been compacted (< 50k), but has size " + nl._elementDataSize(),
+        nl._elementDataSize() < 50000);
+
+    System.out.println(nl._elementDataSize());
+    assertEquals(0, nl.size());
+  }
+
 
 
   private NodeRef createDummyRef(long id, String label) {
