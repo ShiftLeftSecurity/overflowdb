@@ -27,6 +27,12 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
     traversal.filter(element => wanted.contains(element.label))
   }
 
+  /** alias for {{{label}}} */
+  def hasLabel(value: String): Traversal[E] = label(value)
+
+  /** alias for {{{label}}} */
+  def hasLabel(value: String, valueN: String*): Traversal[E] = label(value, valueN: _*)
+
   /** filter by the element label (inverse) */
   def labelNot(value: String): Traversal[E] =
     traversal.filterNot(_.label == value)
