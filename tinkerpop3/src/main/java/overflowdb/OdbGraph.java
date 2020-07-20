@@ -382,7 +382,7 @@ public final class OdbGraph implements Graph {
   private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
     final Set<Node> ret = nodes.nodesByLabel(label);
     if (ret != null) {
-      multiIterator.addIterator(IteratorUtils.map(ret.iterator(), node -> node));
+      multiIterator.addIterator(ret.iterator());
     }
   }
 
