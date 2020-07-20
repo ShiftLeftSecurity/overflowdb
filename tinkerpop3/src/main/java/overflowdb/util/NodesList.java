@@ -6,12 +6,13 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.hash.THashSet;
 import overflowdb.Node;
+import overflowdb.NodeRef;
+import overflowdb.OdbNode;
 
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -87,7 +88,12 @@ public class NodesList {
     int index = nodeIndexByNodeId.remove(node.id2());
     nodes[index] = null;
     emptySlots.set(index);
-    nodesByLabel.get(node.label()).remove(node);
+
+    NodeRef ref = node instanceof OdbNode
+        ? ((OdbNode) node).ref
+        : (NodeRef) node;
+    nodesByLabel.get(node.label()).remove(ref);
+
     size--;
     compactMaybe();
   }
@@ -114,19 +120,7 @@ public class NodesList {
   }
 
   public Iterator<Node> iterator() {
-    return new Iterator<Node>() {
-      // TODO copy array to avoid concurrent modification?
-      private int currIdx = 0;
-      @Override
-      public boolean hasNext() {
-        return currIdx < size;
-      }
-
-      @Override
-      public Node next() {
-        return nodes[currIdx++];
-      }
-    };
+    return Arrays.stream(nodes).filter(Objects::nonNull).iterator();
   }
 
   private void ensureCapacity(int minCapacity) {
