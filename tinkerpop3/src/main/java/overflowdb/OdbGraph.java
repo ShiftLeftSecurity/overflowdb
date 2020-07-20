@@ -1,9 +1,5 @@
 package overflowdb;
 
-import gnu.trove.map.TLongObjectMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TLongObjectHashMap;
-import gnu.trove.set.hash.THashSet;
 import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
@@ -34,6 +30,7 @@ import overflowdb.tp3.TinkerIoRegistryV3d0;
 import overflowdb.tp3.optimizations.CountStrategy;
 import overflowdb.tp3.optimizations.OdbGraphStepStrategy;
 import overflowdb.util.MultiIterator2;
+import overflowdb.util.NodesList;
 import overflowdb.util.PropertyHelper;
 
 import java.io.File;
@@ -58,8 +55,8 @@ public final class OdbGraph implements Graph {
 
   private final GraphFeatures features = new GraphFeatures();
   protected final AtomicLong currentId = new AtomicLong(-1L);
-  protected TLongObjectMap<NodeRef> nodes;
-  protected THashMap<String, Set<NodeRef>> nodesByLabel;
+  protected final NodesList nodes = new NodesList(10000);
+
   protected final GraphVariables variables = new GraphVariables();
   public final OdbIndexManager indexManager = new OdbIndexManager(this);
   private final OdbConfig config;
@@ -103,17 +100,11 @@ public final class OdbGraph implements Graph {
       initElementCollections(storage);
     } else {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
-      initEmptyElementCollections();
     }
     referenceManager = new ReferenceManager(storage);
     heapUsageMonitor = config.isOverflowEnabled() ?
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
         Optional.empty();
-  }
-
-  private void initEmptyElementCollections() {
-    nodes = new TLongObjectHashMap<>();
-    nodesByLabel = new THashMap<>(100);
   }
 
   private void initElementCollections(OdbStorage storage) {
@@ -123,15 +114,12 @@ public final class OdbGraph implements Graph {
     int importCount = 0;
     long maxId = currentId.get();
 
-    nodes = new TLongObjectHashMap<>(serializedNodes.size());
-    nodesByLabel = new THashMap<>(serializedNodes.size());
     final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedNodes.iterator();
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
         final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
-        nodes.put(nodeRef.id, nodeRef);
-        storeInByLabelCollection(nodeRef);
+        nodes.add(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) {
           logger.debug("imported " + importCount + " elements - still running...");
@@ -160,14 +148,13 @@ public final class OdbGraph implements Graph {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
     ElementHelper.legalPropertyKeyValueArray(keyValues);
-    if (nodes.containsKey(id)) {
+    if (nodes.contains(id)) {
       throw Exceptions.vertexWithIdAlreadyExists(id);
     }
 
     currentId.set(Long.max(id, currentId.get()));
     final NodeRef node = createNode(id, label, keyValues);
-    nodes.put(node.id, node);
-    storeInByLabelCollection(node);
+    nodes.add(node);
     return node;
   }
 
@@ -261,13 +248,13 @@ public final class OdbGraph implements Graph {
   }
 
   public Vertex vertex(final Long id) {
-    return nodes.get(id);
+    return node(id);
   }
 
   @Override
   public Iterator<Vertex> vertices(final Object... idsOrVertices) {
     if (idsOrVertices.length == 0) { //return all nodes - that's how the tinkerpop api rolls.
-      final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
+      final Iterator<Node> nodeRefIter = nodes.iterator();
       return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
     } else {
       final long[] ids = new long[idsOrVertices.length];
@@ -321,19 +308,8 @@ public final class OdbGraph implements Graph {
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
     MultiIterator2 multiIterator = new MultiIterator2();
-    nodes.forEachValue(vertex -> {
-      multiIterator.addIterator(vertex.edges(Direction.OUT));
-      return true;
-    });
+    nodes.iterator().forEachRemaining(vertex -> multiIterator.addIterator(vertex.edges(Direction.OUT)));
     return multiIterator;
-  }
-
-  private void storeInByLabelCollection(NodeRef nodeRef) {
-    final String label = nodeRef.label();
-    if (!nodesByLabel.containsKey(label))
-      nodesByLabel.put(label, new THashSet<>(1));
-
-    nodesByLabel.get(label).add(nodeRef);
   }
 
   /** Iterator over all nodes - alias for `nodes` */
@@ -343,8 +319,7 @@ public final class OdbGraph implements Graph {
 
   /** Iterator over all nodes */
   public final Iterator<Node> nodes() {
-    final Iterator<NodeRef> nodeRefIter = nodes.valueCollection().iterator();
-    return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
+    return nodes.iterator();
   }
 
   /** Iterator over nodes with provided ids - alias for `nodes(ids...)`
@@ -354,7 +329,7 @@ public final class OdbGraph implements Graph {
   }
 
   public final Node node(long id) {
-    return nodes.get(id);
+    return nodes.nodeById(id);
   }
 
   /** Iterator over nodes with provided ids
@@ -370,16 +345,12 @@ public final class OdbGraph implements Graph {
       for (long id : ids) {
         idsSet.add(id);
       }
-      return IteratorUtils.map(idsSet.iterator(), id -> nodes.get(id));
+      return IteratorUtils.map(idsSet.iterator(), id -> node(id));
     }
   }
 
   public Iterator<Node> nodes(final String label) {
-    final Set<NodeRef> nodes = nodesByLabel.get(label);
-    if (nodes != null)
-      return IteratorUtils.map(nodes.iterator(), node -> node);
-    else
-      return EmptyIterator.INSTANCE;
+    return nodes.nodesByLabel(label).iterator();
   }
 
   public Iterator<Node> nodes(final String... labels) {
@@ -400,7 +371,7 @@ public final class OdbGraph implements Graph {
 
   public Iterator<Node> nodes(final P<String> labelPredicate) {
     final MultiIterator<Node> multiIterator = new MultiIterator<>();
-    for (String label : nodesByLabel.keySet()) {
+    for (String label : nodes.nodeLabels()) {
       if (labelPredicate.test(label)) {
         addNodesToMultiIterator(multiIterator, label);
       }
@@ -409,9 +380,9 @@ public final class OdbGraph implements Graph {
   }
 
   private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
-    final Set<NodeRef> nodes = nodesByLabel.get(label);
-    if (nodes != null) {
-      multiIterator.addIterator(IteratorUtils.map(nodes.iterator(), node -> node));
+    final Set<Node> ret = nodes.nodesByLabel(label);
+    if (ret != null) {
+      multiIterator.addIterator(ret.iterator());
     }
   }
 
@@ -440,6 +411,10 @@ public final class OdbGraph implements Graph {
       final Node outNode = destination.node(edge.outNode().id2());
       outNode.addEdge2(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertyMap()));
     });
+  }
+
+  public void remove(Node node) {
+    nodes.remove(node);
   }
 
   public class GraphFeatures implements Features {

@@ -299,4 +299,8 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
 
   // delegate methods end
 
+  @Override
+  public String toString() {
+    return getClass().getName() + "[label=" + label() + "; id=" + id + "]";
+  }
 }

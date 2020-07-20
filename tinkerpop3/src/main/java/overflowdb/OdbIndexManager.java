@@ -1,8 +1,7 @@
 package overflowdb;
 
-import overflowdb.storage.OdbStorage;
-import org.apache.tinkerpop.gremlin.structure.Property;
 import org.h2.mvstore.MVMap;
+import overflowdb.storage.OdbStorage;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,10 +35,12 @@ public final class OdbIndexManager {
 
     dirtyFlags.put(propertyName, true);
 
-    graph.nodes.valueCollection().parallelStream()
-        .map(e -> new Object[]{e.property(propertyName), e})
-        .filter(a -> ((Property) a[0]).isPresent())
-        .forEach(a -> put(propertyName, ((Property) a[0]).value(), (NodeRef) a[1]));
+    graph.nodes.iterator().forEachRemaining(node -> {
+      Object value = node.property2(propertyName);
+      if (value != null) {
+        put(propertyName, value, (NodeRef) node);
+      }
+    });
   }
 
   private void checkPropertyName(String propertyName) {
