@@ -225,11 +225,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().out();
   }
 
-  /* adjacent OUT nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent OUT nodes for given labels */
   @Override
-  public Iterator<Node> out(String edgeLabel) {
-    return this.get().out(edgeLabel);
+  public Iterator<Node> out(String... edgeLabels) {
+    return this.get().out(edgeLabels);
   }
 
   /* adjacent IN nodes (all labels) */
@@ -238,11 +237,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().in();
   }
 
-  /* adjacent IN nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent IN nodes for given labels */
   @Override
-  public Iterator<Node> in(String edgeLabel) {
-    return this.get().in(edgeLabel);
+  public Iterator<Node> in(String... edgeLabels) {
+    return this.get().in(edgeLabels);
   }
 
   /* adjacent OUT/IN nodes (all labels) */
@@ -251,11 +249,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().both();
   }
 
-  /* adjacent OUT/IN nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent OUT/IN nodes for given labels */
   @Override
-  public Iterator<Node> both(String edgeLabel) {
-    return this.get().both(edgeLabel);
+  public Iterator<Node> both(String... edgeLabels) {
+    return this.get().both(edgeLabels);
   }
 
   /* adjacent OUT edges (all labels) */
@@ -264,11 +261,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().outE();
   }
 
-  /* adjacent OUT edges for a specific label
-   * specialized version of `edges(Direction, String...)` for efficiency */
+  /* adjacent OUT edges for given labels */
   @Override
-  public Iterator<OdbEdge> outE(String edgeLabel) {
-    return this.get().outE(edgeLabel);
+  public Iterator<OdbEdge> outE(String... edgeLabels) {
+    return this.get().outE(edgeLabels);
   }
 
   /* adjacent IN edges (all labels) */
@@ -277,11 +273,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().inE();
   }
 
-  /* adjacent IN edges for a specific label
-   * specialized version of `edges(Direction, String...)` for efficiency */
+  /* adjacent IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> inE(String edgeLabel) {
-    return this.get().inE(edgeLabel);
+  public Iterator<OdbEdge> inE(String... edgeLabels) {
+    return this.get().inE(edgeLabels);
   }
 
   /* adjacent OUT/IN edges (all labels) */
@@ -290,11 +285,10 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return this.get().bothE();
   }
 
-  /* adjacent OUT/IN edges for a specific label
-   * specialized version of `edges(Direction, String...)` for efficiency */
+  /* adjacent OUT/IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> bothE(String edgeLabel) {
-    return this.get().bothE(edgeLabel);
+  public Iterator<OdbEdge> bothE(String... edgeLabels) {
+    return this.get().bothE(edgeLabels);
   }
 
   // delegate methods end
