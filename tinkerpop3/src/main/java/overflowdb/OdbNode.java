@@ -1,5 +1,6 @@
 package overflowdb;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.tp3.Converters;
 import overflowdb.util.ArrayOffsetIterator;
@@ -34,7 +35,6 @@ import java.util.stream.StreamSupport;
  * traversal time than necessary
  */
 public abstract class OdbNode implements Vertex, Node {
-
   public final NodeRef ref;
 
   /**
@@ -53,6 +53,8 @@ public abstract class OdbNode implements Vertex, Node {
    * `false` when node is freshly serialized to disk or deserialized from disk
    */
   private boolean dirty;
+
+  private static final String[] ALL_LABELS = new String[0];
 
   protected OdbNode(NodeRef ref) {
     this.ref = ref;
@@ -409,18 +411,13 @@ public abstract class OdbNode implements Vertex, Node {
   /* adjacent OUT nodes (all labels) */
   @Override
   public Iterator<Node> out() {
-    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
-    for (String label : layoutInformation().allowedOutEdgeLabels()) {
-      multiIterator.addIterator(out(label));
-    }
-    return multiIterator;
+    return createAdjacentNodeIterator(Direction.OUT, ALL_LABELS);
   }
 
-  /* adjacent OUT nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent OUT nodes for given labels */
   @Override
-  public Iterator<Node> out(String edgeLabel) {
-    return createAdjacentNodeIterator(Direction.OUT, edgeLabel);
+  public Iterator<Node> out(String... edgeLabels) {
+    return createAdjacentNodeIterator(Direction.OUT, edgeLabels);
   }
 
   /* adjacent IN nodes (all labels) */
@@ -433,11 +430,10 @@ public abstract class OdbNode implements Vertex, Node {
     return multiIterator;
   }
 
-  /* adjacent IN nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent IN nodes for given labels */
   @Override
-  public Iterator<Node> in(String edgeLabel) {
-    return createAdjacentNodeIterator(Direction.IN, edgeLabel);
+  public Iterator<Node> in(String... edgeLabels) {
+    return createAdjacentNodeIterator(Direction.IN, edgeLabels);
   }
 
   /* adjacent OUT/IN nodes (all labels) */
@@ -449,13 +445,12 @@ public abstract class OdbNode implements Vertex, Node {
     return multiIterator;
   }
 
-  /* adjacent OUT/IN nodes for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent OUT/IN nodes for given labels */
   @Override
-  public Iterator<Node> both(String edgeLabel) {
+  public Iterator<Node> both(String... edgeLabels) {
     final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
-    multiIterator.addIterator(out(edgeLabel));
-    multiIterator.addIterator(in(edgeLabel));
+    multiIterator.addIterator(out(edgeLabels));
+    multiIterator.addIterator(in(edgeLabels));
     return multiIterator;
   }
 
@@ -469,11 +464,10 @@ public abstract class OdbNode implements Vertex, Node {
     return multiIterator;
   }
 
-  /* adjacent OUT edges for a specific label
-   * specialized version of `edges(Direction, String...)` for efficiency */
+  /* adjacent OUT edges for given labels */
   @Override
-  public Iterator<OdbEdge> outE(String edgeLabel) {
-    return createDummyEdgeIterator(Direction.OUT, edgeLabel);
+  public Iterator<OdbEdge> outE(String... edgeLabels) {
+    return createDummyEdgeIterator(Direction.OUT, edgeLabels);
   }
 
   /* adjacent IN edges (all labels) */
@@ -486,11 +480,10 @@ public abstract class OdbNode implements Vertex, Node {
     return multiIterator;
   }
 
-  /* adjacent IN edges for a specific label
-   * specialized version of `edges(Direction, String...)` for efficiency */
+  /* adjacent IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> inE(String edgeLabel) {
-    return createDummyEdgeIterator(Direction.IN, edgeLabel);
+  public Iterator<OdbEdge> inE(String... edgeLabels) {
+    return createDummyEdgeIterator(Direction.IN, edgeLabels);
   }
 
   /* adjacent OUT/IN edges (all labels) */
@@ -502,13 +495,12 @@ public abstract class OdbNode implements Vertex, Node {
     return multiIterator;
   }
 
-  /* adjacent OUT/IN edges for a specific label
-   * specialized version of `nodes(Direction, String...)` for efficiency */
+  /* adjacent OUT/IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> bothE(String edgeLabel) {
+  public Iterator<OdbEdge> bothE(String... edgeLabels) {
     final MultiIterator2<OdbEdge> multiIterator = new MultiIterator2<>();
-    multiIterator.addIterator(outE(edgeLabel));
-    multiIterator.addIterator(inE(edgeLabel));
+    multiIterator.addIterator(outE(edgeLabels));
+    multiIterator.addIterator(inE(edgeLabels));
     return multiIterator;
   }
 
@@ -598,8 +590,23 @@ public abstract class OdbNode implements Vertex, Node {
     this.markAsDirty();
   }
 
-  private Iterator<OdbEdge> createDummyEdgeIterator(Direction direction,
-                                                 String label) {
+  private Iterator<OdbEdge> createDummyEdgeIterator(Direction direction, String... labels) {
+    if (labels.length == 1) {
+      return createDummyEdgeIteratorForSingleLabel(direction, labels[0]);
+    } else {
+      final String[] labelsToFollow =
+          labels.length == 0
+              ? allowedLabelsByDirection(direction)
+              : labels;
+      final MultiIterator2<OdbEdge> multiIterator = new MultiIterator2<>();
+      for (String label : labelsToFollow) {
+        multiIterator.addIterator(createDummyEdgeIteratorForSingleLabel(direction, label));
+      }
+      return multiIterator;
+    }
+  }
+
+  private Iterator<OdbEdge> createDummyEdgeIteratorForSingleLabel(Direction direction, String label) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
@@ -613,8 +620,20 @@ public abstract class OdbNode implements Vertex, Node {
     }
   }
 
-  private final Iterator<Node> createAdjacentNodeIterator(Direction direction, String label) {
-    return createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, label));
+  private final Iterator<Node> createAdjacentNodeIterator(Direction direction, String... labels) {
+    if (labels.length == 1) {
+      return createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, labels[0]));
+    } else {
+      final String[] labelsToFollow =
+          labels.length == 0
+              ? allowedLabelsByDirection(direction)
+              : labels;
+      final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
+      for (String label : labelsToFollow) {
+        multiIterator.addIterator(createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, label)));
+      }
+      return multiIterator;
+    }
   }
 
   /* Simplify hoisting of string lookups.
@@ -628,6 +647,14 @@ public abstract class OdbNode implements Vertex, Node {
     } else {
       return Collections.emptyIterator();
     }
+  }
+
+  private final String[] allowedLabelsByDirection(Direction direction) {
+    if (direction.equals(Direction.OUT))
+      return layoutInformation().allowedOutEdgeLabels();
+    else if (direction.equals(Direction.IN))
+      return layoutInformation().allowedInEdgeLabels();
+    else throw new NotImplementedException(direction.toString());
   }
 
   private int storeAdjacentNode(Direction direction,

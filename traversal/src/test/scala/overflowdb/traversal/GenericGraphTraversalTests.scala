@@ -108,6 +108,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       assertNames(centerNode.out.out, Set("L2", "R2"))
       assertNames(centerTrav.out(Connection.Label), Set("L1", "R1"))
       assertNames(centerNode.out(Connection.Label), Set("L1", "R1"))
+      assertNames(centerTrav.out(nonExistingLabel, Connection.Label), Set("L1", "R1"))
+      assertNames(centerNode.out(nonExistingLabel, Connection.Label), Set("L1", "R1"))
       assertNames(centerTrav.out(nonExistingLabel), Set.empty)
       assertNames(centerNode.out(nonExistingLabel), Set.empty)
     }
@@ -121,6 +123,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       assertNames(l2Node.in.in, Set("Center"))
       assertNames(l2Trav.in(Connection.Label), Set("L1"))
       assertNames(l2Node.in(Connection.Label), Set("L1"))
+      assertNames(l2Trav.in(nonExistingLabel, Connection.Label), Set("L1"))
+      assertNames(l2Node.in(nonExistingLabel, Connection.Label), Set("L1"))
       assertNames(l2Trav.in(nonExistingLabel), Set.empty)
       assertNames(l2Node.in(nonExistingLabel), Set.empty)
     }
@@ -139,6 +143,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       assertNames(r2Node.both.both, Set("Center", "R2", "R4"))
       assertNames(l2Trav.both(Connection.Label), Set("L1", "L3"))
       assertNames(l2Node.both(Connection.Label), Set("L1", "L3"))
+      assertNames(l2Trav.both(nonExistingLabel, Connection.Label), Set("L1", "L3"))
+      assertNames(l2Node.both(nonExistingLabel, Connection.Label), Set("L1", "L3"))
       assertNames(l2Trav.both(nonExistingLabel), Set.empty)
       assertNames(l2Node.both(nonExistingLabel), Set.empty)
     }
@@ -152,6 +158,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       assertNames(centerNode.outE.inV.outE.inV, Set("L2", "R2"))
       assertNames(centerTrav.outE(Connection.Label).inV, Set("L1", "R1"))
       assertNames(centerNode.outE(Connection.Label).inV, Set("L1", "R1"))
+      assertNames(centerTrav.outE(nonExistingLabel, Connection.Label).inV, Set("L1", "R1"))
+      assertNames(centerNode.outE(nonExistingLabel, Connection.Label).inV, Set("L1", "R1"))
       assertNames(centerTrav.outE(nonExistingLabel).inV, Set.empty)
       assertNames(centerNode.outE(nonExistingLabel).inV, Set.empty)
     }
@@ -165,6 +173,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       assertNames(l2Node.inE.outV.inE.outV, Set("Center"))
       assertNames(l2Trav.inE(Connection.Label).outV, Set("L1"))
       assertNames(l2Node.inE(Connection.Label).outV, Set("L1"))
+      assertNames(l2Trav.inE(nonExistingLabel, Connection.Label).outV, Set("L1"))
+      assertNames(l2Node.inE(nonExistingLabel, Connection.Label).outV, Set("L1"))
       assertNames(l2Trav.inE(nonExistingLabel).outV, Set.empty)
       assertNames(l2Node.inE(nonExistingLabel).outV, Set.empty)
     }
@@ -175,6 +185,8 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       l2Node.bothE.size shouldBe 2
       l2Trav.bothE(Connection.Label).size shouldBe 2
       l2Node.bothE(Connection.Label).size shouldBe 2
+      l2Trav.bothE(nonExistingLabel, Connection.Label).size shouldBe 2
+      l2Node.bothE(nonExistingLabel, Connection.Label).size shouldBe 2
       l2Trav.bothE(nonExistingLabel).size shouldBe 0
       l2Node.bothE(nonExistingLabel).size shouldBe 0
     }
