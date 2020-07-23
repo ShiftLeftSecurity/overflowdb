@@ -36,7 +36,7 @@ object RepeatBehaviour {
     private[this] var _emitNothing: Boolean = true
     private[this] var _emitAll: Boolean = false
     private[this] var _emitAllButFirst: Boolean = false
-    private[this] var _emitCondition: Option[A => Boolean] = None
+    private[this] var _emitCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _untilCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _times: Option[Int] = None
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
@@ -53,7 +53,7 @@ object RepeatBehaviour {
       _emitNothing = false
       _emitAll = true
       _emitAllButFirst = false
-      _emitCondition = Some(_ => true)
+      _emitCondition = Some(identity)
       this
     }
 
@@ -62,12 +62,12 @@ object RepeatBehaviour {
       _emitNothing = false
       _emitAll = false
       _emitAllButFirst = true
-      _emitCondition = Some(_ => true)
+      _emitCondition = Some(identity)
       this
     }
 
     /* configure `repeat` step to emit whatever meets the given condition */
-    def emit(condition: A => Boolean): Builder[A] = {
+    def emit(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _emitNothing = false
       _emitAll = false
       _emitAllButFirst = false
@@ -114,8 +114,10 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition = _untilCondition
           final private val _emitCondition = __emitCondition.get
-          override final def shouldEmit(element: A, currentDepth: Int): Boolean = _emitCondition(element)
           final override val times: Option[Int] = _times
+
+          override final def shouldEmit(element: A, currentDepth: Int): Boolean =
+            _emitCondition(Traversal.fromSingle(element)).hasNext
         }
       }
     }

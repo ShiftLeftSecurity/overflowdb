@@ -8,9 +8,6 @@ object P {
   def neq[A](a: A): A => Boolean =
     a.!=
 
-  def matches(regex: String): String => Boolean =
-    _.matches(regex)
-
   def within[A](values: Set[A]): A => Boolean =
     values.contains
 
@@ -23,4 +20,6 @@ object P {
   def without[A](values: A*): A => Boolean =
     without(values.to(Set))
 
+  def matches(regex: String): String => Boolean =
+    _.matches(regex)
 }

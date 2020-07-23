@@ -2,12 +2,11 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
+import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
-import Thing.Properties.Name
-import overflowdb.traversal.filter.P
 
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -67,10 +66,10 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "emit nodes that meet given condition" in {
     val expectedResults = Set("L1", "L2", "L3")
-    centerTrav.repeat(_.followedBy)(_.emit(_.name.startsWith("L"))).name.toSet shouldBe expectedResults
-    centerTrav.repeat(_.followedBy)(_.emit(_.name.startsWith("L")).breadthFirstSearch).name.toSet shouldBe expectedResults
-    centerTrav.repeat(_.out)(_.emit(_.property(Name).startsWith("L"))).property(Name).toSet shouldBe expectedResults
-    centerTrav.repeat(_.out)(_.emit(_.property(Name).startsWith("L")).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+    centerTrav.repeat(_.followedBy)(_.emit(_.name.filter(_.startsWith("L")))).name.toSet shouldBe expectedResults
+    centerTrav.repeat(_.followedBy)(_.emit(_.name.filter(_.startsWith("L"))).breadthFirstSearch).name.toSet shouldBe expectedResults
+    centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L"))))).property(Name).toSet shouldBe expectedResults
+    centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L")))).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
   }
 
   "support arbitrary `until` condition" when {
@@ -80,11 +79,11 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).breadthFirstSearch).name.toSet shouldBe expectedResults
 
       centerTrav.repeat(_.out)(
-        _.until(_.has(Name.where(P.matches(".*2")))))
+        _.until(_.has(Name.where(_.matches(".*2")))))
         .property(Name).toSet shouldBe expectedResults
 
       centerTrav.repeat(_.out)(
-        _.until(_.has(Name.where(P.matches(".*2")))).breadthFirstSearch)
+        _.until(_.has(Name.where(_.matches(".*2")))).breadthFirstSearch)
         .property(Name).toSet shouldBe expectedResults
     }
 
@@ -100,8 +99,8 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit).name.toSet shouldBe expectedResults
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.has(Name.where(P.matches(".*2")))).emit).property(Name).toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.has(Name.where(P.matches(".*2")))).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
   }
 
@@ -134,8 +133,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
     withClue("for reference: this behaviour is adapted from tinkerpop") {
       import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-      import org.apache.tinkerpop.gremlin.process.traversal.Traverser
-      import org.apache.tinkerpop.gremlin.process.traversal.{Traversal => TPTraversal}
+      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
       test(
         __(centerNode).repeat(
           __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
