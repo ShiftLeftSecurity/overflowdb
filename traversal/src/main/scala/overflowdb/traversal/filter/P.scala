@@ -8,7 +8,7 @@ object P {
   def neq[A](a: A): A => Boolean =
     a.!=
 
-  def regexMatches(regex: String): String => Boolean =
+  def matches(regex: String): String => Boolean =
     _.matches(regex)
 
   def within[A](values: Set[A]): A => Boolean =
