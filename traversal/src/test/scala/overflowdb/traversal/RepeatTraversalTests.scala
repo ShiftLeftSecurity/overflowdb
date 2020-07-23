@@ -7,6 +7,7 @@ import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, S
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import Thing.Properties.Name
+import overflowdb.traversal.filter.P
 
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -75,26 +76,32 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   "support arbitrary `until` condition" when {
     "used without emit" in {
       val expectedResults = Set("L2", "R2")
-      centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2"))).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2")).breadthFirstSearch).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2"))).property(Name).toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2")).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2")))).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).breadthFirstSearch).name.toSet shouldBe expectedResults
+
+      centerTrav.repeat(_.out)(
+        _.until(_.has(Name.where(P.regexMatches(".*2")))))
+        .property(Name).toSet shouldBe expectedResults
+
+      centerTrav.repeat(_.out)(
+        _.until(_.has(Name.where(P.regexMatches(".*2")))).breadthFirstSearch)
+        .property(Name).toSet shouldBe expectedResults
     }
 
     "targeting the start element (edge case)" in {
       val expectedResults = Set("Center")
-      centerTrav.repeat(_.followedBy)(_.until(_.name == "Center")).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.name == "Center").breadthFirstSearch).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name) == "Center")).property(Name).toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name) == "Center").breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.name == "Center"))).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.name == "Center")).breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "Center"))).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "Center")).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
 
     "used in combination with emit" in {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
-      centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2")).emit).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.name.endsWith("2")).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2")).emit).property(Name).toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.property(Name).endsWith("2")).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name.where(P.regexMatches(".*2")))).emit).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.has(Name.where(P.regexMatches(".*2")))).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
   }
 
