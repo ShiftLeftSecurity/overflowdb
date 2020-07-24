@@ -144,7 +144,7 @@ public class NodeDeserializer extends BookKeeper {
       final String key = intern(entry.getKey());
       final Object property = entry.getValue();
       // special handling for lists: create separate key/value entry for each list entry
-      if (property instanceof List) {
+      if (false /*property instanceof List*/) {
         for (Object value : (List) property) {
           keyValues.add(key);
           if(value instanceof String)
