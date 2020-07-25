@@ -56,7 +56,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void basicOutInSteps() {
-    OdbGraph graph = GratefulDead.newGraph();
+    OdbGraph graph = GratefulDead.open();
 
     Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
     Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
@@ -79,7 +79,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void testBasicSteps() throws IOException {
-    try (OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try (OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
       Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
       // inE
@@ -114,7 +114,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void handleEmptyProperties() throws IOException {
-    try (OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try (OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
       List<Object> props1 = graph.traversal().V().values("foo").toList();
       // results will be empty, but it should't crash. see https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/issues/12
       assertEquals(props1.size(), 0);

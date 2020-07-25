@@ -16,7 +16,7 @@ public class TraversalOptimizationTest {
 
   @Test
   public void optimizationStrategyAffectedSteps() throws IOException {
-    try (OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try (OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
       // using `g.V().hasLabel(lbl)` optimization
       assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
       assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).toList().size());

@@ -26,7 +26,7 @@ public class IndexesTest {
     final double avgTimeWithoutIndex;
 
     { // tests with index
-      OdbGraph graph = GratefulDead.newGraphWithData();
+      OdbGraph graph = GratefulDead.openAndLoadSampleData();
       graph.indexManager.createNodePropertyIndex("performances");
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
@@ -35,7 +35,7 @@ public class IndexesTest {
     }
 
     { // tests without index
-      OdbGraph graph = GratefulDead.newGraphWithData();
+      OdbGraph graph = GratefulDead.openAndLoadSampleData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -56,7 +56,7 @@ public class IndexesTest {
     final double avgTimeWithoutIndex;
 
     { // tests with index
-      OdbGraph graph = GratefulDead.newGraph();
+      OdbGraph graph = GratefulDead.open();
       graph.indexManager.createNodePropertyIndex("performances");
       GratefulDead.loadData(graph);
       GraphTraversalSource g = graph.traversal();
@@ -66,7 +66,7 @@ public class IndexesTest {
     }
 
     { // tests without index
-      OdbGraph graph = GratefulDead.newGraphWithData();
+      OdbGraph graph = GratefulDead.openAndLoadSampleData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -89,7 +89,7 @@ public class IndexesTest {
     // tests with index
     int loops = 1000;
     avgTimeWithIndexCreation = TimeUtil.clock(loops, () -> {
-      try(OdbGraph graph = GratefulDead.newGraphWithData()) {
+      try(OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
         graph.indexManager.createNodePropertyIndex("performances");
         GraphTraversalSource g = graph.traversal();
         assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
@@ -98,14 +98,14 @@ public class IndexesTest {
       }
     });
     // save indexes
-    try(OdbGraph graph = GratefulDead.newGraphWithData(overflowDb.getAbsolutePath())) {
+    try(OdbGraph graph = GratefulDead.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
       graph.indexManager.createNodePropertyIndex("performances");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
     // tests with stored index
     avgTimeWithStoredIndex = TimeUtil.clock(loops, () -> {
-      try(OdbGraph graph = GratefulDead.newGraph(OdbConfig.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
+      try(OdbGraph graph = GratefulDead.open(OdbConfig.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
         GraphTraversalSource g = graph.traversal();
         assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       }
@@ -120,13 +120,13 @@ public class IndexesTest {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
     // save indexes
-    try(OdbGraph graph = GratefulDead.newGraphWithData(overflowDb.getAbsolutePath())) {
+    try(OdbGraph graph = GratefulDead.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
       graph.indexManager.createNodePropertyIndex("performances");
       assertEquals(584, graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.indexManager.getIndexedNodeProperties());
     }
     // tests with stored index
-    try(OdbGraph graph = GratefulDead.newGraph(OdbConfig.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
+    try(OdbGraph graph = GratefulDead.open(OdbConfig.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
       assertEquals(584, graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.indexManager.getIndexedNodeProperties());
     }

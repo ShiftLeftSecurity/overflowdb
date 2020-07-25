@@ -8,11 +8,11 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class GratefulDead {
-  public static OdbGraph newGraph() {
-    return newGraph(OdbConfig.withoutOverflow());
+  public static OdbGraph open() {
+    return open(OdbConfig.withoutOverflow());
   }
 
-  public static OdbGraph newGraph(OdbConfig config) {
+  public static OdbGraph open(OdbConfig config) {
     return OdbGraph.open(
         config,
         Arrays.asList(Song.factory, Artist.factory),
@@ -20,14 +20,14 @@ public class GratefulDead {
     );
   }
 
-  public static OdbGraph newGraphWithData() throws IOException {
-    OdbGraph graph = newGraph();
+  public static OdbGraph openAndLoadSampleData() throws IOException {
+    OdbGraph graph = open();
     loadData(graph);
     return graph;
   }
 
-  public static OdbGraph newGraphWithData(String path) throws IOException {
-    OdbGraph graph = newGraph(OdbConfig.withDefaults().withStorageLocation(path));
+  public static OdbGraph openAndLoadSampleData(String path) throws IOException {
+    OdbGraph graph = open(OdbConfig.withDefaults().withStorageLocation(path));
     loadData(graph);
     return graph;
   }
