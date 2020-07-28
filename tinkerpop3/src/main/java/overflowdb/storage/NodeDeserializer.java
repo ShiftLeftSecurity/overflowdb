@@ -143,22 +143,11 @@ public class NodeDeserializer extends BookKeeper {
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
       final String key = intern(entry.getKey());
       final Object property = entry.getValue();
-      // special handling for lists: create separate key/value entry for each list entry
-      if (false /*property instanceof List*/) {
-        for (Object value : (List) property) {
-          keyValues.add(key);
-          if(value instanceof String)
-            keyValues.add(intern((String)value));
-          else
-            keyValues.add(value);
-        }
-      } else {
-        keyValues.add(key);
-        if(property instanceof String)
-          keyValues.add(intern((String)property));
-        else
-          keyValues.add(property);
-      }
+      keyValues.add(key);
+      if(property instanceof String)
+        keyValues.add(intern((String)property));
+      else
+        keyValues.add(property);
     }
     return keyValues.toArray();
   }
