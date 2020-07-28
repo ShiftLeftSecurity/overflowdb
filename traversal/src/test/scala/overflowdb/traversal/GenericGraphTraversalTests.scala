@@ -12,12 +12,12 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
   "V for all nodes" in {
-    graph.V.count shouldBe 8
+    graph.V.count.head shouldBe 8
     graph.V.size shouldBe 8
   }
 
   "E for all edges" in {
-    graph.E.count shouldBe 7
+    graph.E.count.head shouldBe 7
     graph.E.size shouldBe 7
   }
 
