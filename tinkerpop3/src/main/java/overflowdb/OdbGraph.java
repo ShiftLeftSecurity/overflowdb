@@ -415,6 +415,7 @@ public final class OdbGraph implements Graph {
 
   public void remove(Node node) {
     nodes.remove(node);
+    storage.removeNode(node.id2());
   }
 
   public class GraphFeatures implements Features {

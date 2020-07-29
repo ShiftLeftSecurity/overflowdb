@@ -94,7 +94,7 @@ public class OdbNodeTest {
 
   @Test
   public void loadGratefulDeadGraph() throws IOException {
-    try(OdbGraph graph = GratefulDead.newGraphWithData()) {
+    try(OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
       final Node node1 = graph.node(1);
       assertEquals("HEY BO DIDDLEY", node1.property2("name"));
 
@@ -323,7 +323,7 @@ public class OdbNodeTest {
 
   @Test
   public void shouldAllowAddingElementsAndSettingProperties() {
-    try(OdbGraph graph = GratefulDead.newGraph()) {
+    try(OdbGraph graph = GratefulDead.open()) {
 
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
@@ -345,7 +345,7 @@ public class OdbNodeTest {
 
   @Test
   public void shouldSupportEdgeRemoval1() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       OdbEdge followedBy = song1.addEdge2(FollowedBy.LABEL, song2);
@@ -360,7 +360,7 @@ public class OdbNodeTest {
 
   @Test
   public void shouldSupportEdgeRemoval2() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -381,7 +381,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove1() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge2(FollowedBy.LABEL, song2);
@@ -399,7 +399,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove2() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge2(FollowedBy.LABEL, song2);
@@ -417,7 +417,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove3() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -435,7 +435,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove4() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -453,7 +453,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove5_twoEdgesBetweenTwoNodes() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge2(FollowedBy.LABEL, song2);
@@ -469,7 +469,7 @@ public class OdbNodeTest {
 
   @Test
   public void nodeRemove6() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -492,7 +492,7 @@ public class OdbNodeTest {
 
   @Test
   public void shouldAllowToSpecifyIds() {
-    try(OdbGraph graph = GratefulDead.newGraph()) {
+    try(OdbGraph graph = GratefulDead.open()) {
       Node n10 = graph.addNode(10l, Song.label, Song.NAME, "Song 10");
       Node n20 = graph.addNode(20l, Song.label, Song.NAME, "Song 20");
       n10.addEdge2(FollowedBy.LABEL, n20, FollowedBy.WEIGHT, 5);
@@ -504,7 +504,7 @@ public class OdbNodeTest {
 
   @Test
   public void shouldReturnElementRefs() {
-    try (OdbGraph graph = GratefulDead.newGraph()) {
+    try (OdbGraph graph = GratefulDead.open()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
       OdbEdge e4 = n0.addEdge2(FollowedBy.LABEL, n2);

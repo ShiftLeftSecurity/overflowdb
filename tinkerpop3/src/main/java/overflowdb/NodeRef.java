@@ -141,7 +141,8 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
 
   @Override
   public void remove() {
-    this.get().remove();
+    get().remove();
+    clear();
   }
 
   @Override
