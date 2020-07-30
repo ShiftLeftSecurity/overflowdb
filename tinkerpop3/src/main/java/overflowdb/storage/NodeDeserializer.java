@@ -141,24 +141,14 @@ public class NodeDeserializer extends BookKeeper {
   protected final Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
     List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
+      //todo: We fail to properly intern strings contained in a List.
       final String key = intern(entry.getKey());
       final Object property = entry.getValue();
-      // special handling for lists: create separate key/value entry for each list entry
-      if (property instanceof List) {
-        for (Object value : (List) property) {
-          keyValues.add(key);
-          if(value instanceof String)
-            keyValues.add(intern((String)value));
-          else
-            keyValues.add(value);
-        }
-      } else {
-        keyValues.add(key);
-        if(property instanceof String)
-          keyValues.add(intern((String)property));
-        else
-          keyValues.add(property);
-      }
+      keyValues.add(key);
+      if(property instanceof String)
+        keyValues.add(intern((String)property));
+      else
+        keyValues.add(property);
     }
     return keyValues.toArray();
   }
