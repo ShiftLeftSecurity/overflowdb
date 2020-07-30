@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
-import RepeatBehaviour.SearchAlgorithm
+import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
+
 import scala.collection.{Iterator, mutable}
 
 object RepeatStep {
@@ -11,7 +12,7 @@ object RepeatStep {
    * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
    * The RepeatTraversalTests cover this case.
    * */
-  def apply[A](repeatTraversal: A => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
+  def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
     val worklist: Worklist[A] = behaviour.searchAlgorithm match {
       case SearchAlgorithm.DepthFirst   => new LifoWorklist[A]
       case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
@@ -43,7 +44,7 @@ object RepeatStep {
               emitSack.enqueue(element)
               stop = true
             } else {
-              worklist.addItem(WorklistItem(repeatTraversal(element), depth + 1))
+              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1))
               if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
               if (emitSack.nonEmpty) stop = true
             }

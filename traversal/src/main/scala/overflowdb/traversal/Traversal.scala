@@ -40,8 +40,8 @@ class Traversal[A](elements: IterableOnce[A])
   def helpVerbose()(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
-  def count: Int =
-    elements.iterator.size
+  def count: Traversal[Int] =
+    Traversal.fromSingle(elements.iterator.size)
 
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
@@ -157,11 +157,11 @@ class Traversal[A](elements: IterableOnce[A])
    *
    * @see RepeatTraversalTests for more detail and examples for all of the above.
    */
-  final def repeat[B >: A](repeatTraversal: A => Traversal[B])
+  final def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
     : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
-    val _repeatTraversal = repeatTraversal.asInstanceOf[B => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
+    val _repeatTraversal = repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
