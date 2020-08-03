@@ -43,6 +43,10 @@ public final class OdbIndexManager {
     });
   }
 
+  public boolean isIndexed(final String propertyName) {
+    return indexes.containsKey(propertyName);
+  }
+
   private void checkPropertyName(String propertyName) {
     if (propertyName == null || propertyName.isEmpty())
       throw new IllegalArgumentException("Illegal property name: " + propertyName);

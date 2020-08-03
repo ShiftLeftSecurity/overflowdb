@@ -1,10 +1,10 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.Node
+import overflowdb._
 import overflowdb.traversal.filter.P
-import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
+import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 
 /** generic graph traversals, i.e. domain independent */
