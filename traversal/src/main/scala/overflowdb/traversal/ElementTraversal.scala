@@ -22,8 +22,8 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
    * Use `traversalSource.label` instead, it is much faster
    * TODO: make the above an automatic optimisation */
-  def label(value1: String, valueN: String*): Traversal[E] = {
-    val wanted = (valueN :+ value1).toSet
+  def label(values: String*): Traversal[E] = {
+    val wanted = values.toSet
     traversal.filter(element => wanted.contains(element.label))
   }
 
@@ -31,7 +31,7 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
   def hasLabel(value: String): Traversal[E] = label(value)
 
   /** alias for {{{label}}} */
-  def hasLabel(value: String, valueN: String*): Traversal[E] = label(value, valueN: _*)
+  def hasLabel(values: String*): Traversal[E] = label(values: _*)
 
   /** filter by the element label (inverse) */
   def labelNot(value: String): Traversal[E] =
