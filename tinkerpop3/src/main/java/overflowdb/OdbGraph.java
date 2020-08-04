@@ -279,6 +279,10 @@ public final class OdbGraph implements Graph {
     return nodes.size();
   }
 
+  public int nodeCount(String label) {
+    return nodes.cardinality(label);
+  }
+
   public int edgeCount() {
     int i = 0;
     final Iterator<OdbEdge> edges = edges();

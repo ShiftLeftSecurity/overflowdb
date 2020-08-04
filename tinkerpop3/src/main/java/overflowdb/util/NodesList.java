@@ -15,7 +15,6 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Set;
 
 public class NodesList {
@@ -197,6 +196,14 @@ public class NodesList {
   /** just for unit test */
   protected int _elementDataSize() {
     return nodes.length;
+  }
+
+  /** cardinality of nodes for given label */
+  public int cardinality(String label) {
+    if (nodesByLabel.containsKey(label))
+      return nodesByLabel.get(label).size();
+    else
+      return 0;
   }
 
   public static class NodesIterator implements Iterator<Node> {

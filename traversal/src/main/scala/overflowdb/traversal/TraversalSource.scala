@@ -37,6 +37,24 @@ class TraversalSource(graph: OdbGraph) {
       Traversal(graph.nodes().has(key, value))
     }
   }
+
+  /** Start traversal with all nodes with given label that have given property value
+   * Inspects the cardinality of the indices of the properties and labels, and takes the smaller one */
+  def labelAndProperty(label: String, property: Property[_]): Traversal[Node] =
+    this.labelAndProperty(label, property.key.name, property.value)
+
+  /** Start traversal with all nodes with given label that have given property value
+   * Inspects the cardinality of the indices of the properties and labels, and takes the smaller one */
+  def labelAndProperty(label: String, propertyKey: String, propertyValue: Any): Traversal[Node] = {
+    lazy val propertyIsIndexed = graph.indexManager.isIndexed(propertyKey)
+    lazy val nodesByPropertyIndex = graph.indexManager.lookup(propertyKey, propertyValue)
+    lazy val cardinalityByLabel = graph.nodeCount(label)
+
+    if (propertyIsIndexed && nodesByPropertyIndex.size <= cardinalityByLabel)
+      Traversal.from(nodesByPropertyIndex.asScala).label(label)
+    else
+      this.label(label).has(propertyKey, propertyValue)
+  }
 }
 
 object TraversalSource {
