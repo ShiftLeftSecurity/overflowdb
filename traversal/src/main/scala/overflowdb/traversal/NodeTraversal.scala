@@ -8,10 +8,25 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
   @Doc("Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id2)
 
-  /** Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
+  /** Filter by given id
+   * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
-  def hasId(value: Long): Traversal[E] =
+  def id(value: Long): Traversal[E] =
     traversal.filter(_.id == value)
+
+  /** Filter by given ids
+   * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
+   * Use `traversalSource.withId` instead, it is much faster */
+  def id(values: Long*): Traversal[E] = {
+    val wanted = values.toSet
+    traversal.filter(element => wanted.contains(element.id2))
+  }
+
+  /** alias for {{{id}}} */
+  def hasId(value: Long): Traversal[E] = id(value)
+
+  /** alias for {{{id}}} */
+  def hasId(values: Long*): Traversal[E] = id(values: _*)
 
   /** follow outgoing edges to adjacent nodes */
   @Doc("follow outgoing edges to adjacent nodes")
