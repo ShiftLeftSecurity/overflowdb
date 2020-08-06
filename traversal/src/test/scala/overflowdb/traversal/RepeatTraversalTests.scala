@@ -72,8 +72,8 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L")))).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
   }
 
-  "support arbitrary `until` condition" when {
-    "used without emit" in {
+  "support arbitrary `until` condition" should {
+    "work without emit" in {
       val expectedResults = Set("L2", "R2")
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2")))).name.toSet shouldBe expectedResults
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).breadthFirstSearch).name.toSet shouldBe expectedResults
@@ -87,21 +87,22 @@ class RepeatTraversalTests extends WordSpec with Matchers {
         .property(Name).toSet shouldBe expectedResults
     }
 
-    "targeting the start element (edge case)" in {
-      val expectedResults = Set("Center")
-      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.name == "Center"))).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.name == "Center")).breadthFirstSearch).name.toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.has(Name -> "Center"))).property(Name).toSet shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.until(_.has(Name -> "Center")).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
-    }
-
-    "used in combination with emit" in {
+    "work in combination with emit" in {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit).name.toSet shouldBe expectedResults
       centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit.breadthFirstSearch).name.toSet shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit).property(Name).toSet shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit.breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
+
+    "result in 'repeat/until' behaviour, i.e. `until` condition is only evaluated after one iteration" in {
+      val expectedResults = Set("L1", "R1")
+      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.label == Thing.Label))).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.label == Thing.Label)).breadthFirstSearch).name.toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label))).property(Name).toSet shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+    }
+
   }
 
   "is lazy" in {
