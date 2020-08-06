@@ -1,6 +1,7 @@
 package overflowdb
 
 import overflowdb.util.JIteratorCastingWrapper
+
 import scala.collection.IterableOnce
 import scala.jdk.CollectionConverters._
 
@@ -32,6 +33,12 @@ package object traversal {
 
   implicit def toElementTraversalViaAdditionalImplicit[A <: OdbElement, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](toTraversal(traversable))
+
+  implicit class NodeOps[NodeType <: Node](val node: NodeType) extends AnyVal {
+    /** Start a new traversal from this node */
+    def start: Traversal[NodeType] =
+      Traversal.fromSingle(node)
+  }
 
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
 
