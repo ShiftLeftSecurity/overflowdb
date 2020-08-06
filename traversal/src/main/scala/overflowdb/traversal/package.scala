@@ -34,9 +34,9 @@ package object traversal {
   implicit def toElementTraversalViaAdditionalImplicit[A <: OdbElement, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](toTraversal(traversable))
 
-  implicit class NodeOps[NodeType <: Node](val node: NodeType) extends AnyVal {
-    /** Start a new traversal from this node */
-    def start: Traversal[NodeType] =
+  implicit class NodeOps[N <: Node](val node: N) extends AnyVal {
+    /** start a new Traversal with this Node, i.e. lift it into a Traversal */
+    def start: Traversal[N] =
       Traversal.fromSingle(node)
   }
 
