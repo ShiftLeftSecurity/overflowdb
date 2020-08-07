@@ -1,7 +1,5 @@
 package overflowdb
 
-import overflowdb.traversal.Traversal
-
 class GraphSugar(val graph: OdbGraph) extends AnyVal {
   def nodeOption(id: Long): Option[Node] =
     Option(graph.node(id))
@@ -30,7 +28,6 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
 }
 
 class ElementSugar(val element: OdbElement) extends AnyVal {
-
   def property[P](propertyKey: PropertyKey[P]): P =
     element.property2[P](propertyKey.name)
 
@@ -46,11 +43,7 @@ class ElementSugar(val element: OdbElement) extends AnyVal {
     element.setProperty(propertyKey.name, value)
 }
 
-class NodeSugar[N <: Node](val node: N) extends AnyVal {
-  /** start a new Traversal with this Node, i.e. lift it into a Traversal */
-  def start: Traversal[N] =
-    Traversal.fromSingle(node)
-
+class NodeSugar(val node: Node) extends AnyVal {
   def ---(label: String): SemiEdge =
     new SemiEdge(node, label, Seq.empty)
 
