@@ -28,7 +28,7 @@ abstract class Traversal[A](elements: IterableOnce[A])
     val oldPath = _path
     def f2(a: A): Traversal[B] = {
       _path.addOne(a)
-//      println(s"flatMap3.f2: added $a to _path. result=${_path}")
+      println(s"flatMap3.f2: added $a to _path. result=${_path}")
       f(a)
     }
     // TODO: understand - add the path copying to the View.FlatMap mechanism? e.g. Path-aware View.FlatMap? debug through
@@ -41,10 +41,8 @@ abstract class Traversal[A](elements: IterableOnce[A])
   def path: Traversal[Seq[Any]] = {
     map { a =>
 //    println(s"path.map: start ${_path}")
-//      val res = _path.to(Seq)
-      val res = _path :+ a
 //      println(s"in path: res=$res")
-      res.toSeq
+      (_path :+ a).to(Seq)
     }
   }
 
