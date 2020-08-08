@@ -20,41 +20,15 @@ abstract class Traversal[A](elements: IterableOnce[A])
     with IterableFactoryDefaults[A, Traversal] {
 
   // TODO make abstract?
-  // updated during flatMap2
 //  protected val _path = mutable.Buffer.empty[Any]
   protected val _path: mutable.Buffer[Any]
 //  protected val _path = ArraySeq.empty[Any]
-
-  // TODO override flatMap
-  // TODO check if path tracking enabled, and copy that setting to new Traversals -> do that with a mixin?
-  def flatMap2[B](f: A => IterableOnce[B]): Traversal[B] = {
-    sideEffect { a =>
-      _path.addOne(a)
-      println(s"flatMap2.sideEffect: added $a to _path. result=${_path}")
-    }.flatMap { a =>
-      val oldPath = _path
-      println(s"oldPath=$oldPath") //looks ok: Seq(centerNode)
-      val res = new Traversal(f(a)) {
-        override protected val _path = oldPath
-      }
-      res
-    }
-    //    flatMap { a: A =>
-    //      val res = f(a)
-    ////      val appended = _path.appended(a)
-    ////      res._path = _path.appended(a)
-    ////      res._path = appended
-    //      res._path.addOne(a)
-    //      println(s"xxx0 setting _path buffer in this traversal, _path=${res._path}")
-    //      res
-    //    }
-  }
 
   def flatMap3[B](f: A => Traversal[B]): Traversal[B] = {
     val oldPath = _path
     def f2(a: A): Traversal[B] = {
       _path.addOne(a)
-      println(s"flatMap3.f2: added $a to _path. result=${_path}")
+//      println(s"flatMap3.f2: added $a to _path. result=${_path}")
       f(a)
     }
     // TODO: understand - add the path copying to the View.FlatMap mechanism? e.g. Path-aware View.FlatMap? debug through
@@ -66,7 +40,7 @@ abstract class Traversal[A](elements: IterableOnce[A])
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
     map { a =>
-    println(s"path.map: start ${_path}")
+//    println(s"path.map: start ${_path}")
 //      val res = _path.to(Seq)
       val res = _path :+ a
 //      println(s"in path: res=$res")
@@ -102,7 +76,7 @@ abstract class Traversal[A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     new Traversal[B](elements.iterator.map(_.asInstanceOf[B])) {
       override val _path: mutable.Buffer[Any] = {
-        println("foo: cast")
+//        println("foo: cast")
         mutable.Buffer.empty
       }
     }
@@ -302,7 +276,7 @@ object Traversal extends IterableFactory[Traversal] {
   def apply[A](elements: java.util.Iterator[A]) =
     new Traversal[A](elements.asScala) {
       override val _path: mutable.Buffer[Any] = {
-        println("Traversal.apply(j.u.Iterator)")
+//        println("Traversal.apply(j.u.Iterator)")
         mutable.Buffer.empty
       }
     }
@@ -316,7 +290,7 @@ object Traversal extends IterableFactory[Traversal] {
   override def from[A](iter: IterableOnce[A]): Traversal[A] = {
     new Traversal(Iterator.from(iter)) {
       override val _path: mutable.Buffer[Any] = {
-        println("Traversal.apply(IterableOnce)")
+//        println("Traversal.apply(IterableOnce)")
         mutable.Buffer.empty
       }
     }
@@ -331,7 +305,7 @@ object Traversal extends IterableFactory[Traversal] {
 
   def fromSingle[A](a: A): Traversal[A] = {
     new Traversal(Iterator.single(a)) {
-      println("Traversal.fromSingle(A)")
+//      println("Traversal.fromSingle(A)")
       override val _path: mutable.Buffer[Any] = mutable.Buffer.empty
     }
   }

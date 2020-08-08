@@ -1,42 +1,38 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.traversal.testdomains.simple.ExampleGraphSetup.centerTrav
-import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
 
-object Foo extends App {
-  import overflowdb._
-
-  val graph = SimpleDomain.newGraph
-  def addThing(name: String) = graph + (Thing.Label, Thing.Properties.Name -> name)
-  val center = addThing("Center")
-  val l1 = addThing("L1")
-//  val r1 = addThing("R1")
-//  val l2 = addThing("L2")
-//  val r2 = addThing("R2")
-//  val l3 = addThing("L3")
-//  val r3 = addThing("R3")
-//  val r4 = addThing("R4")
-  center --- Connection.Label --> l1
-//  l1 --- Connection.Label --> l2
-//  l2 --- Connection.Label --> l3
-//  center --- Connection.Label --> r1
-//  r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
-//  r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
-//  r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
-
-  val centerTrav = Traversal.fromSingle(center)
-  //  centerTrav.out2.path.foreach { n =>
-  //    println(s"result: $n")
-  //  }
-  centerTrav.out3.path.foreach { n =>
-    println(s"result: $n")
-  }
-  //      centerTrav.path.foreach(println)
-  //      centerTrav.out2.out2.path.foreach(println)
-}
+//object Foo extends App {
+//  import overflowdb._
+//
+//  val graph = SimpleDomain.newGraph
+//  def addThing(name: String) = graph + (Thing.Label, Thing.Properties.Name -> name)
+//  val center = addThing("Center")
+//  val l1 = addThing("L1")
+////  val r1 = addThing("R1")
+////  val l2 = addThing("L2")
+////  val r2 = addThing("R2")
+////  val l3 = addThing("L3")
+////  val r3 = addThing("R3")
+////  val r4 = addThing("R4")
+//  center --- Connection.Label --> l1
+////  l1 --- Connection.Label --> l2
+////  l2 --- Connection.Label --> l3
+////  center --- Connection.Label --> r1
+////  r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
+////  r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
+////  r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
+//
+//  val centerTrav = Traversal.fromSingle(center)
+//  centerTrav.out3.path.foreach { n =>
+//    println(s"result: $n")
+//  }
+//  //      centerTrav.path.foreach(println)
+//  //      centerTrav.out2.out2.path.foreach(println)
+//}
 
 class TraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -113,13 +109,31 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   ".path step" should {
-    "foo" in {
-      //      centerTrav.path.foreach(println)
-      centerTrav.out2.path.foreach { n =>
-        println(s"result: $n")
-      }
-      //      centerTrav.out2.out2.path.foreach(println)
+    "work for single entry traversal" in {
+      val paths = centerTrav.path.toSet
+      names(paths) shouldBe Set(
+        List("Center")
+      )
     }
+
+    "work for simple one-step expansion" in {
+      val paths = centerTrav.out3.path.toSet
+      names(paths) shouldBe Set(
+        List("Center", "L1"),
+        List("Center", "R1")
+      )
+    }
+
+    "work for two-step expansion" in {
+      val paths = centerTrav.out3.out3.path.toSet
+      names(paths) shouldBe Set(
+        List("Center", "L1", "L2"),
+        List("Center", "R1", "R2")
+      )
+    }
+
+    def names(paths: Set[Seq[Any]]): Set[Seq[String]] =
+       paths.map(_.map(_.asInstanceOf[Thing].name))
   }
 
   ".help step" should {
