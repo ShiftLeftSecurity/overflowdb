@@ -14,26 +14,24 @@ import scala.reflect.ClassTag
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
   * Since this may trip up users, we'll log a warning
  **/
-abstract class Traversal[A](elements: IterableOnce[A])
+class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
-  // TODO make abstract?
-//  protected val _path = mutable.Buffer.empty[Any]
-  protected val _path: mutable.Buffer[Any]
-//  protected val _path = ArraySeq.empty[Any]
+  protected val _path = mutable.Buffer.empty[Any]
+//  protected val _path: mutable.Buffer[Any]
+//  protected var _path: Vector[Any] = Vector.empty
 
   def flatMap3[B](f: A => Traversal[B]): Traversal[B] = {
-    val oldPath = _path
+    val oldPath = _path//.clone
     def f2(a: A): Traversal[B] = {
-      _path.addOne(a)
-      println(s"flatMap3.f2: added $a to _path. result=${_path}")
+      oldPath.addOne(a)
+      println(s"flatMap3: _path=${_path}")
       f(a)
     }
-    // TODO: understand - add the path copying to the View.FlatMap mechanism? e.g. Path-aware View.FlatMap? debug through
     new Traversal(iterator.flatMap(f2)) {
-      override protected val _path: mutable.Buffer[Any] = oldPath
+      override protected val _path = oldPath
     }
   }
 
@@ -72,12 +70,7 @@ abstract class Traversal[A](elements: IterableOnce[A])
     Traversal.fromSingle(elements.iterator.size)
 
   def cast[B]: Traversal[B] =
-    new Traversal[B](elements.iterator.map(_.asInstanceOf[B])) {
-      override val _path: mutable.Buffer[Any] = {
-//        println("foo: cast")
-        mutable.Buffer.empty
-      }
-    }
+    new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ...
    * Preserves order and laziness semantics of Traversal.
@@ -261,37 +254,19 @@ object Traversal extends IterableFactory[Traversal] {
   /* reconfigure with different base package if needed */
   var help = new TraversalHelp("overflowdb")
 
-  override def empty[A]: Traversal[A] = new Traversal(Iterator.empty) {
-    override val _path: mutable.Buffer[Any] = ???
-  }
+  override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
-  def apply[A](elements: IterableOnce[A]) = {
-    new Traversal[A](elements.iterator) {
-      override val _path: mutable.Buffer[Any] = ???
-    }
-  }
+  def apply[A](elements: IterableOnce[A]) =
+    new Traversal[A](elements.iterator)
 
   def apply[A](elements: java.util.Iterator[A]) =
-    new Traversal[A](elements.asScala) {
-      override val _path: mutable.Buffer[Any] = {
-//        println("Traversal.apply(j.u.Iterator)")
-        mutable.Buffer.empty
-      }
-    }
+    new Traversal[A](elements.asScala)
 
-  override def newBuilder[A]: mutable.Builder[A, Traversal[A]] = {
-    Iterator.newBuilder[A].mapResult(new Traversal(_) {
-      override val _path: mutable.Buffer[Any] = ???
-    })
-  }
+  override def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
+    Iterator.newBuilder[A].mapResult(new Traversal(_))
 
   override def from[A](iter: IterableOnce[A]): Traversal[A] = {
-    new Traversal(Iterator.from(iter)) {
-      override val _path: mutable.Buffer[Any] = {
-//        println("Traversal.apply(IterableOnce)")
-        mutable.Buffer.empty
-      }
-    }
+    new Traversal(Iterator.from(iter))
   }
 
   def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
@@ -301,10 +276,6 @@ object Traversal extends IterableFactory[Traversal] {
     builder.result
   }
 
-  def fromSingle[A](a: A): Traversal[A] = {
-    new Traversal(Iterator.single(a)) {
-//      println("Traversal.fromSingle(A)")
-      override val _path: mutable.Buffer[Any] = mutable.Buffer.empty
-    }
-  }
+  def fromSingle[A](a: A): Traversal[A] =
+    new Traversal(Iterator.single(a))
 }
