@@ -35,11 +35,12 @@ object Foo extends App {
 //  centerTrav.repeat(_.out3)(_.times(2)).foreach(n => println(s"result: $n"))
 //  centerTrav.repeat(_.out3)(_.times(2)).path.foreach(n => println(s"result: $n"))
 
-//  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
-//  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
+  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+
 //  centerTrav.filter(_ => true).out3.out3.path.foreach(n => println(s"result: $n")) //works
-  centerTrav.out3.filter(_ => true).out3.path.foreach(n => println(s"result: $n")) // missing center in path
-  centerTrav.out3.out3.filter(_ => true).path.foreach(n => println(s"result: $n")) // casting exception, then missing Center and step1
+//  centerTrav.out3.filter(_ => true).out3.path.foreach(n => println(s"result: $n")) // missing center in path
+//  centerTrav.out3.out3.filter(_ => true).path.foreach(n => println(s"result: $n")) // casting exception, then missing Center and step1
 
 //  centerTrav.out3.out3.out3.foreach(println)
 //  centerTrav.out3.out3.out3.path.foreach(println)
