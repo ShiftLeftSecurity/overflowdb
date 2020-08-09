@@ -3,7 +3,7 @@ package overflowdb.traversal
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
-import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, View, mutable}
+import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, View, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
@@ -23,45 +23,96 @@ class Traversal[A](elements: IterableOnce[A])
 //  protected val _path: mutable.Buffer[Any]
 //  protected var _path: Vector[Any] = Vector.empty
 
-  def flatMap3[B](f: A => Traversal[B]): Traversal[B] = {
-//    val oldPath = _path // this one will be updated with the values traversed over within f2
-    //.clone?
-    def f2(a: A, pathPointer: mutable.Buffer[Any]): Traversal[B] = {
-//      println(s"flatMap3: _path=${_path}, oldPath=$oldPath")
-      val res = f(a)
-      res._path = _path :+ a
-      pathPointer.addOne(a)
-//      println(s"flatMap3: res._path=${res._path}")
-      res
+  // idea: implement flatmap ourselves, to avoid conversion to/from iterator
+  // initially copied from Iterator.flatMap
+ def flatMap3[B](f: A => IterableOnce[B]): Traversal[B] = {
+    val oldTraversal = this
+    val newIter = new Iterator[B] {
+      private[this] var cur: Iterator[B] = Iterator.empty // change to Traversal?
+      /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
+      private[this] var _hasNext: Int = -1
+
+      private[this] def nextCur(): Unit = {
+        cur = null
+        val a = oldTraversal.next
+        oldTraversal._path.addOne(a) // other option: down in `.next`
+        // TODO this seems the branching point - clone and thore _path here and make `cur` a Traversal?
+        cur = f(a).iterator
+        _hasNext = -1
+      }
+
+      def hasNext: Boolean = {
+        if (_hasNext == -1) {
+          while (!cur.hasNext) {
+            if (!oldTraversal.hasNext) {
+              _hasNext = 0
+              // since we know we are exhausted, we can release cur for gc, and as well replace with
+              // static Iterator.empty which will support efficient subsequent `hasNext`/`next` calls
+              cur = Iterator.empty
+              return false
+            }
+            nextCur()
+          }
+          _hasNext = 1
+          true
+        } else _hasNext == 1
+      }
+
+      def next(): B = {
+        if (hasNext) {
+          _hasNext = -1
+        }
+        val b = cur.next()
+//        oldTraversal._path.addOne(b)
+        b
+      }
     }
-//    val res = iterator.flatMap(f2)
-//    res // this is an iterator and thereby the _path info gets lost,
-    // only to later get converted back into a Traversal without _path
-    // instead: pass in the _newPath pointer
-    // problem: same buffer for all elements - should use new one when branching - similar to first iteration
-//    val newPath: mutable.Buffer[Any] = _path.clone
-//    val res = new Traversal(iterator.flatMap(a => f2(a, newPath)))
-//    res._path = newPath
 
-    val oldPath = _path.toSeq
-    val mappedAndPath = iterator.map { a => (f(a), oldPath :+ a)}
-    val flattenedIter = mappedAndPath.flatten { case (trav, path) => trav._path = path.toBuffer; trav}
-    // unfortunately, the above _is_ an Iterator, and the path gets lost again
-    // idea: copy Iterator.flatMap here and don't use that default impl
-    ???
-
-//    new Traversal(iterator.flatMap(f2)) {
-//      override protected val _path = oldPath
-//    }
-
-    /* idea:
-    val path1
-    f3: a: A => Traversal.withPath(oldPath + a)
-    iterator.map { a: A =>
-      f(a).withPath(oldPath + a)
-    }.flatten
-     */
+    val res = new Traversal[B](newIter)
+    res._path = oldTraversal._path//.clone?
+    res
   }
+
+//  def flatMap3[B](f: A => Traversal[B]): Traversal[B] = {
+////    val oldPath = _path // this one will be updated with the values traversed over within f2
+//    //.clone?
+//    def f2(a: A, pathPointer: mutable.Buffer[Any]): Traversal[B] = {
+////      println(s"flatMap3: _path=${_path}, oldPath=$oldPath")
+//      val res = f(a)
+//      res._path = _path :+ a
+//      pathPointer.addOne(a)
+////      println(s"flatMap3: res._path=${res._path}")
+//      res
+//    }
+////    val res = iterator.flatMap(f2)
+////    res // this is an iterator and thereby the _path info gets lost,
+//    // only to later get converted back into a Traversal without _path
+//    // instead: pass in the _newPath pointer
+//    // problem: same buffer for all elements - should use new one when branching - similar to first iteration
+////    val newPath: mutable.Buffer[Any] = _path.clone
+////    val res = new Traversal(iterator.flatMap(a => f2(a, newPath)))
+////    res._path = newPath
+//
+//    val oldPath = _path.toSeq
+//    val mappedAndPath = iterator.map { a => (f(a), oldPath :+ a)}
+//    val flattenedIter = mappedAndPath.flatten { case (trav, path) => trav._path = path.toBuffer; trav}
+//    // unfortunately, the above _is_ an Iterator, and the path gets lost again
+//    // idea: copy Iterator.flatMap here and don't use that default impl
+//    ???
+//
+////    new Traversal(iterator.flatMap(f2)) {
+////      override protected val _path = oldPath
+////    }
+//
+//    /* idea:
+//    val path1
+//    f3: a: A => Traversal.withPath(oldPath + a)
+//    iterator.map { a: A =>
+//      f(a).withPath(oldPath + a)
+//    }.flatten
+//     */
+//  }
+
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
     map { a =>
