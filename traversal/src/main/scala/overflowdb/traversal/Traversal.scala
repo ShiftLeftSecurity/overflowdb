@@ -12,7 +12,6 @@ object GlobalFoo {
 }
 
 class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
-//  println("TraversalPathAware:init")
   override def pathTrackingEnabled = true
 }
 
@@ -32,7 +31,6 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableFactoryDefaults[A, Traversal]
     with PathTrackingSetting {
 //  println("Traversal:init")
-  val a = 1
   var _pathTrackingEnabled = false
   override def pathTrackingEnabled = _pathTrackingEnabled
 
@@ -95,17 +93,18 @@ class Traversal[A](elements: IterableOnce[A])
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
     _pathTrackingEnabled = true
-    val res = this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
-//      println(s"path: path=${path}")
-      (path :+ a).to(Seq)
+    val res = this match {
+      case traversal: TraversalPathAware[A] =>
+        traversal.elementsWithPath.map { case (a, path) => (path :+ a).to(Seq) }
+//      case traversal: Traversal[Seq[A]] => traversal
+      case traversal: Traversal[A] => traversal.map(el => Seq(el))
     }
+//    val res = this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
+////      println(s"path: path=${path}")
+//      (path :+ a).to(Seq)
+//    }
     res._pathTrackingEnabled = true
     res
-//        map { a =>
-//          println(s"path: _path=${_path}")
-//          (_path :+ a).to(Seq)
-//          Seq(a)
-//        }
   }
 
 
