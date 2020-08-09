@@ -13,9 +13,12 @@ object GlobalFoo {
 
 class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
 //  println("TraversalPathAware:init")
+  override def pathTrackingEnabled = true
 }
 
-
+trait PathTrackingSetting {
+  def pathTrackingEnabled: Boolean
+}
 
 /**
   * TODO more docs
@@ -26,9 +29,11 @@ class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
-    with IterableFactoryDefaults[A, Traversal] {
+    with IterableFactoryDefaults[A, Traversal]
+    with PathTrackingSetting {
 //  println("Traversal:init")
-  var pathTrackingEnabled = false
+  var _pathTrackingEnabled = false
+  override def pathTrackingEnabled = _pathTrackingEnabled
 
 // idea: implement flatmap ourselves, to avoid conversion to/from iterator
 // initially copied from Iterator.flatMap
@@ -78,12 +83,13 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
+  // conversion happens probably when instantiating TraversalPathAware - newIter is converted to
     new TraversalPathAware[B](newIter)
   }
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
-    pathTrackingEnabled = true
+    _pathTrackingEnabled = true
     this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
 //      println(s"path: path=${path}")
       (path :+ a).to(Seq)
@@ -432,7 +438,11 @@ object Traversal extends IterableFactory[Traversal] {
 //    println("Traversal.from(IterableOnce)")
     iter match {
       case traversal: Traversal[A] => traversal
-      case _ => new Traversal(Iterator.from(iter))
+      case traversal: PathTrackingSetting =>
+        val res = new Traversal(Iterator.from(iter))
+        res._pathTrackingEnabled = traversal._pathTrackingEnabled
+        res
+      case _ => new Traversal(iter)
     }
 //    new Traversal(Iterator.from(iter))
   }

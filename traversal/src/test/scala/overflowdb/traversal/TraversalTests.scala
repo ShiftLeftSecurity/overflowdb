@@ -31,8 +31,8 @@ object Foo extends App {
 //  centerTrav.path.foreach(println)
 //  centerTrav.out3.path.foreach(n => println(s"result: $n"))
 
-//  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
-  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
+//  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.out3.out3.out3.path.foreach(println)
 //  centerTrav.out3.out3.out3.out3.path.foreach(println)
