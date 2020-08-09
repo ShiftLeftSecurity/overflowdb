@@ -39,10 +39,16 @@ class Traversal[A](elements: IterableOnce[A])
     // only to later get converted back into a Traversal without _path
     // instead: pass in the _newPath pointer
     // problem: same buffer for all elements - should use new one when branching - similar to first iteration
-    val newPath: mutable.Buffer[Any] = _path.clone
-    val res = new Traversal(iterator.flatMap(a => f2(a, newPath)))
-    res._path = newPath
-    res
+//    val newPath: mutable.Buffer[Any] = _path.clone
+//    val res = new Traversal(iterator.flatMap(a => f2(a, newPath)))
+//    res._path = newPath
+
+    val oldPath = _path.toSeq
+    val mappedAndPath = iterator.map { a => (f(a), oldPath :+ a)}
+    val flattenedIter = mappedAndPath.flatten { case (trav, path) => trav._path = path.toBuffer; trav}
+    // unfortunately, the above _is_ an Iterator, and the path gets lost again
+    // idea: copy Iterator.flatMap here and don't use that default impl
+    ???
 
 //    new Traversal(iterator.flatMap(f2)) {
 //      override protected val _path = oldPath
