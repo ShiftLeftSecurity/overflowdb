@@ -7,10 +7,6 @@ import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFa
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
-object GlobalFoo {
-  var afterFirstOutStep = false
-}
-
 class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
   override def pathTrackingEnabled = true
 }
