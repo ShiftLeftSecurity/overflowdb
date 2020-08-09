@@ -15,10 +15,6 @@ class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
   override def pathTrackingEnabled = true
 }
 
-trait PathTrackingSetting {
-  def pathTrackingEnabled: Boolean
-}
-
 /**
   * TODO more docs
   *
@@ -28,10 +24,8 @@ trait PathTrackingSetting {
 class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
-    with IterableFactoryDefaults[A, Traversal]
-    with PathTrackingSetting {
-  var _pathTrackingEnabled = false
-  override def pathTrackingEnabled = _pathTrackingEnabled
+    with IterableFactoryDefaults[A, Traversal] {
+  def pathTrackingEnabled = false
 
 // idea: implement flatmap ourselves, to avoid conversion to/from iterator
 // initially copied from Iterator.flatMap
