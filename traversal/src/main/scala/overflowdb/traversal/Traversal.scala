@@ -11,11 +11,11 @@ object GlobalFoo {
   var afterFirstOutStep = false
 }
 
-//class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends IterableOnce[A] {
-//  override def iterator: Iterator[A] = elementsWithPath.iterator.map(_._1)
-//}
+class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
+//  println("TraversalPathAware:init")
+}
 
-class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1))
+
 
 /**
   * TODO more docs
@@ -27,31 +27,30 @@ class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
-//  println("Traversal::init")
-//  protected var _path = mutable.Buffer.empty[Any]
-//  protected val _path: mutable.Buffer[Any]
-//  protected var _path: Vector[Any] = Vector.empty
+//  println("Traversal:init")
+  var pathTrackingEnabled = false
 
 // idea: implement flatmap ourselves, to avoid conversion to/from iterator
 // initially copied from Iterator.flatMap
   def flatMap3[B](f: A => Traversal[B]): IterableOnce[B] = {
     val oldTraversal = this
+  // TODO idea: make this a traversal?
     val newIter = new Iterator[(B, Vector[Any])] {
       private[this] var cur: Traversal[B] = Traversal.empty
-      private[this] var _hasNext: Int = -1 /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
+      private[this] var _hasNext: Int = -1
+      /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
       private[this] var path1: Vector[Any] = Vector.empty
 
       private[this] def nextCur(): Unit = {
         cur = null
-        val (a, _path1) = oldTraversal match {
+        val (element, _path) = oldTraversal match {
           case trav: TraversalPathAware[A] => trav.elementsWithPath.iterator.next
           case trav: Traversal[A] => (trav.next, Vector.empty)
         }
-//        val a = oldTraversal.next
-//        path1 = Some(a)
-        path1 = _path1.appended(a)
-//        println(s"x0: nextCur: branching at a=$a")
-        cur = f(a) //f==out3
+        if (pathTrackingEnabled)
+          path1 = _path.appended(element)
+        //        println(s"x0: nextCur: branching at element=$element")
+        cur = f(element) //f==out3
         _hasNext = -1
       }
 
@@ -74,27 +73,19 @@ class Traversal[A](elements: IterableOnce[A])
         if (hasNext) {
           _hasNext = -1
         }
-//        println(s"XX ${cur.getClass}")
         val b = cur.next
-//        cur._path.addOne(s"next1: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
-//        oldTraversal._path.addOne(s"next2: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
-//        (b, Vector(path1)) // TODO fill in with the _actual_ path, maybe store in 'cur'?
-//        (b, path1.appended(b)) // TODO fill in with the _actual_ path, maybe store in 'cur'?
-        (b, path1) // TODO fill in with the _actual_ path, maybe store in 'cur'?
+        (b, path1)
       }
     }
 
-//    println("flatMap3:end - returning TraversalPathAware")
-    val res = new TraversalPathAware[B](newIter) // problem: this gets immediately converted back to a traversal, losing the path info on the way
-    GlobalFoo.afterFirstOutStep = true
-    res
-    // return type doesn't make any difference.
+    new TraversalPathAware[B](newIter)
   }
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
+    pathTrackingEnabled = true
     this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
-      println(s"path: path=${path}")
+//      println(s"path: path=${path}")
       (path :+ a).to(Seq)
     }
 //        map { a =>

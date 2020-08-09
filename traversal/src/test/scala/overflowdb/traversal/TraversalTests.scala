@@ -27,10 +27,13 @@ object Foo extends App {
   r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
   r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
 
-  val centerTrav = Traversal.fromSingle(center)
+  def centerTrav = Traversal.fromSingle(center)
 //  centerTrav.path.foreach(println)
 //  centerTrav.out3.path.foreach(n => println(s"result: $n"))
+
+//  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
   centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+
 //  centerTrav.out3.out3.out3.path.foreach(println)
 //  centerTrav.out3.out3.out3.out3.path.foreach(println)
 }
