@@ -29,9 +29,10 @@ object Foo extends App {
 
   val centerTrav = Traversal.fromSingle(center)
 //  centerTrav.path.foreach(println)
-  centerTrav.out3.path.foreach(n => println(s"result: $n"))
-//  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out3.path.foreach(n => println(s"result: $n"))
+  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out3.out3.out3.path.foreach(println)
+//  centerTrav.out3.out3.out3.out3.path.foreach(println)
 }
 
 class TraversalTests extends WordSpec with Matchers {

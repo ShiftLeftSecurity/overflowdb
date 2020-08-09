@@ -7,6 +7,16 @@ import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFa
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
+object GlobalFoo {
+  var afterFirstOutStep = false
+}
+
+//class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends IterableOnce[A] {
+//  override def iterator: Iterator[A] = elementsWithPath.iterator.map(_._1)
+//}
+
+class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1))
+
 /**
   * TODO more docs
   *
@@ -17,27 +27,31 @@ class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
-//  println("instantiating Traversal")
-
-  protected var _path = mutable.Buffer.empty[Any]
+//  println("Traversal::init")
+//  protected var _path = mutable.Buffer.empty[Any]
 //  protected val _path: mutable.Buffer[Any]
 //  protected var _path: Vector[Any] = Vector.empty
 
-  // idea: implement flatmap ourselves, to avoid conversion to/from iterator
-  // initially copied from Iterator.flatMap
- def flatMap3[B](f: A => IterableOnce[B]): Traversal[B] = {
+// idea: implement flatmap ourselves, to avoid conversion to/from iterator
+// initially copied from Iterator.flatMap
+  def flatMap3[B](f: A => Traversal[B]): IterableOnce[B] = {
     val oldTraversal = this
-    val newIter = new Iterator[B] {
-      private[this] var cur: Iterator[B] = Iterator.empty // change to Traversal?
-      /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
-      private[this] var _hasNext: Int = -1
+    val newIter = new Iterator[(B, Vector[Any])] {
+      private[this] var cur: Traversal[B] = Traversal.empty
+      private[this] var _hasNext: Int = -1 /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
+      private[this] var path1: Vector[Any] = Vector.empty
 
       private[this] def nextCur(): Unit = {
         cur = null
-        val a = oldTraversal.next
-        oldTraversal._path.addOne(a) // other option: down in `.next`
-        // TODO this seems the branching point - clone and thore _path here and make `cur` a Traversal?
-        cur = f(a).iterator
+        val (a, _path1) = oldTraversal match {
+          case trav: TraversalPathAware[A] => trav.elementsWithPath.iterator.next
+          case trav: Traversal[A] => (trav.next, Vector.empty)
+        }
+//        val a = oldTraversal.next
+//        path1 = Some(a)
+        path1 = _path1.appended(a)
+//        println(s"x0: nextCur: branching at a=$a")
+        cur = f(a) //f==out3
         _hasNext = -1
       }
 
@@ -46,9 +60,7 @@ class Traversal[A](elements: IterableOnce[A])
           while (!cur.hasNext) {
             if (!oldTraversal.hasNext) {
               _hasNext = 0
-              // since we know we are exhausted, we can release cur for gc, and as well replace with
-              // static Iterator.empty which will support efficient subsequent `hasNext`/`next` calls
-              cur = Iterator.empty
+              cur = Traversal.empty
               return false
             }
             nextCur()
@@ -58,20 +70,93 @@ class Traversal[A](elements: IterableOnce[A])
         } else _hasNext == 1
       }
 
-      def next(): B = {
+      def next(): (B, Vector[Any]) = {
         if (hasNext) {
           _hasNext = -1
         }
-        val b = cur.next()
-//        oldTraversal._path.addOne(b)
-        b
+//        println(s"XX ${cur.getClass}")
+        val b = cur.next
+//        cur._path.addOne(s"next1: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
+//        oldTraversal._path.addOne(s"next2: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
+//        (b, Vector(path1)) // TODO fill in with the _actual_ path, maybe store in 'cur'?
+//        (b, path1.appended(b)) // TODO fill in with the _actual_ path, maybe store in 'cur'?
+        (b, path1) // TODO fill in with the _actual_ path, maybe store in 'cur'?
       }
     }
 
-    val res = new Traversal[B](newIter)
-    res._path = oldTraversal._path//.clone?
+//    println("flatMap3:end - returning TraversalPathAware")
+    val res = new TraversalPathAware[B](newIter) // problem: this gets immediately converted back to a traversal, losing the path info on the way
+    GlobalFoo.afterFirstOutStep = true
     res
+    // return type doesn't make any difference.
   }
+
+  // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
+  def path: Traversal[Seq[Any]] = {
+    this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
+      println(s"path: path=${path}")
+      (path :+ a).to(Seq)
+    }
+//        map { a =>
+//          println(s"path: _path=${_path}")
+//          (_path :+ a).to(Seq)
+//          Seq(a)
+//        }
+  }
+
+
+  //  // idea: implement flatmap ourselves, to avoid conversion to/from iterator
+//  // initially copied from Iterator.flatMap
+// def flatMap3[B](f: A => Traversal[B]): IterableOnce[B] = {
+//    val oldTraversal = this
+//    val newIter = new Iterator[B] {
+//      private[this] var cur: Traversal[B] = Traversal.empty
+//      /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
+//      private[this] var _hasNext: Int = -1
+//
+//      private[this] def nextCur(): Unit = {
+////        val prevPath = cur._path
+//        cur = null
+//        val a = oldTraversal.next
+//        println(s"x0: nextCur: branching at a=$a")
+//        cur = f(a) //f==out3
+////        GlobalFoo.afterFirstOutStep = true
+////        cur._path = prevPath.clone()
+//        cur._path = oldTraversal._path.clone
+//        cur._path.addOne(s"nextCur: ${a.asInstanceOf[overflowdb.Node].property2("name")}")
+//        _hasNext = -1
+//      }
+//
+//      def hasNext: Boolean = {
+//        if (_hasNext == -1) {
+//          while (!cur.hasNext) {
+//            if (!oldTraversal.hasNext) {
+//              _hasNext = 0
+//              cur = Traversal.empty
+//              return false
+//            }
+//            nextCur()
+//          }
+//          _hasNext = 1
+//          true
+//        } else _hasNext == 1
+//      }
+//
+//      def next(): B = {
+//        if (hasNext) {
+//          _hasNext = -1
+//        }
+//        val b = cur.next
+//        cur._path.addOne(s"next1: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
+//        oldTraversal._path.addOne(s"next2: ${b.asInstanceOf[overflowdb.Node].property2("name")}")
+//        b
+//      }
+//    }
+//
+//    val res = new Traversal[B](newIter)
+//    res._path = oldTraversal._path//.clone? // this is where things get flattened and wrong again...
+//    res
+//  }
 
 //  def flatMap3[B](f: A => Traversal[B]): Traversal[B] = {
 ////    val oldPath = _path // this one will be updated with the values traversed over within f2
@@ -112,14 +197,6 @@ class Traversal[A](elements: IterableOnce[A])
 //    }.flatten
 //     */
 //  }
-
-  // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
-  def path: Traversal[Seq[Any]] = {
-    map { a =>
-      println(s"path: _path=${_path}")
-      (_path :+ a).to(Seq)
-    }
-  }
 
   //  def flatMap3a[B](f: A => Traversal[B]): Traversal[B] = {
   //    val oldPath = _path//.clone
@@ -346,27 +423,31 @@ object Traversal extends IterableFactory[Traversal] {
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
   def apply[A](elements: IterableOnce[A]) = {
-//    println("Traversal.apply(IterableOnce)")
+    println("Traversal.apply(IterableOnce)")
     new Traversal[A](elements.iterator)
   }
 
   def apply[A](elements: java.util.Iterator[A]) = {
-//    println("Traversal.apply(j.u.Iterator)")
+    println("Traversal.apply(j.u.Iterator)")
     new Traversal[A](elements.asScala)
   }
 
   override def newBuilder[A]: mutable.Builder[A, Traversal[A]] = {
-//    println("Traversal.newBuilder")
+    println("Traversal.newBuilder")
     Iterator.newBuilder[A].mapResult(new Traversal(_))
   }
 
   override def from[A](iter: IterableOnce[A]): Traversal[A] = {
 //    println("Traversal.from(IterableOnce)")
-    new Traversal(Iterator.from(iter))
+    iter match {
+      case traversal: Traversal[A] => traversal
+      case _ => new Traversal(Iterator.from(iter))
+    }
+//    new Traversal(Iterator.from(iter))
   }
 
   def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
-//    println("Traversal.from(IterableOnce)")
+    println("Traversal.from(IterableOnce)")
     val builder = Traversal.newBuilder[A]
     builder.addAll(iter)
     builder.addOne(a)
