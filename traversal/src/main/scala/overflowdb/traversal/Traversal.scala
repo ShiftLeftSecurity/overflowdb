@@ -32,29 +32,34 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableFactoryDefaults[A, Traversal]
     with PathTrackingSetting {
 //  println("Traversal:init")
+  val a = 1
   var _pathTrackingEnabled = false
   override def pathTrackingEnabled = _pathTrackingEnabled
 
 // idea: implement flatmap ourselves, to avoid conversion to/from iterator
 // initially copied from Iterator.flatMap
   def flatMap3[B](f: A => Traversal[B]): IterableOnce[B] = {
-    val oldTraversal = this
-  // TODO idea: make this a traversal?
+    val outerTraversal = this
     val newIter = new Iterator[(B, Vector[Any])] {
       private[this] var cur: Traversal[B] = Traversal.empty
       private[this] var _hasNext: Int = -1
       /** Trillium logic boolean: -1 = unknown, 0 = false, 1 = true */
-      private[this] var path1: Vector[Any] = Vector.empty
+      private[this] var path: Vector[Any] = Vector.empty
 
       private[this] def nextCur(): Unit = {
         cur = null
-        val (element, _path) = oldTraversal match {
+        val (element, _path) = outerTraversal match {
           case trav: TraversalPathAware[A] => trav.elementsWithPath.iterator.next
-          case trav: Traversal[A] => (trav.next, Vector.empty)
+          case trav: Traversal[A] =>
+//            val element = trav.next
+//            (element, Vector(element))
+            (trav.next, Vector.empty)
         }
+//        println(s"nextCur: element=$element; pathTrackingEnabled=$pathTrackingEnabled")
         if (pathTrackingEnabled)
-          path1 = _path.appended(element)
-        //        println(s"x0: nextCur: branching at element=$element")
+          path = _path.appended(element)
+        else
+          path = Vector(element) //otherwise first step will not be tracked
         cur = f(element) //f==out3
         _hasNext = -1
       }
@@ -62,7 +67,7 @@ class Traversal[A](elements: IterableOnce[A])
       def hasNext: Boolean = {
         if (_hasNext == -1) {
           while (!cur.hasNext) {
-            if (!oldTraversal.hasNext) {
+            if (!outerTraversal.hasNext) {
               _hasNext = 0
               cur = Traversal.empty
               return false
@@ -79,7 +84,7 @@ class Traversal[A](elements: IterableOnce[A])
           _hasNext = -1
         }
         val b = cur.next
-        (b, path1)
+        (b, path)
       }
     }
 
@@ -90,10 +95,12 @@ class Traversal[A](elements: IterableOnce[A])
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   def path: Traversal[Seq[Any]] = {
     _pathTrackingEnabled = true
-    this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
+    val res = this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
 //      println(s"path: path=${path}")
       (path :+ a).to(Seq)
     }
+    res._pathTrackingEnabled = true
+    res
 //        map { a =>
 //          println(s"path: _path=${_path}")
 //          (_path :+ a).to(Seq)
@@ -187,7 +194,7 @@ class Traversal[A](elements: IterableOnce[A])
 ////    }
 //
 //    /* idea:
-//    val path1
+//    val path
 //    f3: a: A => Traversal.withPath(oldPath + a)
 //    iterator.map { a: A =>
 //      f(a).withPath(oldPath + a)
@@ -421,12 +428,12 @@ object Traversal extends IterableFactory[Traversal] {
 
   def apply[A](elements: IterableOnce[A]) = {
     println("Traversal.apply(IterableOnce)")
-    new Traversal[A](elements.iterator)
+    new Traversal[A](elements)
   }
 
   def apply[A](elements: java.util.Iterator[A]) = {
     println("Traversal.apply(j.u.Iterator)")
-    new Traversal[A](elements.asScala)
+    new Traversal[A](elements)
   }
 
   override def newBuilder[A]: mutable.Builder[A, Traversal[A]] = {
@@ -444,11 +451,10 @@ object Traversal extends IterableFactory[Traversal] {
         res
       case _ => new Traversal(iter)
     }
-//    new Traversal(Iterator.from(iter))
   }
 
   def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
-    println("Traversal.from(IterableOnce)")
+    println("Traversal.from(IterableOnce, A)")
     val builder = Traversal.newBuilder[A]
     builder.addAll(iter)
     builder.addOne(a)
