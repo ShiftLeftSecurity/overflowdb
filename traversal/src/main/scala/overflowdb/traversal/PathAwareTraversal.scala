@@ -55,13 +55,12 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
   override def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
                     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
-  : Traversal[B] = {
+    : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
     val _repeatTraversal = repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
-    val repeat0: B => Traversal[B] = RepeatStep(_repeatTraversal, behaviour)
+    val repeat0: B => PathAwareTraversal[B] = PathAwareRepeatStep(_repeatTraversal, behaviour)
     new PathAwareTraversal(iterator.flatMap { a =>
-    // TODO avoid cast, e.g. by providing elementsWithPath in base Traversal?
-      repeat0(a).asInstanceOf[PathAwareTraversal[B]].elementsWithPath
+      repeat0(a).elementsWithPath
     })
   }
 

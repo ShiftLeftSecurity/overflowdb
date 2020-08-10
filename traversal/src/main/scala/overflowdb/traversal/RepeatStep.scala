@@ -18,55 +18,51 @@ object RepeatStep {
       case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
     }
 
-    element: A => {
-      new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
-        val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
-        val startTraversal = Traversal.fromSingle(element)
-        worklist.addItem(WorklistItem(startTraversal, 0, Vector.empty))
+    element: A => Traversal(new Iterator[A] {
+      val emitSack: mutable.Queue[A] = mutable.Queue.empty
+      val startTraversal = Traversal.fromSingle(element)
+      worklist.addItem(WorklistItem(startTraversal, 0))
 
-        def hasNext: Boolean = {
-          if (emitSack.isEmpty) {
-            // this may add elements to the emit sack and/or modify the stack
-            traverseOnStack
-          }
-          emitSack.nonEmpty || stackTopTraversalHasNext
+      def hasNext: Boolean = {
+        if (emitSack.isEmpty) {
+          // this may add elements to the emit sack and/or modify the stack
+          traverseOnStack
         }
+        emitSack.nonEmpty || stackTopTraversalHasNext
+      }
 
-        private def traverseOnStack: Unit = {
-          var stop = false
-          while (worklist.nonEmpty && !stop) {
-            val WorklistItem(trav, depth, path) = worklist.head
-            if (trav.isEmpty) worklist.removeHead
-            else if (behaviour.timesReached(depth)) stop = true
-            else {
-              val element = trav.next
-              if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
-                && behaviour.untilConditionReached(element)) {
-                // we just consumed an element from the traversal, so in lieu adding to the emit sack
-                emitSack.enqueue((element, path))
-                stop = true
-              } else {
-                worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1, path.appended(element)))
-                if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path))
-                if (emitSack.nonEmpty) stop = true
-              }
+      private def traverseOnStack: Unit = {
+        var stop = false
+        while (worklist.nonEmpty && !stop) {
+          val WorklistItem(trav, depth) = worklist.head
+          if (trav.isEmpty) worklist.removeHead
+          else if (behaviour.timesReached(depth)) stop = true
+          else {
+            val element = trav.next
+            if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
+              && behaviour.untilConditionReached(element)) {
+              // we just consumed an element from the traversal, so in lieu adding to the emit sack
+              emitSack.enqueue(element)
+              stop = true
+            } else {
+              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1))
+              if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
+              if (emitSack.nonEmpty) stop = true
             }
           }
         }
+      }
 
-        private def stackTopTraversalHasNext: Boolean =
-          worklist.nonEmpty && worklist.head.traversal.hasNext
+      private def stackTopTraversalHasNext: Boolean =
+        worklist.nonEmpty && worklist.head.traversal.hasNext
 
-        override def next: (A, Vector[Any]) = {
-          if (emitSack.hasNext) emitSack.dequeue
-          else if (hasNext) {
-            (worklist.head.traversal.next, worklist.head.path)
-          }
-          else throw new NoSuchElementException("next on empty iterator")
-        }
+      override def next: A = {
+        if (emitSack.hasNext) emitSack.dequeue
+        else if (hasNext) worklist.head.traversal.next
+        else throw new NoSuchElementException("next on empty iterator")
+      }
 
-      })
-    }
+    })
   }
 
   /** stores work still to do. depending on the underlying collection type, the behaviour of the repeat step changes */
@@ -95,5 +91,5 @@ object RepeatStep {
     override def removeHead = queue.dequeue
   }
 
-  case class WorklistItem[A](traversal: Traversal[A], depth: Int, path: Vector[A])
+  case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 }

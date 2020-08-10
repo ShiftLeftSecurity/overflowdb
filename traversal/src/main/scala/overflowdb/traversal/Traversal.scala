@@ -3,8 +3,7 @@ package overflowdb.traversal
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
-import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, View, mutable}
-import scala.jdk.CollectionConverters._
+import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.reflect.ClassTag
 
 /**
@@ -17,7 +16,6 @@ class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
-//  println(s"Traversal:init")
 
   def path: Traversal[Seq[Any]] =
     throw new NotImplementedError("not supported, you must start the traversal as `.pathAware` if you want to have the path available")
