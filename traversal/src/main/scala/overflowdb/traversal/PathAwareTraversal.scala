@@ -57,18 +57,13 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
   }
 
 
-  override def map[B](f: A => B): Traversal[B] = {
-    val outerTraversal = this
-    new PathAwareTraversal[B](new Iterator[(B, Vector[Any])] {
-      override def hasNext: Boolean = outerTraversal.hasNext
-
-      override def next(): (B, Vector[Any]) = {
-        val (a, path) = outerTraversal.elementsWithPath.next
+  override def map[B](f: A => B): Traversal[B] =
+    new PathAwareTraversal(
+        elementsWithPath.iterator.map { case (a, path) =>
         val b = f(a)
         (b, path.appended(b))
       }
-    })
-  }
+    )
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
   override def path: Traversal[Seq[Any]] = {
