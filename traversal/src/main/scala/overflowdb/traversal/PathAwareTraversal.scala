@@ -56,29 +56,35 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     new PathAwareTraversal[B](newIter)
   }
 
-
   override def map[B](f: A => B): Traversal[B] =
     new PathAwareTraversal(
-        elementsWithPath.iterator.map { case (a, path) =>
+      elementsWithPath.iterator.map { case (a, path) =>
         val b = f(a)
         (b, path.appended(b))
       }
     )
 
-  // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
-  override def path: Traversal[Seq[Any]] = {
-    new Traversal(elementsWithPath.map { case (a, path) => (path :+ a).to(Seq) })
-//    val res = this match {
-//      case traversal: TraversalPathAware[A] =>
-//        traversal.elementsWithPath.map { case (a, path) => (path :+ a).to(Seq) }
-//    }
-    //    val res = this.asInstanceOf[TraversalPathAware[A]].elementsWithPath.map { case (a, path) =>
-    ////      println(s"path: path=${path}")
-    //      (path :+ a).to(Seq)
-    //    }
-//    res
-//    ???
+  override def filter(pred: A => Boolean): Traversal[A] =
+    new PathAwareTraversal(
+      elementsWithPath.iterator.filter { case (a, path) => pred(a)}
+    )
+
+  override def filterNot(pred: A => Boolean): Traversal[A] =
+    new PathAwareTraversal(
+      elementsWithPath.iterator.filterNot { case (a, path) => pred(a)}
+    )
+
+  override def collect[B](pf: PartialFunction[A, B]): Traversal[B] = {
+    new PathAwareTraversal(
+      elementsWithPath.iterator.collect { case (a, path) if pf.isDefinedAt(a) =>
+        val b = pf(a)
+        (b, path.appended(a))}
+    )
   }
+
+  // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
+  override def path: Traversal[Seq[Any]] =
+    new Traversal(elementsWithPath.map { case (a, path) => (path :+ a).to(Seq) })
 
 }
 
