@@ -137,34 +137,19 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   ".path step" should {
-    "work for single entry traversal" in {
-      ???
-//      val paths = centerTrav.path.toSet
-//      names(paths) shouldBe Set(
-//        List("Center")
-//      )
+    "work for single element traversal (boring)" in {
+      centerTrav.enablePathTracking.path.toSet shouldBe Set(Seq(center))
     }
 
     "work for simple one-step expansion" in {
-//      val paths = centerTrav.out3.path.toSet
-//      names(paths) shouldBe Set(
-//        List("Center", "L1"),
-//        List("Center", "R1")
-//      )
-      ???
+      centerTrav.enablePathTracking.out.path.toSet shouldBe Set(
+        Seq(center, l1),
+        Seq(center, r1))
     }
 
-    "work for two-step expansion" in {
-//      val paths = centerTrav.out3.out3.path.toSet
-//      names(paths) shouldBe Set(
-//        List("Center", "L1", "L2"),
-//        List("Center", "R1", "R2")
-//      )
-      ???
+    "not be enabled by default" in {
+      intercept[AssertionError] { centerTrav.out.path }
     }
-
-    def names(paths: Set[Seq[Any]]): Set[Seq[String]] =
-       paths.map(_.map(_.asInstanceOf[Thing].name))
   }
 
   ".help step" should {

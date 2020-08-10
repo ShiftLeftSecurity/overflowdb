@@ -137,7 +137,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
       import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
       test(
-        __(centerNode).repeat(
+        __(center).repeat(
           __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
             .out().asInstanceOf[TPTraversal[_, Thing]]
         ).toList.asScala)
