@@ -215,7 +215,7 @@ class Traversal[A](elements: IterableOnce[A])
     }
 
   def path: Traversal[Seq[Any]] =
-    throw new NotImplementedError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
+    throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)

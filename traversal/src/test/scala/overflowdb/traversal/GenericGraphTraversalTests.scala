@@ -192,7 +192,22 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) = {
-    traversal.property(Name).toSet shouldBe expectedNames
+  "path tracking" should {
+    "work for single element boring traversal" in {
+      centerTrav.enablePathTracking.path.toSet shouldBe Set(Seq(centerNode))
+    }
+
+    "work for single step traversal" in {
+      centerTrav.enablePathTracking.out.path.toSet shouldBe Set(
+        Seq(centerNode, l1Node),
+        Seq(centerNode, r1Node))
+    }
+
+    "not be enabled by default" in {
+      intercept[AssertionError] { centerTrav.out.path }
+    }
   }
+
+  def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) =
+    traversal.property(Name).toSet shouldBe expectedNames
 }

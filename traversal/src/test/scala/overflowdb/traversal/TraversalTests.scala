@@ -27,13 +27,14 @@ object Foo extends App {
   r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
   r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
 
-//  def centerTrav = Traversal.fromSingle(center)
-  def centerTrav = PathAwareTraversal.fromSingle(center)
+  def centerTrav = Traversal.fromSingle(center)
+//  def centerTrav = PathAwareTraversal.fromSingle(center)
 //  centerTrav.path.foreach(println)
 //  centerTrav.out.foreach(n => println(s"result: $n"))
 //  centerTrav.out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.out.path.foreach(n => println(s"result: $n"))
-  centerTrav.out.map(identity).out.path.foreach(n => println(s"result: $n"))
+//  centerTrav.enablePathTracking.out.map(identity).out.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out.enablePathTracking.map(identity).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filter(_ => true).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filterNot(_ => false).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.collect { case x => x}.out.path.foreach(n => println(s"result: $n"))

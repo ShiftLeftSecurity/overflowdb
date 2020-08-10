@@ -13,8 +13,12 @@ object ExampleGraphSetup {
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
   def centerTrav: Traversal[Thing] = simpleDomain.things.name("Center")
   def centerNode: Thing = centerTrav.head
+  def l1Trav: Traversal[Thing] = simpleDomain.things.name("L1")
+  def l1Node: Thing = l1Trav.head
   def l2Trav: Traversal[Thing] = simpleDomain.things.name("L2")
   def l2Node: Thing = l2Trav.head
+  def r1Trav: Traversal[Thing] = simpleDomain.things.name("R1")
+  def r1Node: Thing = r1Trav.head
   def r2Trav: Traversal[Thing] = simpleDomain.things.name("R2")
   def r2Node: Thing = r2Trav.head
 
