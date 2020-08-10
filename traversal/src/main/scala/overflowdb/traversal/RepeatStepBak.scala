@@ -6,6 +6,12 @@ import scala.collection.{Iterator, mutable}
 
 object RepeatStepBak {
 
+  /** @see [[Traversal.repeat]] for a detailed overview
+   *
+   * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space
+   * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
+   * The RepeatTraversalTests cover this case.
+   * */
   def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
     val worklist: Worklist[A] = behaviour.searchAlgorithm match {
       case SearchAlgorithm.DepthFirst   => new LifoWorklist[A]

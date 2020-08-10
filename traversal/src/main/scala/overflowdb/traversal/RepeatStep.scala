@@ -19,8 +19,7 @@ object RepeatStep {
     }
 
     element: A => {
-      val res = new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
-        //      element: A => new PathAwareTraversal2[A](new Iterator[(A, Vector[Any])] {
+      new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
         val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
         val startTraversal = Traversal.fromSingle(element)
         worklist.addItem(WorklistItem(startTraversal, 0, Vector.empty))
@@ -37,7 +36,7 @@ object RepeatStep {
           var stop = false
           while (worklist.nonEmpty && !stop) {
             val WorklistItem(trav, depth, path) = worklist.head
-            if (trav.isEmpty) worklist.removeHead // TODO do we lose the L1/R1 path entries here?
+            if (trav.isEmpty) worklist.removeHead
             else if (behaviour.timesReached(depth)) stop = true
             else {
               val element = trav.next
@@ -47,7 +46,6 @@ object RepeatStep {
                 emitSack.enqueue((element, path))
                 stop = true
               } else {
-//                println(s"Repeat: adding $element to worklist") // L1/R1 are being added here, but lost later...
                 worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1, path.appended(element)))
                 if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path))
                 if (emitSack.nonEmpty) stop = true
@@ -62,16 +60,12 @@ object RepeatStep {
         override def next: (A, Vector[Any]) = {
           if (emitSack.hasNext) emitSack.dequeue
           else if (hasNext) {
-            val res = (worklist.head.traversal.next, worklist.head.path)
-//            println(s"Repeat.next: res.path=${res._2}") // looks correct...?
-            res
+            (worklist.head.traversal.next, worklist.head.path)
           }
           else throw new NoSuchElementException("next on empty iterator")
         }
 
       })
-//      println(s"xxx0: ${res.path.next}") // C, L1, L2 -> also correct. where does it break?
-      res
     }
   }
 

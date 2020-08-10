@@ -30,12 +30,10 @@ object Foo extends App {
 //  def centerTrav = Traversal.fromSingle(center)
   def centerTrav = PathAwareTraversal.fromSingle(center)
 //  centerTrav.path.foreach(println)
-//  centerTrav.out3.foreach(n => println(s"result: $n"))
-
 //  centerTrav.out.foreach(n => println(s"result: $n"))
 //  centerTrav.out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.out.path.foreach(n => println(s"result: $n"))
-//  centerTrav.out.map(identity).out.path.foreach(n => println(s"result: $n"))
+  centerTrav.out.map(identity).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filter(_ => true).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filterNot(_ => false).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.collect { case x => x}.out.path.foreach(n => println(s"result: $n"))
@@ -44,7 +42,9 @@ object Foo extends App {
 //  centerTrav.out.in.out.dedup.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.repeat(_.out)(_.times(2)).foreach(n => println(s"result: $n"))
-    centerTrav.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
+//    centerTrav.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
+//  centerTrav.repeat(_.out)(_.times(3)).path.foreach(n => println(s"result: $n"))
+//  centerTrav.out.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
   //  centerTrav.repeat(_.out)(_.emit.times(2)).path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
