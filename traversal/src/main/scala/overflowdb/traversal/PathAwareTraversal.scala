@@ -22,10 +22,9 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
       private[this] def nextCur(): Unit = {
         cur = null
-        val (element, _path) = outerTraversal.elementsWithPath.iterator.next
-        //        println(s"nextCur: element=$element; pathTrackingEnabled=$pathTrackingEnabled")
-        path = _path.appended(element)
-        cur = f(element) //f==out3
+        val (a, _path) = outerTraversal.elementsWithPath.iterator.next
+        path = _path.appended(a)
+        cur = f(a)
         _hasNext = -1
       }
 
@@ -48,8 +47,7 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
         if (hasNext) {
           _hasNext = -1
         }
-        val b = cur.next
-        (b, path)
+        (cur.next, path)
       }
     }
 
@@ -64,6 +62,13 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
       }
     )
 
+  override def collect[B](pf: PartialFunction[A, B]): Traversal[B] =
+    new PathAwareTraversal(
+      elementsWithPath.iterator.collect { case (a, path) if pf.isDefinedAt(a) =>
+        val b = pf(a)
+        (b, path.appended(a))}
+    )
+
   override def filter(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
       elementsWithPath.iterator.filter { case (a, path) => pred(a)}
@@ -74,13 +79,15 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
       elementsWithPath.iterator.filterNot { case (a, path) => pred(a)}
     )
 
-  override def collect[B](pf: PartialFunction[A, B]): Traversal[B] = {
+  override def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder): Traversal[A] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.collect { case (a, path) if pf.isDefinedAt(a) =>
-        val b = pf(a)
-        (b, path.appended(a))}
+      behaviourBuilder(new DedupBehaviour.Builder).build.comparisonStyle match {
+        case DedupBehaviour.ComparisonStyle.HashAndEquals =>
+          elementsWithPath.to(LazyList).distinctBy(_._1)
+        case DedupBehaviour.ComparisonStyle.HashOnly =>
+          elementsWithPath.to(LazyList).distinctBy(_._1.hashCode)
+      }
     )
-  }
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
   override def path: Traversal[Seq[Any]] =

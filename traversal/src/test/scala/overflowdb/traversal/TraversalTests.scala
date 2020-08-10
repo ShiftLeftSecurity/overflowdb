@@ -38,7 +38,10 @@ object Foo extends App {
 //  centerTrav.out.map(identity).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filter(_ => true).out.path.foreach(n => println(s"result: $n"))
 //  centerTrav.out.filterNot(_ => false).out.path.foreach(n => println(s"result: $n"))
-  centerTrav.out.collect { case x => x}.out.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out.collect { case x => x}.out.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out.in.out.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out.in.out.dedup.foreach(n => println(s"result: $n"))
+  centerTrav.out.in.out.dedup.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.repeat(_.out3)(_.times(2)).foreach(n => println(s"result: $n"))
 //  centerTrav.repeat(_.out3)(_.times(2)).path.foreach(n => println(s"result: $n"))
