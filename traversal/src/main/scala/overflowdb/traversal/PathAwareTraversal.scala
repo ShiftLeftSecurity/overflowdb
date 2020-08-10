@@ -2,7 +2,8 @@ package overflowdb.traversal
 
 import scala.collection.{IterableOnce, Iterator}
 
-class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.map(_._1)) {
+class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])])
+  extends Traversal[A](elementsWithPath.map(_._1)) {
 
   override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] =
     new PathAwareTraversal(
@@ -48,11 +49,28 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
   override def path: Traversal[Seq[Any]] =
-    new Traversal(elementsWithPath.map { case (a, path) => (path :+ a).to(Seq) })
+    new Traversal(elementsWithPath.map { case (a, path) =>
+      (path :+ a).to(Seq)
+    })
+
+  override def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
+                    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
+  : Traversal[B] = {
+    val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
+    val _repeatTraversal = repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
+    val repeat0: B => Traversal[B] = RepeatStep(_repeatTraversal, behaviour)
+    new PathAwareTraversal(iterator.flatMap { a =>
+    // TODO avoid cast, e.g. by providing elementsWithPath in base Traversal?
+      repeat0(a).asInstanceOf[PathAwareTraversal[B]].elementsWithPath
+    })
+  }
 
 }
 
 object PathAwareTraversal {
+  def empty[A]: PathAwareTraversal[A] =
+    new PathAwareTraversal(Iterator.empty)
+
   def fromSingle[A](a: A): PathAwareTraversal[A] =
     new PathAwareTraversal(Iterator.single((a, Vector.empty)))
 }

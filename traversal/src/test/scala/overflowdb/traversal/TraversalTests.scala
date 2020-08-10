@@ -44,7 +44,8 @@ object Foo extends App {
 //  centerTrav.out.in.out.dedup.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.repeat(_.out)(_.times(2)).foreach(n => println(s"result: $n"))
-  centerTrav.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
+    centerTrav.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
+  //  centerTrav.repeat(_.out)(_.emit.times(2)).path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
 //  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))

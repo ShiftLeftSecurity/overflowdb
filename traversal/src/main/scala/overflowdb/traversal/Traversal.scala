@@ -6,10 +6,6 @@ import overflowdb.traversal.help.{Doc, TraversalHelp}
 import scala.collection.{AbstractIterator, Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, View, mutable}
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
-//
-//class TraversalPathAware[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
-//  override def pathTrackingEnabled = true
-//}
 
 /**
   * TODO more docs
@@ -21,6 +17,7 @@ class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
+//  println(s"Traversal:init")
 
   def path: Traversal[Seq[Any]] =
     throw new NotImplementedError("not supported, you must start the traversal as `.pathAware` if you want to have the path available")
@@ -31,7 +28,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** Execute the traversal and convert the result to a list - shorthand for `toList` */
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
-  def l: List[A] = elements.iterator.toList
+  def l: List[A] = iterator.toList
 
   def iterate: Unit = while (hasNext) next
 
@@ -164,7 +161,7 @@ class Traversal[A](elements: IterableOnce[A])
    *
    * @see RepeatTraversalTests for more detail and examples for all of the above.
    */
-  final def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
+  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
     : Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
