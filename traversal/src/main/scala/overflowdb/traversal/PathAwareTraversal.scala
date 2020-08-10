@@ -10,7 +10,6 @@ import scala.reflect.ClassTag
 class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
 //  println("PathAwareTraversal:init")
 
-//  def flatMap3[B](f: A => Traversal[B]): IterableOnce[B] = {
 // idea: implement flatmap ourselves, to avoid conversion to/from iterator
 // initially copied from Iterator.flatMap
   override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] = {
@@ -55,6 +54,20 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     }
 
     new PathAwareTraversal[B](newIter)
+  }
+
+
+  override def map[B](f: A => B): Traversal[B] = {
+    val outerTraversal = this
+    new PathAwareTraversal[B](new Iterator[(B, Vector[Any])] {
+      override def hasNext: Boolean = outerTraversal.hasNext
+
+      override def next(): (B, Vector[Any]) = {
+        val (a, path) = outerTraversal.elementsWithPath.next
+        val b = f(a)
+        (b, path.appended(b))
+      }
+    })
   }
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append
