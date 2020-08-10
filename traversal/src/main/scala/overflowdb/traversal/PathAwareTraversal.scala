@@ -7,19 +7,19 @@ import overflowdb.traversal.help.{Doc, TraversalHelp}
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.reflect.ClassTag
 
-class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
+class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.map(_._1)) {
 //  println("PathAwareTraversal:init")
 
   override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.flatMap { case (a, path) =>
+      elementsWithPath.flatMap { case (a, path) =>
         f(a).map(b => (b, path.appended(a)))
       }
     )
 
   override def map[B](f: A => B): Traversal[B] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.map { case (a, path) =>
+      elementsWithPath.map { case (a, path) =>
         val b = f(a)
         (b, path.appended(b))
       }
@@ -27,19 +27,19 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
   override def collect[B](pf: PartialFunction[A, B]): Traversal[B] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.collect { case (a, path) if pf.isDefinedAt(a) =>
+      elementsWithPath.collect { case (a, path) if pf.isDefinedAt(a) =>
         val b = pf(a)
         (b, path.appended(a))}
     )
 
   override def filter(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.filter(x => pred(x._1))
+      elementsWithPath.filter(x => pred(x._1))
     )
 
   override def filterNot(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.filterNot(x => pred(x._1))
+      elementsWithPath.filterNot(x => pred(x._1))
     )
 
   override def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder): Traversal[A] =
