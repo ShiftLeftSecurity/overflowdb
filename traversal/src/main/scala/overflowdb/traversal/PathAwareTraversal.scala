@@ -71,12 +71,12 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
   override def filter(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.filter { case (a, path) => pred(a)}
+      elementsWithPath.iterator.filter(x => pred(x._1))
     )
 
   override def filterNot(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
-      elementsWithPath.iterator.filterNot { case (a, path) => pred(a)}
+      elementsWithPath.iterator.filterNot(x => pred(x._1))
     )
 
   override def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder): Traversal[A] =
