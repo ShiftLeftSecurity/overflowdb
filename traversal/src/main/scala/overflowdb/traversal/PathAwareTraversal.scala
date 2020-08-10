@@ -1,14 +1,8 @@
 package overflowdb.traversal
 
-import org.slf4j.LoggerFactory
-import overflowdb.traversal
-import overflowdb.traversal.help.{Doc, TraversalHelp}
-
-import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
-import scala.reflect.ClassTag
+import scala.collection.{IterableOnce, Iterator}
 
 class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]) extends Traversal[A](elementsWithPath.map(_._1)) {
-//  println("PathAwareTraversal:init")
 
   override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] =
     new PathAwareTraversal(

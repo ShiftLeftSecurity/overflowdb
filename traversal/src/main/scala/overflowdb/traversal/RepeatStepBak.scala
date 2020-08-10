@@ -1,32 +1,21 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
-import overflowdb.traversal.RepeatStepBak.{FifoWorklist, LifoWorklist, Worklist}
 
 import scala.collection.{Iterator, mutable}
 
-object RepeatStep {
+object RepeatStepBak {
 
-  /** @see [[Traversal.repeat]] for a detailed overview
-   *
-   * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space
-   * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
-   * The RepeatTraversalTests cover this case.
-   * */
   def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
-//    val worklist: Worklist[(A, Vector[Any])] = behaviour.searchAlgorithm match {
-//      case SearchAlgorithm.DepthFirst   => new LifoWorklist[(A, Vector[Any])]
-//      case SearchAlgorithm.BreadthFirst => new FifoWorklist[(A, Vector[Any])]
-//    }
     val worklist: Worklist[A] = behaviour.searchAlgorithm match {
       case SearchAlgorithm.DepthFirst   => new LifoWorklist[A]
       case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
     }
 
-    element: A => new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
-      val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
+    element: A => Traversal(new Iterator[A] {
+      val emitSack: mutable.Queue[A] = mutable.Queue.empty
       val startTraversal = Traversal.fromSingle(element)
-      worklist.addItem(WorklistItem(startTraversal, 0, Vector.empty))
+      worklist.addItem(WorklistItem(startTraversal, 0))
 
       def hasNext: Boolean = {
         if (emitSack.isEmpty) {
@@ -39,7 +28,7 @@ object RepeatStep {
       private def traverseOnStack: Unit = {
         var stop = false
         while (worklist.nonEmpty && !stop) {
-          val WorklistItem(trav, depth, path) = worklist.head
+          val WorklistItem(trav, depth) = worklist.head
           if (trav.isEmpty) worklist.removeHead
           else if (behaviour.timesReached(depth)) stop = true
           else {
@@ -47,11 +36,11 @@ object RepeatStep {
             if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
               && behaviour.untilConditionReached(element)) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
-              emitSack.enqueue((element, path.appended(element)))
+              emitSack.enqueue(element)
               stop = true
             } else {
-              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1, path.appended(element)))
-              if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path.appended(element)))
+              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1))
+              if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
               if (emitSack.nonEmpty) stop = true
             }
           }
@@ -61,11 +50,9 @@ object RepeatStep {
       private def stackTopTraversalHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
-      override def next: (A, Vector[Any]) = {
+      override def next: A = {
         if (emitSack.hasNext) emitSack.dequeue
-        else if (hasNext) {
-          (worklist.head.traversal.next, worklist.head.path)
-        }
+        else if (hasNext) worklist.head.traversal.next
         else throw new NoSuchElementException("next on empty iterator")
       }
 
@@ -98,5 +85,5 @@ object RepeatStep {
     override def removeHead = queue.dequeue
   }
 
-  case class WorklistItem[A](traversal: Traversal[A], depth: Int, path: Vector[A])
+  case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 }
