@@ -27,16 +27,19 @@ object Foo extends App {
   r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
   r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
 
-  def centerTrav = Traversal.fromSingle(center)
+//  def centerTrav = Traversal.fromSingle(center)
+  def centerTrav = PathAwareTraversal.fromSingle(center)
 //  centerTrav.path.foreach(println)
 //  centerTrav.out3.foreach(n => println(s"result: $n"))
-//  centerTrav.out3.path.foreach(n => println(s"result: $n"))
+
+//  centerTrav.out.foreach(n => println(s"result: $n"))
+  centerTrav.out.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.repeat(_.out3)(_.times(2)).foreach(n => println(s"result: $n"))
 //  centerTrav.repeat(_.out3)(_.times(2)).path.foreach(n => println(s"result: $n"))
 
-  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
-  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
+//  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
+//  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
 
 //  centerTrav.filter(_ => true).out3.out3.path.foreach(n => println(s"result: $n")) //works
 //  centerTrav.out3.filter(_ => true).out3.path.foreach(n => println(s"result: $n")) // missing center in path
@@ -125,26 +128,29 @@ class TraversalTests extends WordSpec with Matchers {
 
   ".path step" should {
     "work for single entry traversal" in {
-      val paths = centerTrav.path.toSet
-      names(paths) shouldBe Set(
-        List("Center")
-      )
+      ???
+//      val paths = centerTrav.path.toSet
+//      names(paths) shouldBe Set(
+//        List("Center")
+//      )
     }
 
     "work for simple one-step expansion" in {
-      val paths = centerTrav.out3.path.toSet
-      names(paths) shouldBe Set(
-        List("Center", "L1"),
-        List("Center", "R1")
-      )
+//      val paths = centerTrav.out3.path.toSet
+//      names(paths) shouldBe Set(
+//        List("Center", "L1"),
+//        List("Center", "R1")
+//      )
+      ???
     }
 
     "work for two-step expansion" in {
-      val paths = centerTrav.out3.out3.path.toSet
-      names(paths) shouldBe Set(
-        List("Center", "L1", "L2"),
-        List("Center", "R1", "R2")
-      )
+//      val paths = centerTrav.out3.out3.path.toSet
+//      names(paths) shouldBe Set(
+//        List("Center", "L1", "L2"),
+//        List("Center", "R1", "R2")
+//      )
+      ???
     }
 
     def names(paths: Set[Seq[Any]]): Set[Seq[String]] =
