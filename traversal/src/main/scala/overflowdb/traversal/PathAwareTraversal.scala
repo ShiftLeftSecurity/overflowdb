@@ -72,4 +72,7 @@ object PathAwareTraversal {
 
   def fromSingle[A](a: A): PathAwareTraversal[A] =
     new PathAwareTraversal(Iterator.single((a, Vector.empty)))
+
+  def from[A](iter: IterableOnce[A]): PathAwareTraversal[A] =
+    new PathAwareTraversal[A](iter.map(a => (a, Vector.empty)))
 }

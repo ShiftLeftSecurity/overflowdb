@@ -17,9 +17,6 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
-  def path: Traversal[Seq[Any]] =
-    throw new NotImplementedError("not supported, you must start the traversal as `.pathAware` if you want to have the path available")
-
   def hasNext: Boolean = iterator.hasNext
   def next: A = iterator.next
   def nextOption: Option[A] = iterator.nextOption
@@ -217,6 +214,12 @@ class Traversal[A](elements: IterableOnce[A])
       }.getOrElse(Traversal.empty)
     }
 
+  def path: Traversal[Seq[Any]] =
+    throw new NotImplementedError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
+
+  def enablePathTracking: PathAwareTraversal[A] =
+    PathAwareTraversal.from(elements)
+
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
   override def iterableFactory: IterableFactory[Traversal] = Traversal
@@ -232,31 +235,22 @@ object Traversal extends IterableFactory[Traversal] {
 
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
-  def apply[A](elements: IterableOnce[A]) = {
-    println("Traversal.apply(IterableOnce)")
+  def apply[A](elements: IterableOnce[A]) =
     new Traversal[A](elements)
-  }
 
-  def apply[A](elements: java.util.Iterator[A]) = {
-    println("Traversal.apply(j.u.Iterator)")
+  def apply[A](elements: java.util.Iterator[A]) =
     new Traversal[A](elements)
-  }
 
-  override def newBuilder[A]: mutable.Builder[A, Traversal[A]] = {
-    println("Traversal.newBuilder")
+  override def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
     Iterator.newBuilder[A].mapResult(new Traversal(_))
-  }
 
-  override def from[A](iter: IterableOnce[A]): Traversal[A] = {
-//    println("Traversal.from(IterableOnce)")
+  override def from[A](iter: IterableOnce[A]): Traversal[A] =
     iter match {
       case traversal: Traversal[A] => traversal
       case _ => new Traversal(iter)
     }
-  }
 
   def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
-    println("Traversal.from(IterableOnce, A)")
     val builder = Traversal.newBuilder[A]
     builder.addAll(iter)
     builder.addOne(a)
