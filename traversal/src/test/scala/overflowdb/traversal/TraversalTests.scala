@@ -170,10 +170,11 @@ class TraversalTests extends WordSpec with Matchers {
     }
 
     "work in combination with other steps" should {
+
       ".map: include intermediate results in path" in {
-        centerTrav.enablePathTracking.followedBy.map(identity).path.toSet shouldBe Set(
-          Seq(center, l1, l1),
-          Seq(center, r1, r1))
+          centerTrav.enablePathTracking.followedBy.map(_.name).path.toSet shouldBe Set(
+            Seq(center, l1, "L1"),
+            Seq(center, r1, "R1"))
       }
 
       "collect: include intermediate results in path" in {

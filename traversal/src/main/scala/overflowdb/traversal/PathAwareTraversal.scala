@@ -16,7 +16,7 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     new PathAwareTraversal(
       elementsWithPath.map { case (a, path) =>
         val b = f(a)
-        (b, path.appended(b))
+        (b, path.appended(a))
       }
     )
 
