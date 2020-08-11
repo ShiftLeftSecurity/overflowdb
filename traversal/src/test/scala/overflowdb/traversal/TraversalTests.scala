@@ -1,66 +1,9 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.traversal.testdomains.simple.ExampleGraphSetup.centerTrav
-import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
-
-//object Foo extends App {
-//  import overflowdb._
-//
-//  val graph = SimpleDomain.newGraph
-//  def addThing(name: String) = graph + (Thing.Label, Thing.Properties.Name -> name)
-//  val center = addThing("Center")
-//  val l1 = addThing("L1")
-//  val r1 = addThing("R1")
-//  val l2 = addThing("L2")
-//  val r2 = addThing("R2")
-//  val l3 = addThing("L3")
-//  val r3 = addThing("R3")
-//  val r4 = addThing("R4")
-//  center --- Connection.Label --> l1
-//  l1 --- Connection.Label --> l2
-//  l2 --- Connection.Label --> l3
-//  center --- Connection.Label --> r1
-//  r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
-//  r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
-//  r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
-//
-//  def centerTrav = Traversal.fromSingle(center)
-////  def centerTrav = PathAwareTraversal.fromSingle(center)
-////  centerTrav.path.foreach(println)
-////  centerTrav.out.foreach(n => println(s"result: $n"))
-////  centerTrav.out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.enablePathTracking.map(identity).out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.enablePathTracking.out.map(identity).out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.filter(_ => true).out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.filterNot(_ => false).out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.collect { case x => x}.out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.in.out.dedup.foreach(n => println(s"result: $n"))
-////  centerTrav.out.in.out.path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.in.out.dedup.path.foreach(n => println(s"result: $n"))
-//
-////  centerTrav.repeat(_.out)(_.times(2)).foreach(n => println(s"result: $n"))
-////    centerTrav.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
-////  centerTrav.repeat(_.out)(_.times(3)).path.foreach(n => println(s"result: $n"))
-////  centerTrav.out.repeat(_.out)(_.times(2)).path.foreach(n => println(s"result: $n"))
-//  //  centerTrav.repeat(_.out)(_.emit.times(2)).path.foreach(n => println(s"result: $n"))
-//
-////  centerTrav.out3.out3.foreach(n => println(s"result: $n"))
-////  centerTrav.out3.out3.path.foreach(n => println(s"result: $n"))
-//
-////  centerTrav.filter(_ => true).out3.out3.path.foreach(n => println(s"result: $n")) //works
-////  centerTrav.out3.filter(_ => true).out3.path.foreach(n => println(s"result: $n")) // missing center in path
-////  centerTrav.out3.out3.filter(_ => true).path.foreach(n => println(s"result: $n")) // casting exception, then missing Center and step1
-//
-////  centerTrav.out3.out3.out3.foreach(println)
-////  centerTrav.out3.out3.out3.path.foreach(println)
-//
-////  centerTrav.out3.out3.out3.out3.path.foreach(println)
-////  centerTrav.out3.out3.out3.out3.path.foreach(println)
-//}
 
 class TraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -184,27 +127,23 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "filter" in {
-        centerTrav.enablePathTracking.out.filter(_ => true).out.path.toSet shouldBe Set(
-          Seq(center, l1, l2),
+        centerTrav.enablePathTracking.followedBy.nameStartsWith("R").followedBy.path.toSet shouldBe Set(
           Seq(center, r1, r2))
       }
 
       "filterNot" in {
-        centerTrav.enablePathTracking.out.filterNot(_ => false).out.path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
+        centerTrav.enablePathTracking.followedBy.filterNot(_.name.startsWith("R")).followedBy.path.toSet shouldBe Set(
+          Seq(center, l1, l2))
       }
 
       "where" in {
-        centerTrav.enablePathTracking.out.where(x => x).out.path.toSet shouldBe Set(
-          Seq(center, l1, l2),
+        centerTrav.enablePathTracking.followedBy.where(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
           Seq(center, r1, r2))
       }
 
       "whereNot" in {
-        centerTrav.enablePathTracking.out.whereNot(_ => Traversal.empty).out.path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
+        centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
+          Seq(center, l1, l2))
       }
     }
 
