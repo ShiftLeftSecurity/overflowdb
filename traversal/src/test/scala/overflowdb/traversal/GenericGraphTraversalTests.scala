@@ -1,7 +1,6 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
@@ -34,7 +33,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
 
   "filter steps" can {
     "filter by id" in {
-      graph.V.hasId(centerNode.id).property(Name).toList shouldBe List("Center")
+      graph.V.hasId(center.id2).property(Name).toList shouldBe List("Center")
     }
 
     "filter by label" in {
@@ -102,97 +101,59 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
 
   "base steps: out/in/both" can {
     "step out" in {
-      assertNames(centerTrav.out, Set("L1", "R1"))
-      assertNames(centerNode.out, Set("L1", "R1"))
-      assertNames(centerTrav.out.out, Set("L2", "R2"))
-      assertNames(centerNode.out.out, Set("L2", "R2"))
-      assertNames(centerTrav.out(Connection.Label), Set("L1", "R1"))
-      assertNames(centerNode.out(Connection.Label), Set("L1", "R1"))
-      assertNames(centerTrav.out(nonExistingLabel, Connection.Label), Set("L1", "R1"))
-      assertNames(centerNode.out(nonExistingLabel, Connection.Label), Set("L1", "R1"))
-      assertNames(centerTrav.out(nonExistingLabel), Set.empty)
-      assertNames(centerNode.out(nonExistingLabel), Set.empty)
+      center.start.out.toSet shouldBe Set(l1, r1)
+      center.start.out.out.toSet shouldBe Set(l2, r2)
+      center.start.out(Connection.Label).toSet shouldBe Set(l1, r1)
+      center.start.out(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1, r1)
+      center.start.out(nonExistingLabel).toSet shouldBe Set.empty
     }
 
     "step in" in {
-      l2Trav.in.size shouldBe 1
-      l2Node.in.size shouldBe 1
-      assertNames(l2Trav.in, Set("L1"))
-      assertNames(l2Node.in, Set("L1"))
-      assertNames(l2Trav.in.in, Set("Center"))
-      assertNames(l2Node.in.in, Set("Center"))
-      assertNames(l2Trav.in(Connection.Label), Set("L1"))
-      assertNames(l2Node.in(Connection.Label), Set("L1"))
-      assertNames(l2Trav.in(nonExistingLabel, Connection.Label), Set("L1"))
-      assertNames(l2Node.in(nonExistingLabel, Connection.Label), Set("L1"))
-      assertNames(l2Trav.in(nonExistingLabel), Set.empty)
-      assertNames(l2Node.in(nonExistingLabel), Set.empty)
+      l2.start.in.size shouldBe 1
+      l2.start.in.toSet shouldBe Set(l1)
+      l2.start.in.in.toSet shouldBe Set(center)
+      l2.start.in(Connection.Label).toSet shouldBe Set(l1)
+      l2.start.in(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1)
+      l2.start.in(nonExistingLabel).toSet shouldBe Set.empty
     }
 
     "step both" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
-      l2Trav.both.size shouldBe 2
-      l2Node.both.size shouldBe 2
-      assertNames(l2Trav.both, Set("L1", "L3"))
-      assertNames(l2Node.both, Set("L1", "L3"))
-      assertNames(r2Trav.both, Set("R1", "R3"))
-      assertNames(r2Node.both, Set("R1", "R3"))
-      assertNames(l2Trav.both.both, Set("L2", "Center"))
-      assertNames(l2Node.both.both, Set("L2", "Center"))
-      assertNames(r2Trav.both.both, Set("Center", "R2", "R4"))
-      assertNames(r2Node.both.both, Set("Center", "R2", "R4"))
-      assertNames(l2Trav.both(Connection.Label), Set("L1", "L3"))
-      assertNames(l2Node.both(Connection.Label), Set("L1", "L3"))
-      assertNames(l2Trav.both(nonExistingLabel, Connection.Label), Set("L1", "L3"))
-      assertNames(l2Node.both(nonExistingLabel, Connection.Label), Set("L1", "L3"))
-      assertNames(l2Trav.both(nonExistingLabel), Set.empty)
-      assertNames(l2Node.both(nonExistingLabel), Set.empty)
+      l2.start.both.size shouldBe 2
+      l2.start.both.toSet shouldBe Set(l1, l3)
+      r2.start.both.toSet shouldBe Set(r1, r3)
+      l2.start.both.both.toSet shouldBe Set(l2, center)
+      r2.start.both.both.toSet shouldBe Set(center, r2, r4)
+      l2.start.both(Connection.Label).toSet shouldBe Set(l1, l3)
+      l2.start.both(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1, l3)
+      l2.start.both(nonExistingLabel).toSet shouldBe Set.empty
     }
 
     "step outE" in {
-      centerTrav.outE.size shouldBe 2
-      centerNode.outE.size shouldBe 2
-      assertNames(centerTrav.outE.inV, Set("L1", "R1"))
-      assertNames(centerNode.outE.inV, Set("L1", "R1"))
-      assertNames(centerTrav.outE.inV.outE.inV, Set("L2", "R2"))
-      assertNames(centerNode.outE.inV.outE.inV, Set("L2", "R2"))
-      assertNames(centerTrav.outE(Connection.Label).inV, Set("L1", "R1"))
-      assertNames(centerNode.outE(Connection.Label).inV, Set("L1", "R1"))
-      assertNames(centerTrav.outE(nonExistingLabel, Connection.Label).inV, Set("L1", "R1"))
-      assertNames(centerNode.outE(nonExistingLabel, Connection.Label).inV, Set("L1", "R1"))
-      assertNames(centerTrav.outE(nonExistingLabel).inV, Set.empty)
-      assertNames(centerNode.outE(nonExistingLabel).inV, Set.empty)
+      center.start.outE.size shouldBe 2
+      center.start.outE.inV.toSet shouldBe Set(l1, r1)
+      center.start.outE.inV.outE.inV.toSet shouldBe Set(l2, r2)
+      center.start.outE(Connection.Label).inV.toSet shouldBe Set(l1, r1)
+      center.start.outE(nonExistingLabel, Connection.Label).inV.toSet shouldBe Set(l1, r1)
+      center.start.outE(nonExistingLabel).inV.toSet shouldBe Set.empty
     }
 
     "step inE" in {
-      l2Trav.inE.size shouldBe 1
-      l2Node.inE.size shouldBe 1
-      assertNames(l2Trav.inE.outV, Set("L1"))
-      assertNames(l2Node.inE.outV, Set("L1"))
-      assertNames(l2Trav.inE.outV.inE.outV, Set("Center"))
-      assertNames(l2Node.inE.outV.inE.outV, Set("Center"))
-      assertNames(l2Trav.inE(Connection.Label).outV, Set("L1"))
-      assertNames(l2Node.inE(Connection.Label).outV, Set("L1"))
-      assertNames(l2Trav.inE(nonExistingLabel, Connection.Label).outV, Set("L1"))
-      assertNames(l2Node.inE(nonExistingLabel, Connection.Label).outV, Set("L1"))
-      assertNames(l2Trav.inE(nonExistingLabel).outV, Set.empty)
-      assertNames(l2Node.inE(nonExistingLabel).outV, Set.empty)
+      l2.start.inE.size shouldBe 1
+      l2.start.inE.outV.toSet shouldBe Set(l1)
+      l2.start.inE.outV.inE.outV.toSet shouldBe Set(center)
+      l2.start.inE(Connection.Label).outV.toSet shouldBe Set(l1)
+      l2.start.inE(nonExistingLabel, Connection.Label).outV.toSet shouldBe Set(l1)
+      l2.start.inE(nonExistingLabel).outV.toSet shouldBe Set.empty
     }
 
     "step bothE" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
-      l2Trav.bothE.size shouldBe 2
-      l2Node.bothE.size shouldBe 2
-      l2Trav.bothE(Connection.Label).size shouldBe 2
-      l2Node.bothE(Connection.Label).size shouldBe 2
-      l2Trav.bothE(nonExistingLabel, Connection.Label).size shouldBe 2
-      l2Node.bothE(nonExistingLabel, Connection.Label).size shouldBe 2
-      l2Trav.bothE(nonExistingLabel).size shouldBe 0
-      l2Node.bothE(nonExistingLabel).size shouldBe 0
+      l2.start.bothE.size shouldBe 2
+      l2.start.bothE(Connection.Label).size shouldBe 2
+      l2.start.bothE(nonExistingLabel, Connection.Label).size shouldBe 2
+      l2.start.bothE(nonExistingLabel).size shouldBe 0
     }
   }
 
-  def assertNames[A <: Node](traversal: Traversal[A], expectedNames: Set[String]) = {
-    traversal.property(Name).toSet shouldBe expectedNames
-  }
 }

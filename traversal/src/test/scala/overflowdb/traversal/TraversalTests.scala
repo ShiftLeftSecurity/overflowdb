@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+
 import scala.collection.mutable
 
 class TraversalTests extends WordSpec with Matchers {
@@ -78,8 +79,96 @@ class TraversalTests extends WordSpec with Matchers {
     }
   }
 
-  ".help step" should {
+  ".path step" should {
+    "not be enabled by default" in {
+      intercept[AssertionError] { centerTrav.out.path }
+    }
 
+    "work for single element traversal (boring)" in {
+      centerTrav.enablePathTracking.path.toSet shouldBe Set(Seq(center))
+    }
+
+    "work for simple one-step expansion" in {
+      centerTrav.enablePathTracking.out.path.toSet shouldBe Set(
+        Seq(center, l1),
+        Seq(center, r1))
+    }
+
+    "work for simple two-step expansion" in {
+      centerTrav.enablePathTracking.out.out.path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+    }
+
+    "only track from where it's enabled" in {
+      centerTrav.out.enablePathTracking.out.path.toSet shouldBe Set(
+        Seq(l1, l2),
+        Seq(r1, r2))
+    }
+
+    "support domain-specific steps" in {
+      centerTrav.enablePathTracking.followedBy.followedBy.path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+    }
+
+    "work in combination with other steps" should {
+
+      ".map: include intermediate results in path" in {
+          centerTrav.enablePathTracking.followedBy.map(_.name).path.toSet shouldBe Set(
+            Seq(center, l1, "L1"),
+            Seq(center, r1, "R1"))
+      }
+
+      "collect: include intermediate results in path" in {
+        centerTrav.enablePathTracking.followedBy.collect { case x => x.name }.path.toSet shouldBe Set(
+          Seq(center, l1, "L1"),
+          Seq(center, r1, "R1"))
+      }
+
+      "filter" in {
+        centerTrav.enablePathTracking.followedBy.nameStartsWith("R").followedBy.path.toSet shouldBe Set(
+          Seq(center, r1, r2))
+      }
+
+      "filterNot" in {
+        centerTrav.enablePathTracking.followedBy.filterNot(_.name.startsWith("R")).followedBy.path.toSet shouldBe Set(
+          Seq(center, l1, l2))
+      }
+
+      "where" in {
+        centerTrav.enablePathTracking.followedBy.where(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
+          Seq(center, r1, r2))
+      }
+
+      "whereNot" in {
+        centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
+          Seq(center, l1, l2))
+      }
+    }
+
+    "support repeat step" when {
+      "using `times` modulator" in {
+        centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2))
+      }
+
+      "using `until` modulator" in {
+        centerTrav.enablePathTracking.repeat(_.followedBy)(_.until(_.nameEndsWith("2"))).path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2))
+      }
+
+      "using breadth first search" in {
+        centerTrav.enablePathTracking.repeat(_.followedBy)(_.breadthFirstSearch.times(2)).path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2))
+      }
+    }
+  }
+
+  ".help step" should {
     "give a domain overview" in {
       simpleDomain.help should include(".things")
       simpleDomain.help should include("all things")

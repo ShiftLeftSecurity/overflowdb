@@ -33,6 +33,9 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
   def out: Traversal[Node] =
     traversal.flatMap(_.out)
 
+//  def out3: Traversal[Node] =
+//    traversal.flatMap3(_.out)
+
   /** follow outgoing edges of given labels to adjacent nodes */
   def out(labels: String*): Traversal[Node] =
     traversal.flatMap(_.out(labels: _*).toScalaAs)
