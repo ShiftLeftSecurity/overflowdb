@@ -176,6 +176,12 @@ class TraversalTests extends WordSpec with Matchers {
           Seq(center, r1, r1))
       }
 
+      "collect: include intermediate results in path" in {
+        centerTrav.enablePathTracking.followedBy.collect { case x => x.name }.path.toSet shouldBe Set(
+          Seq(center, l1, "L1"),
+          Seq(center, r1, "R1"))
+      }
+
       "filter" in {
         centerTrav.enablePathTracking.out.filter(_ => true).out.path.toSet shouldBe Set(
           Seq(center, l1, l2),
@@ -188,10 +194,16 @@ class TraversalTests extends WordSpec with Matchers {
           Seq(center, r1, r2))
       }
 
-      "collect" in {
-        centerTrav.enablePathTracking.followedBy.collect { case x => x.name }.path.toSet shouldBe Set(
-          Seq(center, l1, "L1"),
-          Seq(center, r1, "R1"))
+      "where" in {
+        centerTrav.enablePathTracking.out.where(x => x).out.path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2))
+      }
+
+      "whereNot" in {
+        centerTrav.enablePathTracking.out.whereNot(_ => Traversal.empty).out.path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2))
       }
     }
 
