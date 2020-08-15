@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
+import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
 /**
@@ -40,10 +41,10 @@ class Traversal[A](elements: IterableOnce[A])
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =
-    Traversal.fromSingle(elements.iterator.size)
+    Traversal.fromSingle(iterator.size)
 
   def cast[B]: Traversal[B] =
-    new Traversal[B](elements.iterator.map(_.asInstanceOf[B]))
+    mapElements(_.asInstanceOf[B])
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ...
    * Preserves order and laziness semantics of Traversal.
@@ -67,11 +68,14 @@ class Traversal[A](elements: IterableOnce[A])
     : Traversal[A] = {
      behaviourBuilder(new DedupBehaviour.Builder).build.comparisonStyle match {
        case DedupBehaviour.ComparisonStyle.HashAndEquals =>
-         Traversal(elements.to(LazyList).distinct)
+         Traversal(iterator.to(LazyList).distinct)
        case DedupBehaviour.ComparisonStyle.HashOnly =>
          Traversal(new DedupByHashIterator(elements))
      }
   }
+
+  def dedupBy(fun: A => Any): Traversal[A] =
+    new Traversal(iterator.to(LazyList).distinctBy(fun))
 
   /** perform side effect without changing the contents of the traversal */
   @Doc("perform side effect without changing the contents of the traversal")
@@ -219,11 +223,17 @@ class Traversal[A](elements: IterableOnce[A])
       }.getOrElse(Traversal.empty)
     }
 
-  def path: Traversal[Seq[Any]] =
+  def path: Traversal[Vector[Any]] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)
+
+  /** create a new Traversal instance with mapped elements
+   * does not add to the path nor modify it
+   * only exists so it can be overridden by extending classes (e.g. {{{PathAwareTraversal}}}) */
+  protected def mapElements[B](f: A => B): Traversal[B] =
+    new Traversal(iterator.map(f))
 
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)
@@ -240,28 +250,22 @@ object Traversal extends IterableFactory[Traversal] {
 
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
-  def apply[A](elements: IterableOnce[A]) =
-    new Traversal[A](elements)
+  def fromSingle[A](a: A): Traversal[A] =
+    new Traversal(Iterator.single(a))
 
-  def apply[A](elements: java.util.Iterator[A]) =
-    new Traversal[A](elements)
+  def apply[A](iterable: IterableOnce[A]) =
+    from(iterable)
+
+  override def from[A](iterable: IterableOnce[A]): Traversal[A] =
+    iterable match {
+      case traversal: Traversal[A] => traversal
+      case _ => new Traversal(iterable)
+    }
+
+  def apply[A](iterable: java.util.Iterator[A]): Traversal[A] =
+    from(iterable.asScala)
 
   override def newBuilder[A]: mutable.Builder[A, Traversal[A]] =
     Iterator.newBuilder[A].mapResult(new Traversal(_))
 
-  override def from[A](iter: IterableOnce[A]): Traversal[A] =
-    iter match {
-      case traversal: Traversal[A] => traversal
-      case _ => new Traversal(iter)
-    }
-
-  def from[A](iter: IterableOnce[A], a: A): Traversal[A] = {
-    val builder = Traversal.newBuilder[A]
-    builder.addAll(iter)
-    builder.addOne(a)
-    builder.result
-  }
-
-  def fromSingle[A](a: A): Traversal[A] =
-    new Traversal(Iterator.single(a))
 }

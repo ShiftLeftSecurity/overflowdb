@@ -19,6 +19,7 @@ object ExampleGraphSetup {
   val l3 = addThing("L3")
   val r3 = addThing("R3")
   val r4 = addThing("R4")
+  val r5 = addThing("R5")
 
   center --- Connection.Label --> l1
   l1 --- Connection.Label --> l2
@@ -27,6 +28,7 @@ object ExampleGraphSetup {
   r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
   r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
   r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
+  r4 --- (Connection.Label, Connection.Properties.Distance -> 14) --> r5
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
   def centerTrav = Traversal.fromSingle(center)

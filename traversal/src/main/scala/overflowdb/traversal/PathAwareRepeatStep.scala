@@ -21,7 +21,7 @@ object PathAwareRepeatStep {
     element: A => {
       new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
         val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
-        val startTraversal = Traversal.fromSingle(element)
+        val startTraversal = PathAwareTraversal.fromSingle(element)
         worklist.addItem(WorklistItem(startTraversal, 0, Vector.empty))
 
         def hasNext: Boolean = {
@@ -39,14 +39,18 @@ object PathAwareRepeatStep {
             if (trav.isEmpty) worklist.removeHead
             else if (behaviour.timesReached(depth)) stop = true
             else {
-              val element = trav.next
+              val path0 = trav.path.next
+              val (path1, element1) = path0.splitAt(path0.size - 1)
+              val element = path0.last.asInstanceOf[A]
+//              println(s"path1=$path1, element=$element")
               if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
                 && behaviour.untilConditionReached(element)) {
                 // we just consumed an element from the traversal, so in lieu adding to the emit sack
                 emitSack.enqueue((element, path))
                 stop = true
               } else {
-                worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1, path.appended(element)))
+//                worklist.addItem(WorklistItem(repeatTraversal(new PathAwareTraversal(Iterator.single((element, path.appendedAll(path1))))), depth + 1, path.appended(element)))
+                worklist.addItem(WorklistItem(repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1)))), depth + 1, path.appended(element)))
                 if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path))
                 if (emitSack.nonEmpty) stop = true
               }
@@ -60,7 +64,9 @@ object PathAwareRepeatStep {
         override def next: (A, Vector[Any]) = {
           if (emitSack.hasNext) emitSack.dequeue
           else if (hasNext) {
-            (worklist.head.traversal.next, worklist.head.path)
+            val entirePath = worklist.head.traversal.path.next
+            val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
+            (lastElement.head.asInstanceOf[A], path)
           }
           else throw new NoSuchElementException("next on empty iterator")
         }
@@ -95,5 +101,5 @@ object PathAwareRepeatStep {
     override def removeHead = queue.dequeue
   }
 
-  case class WorklistItem[A](traversal: Traversal[A], depth: Int, path: Vector[A])
+  case class WorklistItem[A](traversal: Traversal[A], depth: Int, path: Vector[Any])
 }
