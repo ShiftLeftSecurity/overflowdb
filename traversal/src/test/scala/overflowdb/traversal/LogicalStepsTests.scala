@@ -8,7 +8,7 @@ import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 class LogicalStepsTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
   /* most tests work with this simple graph:
-   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
+   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */
 
   "or step returns results if at least one condition is met" in {
@@ -73,7 +73,7 @@ class LogicalStepsTests extends WordSpec with Matchers {
         .choose(_.property(Name).filter(_ => false)) {
           case "L1" => _.in
           case _ => _.out
-        }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+        }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5")
     }
   }
 

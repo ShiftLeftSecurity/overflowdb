@@ -37,7 +37,7 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   "domain overview" in {
-    simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
     centerTrav.head.name shouldBe "Center"
     simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
   }
@@ -148,21 +148,6 @@ class TraversalTests extends WordSpec with Matchers {
     }
 
     "support repeat step" when {
-      "foo" in {
-//        r1.start.enablePathTracking.repeat(_.out)(_.times(1)).path.foreach(println) // R1, R2 -> ok
-//        r1.start.enablePathTracking.repeat(_.out)(_.times(2)).foreach(println) // R3 -> ok
-//        r1.start.enablePathTracking.repeat(_.out)(_.times(3)).foreach(println) // wanted: R4 -> ok
-
-//        r1.start.enablePathTracking.repeat(_.out)(_.times(2)).path.foreach(println) // wanted: R1, R2, R3 -> ok
-//        r1.start.enablePathTracking.repeat(_.out)(_.times(3)).path.foreach(println) // wanted: R1 R2 R3 R4 -> ok
-
-        // combination: .out.out and times(2)
-        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).foreach(println) // wanted: R5: ok
-        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.foreach(println) // wanted: R1 R2 R3 R4 R5
-
-//        TODO add test
-      }
-
       "using `times` modulator" in {
         centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSet shouldBe Set(
           Seq(center, l1, l2),
@@ -188,6 +173,9 @@ class TraversalTests extends WordSpec with Matchers {
 
         r1.start.enablePathTracking.repeat(_.followedBy.followedBy.followedBy)(_.times(1)).path.toSet shouldBe Set(
           Seq(r1, r2, r3, r4))
+
+        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).l shouldBe Seq(r5)
+        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
       }
     }
   }

@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters._
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
   /* most tests work with this simple graph:
-   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
+   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */
 
   "typical case for both domain-specific steps" in {
@@ -49,7 +49,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "emit everything along the way if so configured" in {
-    val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
     centerTrav.repeat(_.followedBy)(_.emit).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.followedBy)(_.emit.breadthFirstSearch).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit).property("name").toSet shouldBe expectedResults
@@ -57,7 +57,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "emit everything but the first element (starting point)" in {
-    val expectedResults = Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5")
     centerTrav.repeat(_.followedBy)(_.emitAllButFirst).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.followedBy)(_.emitAllButFirst.breadthFirstSearch).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emitAllButFirst).property("name").toSet shouldBe expectedResults
@@ -123,7 +123,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     def test(traverse: => Iterable[_]) = {
       traversedNodes.clear
       val results = traverse
-      traversedNodes.size shouldBe 8
+      traversedNodes.size shouldBe 9
       results.size shouldBe 0
     }
 
@@ -148,14 +148,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).iterate
 
-    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4")
+    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4", "R5")
   }
 
   "uses BFS (breadth first search) if configured" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).iterate
 
-    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4")
+    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4", "R5")
   }
 
   "hasNext is idempotent: DFS" in {

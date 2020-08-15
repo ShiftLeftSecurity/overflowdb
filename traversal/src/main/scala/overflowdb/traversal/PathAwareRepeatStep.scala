@@ -40,16 +40,14 @@ object PathAwareRepeatStep {
             else if (behaviour.timesReached(depth)) stop = true
             else {
               val path0 = trav.path.next
-              val (path1, element1) = path0.splitAt(path0.size - 1)
-              val element = path0.last.asInstanceOf[A]
-//              println(s"path1=$path1, element=$element")
+              val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
+              val element = elementInSeq.head.asInstanceOf[A]
               if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
                 && behaviour.untilConditionReached(element)) {
                 // we just consumed an element from the traversal, so in lieu adding to the emit sack
                 emitSack.enqueue((element, path))
                 stop = true
               } else {
-//                worklist.addItem(WorklistItem(repeatTraversal(new PathAwareTraversal(Iterator.single((element, path.appendedAll(path1))))), depth + 1, path.appended(element)))
                 worklist.addItem(WorklistItem(repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1)))), depth + 1, path.appended(element)))
                 if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path))
                 if (emitSack.nonEmpty) stop = true
