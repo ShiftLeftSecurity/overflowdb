@@ -5,6 +5,22 @@ import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
 
+object Foo extends App {
+  import ExampleGraphSetup._
+//  r1.start.enablePathTracking.repeat(_.out)(_.emit).foreach(println) //R1 R2 R3 R4 R5 -> ok
+//  r1.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println) // ok as well...
+//  r1.start.enablePathTracking.repeat(_.out.out)(_.emit).foreach(println) // R1 R3 R5 -> ok
+//  r1.start.enablePathTracking.repeat(_.out.out)(_.emit).path.foreach(println) // R1(R1) - R3(R1 R3) - R5(R1 R3 R5) -> also ok!
+
+//  r1.start.enablePathTracking.repeat{n: Traversal[Thing] =>
+//    val n1 = n.next
+//    n1.start.enablePathTracking.out.out
+////    n.out.out
+//  }(_.emit).path.foreach(println)
+
+  center.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println)
+}
+
 class TraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
@@ -152,6 +168,13 @@ class TraversalTests extends WordSpec with Matchers {
         centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSet shouldBe Set(
           Seq(center, l1, l2),
           Seq(center, r1, r2))
+      }
+
+      "using `emit` modulator" in {
+        ???
+        centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.toSet shouldBe Set(
+          Seq(center, l1, l2, l3),
+          Seq(center, r1, r2, r3, r4, r5))
       }
 
       "using `until` modulator" in {

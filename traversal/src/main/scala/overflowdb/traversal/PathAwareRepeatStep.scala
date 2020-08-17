@@ -35,22 +35,28 @@ object PathAwareRepeatStep {
         private def traverseOnStack: Unit = {
           var stop = false
           while (worklist.nonEmpty && !stop) {
-            val WorklistItem(trav, depth, path) = worklist.head
+            val WorklistItem(trav0, depth, path) = worklist.head
+            val trav = trav0.path
             if (trav.isEmpty) worklist.removeHead
             else if (behaviour.timesReached(depth)) stop = true
             else {
-              val path0 = trav.path.next
+              val path0 = trav.next
               val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
               val element = elementInSeq.head.asInstanceOf[A]
               if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
                 && behaviour.untilConditionReached(element)) {
                 // we just consumed an element from the traversal, so in lieu adding to the emit sack
-                emitSack.enqueue((element, path))
+                emitSack.enqueue((element, path1))
                 stop = true
               } else {
-                worklist.addItem(WorklistItem(repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1)))), depth + 1, path.appended(element)))
-                if (behaviour.shouldEmit(element, depth)) emitSack.enqueue((element, path))
-                if (emitSack.nonEmpty) stop = true
+                val nextLevelTraversal = repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1))))
+                worklist.addItem(WorklistItem(nextLevelTraversal, depth + 1, path1))
+
+                if (behaviour.shouldEmit(element, depth))
+                  emitSack.enqueue((element, path1))
+
+                if (emitSack.nonEmpty)
+                  stop = true
               }
             }
           }
