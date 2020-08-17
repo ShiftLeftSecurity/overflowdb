@@ -21,7 +21,7 @@ object PathAwareRepeatStep {
     element: A => {
       new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
         val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
-        val startTraversal = PathAwareTraversal.fromSingle(element).path
+        val startTraversal = PathAwareTraversal.fromSingle(element)
         worklist.addItem(WorklistItem(startTraversal, 0))
 
         def hasNext: Boolean = {
@@ -35,7 +35,8 @@ object PathAwareRepeatStep {
         private def traverseOnStack: Unit = {
           var stop = false
           while (worklist.nonEmpty && !stop) {
-            val WorklistItem(trav, depth) = worklist.head
+            val WorklistItem(trav0, depth) = worklist.head
+            val trav = trav0.path
             if (trav.isEmpty) worklist.removeHead
             else if (behaviour.timesReached(depth)) stop = true
             else {
@@ -48,8 +49,8 @@ object PathAwareRepeatStep {
                 emitSack.enqueue((element, path1))
                 stop = true
               } else {
-                val nextLevelTraversal: Traversal[Vector[Any]] =
-                  repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1)))).path
+                val nextLevelTraversal =
+                  repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1))))
                 worklist.addItem(WorklistItem(nextLevelTraversal, depth + 1))
 
                 if (behaviour.shouldEmit(element, depth))
@@ -105,5 +106,5 @@ object PathAwareRepeatStep {
     override def removeHead = queue.dequeue
   }
 
-  case class WorklistItem[A](traversal: Traversal[Vector[Any]], depth: Int)
+  case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 }
