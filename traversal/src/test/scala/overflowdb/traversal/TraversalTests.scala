@@ -19,6 +19,10 @@ import scala.collection.mutable
 //  }(_.emit).path.foreach(println)
 
 //  center.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println)
+
+//  centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println)
+//    Seq(center, l1, l2, l3),
+//    Seq(center, r1, r2, r3, r4, r5))
 //}
 
 class TraversalTests extends WordSpec with Matchers {
@@ -172,8 +176,16 @@ class TraversalTests extends WordSpec with Matchers {
 
       "using `emit` modulator" in {
         centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.toSet shouldBe Set(
+          Seq(center),
+          Seq(center, l1),
+          Seq(center, l1, l2),
           Seq(center, l1, l2, l3),
-          Seq(center, r1, r2, r3, r4, r5))
+          Seq(center, r1),
+          Seq(center, r1, r2),
+          Seq(center, r1, r2, r3),
+          Seq(center, r1, r2, r3, r4),
+          Seq(center, r1, r2, r3, r4, r5),
+        )
       }
 
       "using `until` modulator" in {
