@@ -5,8 +5,8 @@ import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
 
-object Foo extends App {
-  import ExampleGraphSetup._
+//object Foo extends App {
+//  import ExampleGraphSetup._
 //  r1.start.enablePathTracking.repeat(_.out)(_.emit).foreach(println) //R1 R2 R3 R4 R5 -> ok
 //  r1.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println) // ok as well...
 //  r1.start.enablePathTracking.repeat(_.out.out)(_.emit).foreach(println) // R1 R3 R5 -> ok
@@ -18,8 +18,8 @@ object Foo extends App {
 ////    n.out.out
 //  }(_.emit).path.foreach(println)
 
-  center.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println)
-}
+//  center.start.enablePathTracking.repeat(_.out)(_.emit).path.foreach(println)
+//}
 
 class TraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
@@ -171,7 +171,6 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "using `emit` modulator" in {
-        ???
         centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.toSet shouldBe Set(
           Seq(center, l1, l2, l3),
           Seq(center, r1, r2, r3, r4, r5))
