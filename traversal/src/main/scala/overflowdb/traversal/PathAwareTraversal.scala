@@ -1,5 +1,6 @@
 package overflowdb.traversal
 
+import scala.annotation.tailrec
 import scala.collection.{IterableOnce, Iterator}
 
 class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])])
@@ -54,6 +55,31 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     new Traversal(elementsWithPathIterator.map {
       case (a, path) => path.appended(a)
     })
+
+
+  /** Removes all results whose traversal path has repeated objects. */
+  override def simplePath: Traversal[A] =
+    new PathAwareTraversal(
+      elementsWithPathIterator.filterNot{ case (element, path) =>
+        containsDuplicates(path.appended(element))
+      }
+    )
+
+  @tailrec
+  private final def containsDuplicates(seq: Seq[_]): Boolean = {
+    if (seq.size <= 1) false
+    else {
+      val lookingFor = seq.head
+      val lookingIn  = seq.tail.iterator
+      var foundDuplicate = false
+      while (lookingIn.hasNext && !foundDuplicate) {
+        if (lookingIn.next == lookingFor) {
+          foundDuplicate = true
+        }
+      }
+      foundDuplicate || containsDuplicates(seq.tail)
+    }
+  }
 
   override def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
                     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)

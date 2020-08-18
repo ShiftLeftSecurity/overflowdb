@@ -223,11 +223,16 @@ class Traversal[A](elements: IterableOnce[A])
       }.getOrElse(Traversal.empty)
     }
 
+  def enablePathTracking: PathAwareTraversal[A] =
+    PathAwareTraversal.from(elements)
+
   def path: Traversal[Vector[Any]] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
-  def enablePathTracking: PathAwareTraversal[A] =
-    PathAwareTraversal.from(elements)
+  /** Removes all results whose traversal path has repeated objects.
+   * prerequisite: {{{enablePathTracking}}} */
+  def simplePath: Traversal[A] =
+    throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
   /** create a new Traversal instance with mapped elements
    * does not add to the path nor modify it

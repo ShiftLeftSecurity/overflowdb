@@ -214,6 +214,22 @@ class TraversalTests extends WordSpec with Matchers {
     }
   }
 
+  ".simplePath step" should {
+
+    "remove results where path has repeated objects on the path" in {
+      center.start.enablePathTracking.both.both.simplePath.toSet shouldBe Set(l2, r2)
+
+      center.start.enablePathTracking.both.both.simplePath.path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2),
+      )
+    }
+
+    "throw error if path tracking not enabled" in {
+      intercept[AssertionError] { center.start.both.both.simplePath.l }
+    }
+  }
+
   ".help step" should {
     "give a domain overview" in {
       simpleDomain.help should include(".things")
