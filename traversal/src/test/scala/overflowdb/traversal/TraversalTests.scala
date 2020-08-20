@@ -215,7 +215,6 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   ".simplePath step" should {
-
     "remove results where path has repeated objects on the path" in {
       center.start.enablePathTracking.both.both.simplePath.toSet shouldBe Set(l2, r2)
 

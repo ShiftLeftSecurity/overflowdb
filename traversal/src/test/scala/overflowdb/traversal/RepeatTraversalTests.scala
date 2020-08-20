@@ -118,6 +118,23 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
+  "hasNext check doesn't change contents of traversal" when {
+    "path tracking is not enabled" in {
+      val trav = centerTrav.repeat(_.followedBy)(_.times(2))
+      trav.hasNext shouldBe true
+      trav.toSet shouldBe Set(l2, r2)
+    }
+
+    "path tracking not enabled" in {
+      val trav = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2)).path
+      trav.hasNext shouldBe true
+      trav.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
+    }
+  }
+
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     def test(traverse: => Iterable[_]) = {
