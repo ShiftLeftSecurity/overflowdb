@@ -6,6 +6,7 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
   val searchAlgorithm: SearchAlgorithm.Value
   val untilCondition: Option[Traversal[A] => Traversal[_]]
   val times: Option[Int]
+  val dedupEnabled: Boolean
 
   def timesReached(currentDepth: Int): Boolean =
     times.isDefined && times.get <= currentDepth
@@ -39,6 +40,7 @@ object RepeatBehaviour {
     private[this] var _emitCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _untilCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _times: Option[Int] = None
+    private[this] var _dedupEnabled: Boolean = false
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
 
     /* configure search algorithm to go "breadth first", rather than the default "depth first" */
@@ -81,8 +83,14 @@ object RepeatBehaviour {
       this
     }
 
+    /* configure `repeat` step to perform the given amount of iterations */
     def times(value: Int): Builder[A] = {
       _times = Some(value)
+      this
+    }
+
+    def dedup: Builder[A] = {
+      _dedupEnabled = true
       this
     }
 
@@ -92,6 +100,7 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition
           final override val times: Option[Int] = _times
+          final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = false
         }
       } else if (_emitAll) {
@@ -99,6 +108,7 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition = _untilCondition
           final override val times: Option[Int] = _times
+          final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = true
         }
       } else if (_emitAllButFirst) {
@@ -106,6 +116,7 @@ object RepeatBehaviour {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override final val untilCondition = _untilCondition
           final override val times: Option[Int] = _times
+          final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = currentDepth > 0
         }
       } else {
@@ -115,7 +126,7 @@ object RepeatBehaviour {
           override final val untilCondition = _untilCondition
           final private val _emitCondition = __emitCondition.get
           final override val times: Option[Int] = _times
-
+          final override val dedupEnabled = _dedupEnabled
           override final def shouldEmit(element: A, currentDepth: Int): Boolean =
             _emitCondition(Traversal.fromSingle(element)).hasNext
         }

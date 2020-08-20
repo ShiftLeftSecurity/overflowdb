@@ -102,7 +102,24 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label))).property(Name).toSet shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
+  }
 
+  "dedup should apply on all repeat iterations" when {
+    "path tracking is not enabled" in {
+      centerTrav.repeat(_.both)(_.times(2).dedup).toSet shouldBe Set(l2, r2)
+      centerTrav.repeat(_.both)(_.times(3).dedup).toSet shouldBe Set(l3, r3)
+      centerTrav.repeat(_.both)(_.times(4).dedup).toSet shouldBe Set(r4)
+    }
+
+    "path tracking is enabled" in {
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.foreach(println)
+      ???
+    }
+//    centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSet shouldBe Set(
+//      Seq(center, l1, l2),
+//      Seq(center, r1, r2)
+//    )
+//    centerTrav.enablePathTracking.repeat(_.both)(_.times(3)).path.foreach(println)
   }
 
   "is lazy" in {
