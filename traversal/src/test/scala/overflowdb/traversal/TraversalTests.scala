@@ -229,6 +229,26 @@ class TraversalTests extends WordSpec with Matchers {
     }
   }
 
+  "hasNext check doesn't change contents of traversal" when {
+    "path tracking is not enabled" in {
+      val trav = centerTrav.followedBy.followedBy
+      trav.hasNext shouldBe true
+      trav.toSet shouldBe Set(l2, r2)
+    }
+
+    "path tracking is enabled" in {
+      val trav1 = centerTrav.enablePathTracking.followedBy.followedBy
+      val trav2 = centerTrav.enablePathTracking.followedBy.followedBy.path
+      trav1.hasNext shouldBe true
+      trav2.hasNext shouldBe true
+      trav1.toSet shouldBe Set(l2, r2)
+      trav2.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
+    }
+  }
+
   ".help step" should {
     "give a domain overview" in {
       simpleDomain.help should include(".things")

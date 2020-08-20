@@ -125,10 +125,13 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       trav.toSet shouldBe Set(l2, r2)
     }
 
-    "path tracking not enabled" in {
-      val trav = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2)).path
-      trav.hasNext shouldBe true
-      trav.toSet shouldBe Set(
+    "path tracking is enabled" in {
+      val trav1 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2))
+      val trav2 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2)).path
+      trav1.hasNext shouldBe true
+      trav2.hasNext shouldBe true
+      trav1.toSet shouldBe Set(l2, r2)
+      trav2.toSet shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2)
       )
