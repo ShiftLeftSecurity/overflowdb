@@ -146,52 +146,6 @@ class TraversalTests extends WordSpec with Matchers {
           Seq(center, l1, l2))
       }
     }
-
-    "support repeat step" when {
-      "using `times` modulator" in {
-        centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
-      }
-
-      "using `emit` modulator" in {
-        centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.toSet shouldBe Set(
-          Seq(center),
-          Seq(center, l1),
-          Seq(center, l1, l2),
-          Seq(center, l1, l2, l3),
-          Seq(center, r1),
-          Seq(center, r1, r2),
-          Seq(center, r1, r2, r3),
-          Seq(center, r1, r2, r3, r4),
-          Seq(center, r1, r2, r3, r4, r5),
-        )
-      }
-
-      "using `until` modulator" in {
-        centerTrav.enablePathTracking.repeat(_.followedBy)(_.until(_.nameEndsWith("2"))).path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
-      }
-
-      "using breadth first search" in {
-        centerTrav.enablePathTracking.repeat(_.followedBy)(_.breadthFirstSearch.times(2)).path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
-      }
-
-      "doing multiple steps: should track every single step along the way" in {
-        centerTrav.enablePathTracking.repeat(_.followedBy.followedBy)(_.times(1)).path.toSet shouldBe Set(
-          Seq(center, l1, l2),
-          Seq(center, r1, r2))
-
-        r1.start.enablePathTracking.repeat(_.followedBy.followedBy.followedBy)(_.times(1)).path.toSet shouldBe Set(
-          Seq(r1, r2, r3, r4))
-
-        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).l shouldBe Seq(r5)
-        r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
-      }
-    }
   }
 
   ".simplePath step" should {
