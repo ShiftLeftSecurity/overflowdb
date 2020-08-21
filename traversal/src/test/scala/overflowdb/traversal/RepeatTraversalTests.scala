@@ -72,6 +72,15 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L")))).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
   }
 
+  "going through multiple steps in repeat traversal" in {
+    r1.start.repeat(_.out.out)(_.emit).l shouldBe Seq(r1, r3, r5)
+    r1.start.enablePathTracking.repeat(_.out.out)(_.emit).path.l shouldBe Seq(
+      Seq(r1),
+      Seq(r1, r2, r3),
+      Seq(r1, r2, r3, r4, r5),
+    )
+  }
+
   "support arbitrary `until` condition" should {
     "work without emit" in {
       val expectedResults = Set("L2", "R2")
