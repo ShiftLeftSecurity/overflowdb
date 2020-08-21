@@ -104,7 +104,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "dedup should apply to all repeat iterations" when {
+  ".dedup should apply to all repeat iterations" when {
     "path tracking is not enabled" in {
       centerTrav.repeat(_.both)(_.times(2).dedup).toSet shouldBe Set(l2, r2)
       centerTrav.repeat(_.both)(_.times(3).dedup).toSet shouldBe Set(l3, r3)
@@ -127,6 +127,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
         Seq(center, r1, r2),
         Seq(center, r1, center)
       )
+    }
+
+    "used with emit" in {
+      ???
+    }
+
+    "used with emit and path" in {
+      ???
     }
   }
 
