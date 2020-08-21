@@ -1,5 +1,6 @@
 package overflowdb.traversal
 
+import overflowdb.traversal.RepeatStep._
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
 
 import scala.collection.{Iterator, mutable}
@@ -85,31 +86,4 @@ object PathAwareRepeatStep {
     })
   }
 
-  /** stores work still to do. depending on the underlying collection type, the behaviour of the repeat step changes */
-  trait Worklist[A] {
-    def addItem(item: WorklistItem[A]): Unit
-    def nonEmpty: Boolean
-    def head: WorklistItem[A]
-    def removeHead: Unit
-  }
-
-  /** stack based worklist for [[RepeatBehaviour.SearchAlgorithm.DepthFirst]] */
-  class LifoWorklist[A] extends Worklist[A] {
-    private val stack = mutable.Stack.empty[WorklistItem[A]]
-    override def addItem(item: WorklistItem[A]) = stack.push(item)
-    override def nonEmpty = stack.nonEmpty
-    override def head = stack.top
-    override def removeHead = stack.pop
-  }
-
-  /** queue based worklist for [[RepeatBehaviour.SearchAlgorithm.BreadthFirst]] */
-  class FifoWorklist[A] extends Worklist[A] {
-    private val queue = mutable.Queue.empty[WorklistItem[A]]
-    override def addItem(item: WorklistItem[A]) = queue.enqueue(item)
-    override def nonEmpty = queue.nonEmpty
-    override def head = queue.head
-    override def removeHead = queue.dequeue
-  }
-
-  case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 }
