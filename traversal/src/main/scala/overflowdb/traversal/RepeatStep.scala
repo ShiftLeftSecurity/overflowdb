@@ -25,13 +25,13 @@ object RepeatStep {
 
       def hasNext: Boolean = {
         if (emitSack.isEmpty) {
-          // this may add elements to the emit sack and/or modify the stack
-          traverseOnStack
+          // this may add elements to the emit sack and/or modify the worklist
+          traverseOnWorklist
         }
-        emitSack.nonEmpty || stackTopTraversalHasNext
+        emitSack.nonEmpty || worklistTopHasNext
       }
 
-      private def traverseOnStack: Unit = {
+      private def traverseOnWorklist: Unit = {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav, depth) = worklist.head
@@ -59,14 +59,14 @@ object RepeatStep {
         }
       }
 
-      private def stackTopTraversalHasNext: Boolean =
+      private def worklistTopHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
       override def next: A = {
         val result = {
           if (emitSack.hasNext)
             emitSack.dequeue
-          else if (stackTopTraversalHasNext)
+          else if (worklistTopHasNext)
             worklist.head.traversal.next
           else throw new NoSuchElementException("next on empty iterator")
         }

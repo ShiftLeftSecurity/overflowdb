@@ -26,13 +26,13 @@ object PathAwareRepeatStep {
 
       def hasNext: Boolean = {
         if (emitSack.isEmpty) {
-          // this may add elements to the emit sack and/or modify the stack
-          traverseOnStack
+          // this may add elements to the emit sack and/or modify the worklist
+          traverseOnWorklist
         }
-        emitSack.nonEmpty || stackTopTraversalHasNext
+        emitSack.nonEmpty || worklistTopHasNext
       }
 
-      private def traverseOnStack: Unit = {
+      private def traverseOnWorklist: Unit = {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav0, depth) = worklist.head
@@ -67,13 +67,13 @@ object PathAwareRepeatStep {
         }
       }
 
-      private def stackTopTraversalHasNext: Boolean =
+      private def worklistTopHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
       override def next: (A, Vector[Any]) = {
         val result = {
           if (emitSack.hasNext) emitSack.dequeue
-          else if (stackTopTraversalHasNext) {
+          else if (worklistTopHasNext) {
             val entirePath = worklist.head.traversal.path.next
             val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
             (lastElement.head.asInstanceOf[A], path)
