@@ -130,11 +130,18 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
 
     "used with emit" in {
-      ???
+      // order is irrelevant, only using .l to show that there's no duplicates
+      centerTrav.repeat(_.both)(_.times(2).emit.dedup).l shouldBe Seq(center, l1, l2, r1, r2)
     }
 
     "used with emit and path" in {
-      ???
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).emit.dedup).path.toSet shouldBe Set(
+        Seq(center),
+        Seq(center, l1),
+        Seq(center, l1, l2),
+        Seq(center, r1),
+        Seq(center, r1, r2)
+      )
     }
   }
 
