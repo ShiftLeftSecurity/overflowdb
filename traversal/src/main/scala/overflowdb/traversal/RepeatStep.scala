@@ -18,9 +18,8 @@ object RepeatStep {
       case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
     }
 
-    val visited = mutable.Set.empty[A]
-
     element: A => Traversal(new Iterator[A] {
+      val visited = mutable.Set.empty[A] // only used if dedup enabled
       val emitSack: mutable.Queue[A] = mutable.Queue.empty
       worklist.addItem(WorklistItem(Traversal.fromSingle(element), 0))
 
@@ -40,14 +39,19 @@ object RepeatStep {
           else if (behaviour.timesReached(depth)) stop = true
           else {
             val element = trav.next
-            visited.addOne(element)
+            if (behaviour.dedupEnabled) visited.addOne(element)
             if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
               && behaviour.untilConditionReached(element)) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue(element)
               stop = true
             } else {
-              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)).filterNot(visited.contains), depth + 1))
+              val nextLevelTraversal = {
+                val repeat = repeatTraversal(Traversal.fromSingle(element))
+                if (behaviour.dedupEnabled) repeat.filterNot(visited.contains)
+                else repeat
+              }
+              worklist.addItem(WorklistItem(nextLevelTraversal, depth + 1))
               if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
               if (emitSack.nonEmpty) stop = true
             }
@@ -59,15 +63,15 @@ object RepeatStep {
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
       override def next: A = {
-        val res = {
+        val result = {
           if (emitSack.hasNext)
             emitSack.dequeue
           else if (stackTopTraversalHasNext)
             worklist.head.traversal.next
           else throw new NoSuchElementException("next on empty iterator")
         }
-        visited.addOne(res)
-        res
+        if (behaviour.dedupEnabled) visited.addOne(result)
+        result
       }
 
     })

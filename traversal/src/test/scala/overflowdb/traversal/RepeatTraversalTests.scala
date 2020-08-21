@@ -104,16 +104,26 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
-  "dedup should apply on all repeat iterations" when {
+  "dedup should apply to all repeat iterations" when {
     "path tracking is not enabled" in {
       centerTrav.repeat(_.both)(_.times(2).dedup).toSet shouldBe Set(l2, r2)
       centerTrav.repeat(_.both)(_.times(3).dedup).toSet shouldBe Set(l3, r3)
       centerTrav.repeat(_.both)(_.times(4).dedup).toSet shouldBe Set(r4)
+
+      // for reference, without dedup:
+      centerTrav.repeat(_.both)(_.times(2)).toSet shouldBe Set(l2, r2, center)
     }
 
     "path tracking is enabled" in {
-      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.foreach(println)
-      ???
+//      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.foreach(println)
+
+      // for reference, without dedup:
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, l1, center),
+        Seq(center, r1, r2),
+        Seq(center, r1, center)
+      )
     }
 //    centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSet shouldBe Set(
 //      Seq(center, l1, l2),
