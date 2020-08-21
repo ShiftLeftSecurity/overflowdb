@@ -110,26 +110,24 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.both)(_.times(3).dedup).toSet shouldBe Set(l3, r3)
       centerTrav.repeat(_.both)(_.times(4).dedup).toSet shouldBe Set(r4)
 
-      // for reference, without dedup:
-      centerTrav.repeat(_.both)(_.times(2)).l shouldBe Seq(l2, center, r2, center) // order doesn't matter
+      // for reference, without dedup (order is irrelevant, only using .l to show duplicate `center`)
+      centerTrav.repeat(_.both)(_.times(2)).l shouldBe Seq(l2, center, r2, center)
     }
 
     "path tracking is enabled" in {
-      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.foreach(println)
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
 
       // for reference, without dedup:
-//      centerTrav.enablePathTracking.repeat(_.both)(_.times(2)).path.toSet shouldBe Set(
-//        Seq(center, l1, l2),
-//        Seq(center, l1, center),
-//        Seq(center, r1, r2),
-//        Seq(center, r1, center)
-//      )
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, l1, center),
+        Seq(center, r1, r2),
+        Seq(center, r1, center)
+      )
     }
-//    centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSet shouldBe Set(
-//      Seq(center, l1, l2),
-//      Seq(center, r1, r2)
-//    )
-//    centerTrav.enablePathTracking.repeat(_.both)(_.times(3)).path.foreach(println)
   }
 
   "is lazy" in {

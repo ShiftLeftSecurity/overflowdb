@@ -42,15 +42,18 @@ object PathAwareRepeatStep {
             val path0 = trav.next
             val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
             val element = elementInSeq.head.asInstanceOf[A]
-            visited.addOne(element)
+            if (behaviour.dedupEnabled) visited.addOne(element)
             if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
               && behaviour.untilConditionReached(element)) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue((element, path1))
               stop = true
             } else {
-              val nextLevelTraversal =
-                repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1))))
+              val nextLevelTraversal = {
+                val repeat = repeatTraversal(new PathAwareTraversal(Iterator.single((element, path1))))
+                if (behaviour.dedupEnabled) repeat.filterNot(visited.contains)
+                else repeat
+              }
               worklist.addItem(WorklistItem(nextLevelTraversal, depth + 1))
 
               if (behaviour.shouldEmit(element, depth))
@@ -67,15 +70,18 @@ object PathAwareRepeatStep {
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
       override def next: (A, Vector[Any]) = {
-        if (emitSack.hasNext) emitSack.dequeue
-        else if (stackTopTraversalHasNext) {
-          val entirePath = worklist.head.traversal.path.next
-          val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
-          (lastElement.head.asInstanceOf[A], path)
+        val result = {
+          if (emitSack.hasNext) emitSack.dequeue
+          else if (stackTopTraversalHasNext) {
+            val entirePath = worklist.head.traversal.path.next
+            val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
+            (lastElement.head.asInstanceOf[A], path)
+          }
+          else throw new NoSuchElementException("next on empty iterator")
         }
-        else throw new NoSuchElementException("next on empty iterator")
+        if (behaviour.dedupEnabled) visited.addOne(result._1)
+        result
       }
-
     })
   }
 
