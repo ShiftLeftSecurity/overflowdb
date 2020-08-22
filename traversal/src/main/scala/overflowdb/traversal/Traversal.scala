@@ -26,7 +26,8 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iterator.toList
 
-  def iterate: Unit = while (hasNext) next
+  def iterate: Unit =
+    while (hasNext) next
 
   /**
    * Print help/documentation based on the current elementType `A`.
