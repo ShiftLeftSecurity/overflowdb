@@ -63,10 +63,11 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** perform side effect without changing the contents of the traversal
    *  will only apply the partialFunction if it is defined for the given input - analogous to `collect` */
-  def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] = map { a =>
-    pf.applyOrElse(a, {_: A => ()})
-    a
-  }
+  def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] =
+    mapElements { a =>
+      pf.applyOrElse(a, {_: A => ()})
+      a
+    }
 
   /** Filter step: only preserves elements if the provided traversal has at least one result.
    * inverse: {{{not/whereNot}}} */

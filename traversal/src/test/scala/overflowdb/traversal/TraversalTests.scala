@@ -38,16 +38,43 @@ class TraversalTests extends WordSpec with Matchers {
 
   }
 
-  ".sideEffectPf step" should {
+  ".sideEffectPF step" should {
     "support PartialFunction and not fail for undefined cases" in {
-      val sack = mutable.ListBuffer.empty[Int]
-      1.to(10).to(Traversal).sideEffectPF {
-        case i if i > 5 => sack.addOne(i)
-      }.iterate
-      sack.size shouldBe 5
+      val sack = mutable.ListBuffer.empty[Node]
+
+      center
+        .start
+        .out
+        .sideEffectPF {
+          case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
+            sack.addOne(node)
+        }
+        .out
+        .toSet shouldBe Set(l2, r2)
+
+      sack.toSet shouldBe Set(l1)
     }
 
-    // TODO path enabled
+    "work in conjunction with path tracking" in {
+      val sack = mutable.ListBuffer.empty[Node]
+
+      center
+        .start
+        .enablePathTracking
+        .out
+        .sideEffectPF {
+          case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
+            sack.addOne(node)
+        }
+        .out
+        .path
+        .toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
+
+      sack.toSet shouldBe Set(l1)
+    }
   }
 
 
