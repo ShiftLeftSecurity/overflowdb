@@ -46,8 +46,7 @@ class Traversal[A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     mapElements(_.asInstanceOf[B])
 
-  /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ...
-   */
+  /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
   def dedup: Traversal[A] =
     Traversal(iterator.distinct)
 
@@ -211,11 +210,13 @@ class Traversal[A](elements: IterableOnce[A])
   def simplePath: Traversal[A] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
-  /** create a new Traversal instance with mapped elements
-   * does not add to the path nor modify it
-   * only exists so it can be overridden by extending classes (e.g. {{{PathAwareTraversal}}}) */
   protected def mapElements[B](f: A => B): Traversal[B] =
     new Traversal(iterator.map(f))
+
+  /** create a new Traversal instance with mapped elements
+   * only exists so it can be overridden by extending classes (e.g. {{{PathAwareTraversal}}}) */
+  protected def newTraversal[B](elements: IterableOnce[B]): Traversal[B] =
+    new Traversal(elements)
 
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)

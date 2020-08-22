@@ -48,6 +48,23 @@ class TraversalTests extends WordSpec with Matchers {
       Traversal(Iterator(1,2,1,3)).dedupBy(_.hashCode).l shouldBe List(1,2,3)
     }
 
+    "work together with path tracking" in {
+      verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
+      verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
+
+      def verifyResults(paths: Set[Seq[_]]) = {
+        paths should contain(Seq(center, l1, l2))
+        paths should contain(Seq(center, r1, r2))
+//        paths.should(contain(oneOf(Seq(center, l1, center), Seq(center, r1, center))))
+
+        // should container *either* `center, l1, center` *or* `center, r1, center`
+        var matchCount = 0
+        if (paths.contains(Seq(center, l1, center))) matchCount += 1
+        if (paths.contains(Seq(center, r1, center))) matchCount += 1
+        matchCount shouldBe 1
+      }
+    }
+
     "allow method only based on hashCode - to ensure the traversal doesn't hold onto elements after they've been consumed" in {
       // when run with -Xmx128m we can hold ~7 of these at a time
       def infiniteTraversalWithLargeElements = Traversal(new Iterator[Any] {
