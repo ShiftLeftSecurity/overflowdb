@@ -20,63 +20,27 @@ class TraversalTests extends WordSpec with Matchers {
     empty.size shouldBe 0
   }
 
-  ".sideEffect step" should {
-    "apply provided function and do nothing else" in {
-      val sack = mutable.ListBuffer.empty[Node]
-      center.start.out.sideEffect(sack.addOne).out.toSet shouldBe Set(l2, r2)
-      sack.toSet shouldBe Set(l1, r1)
-    }
-
-    "work in conjunction with path tracking" in {
-      val sack = mutable.ListBuffer.empty[Node]
-      center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSet shouldBe Set(
-        Seq(center, l1, l2),
-        Seq(center, r1, r2),
-      )
-      sack.toSet shouldBe Set(l1, r1)
-    }
-
+  ".sideEffect step should apply provided function and do nothing else" in {
+    val sack = mutable.ListBuffer.empty[Node]
+    center.start.out.sideEffect(sack.addOne).out.toSet shouldBe Set(l2, r2)
+    sack.toSet shouldBe Set(l1, r1)
   }
 
-  ".sideEffectPF step" should {
-    "support PartialFunction and not fail for undefined cases" in {
-      val sack = mutable.ListBuffer.empty[Node]
+  ".sideEffectPF step should support PartialFunction and not fail for undefined cases" in {
+    val sack = mutable.ListBuffer.empty[Node]
 
-      center
-        .start
-        .out
-        .sideEffectPF {
-          case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
-            sack.addOne(node)
-        }
-        .out
-        .toSet shouldBe Set(l2, r2)
+    center
+      .start
+      .out
+      .sideEffectPF {
+        case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
+          sack.addOne(node)
+      }
+      .out
+      .toSet shouldBe Set(l2, r2)
 
-      sack.toSet shouldBe Set(l1)
-    }
-
-    "work in conjunction with path tracking" in {
-      val sack = mutable.ListBuffer.empty[Node]
-
-      center
-        .start
-        .enablePathTracking
-        .out
-        .sideEffectPF {
-          case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
-            sack.addOne(node)
-        }
-        .out
-        .path
-        .toSet shouldBe Set(
-        Seq(center, l1, l2),
-        Seq(center, r1, r2)
-      )
-
-      sack.toSet shouldBe Set(l1)
-    }
+    sack.toSet shouldBe Set(l1)
   }
-
 
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
@@ -85,26 +49,9 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   ".dedup step" should {
-    "remove duplicates: simple scenario" in {
+    "remove duplicates" in {
       Traversal(Iterator(1,2,1,3)).dedup.l shouldBe List(1,2,3)
       Traversal(Iterator(1,2,1,3)).dedupBy(_.hashCode).l shouldBe List(1,2,3)
-    }
-
-    "work in conjunction with path tracking" in {
-      verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
-      verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
-
-      def verifyResults(paths: Set[Seq[_]]) = {
-        paths should contain(Seq(center, l1, l2))
-        paths should contain(Seq(center, r1, r2))
-//        paths.should(contain(oneOf(Seq(center, l1, center), Seq(center, r1, center))))
-
-        // should container *either* `center, l1, center` *or* `center, r1, center`
-        var matchCount = 0
-        if (paths.contains(Seq(center, l1, center))) matchCount += 1
-        if (paths.contains(Seq(center, r1, center))) matchCount += 1
-        matchCount shouldBe 1
-      }
     }
 
     "allow method only based on hashCode - to ensure the traversal doesn't hold onto elements after they've been consumed" in {
@@ -172,11 +119,10 @@ class TraversalTests extends WordSpec with Matchers {
     }
 
     "work in combination with other steps" should {
-
       ".map: include intermediate results in path" in {
-          centerTrav.enablePathTracking.followedBy.map(_.name).path.toSet shouldBe Set(
-            Seq(center, l1, "L1"),
-            Seq(center, r1, "R1"))
+        centerTrav.enablePathTracking.followedBy.map(_.name).path.toSet shouldBe Set(
+          Seq(center, l1, "L1"),
+          Seq(center, r1, "R1"))
       }
 
       "collect: include intermediate results in path" in {
@@ -195,6 +141,29 @@ class TraversalTests extends WordSpec with Matchers {
           Seq(center, l1, l2))
       }
 
+      "dedup" in {
+        verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
+        verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
+
+        def verifyResults(paths: Set[Seq[_]]) = {
+          paths should contain(Seq(center, l1, l2))
+          paths should contain(Seq(center, r1, r2))
+          //        paths.should(contain(oneOf(Seq(center, l1, center), Seq(center, r1, center))))
+
+          // should container *either* `center, l1, center` *or* `center, r1, center`
+          var matchCount = 0
+          if (paths.contains(Seq(center, l1, center))) matchCount += 1
+          if (paths.contains(Seq(center, r1, center))) matchCount += 1
+          matchCount shouldBe 1
+        }
+      }
+
+      "cast" in {
+        val traversal: Traversal[Node] = center.start.enablePathTracking.out.out
+        val results: Seq[Thing] = traversal.cast[Thing].l
+        results shouldBe Seq(l2, r2)
+      }
+
       "where" in {
         centerTrav.enablePathTracking.followedBy.where(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
           Seq(center, r1, r2))
@@ -203,6 +172,36 @@ class TraversalTests extends WordSpec with Matchers {
       "whereNot" in {
         centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
           Seq(center, l1, l2))
+      }
+
+      "sideEffect" in {
+        val sack = mutable.ListBuffer.empty[Node]
+        center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2),
+        )
+        sack.toSet shouldBe Set(l1, r1)
+      }
+
+      "sideEffectPF" in {
+        val sack = mutable.ListBuffer.empty[Node]
+
+        center
+          .start
+          .enablePathTracking
+          .out
+          .sideEffectPF {
+            case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
+              sack.addOne(node)
+          }
+          .out
+          .path
+          .toSet shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2)
+        )
+
+        sack.toSet shouldBe Set(l1)
       }
     }
   }
@@ -242,18 +241,10 @@ class TraversalTests extends WordSpec with Matchers {
     }
   }
 
-  ".cast step" should {
-    "cast all elements to given type" in {
-      val traversal: Traversal[Node] = center.start.out.out
-      val results: Seq[Thing] = traversal.cast[Thing].l
-      results shouldBe Seq(l2, r2)
-    }
-
-    "work in conjunction with path tracking" in {
-      val traversal: Traversal[Node] = center.start.enablePathTracking.out.out
-      val results: Seq[Thing] = traversal.cast[Thing].l
-      results shouldBe Seq(l2, r2)
-    }
+  ".cast step should cast all elements to given type" in {
+    val traversal: Traversal[Node] = center.start.out.out
+    val results: Seq[Thing] = traversal.cast[Thing].l
+    results shouldBe Seq(l2, r2)
   }
 
   ".help step" should {
