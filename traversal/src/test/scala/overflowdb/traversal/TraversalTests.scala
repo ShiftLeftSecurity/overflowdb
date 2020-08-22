@@ -1,7 +1,9 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+
 import scala.collection.mutable
 
 
@@ -18,23 +20,36 @@ class TraversalTests extends WordSpec with Matchers {
     empty.size shouldBe 0
   }
 
-  "perform sideEffect" should {
-    def traversal = 1.to(10).to(Traversal)
-
-    "support normal function" in {
-      val sack = mutable.ListBuffer.empty[Int]
-      traversal.sideEffect(sack.addOne).iterate
-      sack.size shouldBe 10
+  ".sideEffect step" should {
+    "apply provided function and do nothing else" in {
+      val sack = mutable.ListBuffer.empty[Node]
+      center.start.out.sideEffect(sack.addOne).out.toSet shouldBe Set(l2, r2)
+      sack.toSet shouldBe Set(l1, r1)
     }
 
+    "work in conjunction with path tracking" in {
+      val sack = mutable.ListBuffer.empty[Node]
+      center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2),
+      )
+      sack.toSet shouldBe Set(l1, r1)
+    }
+
+  }
+
+  ".sideEffectPf step" should {
     "support PartialFunction and not fail for undefined cases" in {
       val sack = mutable.ListBuffer.empty[Int]
-      traversal.sideEffectPF {
+      1.to(10).to(Traversal).sideEffectPF {
         case i if i > 5 => sack.addOne(i)
       }.iterate
       sack.size shouldBe 5
     }
+
+    // TODO path enabled
   }
+
 
   "domain overview" in {
     simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
@@ -48,7 +63,7 @@ class TraversalTests extends WordSpec with Matchers {
       Traversal(Iterator(1,2,1,3)).dedupBy(_.hashCode).l shouldBe List(1,2,3)
     }
 
-    "work together with path tracking" in {
+    "work in conjunction with path tracking" in {
       verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
       verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
 
@@ -197,6 +212,20 @@ class TraversalTests extends WordSpec with Matchers {
         Seq(center, l1, l2),
         Seq(center, r1, r2)
       )
+    }
+  }
+
+  ".cast step" should {
+    "cast all elements to given type" in {
+      val traversal: Traversal[Node] = center.start.out.out
+      val results: Seq[Thing] = traversal.cast[Thing].l
+      results shouldBe Seq(l2, r2)
+    }
+
+    "work in conjunction with path tracking" in {
+      val traversal: Traversal[Node] = center.start.enablePathTracking.out.out
+      val results: Seq[Thing] = traversal.cast[Thing].l
+      results shouldBe Seq(l2, r2)
     }
   }
 

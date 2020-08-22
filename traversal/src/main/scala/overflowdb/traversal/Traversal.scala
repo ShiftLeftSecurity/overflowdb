@@ -55,10 +55,11 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** perform side effect without changing the contents of the traversal */
   @Doc("perform side effect without changing the contents of the traversal")
-  def sideEffect(fun: A => Unit): Traversal[A] = map { a =>
-    fun(a)
-    a
-  }
+  def sideEffect(fun: A => Unit): Traversal[A] =
+    mapElements { a =>
+      fun(a)
+      a
+    }
 
   /** perform side effect without changing the contents of the traversal
    *  will only apply the partialFunction if it is defined for the given input - analogous to `collect` */
@@ -210,13 +211,10 @@ class Traversal[A](elements: IterableOnce[A])
   def simplePath: Traversal[A] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
-  protected def mapElements[B](f: A => B): Traversal[B] =
-    new Traversal(iterator.map(f))
-
   /** create a new Traversal instance with mapped elements
    * only exists so it can be overridden by extending classes (e.g. {{{PathAwareTraversal}}}) */
-  protected def newTraversal[B](elements: IterableOnce[B]): Traversal[B] =
-    new Traversal(elements)
+  protected def mapElements[B](f: A => B): Traversal[B] =
+    new Traversal(iterator.map(f))
 
   override val iterator: Iterator[A] = elements.iterator
   override def toIterable: Iterable[A] = Iterable.from(elements)

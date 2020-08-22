@@ -8,13 +8,6 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
 
   private val elementsWithPathIterator: Iterator[(A, Vector[Any])] = elementsWithPath.iterator
 
-  override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] =
-    new PathAwareTraversal(
-      elementsWithPathIterator.flatMap { case (a, path) =>
-        f(a).iterator.map(b => (b, path.appended(a)))
-      }
-    )
-
   override def map[B](f: A => B): Traversal[B] =
     new PathAwareTraversal(
       elementsWithPathIterator.map { case (a, path) =>
@@ -23,11 +16,11 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
       }
     )
 
-  override def collect[B](pf: PartialFunction[A, B]): Traversal[B] =
+  override def flatMap[B](f: A => IterableOnce[B]): Traversal[B] =
     new PathAwareTraversal(
-      elementsWithPathIterator.collect { case (a, path) if pf.isDefinedAt(a) =>
-        val b = pf(a)
-        (b, path.appended(a))}
+      elementsWithPathIterator.flatMap { case (a, path) =>
+        f(a).iterator.map(b => (b, path.appended(a)))
+      }
     )
 
   override def filter(pred: A => Boolean): Traversal[A] =
@@ -38,6 +31,13 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
   override def filterNot(pred: A => Boolean): Traversal[A] =
     new PathAwareTraversal(
       elementsWithPathIterator.filterNot(x => pred(x._1))
+    )
+
+  override def collect[B](pf: PartialFunction[A, B]): Traversal[B] =
+    new PathAwareTraversal(
+      elementsWithPathIterator.collect { case (a, path) if pf.isDefinedAt(a) =>
+        val b = pf(a)
+        (b, path.appended(a))}
     )
 
   override def dedup: Traversal[A] =
@@ -51,7 +51,6 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     new Traversal(elementsWithPathIterator.map {
       case (a, path) => path.appended(a)
     })
-
 
   /** Removes all results whose traversal path has repeated objects. */
   override def simplePath: Traversal[A] =
