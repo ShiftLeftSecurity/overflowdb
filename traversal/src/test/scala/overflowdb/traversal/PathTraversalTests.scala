@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.Node
+import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
 import scala.collection.mutable
@@ -97,6 +98,24 @@ class PathTraversalTests extends WordSpec with Matchers {
       "whereNot" in {
         centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
           Seq(center, l1, l2))
+      }
+
+      "or" in {
+        centerTrav.enablePathTracking.out.or(
+          _.label("does not exist"),
+          _.has(Name, "R1")
+        ).out.path.l shouldBe Seq(
+          Seq(center, r1, r2)
+        )
+      }
+
+      "and" in {
+        centerTrav.enablePathTracking.out.and(
+          _.label(Thing.Label),
+          _.has(Name, "R1")
+        ).out.path.l shouldBe Seq(
+          Seq(center, r1, r2)
+        )
       }
 
       "sideEffect" in {

@@ -18,7 +18,7 @@ class LogicalStepsTests extends WordSpec with Matchers {
     centerTrav.out.or(
       _.label("does not exist"),
       _.has(Name, "R1")
-    ).size shouldBe 1
+    ).l shouldBe Seq(r1)
   }
 
   "and step returns results if ALL conditions are met" in {
@@ -33,7 +33,7 @@ class LogicalStepsTests extends WordSpec with Matchers {
     centerTrav.out.and(
       _.label(Thing.Label),
       _.has(Name, "R1")
-    ).size shouldBe 1
+    ).l shouldBe Seq(r1)
   }
 
   "choose step" should {
