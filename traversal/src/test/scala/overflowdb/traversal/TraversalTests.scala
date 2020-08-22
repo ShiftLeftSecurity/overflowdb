@@ -45,7 +45,7 @@ class TraversalTests extends WordSpec with Matchers {
   ".dedup step" should {
     "remove duplicates: simple scenario" in {
       Traversal(Iterator(1,2,1,3)).dedup.l shouldBe List(1,2,3)
-      Traversal(Iterator(1,2,1,3)).dedup(_.hashComparisonOnly).l shouldBe List(1,2,3)
+      Traversal(Iterator(1,2,1,3)).dedupBy(_.hashCode).l shouldBe List(1,2,3)
     }
 
     "allow method only based on hashCode - to ensure the traversal doesn't hold onto elements after they've been consumed" in {
@@ -63,7 +63,7 @@ class TraversalTests extends WordSpec with Matchers {
       })
 
       /** using dedup by hash comparison, we can traverse over these elements - already consumed elements are garbage collected */
-      val traversal = infiniteTraversalWithLargeElements.dedup(_.hashComparisonOnly)
+      val traversal = infiniteTraversalWithLargeElements.dedupBy(_.hashCode)
       0.to(128).foreach { i =>
         traversal.next
       }

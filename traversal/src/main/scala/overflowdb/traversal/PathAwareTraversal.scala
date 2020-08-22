@@ -40,15 +40,10 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
       elementsWithPathIterator.filterNot(x => pred(x._1))
     )
 
-  override def dedup(implicit behaviourBuilder: DedupBehaviour.Builder => DedupBehaviour.Builder): Traversal[A] =
-    new PathAwareTraversal(
-      behaviourBuilder(new DedupBehaviour.Builder).build.comparisonStyle match {
-        case DedupBehaviour.ComparisonStyle.HashAndEquals =>
-          elementsWithPathIterator.to(LazyList).distinctBy(_._1)
-        case DedupBehaviour.ComparisonStyle.HashOnly =>
-          elementsWithPathIterator.to(LazyList).distinctBy(_._1.hashCode)
-      }
-    )
+//  override def dedup: Traversal[A] =
+//    new PathAwareTraversal(
+//      elementsWithPathIterator.distinctBy(_._1)
+//    )
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
   override def path: Traversal[Vector[Any]] =
