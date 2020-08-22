@@ -100,24 +100,6 @@ class PathTraversalTests extends WordSpec with Matchers {
           Seq(center, l1, l2))
       }
 
-      "or" in {
-        centerTrav.enablePathTracking.out.or(
-          _.label("does not exist"),
-          _.has(Name, "R1")
-        ).out.path.l shouldBe Seq(
-          Seq(center, r1, r2)
-        )
-      }
-
-      "and" in {
-        centerTrav.enablePathTracking.out.and(
-          _.label(Thing.Label),
-          _.has(Name, "R1")
-        ).out.path.l shouldBe Seq(
-          Seq(center, r1, r2)
-        )
-      }
-
       "sideEffect" in {
         val sack = mutable.ListBuffer.empty[Node]
         center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSet shouldBe Set(
@@ -147,6 +129,49 @@ class PathTraversalTests extends WordSpec with Matchers {
 
         sack.toSet shouldBe Set(l1)
       }
+
+      "or" in {
+        centerTrav.enablePathTracking.out.or(
+          _.label("does not exist"),
+          _.has(Name, "R1")
+        ).out.path.l shouldBe Seq(
+          Seq(center, r1, r2)
+        )
+      }
+
+      "and" in {
+        centerTrav.enablePathTracking.out.and(
+          _.label(Thing.Label),
+          _.has(Name, "R1")
+        ).out.path.l shouldBe Seq(
+          Seq(center, r1, r2)
+        )
+      }
+
+      "choose" in {
+        graph.nodes(Thing.Label).enablePathTracking
+          .choose(_.property(Name)) {
+            case "L1" => _.out // -> L2
+            case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
+          }.property(Name).path.toSet shouldBe Set(
+          Seq(r1, r4, "R4"),
+          Seq(l1, l2, "L2")
+        )
+      }
+
+      "coalesce" in {
+        var traversalInvoked = false
+        centerTrav.enablePathTracking.coalesce(
+          _.out("doesn't exist"),
+          _.out,
+          _.sideEffect(_ => traversalInvoked = true).out
+        ).property(Name).path.toSet shouldBe Set(
+          Seq(center, l1, "L1"),
+          Seq(center, r1, "R1"),
+        )
+        traversalInvoked shouldBe false
+      }
+
     }
   }
 
