@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters._
 class RepeatTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
   /* most tests work with this simple graph:
-   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
+   * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */
 
   "typical case for both domain-specific steps" in {
@@ -49,7 +49,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "emit everything along the way if so configured" in {
-    val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
     centerTrav.repeat(_.followedBy)(_.emit).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.followedBy)(_.emit.breadthFirstSearch).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit).property("name").toSet shouldBe expectedResults
@@ -57,7 +57,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "emit everything but the first element (starting point)" in {
-    val expectedResults = Set("L3", "L2", "L1", "R1", "R2", "R3", "R4")
+    val expectedResults = Set("L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5")
     centerTrav.repeat(_.followedBy)(_.emitAllButFirst).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.followedBy)(_.emitAllButFirst.breadthFirstSearch).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emitAllButFirst).property("name").toSet shouldBe expectedResults
@@ -70,6 +70,15 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     centerTrav.repeat(_.followedBy)(_.emit(_.name.filter(_.startsWith("L"))).breadthFirstSearch).name.toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L"))))).property(Name).toSet shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L")))).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
+  }
+
+  "going through multiple steps in repeat traversal" in {
+    r1.start.repeat(_.out.out)(_.emit).l shouldBe Seq(r1, r3, r5)
+    r1.start.enablePathTracking.repeat(_.out.out)(_.emit).path.l shouldBe Seq(
+      Seq(r1),
+      Seq(r1, r2, r3),
+      Seq(r1, r2, r3, r4, r5),
+    )
   }
 
   "support arbitrary `until` condition" should {
@@ -102,7 +111,47 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label))).property(Name).toSet shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSet shouldBe expectedResults
     }
+  }
 
+  ".dedup should apply to all repeat iterations" when {
+    "path tracking is not enabled" in {
+      centerTrav.repeat(_.both)(_.times(2).dedup).toSet shouldBe Set(l2, r2)
+      centerTrav.repeat(_.both)(_.times(3).dedup).toSet shouldBe Set(l3, r3)
+      centerTrav.repeat(_.both)(_.times(4).dedup).toSet shouldBe Set(r4)
+
+      // for reference, without dedup (order is irrelevant, only using .l to show duplicate `center`)
+      centerTrav.repeat(_.both)(_.times(2)).l shouldBe Seq(l2, center, r2, center)
+    }
+
+    "path tracking is enabled" in {
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
+
+      // for reference, without dedup:
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, l1, center),
+        Seq(center, r1, r2),
+        Seq(center, r1, center)
+      )
+    }
+
+    "used with emit" in {
+      // order is irrelevant, only using .l to show that there's no duplicates
+      centerTrav.repeat(_.both)(_.times(2).emit.dedup).l shouldBe Seq(center, l1, l2, r1, r2)
+    }
+
+    "used with emit and path" in {
+      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).emit.dedup).path.toSet shouldBe Set(
+        Seq(center),
+        Seq(center, l1),
+        Seq(center, l1, l2),
+        Seq(center, r1),
+        Seq(center, r1, r2)
+      )
+    }
   }
 
   "is lazy" in {
@@ -118,12 +167,32 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
+  "hasNext check doesn't change contents of traversal" when {
+    "path tracking is not enabled" in {
+      val trav = centerTrav.repeat(_.followedBy)(_.times(2))
+      trav.hasNext shouldBe true
+      trav.toSet shouldBe Set(l2, r2)
+    }
+
+    "path tracking is enabled" in {
+      val trav1 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2))
+      val trav2 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2)).path
+      trav1.hasNext shouldBe true
+      trav2.hasNext shouldBe true
+      trav1.toSet shouldBe Set(l2, r2)
+      trav2.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2)
+      )
+    }
+  }
+
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     def test(traverse: => Iterable[_]) = {
       traversedNodes.clear
       val results = traverse
-      traversedNodes.size shouldBe 8
+      traversedNodes.size shouldBe 9
       results.size shouldBe 0
     }
 
@@ -148,14 +217,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).iterate
 
-    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4")
+    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4", "R5")
   }
 
   "uses BFS (breadth first search) if configured" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
     centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).iterate
 
-    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4")
+    traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4", "R5")
   }
 
   "hasNext is idempotent: DFS" in {
@@ -207,5 +276,51 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 //    __(a).repeat(
 //      __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
 //    ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
+  }
+
+  "support .path step" when {
+    "using `times` modulator" in {
+      centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+    }
+
+    "using `emit` modulator" in {
+      centerTrav.enablePathTracking.repeat(_.out)(_.emit).path.toSet shouldBe Set(
+        Seq(center),
+        Seq(center, l1),
+        Seq(center, l1, l2),
+        Seq(center, l1, l2, l3),
+        Seq(center, r1),
+        Seq(center, r1, r2),
+        Seq(center, r1, r2, r3),
+        Seq(center, r1, r2, r3, r4),
+        Seq(center, r1, r2, r3, r4, r5),
+      )
+    }
+
+    "using `until` modulator" in {
+      centerTrav.enablePathTracking.repeat(_.followedBy)(_.until(_.nameEndsWith("2"))).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+    }
+
+    "using breadth first search" in {
+      centerTrav.enablePathTracking.repeat(_.followedBy)(_.breadthFirstSearch.times(2)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+    }
+
+    "doing multiple steps: should track every single step along the way" in {
+      centerTrav.enablePathTracking.repeat(_.followedBy.followedBy)(_.times(1)).path.toSet shouldBe Set(
+        Seq(center, l1, l2),
+        Seq(center, r1, r2))
+
+      r1.start.enablePathTracking.repeat(_.followedBy.followedBy.followedBy)(_.times(1)).path.toSet shouldBe Set(
+        Seq(r1, r2, r3, r4))
+
+      r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).l shouldBe Seq(r5)
+      r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
+    }
   }
 }

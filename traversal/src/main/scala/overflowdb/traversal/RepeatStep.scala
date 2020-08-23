@@ -19,19 +19,19 @@ object RepeatStep {
     }
 
     element: A => Traversal(new Iterator[A] {
+      val visited = mutable.Set.empty[A] // only used if dedup enabled
       val emitSack: mutable.Queue[A] = mutable.Queue.empty
-      val startTraversal = Traversal.fromSingle(element)
-      worklist.addItem(WorklistItem(startTraversal, 0))
+      worklist.addItem(WorklistItem(Traversal.fromSingle(element), 0))
 
       def hasNext: Boolean = {
         if (emitSack.isEmpty) {
-          // this may add elements to the emit sack and/or modify the stack
-          traverseOnStack
+          // this may add elements to the emit sack and/or modify the worklist
+          traverseOnWorklist
         }
-        emitSack.nonEmpty || stackTopTraversalHasNext
+        emitSack.nonEmpty || worklistTopHasNext
       }
 
-      private def traverseOnStack: Unit = {
+      private def traverseOnWorklist: Unit = {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav, depth) = worklist.head
@@ -39,13 +39,19 @@ object RepeatStep {
           else if (behaviour.timesReached(depth)) stop = true
           else {
             val element = trav.next
+            if (behaviour.dedupEnabled) visited.addOne(element)
             if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
               && behaviour.untilConditionReached(element)) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue(element)
               stop = true
             } else {
-              worklist.addItem(WorklistItem(repeatTraversal(Traversal.fromSingle(element)), depth + 1))
+              val nextLevelTraversal = {
+                val repeat = repeatTraversal(Traversal.fromSingle(element))
+                if (behaviour.dedupEnabled) repeat.filterNot(visited.contains)
+                else repeat
+              }
+              worklist.addItem(WorklistItem(nextLevelTraversal, depth + 1))
               if (behaviour.shouldEmit(element, depth)) emitSack.enqueue(element)
               if (emitSack.nonEmpty) stop = true
             }
@@ -53,13 +59,19 @@ object RepeatStep {
         }
       }
 
-      private def stackTopTraversalHasNext: Boolean =
+      private def worklistTopHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
       override def next: A = {
-        if (emitSack.hasNext) emitSack.dequeue
-        else if (hasNext) worklist.head.traversal.next
-        else throw new NoSuchElementException("next on empty iterator")
+        val result = {
+          if (emitSack.hasNext)
+            emitSack.dequeue
+          else if (worklistTopHasNext)
+            worklist.head.traversal.next
+          else throw new NoSuchElementException("next on empty iterator")
+        }
+        if (behaviour.dedupEnabled) visited.addOne(result)
+        result
       }
 
     })

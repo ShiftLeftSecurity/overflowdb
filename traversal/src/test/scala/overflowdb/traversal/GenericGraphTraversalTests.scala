@@ -11,24 +11,24 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
   import ExampleGraphSetup._
 
   "V for all nodes" in {
-    graph.V.count.head shouldBe 8
-    graph.V.size shouldBe 8
+    graph.V.count.head shouldBe 9
+    graph.V.size shouldBe 9
   }
 
   "E for all edges" in {
-    graph.E.count.head shouldBe 7
-    graph.E.size shouldBe 7
+    graph.E.count.head shouldBe 8
+    graph.E.size shouldBe 8
   }
 
   "label lookup" in {
-    graph.V.label.toList shouldBe List("thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing")
-    graph.E.label.toList shouldBe List("connection", "connection", "connection", "connection", "connection", "connection", "connection")
+    graph.V.label.toList shouldBe List("thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing")
+    graph.E.label.toList shouldBe List("connection", "connection", "connection", "connection", "connection", "connection", "connection", "connection")
   }
 
   "property lookup" in {
-    graph.V.property(Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4")
-    graph.E.property(Distance).toSet shouldBe Set(10, 13)
-    graph.E.propertyOption(Distance).toSet shouldBe Set(Some(10), Some(13), None)
+    graph.V.property(Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
+    graph.E.property(Distance).toSet shouldBe Set(10, 13, 14)
+    graph.E.propertyOption(Distance).toSet shouldBe Set(Some(10), Some(13), Some(14), None)
   }
 
   "filter steps" can {
@@ -37,26 +37,26 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
     }
 
     "filter by label" in {
-      graph.V.label(Thing.Label).size shouldBe 8
+      graph.V.label(Thing.Label).size shouldBe 9
       graph.V.label(nonExistingLabel).size shouldBe 0
-      graph.V.label(Thing.Label, nonExistingLabel).size shouldBe 8
-      graph.V.labelNot(nonExistingLabel).size shouldBe 8
+      graph.V.label(Thing.Label, nonExistingLabel).size shouldBe 9
+      graph.V.labelNot(nonExistingLabel).size shouldBe 9
       graph.V.labelNot(Thing.Label, nonExistingLabel).size shouldBe 0
 
-      graph.E.label(Connection.Label).size shouldBe 7
+      graph.E.label(Connection.Label).size shouldBe 8
       graph.E.label(nonExistingLabel).size shouldBe 0
-      graph.E.label(Connection.Label, nonExistingLabel).size shouldBe 7
-      graph.E.labelNot(nonExistingLabel).size shouldBe 7
+      graph.E.label(Connection.Label, nonExistingLabel).size shouldBe 8
+      graph.E.labelNot(nonExistingLabel).size shouldBe 8
       graph.E.labelNot(Connection.Label, nonExistingLabel).size shouldBe 0
     }
 
     "filter by property key" in {
-      graph.V.has(Name).size shouldBe 8
+      graph.V.has(Name).size shouldBe 9
       graph.V.has(nonExistingPropertyKey).size shouldBe 0
       graph.V.hasNot(Name).size shouldBe 0
-      graph.V.hasNot(nonExistingPropertyKey).size shouldBe 8
+      graph.V.hasNot(nonExistingPropertyKey).size shouldBe 9
 
-      graph.E.has(Distance).size shouldBe 3
+      graph.E.has(Distance).size shouldBe 4
       graph.E.hasNot(Distance).size shouldBe 4
     }
 
@@ -64,38 +64,38 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       graph.V.has(Name, "R1").size shouldBe 1
       graph.V.has(Name -> "R1").size shouldBe 1
       graph.V.has(Name.where(P.eq("R1"))).size shouldBe 1
-      graph.V.has(Name.where(P.matches("[LR]."))).size shouldBe 7
-      graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 7
-      graph.V.has(Name.where(P.neq("R1"))).size shouldBe 7
+      graph.V.has(Name.where(P.matches("[LR]."))).size shouldBe 8
+      graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 8
+      graph.V.has(Name.where(P.neq("R1"))).size shouldBe 8
       graph.V.has(Name.where(P.within(Set("L1", "L2")))).size shouldBe 2
       graph.V.has(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 3
-      graph.V.has(Name.where(P.without(Set("L1", "L2")))).size shouldBe 6
-      graph.V.has(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 5
+      graph.V.has(Name.where(P.without(Set("L1", "L2")))).size shouldBe 7
+      graph.V.has(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 6
       graph.V.has(Name.where(_.endsWith("1"))).size shouldBe 2
       graph.E.has(Distance -> 10).size shouldBe 2
 
-      graph.V.hasNot(Name, "R1").size shouldBe 7
-      graph.V.hasNot(Name -> "R1").size shouldBe 7
-      graph.V.hasNot(Name.where(P.eq("R1"))).size shouldBe 7
+      graph.V.hasNot(Name, "R1").size shouldBe 8
+      graph.V.hasNot(Name -> "R1").size shouldBe 8
+      graph.V.hasNot(Name.where(P.eq("R1"))).size shouldBe 8
       graph.V.hasNot(Name.where(P.matches("[LR]."))).size shouldBe 1
       graph.V.hasNot(Name.where(_.matches("[LR]."))).size shouldBe 1
       graph.V.hasNot(Name.where(P.neq("R1"))).size shouldBe 1
-      graph.V.hasNot(Name.where(P.within(Set("L1", "L2")))).size shouldBe 6
-      graph.V.hasNot(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 5
+      graph.V.hasNot(Name.where(P.within(Set("L1", "L2")))).size shouldBe 7
+      graph.V.hasNot(Name.where(P.within("L1", "L2", "L3"))).size shouldBe 6
       graph.V.hasNot(Name.where(P.without(Set("L1", "L2")))).size shouldBe 2
       graph.V.hasNot(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 3
-      graph.V.hasNot(Name.where(_.endsWith("1"))).size shouldBe 6
-      graph.E.hasNot(Distance -> 10).size shouldBe 5
+      graph.V.hasNot(Name.where(_.endsWith("1"))).size shouldBe 7
+      graph.E.hasNot(Distance -> 10).size shouldBe 6
     }
 
     "`where` step taking a traversal" in {
       // find all nodes that _do_ have an OUT neighbor, i.e. find the inner nodes
-      graph.V.where(_.out).property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3")
+      graph.V.where(_.out).property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
 
     "`not` step taking a traversal" in {
       // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
-       graph.V.not(_.out).property(Name).toSet shouldBe Set("L3", "R4")
+       graph.V.not(_.out).property(Name).toSet shouldBe Set("L3", "R5")
     }
   }
 
