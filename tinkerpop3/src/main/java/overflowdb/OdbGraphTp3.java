@@ -3,6 +3,22 @@ package overflowdb;
 import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
+import org.apache.tinkerpop.gremlin.process.traversal.P;
+import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.structure.io.Io;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONVersion;
+import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
+import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
+import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import org.apache.tinkerpop.gremlin.util.iterator.MultiIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
@@ -28,11 +44,20 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class OdbGraph {
+public final class OdbGraphTp3 implements Graph {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
+  static {
+    TraversalStrategies.GlobalCache.registerStrategies(OdbGraphTp3.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
+        OdbGraphStepStrategy.instance(),
+        CountStrategy.instance()));
+  }
+
+  private final GraphFeatures features = new GraphFeatures();
   protected final AtomicLong currentId = new AtomicLong(-1L);
   protected final NodesList nodes = new NodesList(10000);
+
+  protected final GraphVariables variables = new GraphVariables();
   public final OdbIndexManager indexManager = new OdbIndexManager(this);
   private final OdbConfig config;
   private boolean closed = false;
@@ -44,22 +69,22 @@ public final class OdbGraph {
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
-  public static OdbGraph open(OdbConfig configuration,
-                              List<NodeFactory<?>> nodeFactories,
-                              List<EdgeFactory<?>> edgeFactories) {
+  public static OdbGraphTp3 open(OdbConfig configuration,
+                                 List<NodeFactory<?>> nodeFactories,
+                                 List<EdgeFactory<?>> edgeFactories) {
     Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
     Map<Integer, NodeFactory> nodeFactoryByLabelId = new HashMap<>(nodeFactories.size());
     Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     nodeFactories.forEach(factory -> nodeFactoryByLabelId.put(factory.forLabelId(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OdbGraph(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
+    return new OdbGraphTp3(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
   }
 
-  private OdbGraph(OdbConfig config,
-                   Map<String, NodeFactory> nodeFactoryByLabel,
-                   Map<Integer, NodeFactory> nodeFactoryByLabelId,
-                   Map<String, EdgeFactory> edgeFactoryByLabel) {
+  private OdbGraphTp3(OdbConfig config,
+                      Map<String, NodeFactory> nodeFactoryByLabel,
+                      Map<Integer, NodeFactory> nodeFactoryByLabelId,
+                      Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -168,12 +193,12 @@ public final class OdbGraph {
 
   @Override
   public <C extends GraphComputer> C compute(final Class<C> graphComputerClass) {
-    throw Graph.Exceptions.graphDoesNotSupportProvidedGraphComputer(graphComputerClass);
+    throw Exceptions.graphDoesNotSupportProvidedGraphComputer(graphComputerClass);
   }
 
   @Override
   public GraphComputer compute() {
-    throw Graph.Exceptions.graphComputerNotSupported();
+    throw Exceptions.graphComputerNotSupported();
   }
 
   @Override
@@ -379,7 +404,7 @@ public final class OdbGraph {
   }
 
   /** Copies all nodes/edges into the given empty graph, preserving their ids and properties. */
-  public void copyTo(OdbGraph destination) {
+  public void copyTo(OdbGraphTp3 destination) {
     if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
     nodes().forEachRemaining(node -> {
       destination.addNode(node.id2(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));

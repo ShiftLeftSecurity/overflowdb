@@ -198,12 +198,4 @@ public abstract class OdbEdge implements OdbElement {
         edgeOccurenceForSameLabelEdgesBetweenSameNodePair);
   }
 
-  public boolean isInBlockOffsetInitialized() {
-    return inBlockOffset != -1;
-  }
-
-  public boolean isOutBlockOffsetInitialized() {
-    return outBlockOffset != -1;
-  }
-
 }

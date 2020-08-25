@@ -1,42 +1,26 @@
 package overflowdb;
 
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-import overflowdb.tinkerpop.Converters;
 import overflowdb.tinkerpop.OdbNodeProperty;
 import overflowdb.tinkerpop.OdbProperty;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.PackedIntArray;
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Property;
-import org.apache.tinkerpop.gremlin.structure.T;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
-import org.apache.tinkerpop.gremlin.structure.util.empty.EmptyProperty;
 import overflowdb.util.PropertyHelper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.StreamSupport;
 
 /**
  * Node that stores adjacent Nodes directly, rather than via edges.
  * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
  * traversal time than necessary
  */
-public abstract class OdbNode implements Vertex, Node {
+public abstract class OdbNode implements Node {
   public final NodeRef ref;
 
   /**
@@ -104,18 +88,8 @@ public abstract class OdbNode implements Vertex, Node {
   public abstract Map<String, Object> valueMap();
 
   @Override
-  public Graph graph() {
-    return ref.graph;
-  }
-
-  @Override
   public OdbGraph graph2() {
     return ref.graph;
-  }
-
-  @Override
-  public Object id() {
-    return ref.id;
   }
 
   public long id2() {
@@ -127,16 +101,6 @@ public abstract class OdbNode implements Vertex, Node {
     return ref.label();
   }
 
-  @Override
-  public Set<String> keys() {
-    return layoutInformation().propertyKeys();
-  }
-
-  @Override
-  public <V> VertexProperty<V> property(String key) {
-    return specificProperty(key);
-  }
-
   /* You can override this default implementation in concrete specialised instances for performance
    * if you like, since technically the Iterator isn't necessary.
    * This default implementation works fine though. */
@@ -146,23 +110,6 @@ public abstract class OdbNode implements Vertex, Node {
       return iter.next();
     } else {
       return VertexProperty.empty();
-    }
-  }
-
-  @Override
-  public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
-    if (propertyKeys.length == 0) { // return all properties
-      return (Iterator) layoutInformation().propertyKeys().stream().flatMap(key ->
-          StreamSupport.stream(Spliterators.spliteratorUnknownSize(
-              specificProperties(key), Spliterator.ORDERED), false)
-      ).iterator();
-    } else if (propertyKeys.length == 1) { // treating as special case for performance
-      return specificProperties(propertyKeys[0]);
-    } else {
-      return (Iterator) Arrays.stream(propertyKeys).flatMap(key ->
-          StreamSupport.stream(Spliterators.spliteratorUnknownSize(
-              specificProperties(key), Spliterator.ORDERED), false)
-      ).iterator();
     }
   }
 
@@ -182,17 +129,6 @@ public abstract class OdbNode implements Vertex, Node {
   @Override
   public <P> P property2(String propertyKey) {
     return (P) specificProperty2(propertyKey);
-  }
-
-  @Override
-  public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String key, V value, Object... keyValues) {
-    ElementHelper.legalPropertyKeyValueArray(keyValues);
-    ElementHelper.validateProperty(key, value);
-    final VertexProperty<V> vp = updateSpecificProperty(cardinality, key, value);
-    ref.graph.indexManager.putIfIndexed(key, value, ref);
-    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
-    this.markAsDirty();
-    return vp;
   }
 
   @Override
@@ -363,36 +299,6 @@ public abstract class OdbNode implements Vertex, Node {
     addEdgeSilent(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 
-  @Override
-  public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
-    return new OdbEdgeTp3(addEdge2(label, (Node) inNode, keyValues));
-  }
-
-  @Override
-  public Iterator<Edge> edges(org.apache.tinkerpop.gremlin.structure.Direction tinkerDirection, String... edgeLabels) {
-    Direction direction = Converters.fromTinker(tinkerDirection);
-    final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
-    if (direction == Direction.IN || direction == Direction.BOTH) {
-      for (String label : calcInLabels(edgeLabels)) {
-        Iterator<OdbEdgeTp3> edgeIterator = createDummyEdgeIterator(Direction.IN, label);
-        multiIterator.addIterator(edgeIterator);
-      }
-    }
-    if (direction == Direction.OUT || direction == Direction.BOTH) {
-      for (String label : calcOutLabels(edgeLabels)) {
-        Iterator<OdbEdgeTp3> edgeIterator = createDummyEdgeIterator(Direction.OUT, label);
-        multiIterator.addIterator(edgeIterator);
-      }
-    }
-
-    return multiIterator;
-  }
-
-  @Override
-  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
-    return nodes(Converters.fromTinker(direction), edgeLabels);
-  }
-
   /* lookup adjacent nodes via direction and labels */
   public Iterator<Vertex> nodes(Direction direction, String... edgeLabels) {
     final MultiIterator2<Vertex> multiIterator = new MultiIterator2<>();
@@ -558,7 +464,7 @@ public abstract class OdbNode implements Vertex, Node {
     for (int i = start; i < start + length; i += strideSize) {
       final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
-          adjacentNodeWithProperty.id().equals(adjacentNode.id())) {
+          adjacentNodeWithProperty.id2() == adjacentNode.id2()) {
         if (currentOccurrence == occurrence) {
           int adjacentNodeIndex = i - start;
           return adjacentNodeIndex;
@@ -568,7 +474,7 @@ public abstract class OdbNode implements Vertex, Node {
       }
     }
     throw new RuntimeException("Unable to find occurrence " + occurrence + " of "
-        + label + " edge to node " + adjacentNode.id());
+        + label + " edge to node " + adjacentNode.id2());
   }
 
   /**
