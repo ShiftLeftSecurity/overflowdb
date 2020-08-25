@@ -19,6 +19,9 @@ class TraversalSource(graph: OdbGraph) {
   def label(label: String): Traversal[Node] =
     Traversal(graph.nodes(label))
 
+  def hasLabel(label: String): Traversal[Node] =
+    this.label(label)
+
   def labelTyped[A <: Node](label: String): Traversal[A] =
     this.label(label).cast[A]
 
