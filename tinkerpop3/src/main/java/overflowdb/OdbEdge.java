@@ -146,8 +146,8 @@ public abstract class OdbEdge implements OdbElement {
     OdbEdge otherEdge = (OdbEdge) other;
     fixupBlockOffsetsIfNecessary(otherEdge);
 
-    return this.inNode.id().equals(otherEdge.inNode.id()) &&
-        this.outNode.id().equals(otherEdge.outNode.id()) &&
+    return this.inNode.id2() == otherEdge.inNode.id2() &&
+        this.outNode.id2() == otherEdge.outNode.id2() &&
         this.label.equals(otherEdge.label) &&
         (this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
             otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
@@ -163,7 +163,7 @@ public abstract class OdbEdge implements OdbElement {
     // we do not hash over the block offsets as those may change.
     // This results in hash collisions for edges with the same label between the
     // same nodes but since those are deemed very rare this is ok.
-    return Objects.hash(inNode.id(), outNode.id(), label);
+    return Objects.hash(inNode.id2(), outNode.id2(), label);
   }
 
   private void fixupBlockOffsetsIfNecessary(OdbEdge otherEdge) {

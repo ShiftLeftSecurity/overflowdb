@@ -3,9 +3,7 @@ package overflowdb;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-
-public interface Node extends OdbElement, Vertex {
+public interface Node extends OdbElement {
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
@@ -57,21 +55,21 @@ public interface Node extends OdbElement, Vertex {
   Iterator<Node> both(String... edgeLabels);
 
   /* adjacent OUT edges (all labels) */
-  Iterator<OdbEdgeTp3> outE();
+  Iterator<OdbEdge> outE();
 
   /* adjacent OUT edges for given labels */
-  Iterator<OdbEdgeTp3> outE(String... edgeLabels);
+  Iterator<OdbEdge> outE(String... edgeLabels);
 
   /* adjacent IN edges (all labels) */
-  Iterator<OdbEdgeTp3> inE();
+  Iterator<OdbEdge> inE();
 
   /* adjacent IN edges for given labels */
-  Iterator<OdbEdgeTp3> inE(String... edgeLabels);
+  Iterator<OdbEdge> inE(String... edgeLabels);
 
   /* adjacent OUT/IN edges (all labels) */
-  Iterator<OdbEdgeTp3> bothE();
+  Iterator<OdbEdge> bothE();
 
   /* adjacent OUT/IN edges for given labels */
-  Iterator<OdbEdgeTp3> bothE(String... edgeLabels);
+  Iterator<OdbEdge> bothE(String... edgeLabels);
 
 }

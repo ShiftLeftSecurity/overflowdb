@@ -9,23 +9,28 @@ import overflowdb.util.IteratorUtils;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class OdbEdgeTp3 implements Edge {
-  private final OdbEdge wrapped;
+  private final OdbEdge edge;
 
-  public OdbEdgeTp3(OdbEdge wrapped) {
-    this.wrapped = wrapped;
+  public static OdbEdgeTp3 wrap(OdbEdge edge) {
+    return new OdbEdgeTp3(edge);
+  }
+
+  public OdbEdgeTp3(OdbEdge edge) {
+    this.edge = edge;
   }
 
   @Override
   public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction) {
     switch (direction) {
       case OUT:
-        return IteratorUtils.from(wrapped.outNode());
+        return IteratorUtils.from(NodeRefTp3.wrap(edge.outNode()));
       case IN:
-        return IteratorUtils.from(wrapped.inNode());
+        return IteratorUtils.from(NodeRefTp3.wrap(edge.inNode()));
       default:
-        return IteratorUtils.from(wrapped.outNode(), wrapped.inNode());
+        return IteratorUtils.from(NodeRefTp3.wrap(edge.outNode()), NodeRefTp3.wrap(edge.inNode()));
     }
   }
 
@@ -36,54 +41,41 @@ public class OdbEdgeTp3 implements Edge {
 
   @Override
   public String label() {
-    return wrapped.label();
+    return edge.label();
   }
 
   @Override
   public Graph graph() {
-    return wrapped.graph2();
+    return edge.graph2();
   }
 
   @Override
   public <V> Property<V> property(String key, V value) {
-    wrapped.setProperty(key, value);
+    edge.setProperty(key, value);
     return new OdbProperty<>(key, value, this);
   }
 
   @Override
   public Set<String> keys() {
-    return wrapped.propertyKeys();
+    return edge.propertyKeys();
   }
 
   @Override
   public void remove() {
-    wrapped.remove();
+    edge.remove();
   }
 
   @Override
   public <V> Iterator<Property<V>> properties(String... propertyKeys) {
-    if (wrapped.isInBlockOffsetInitialized()) {
-      return wrapped.inNode().get().getEdgeProperties(Direction.IN, this, wrapped.getInBlockOffset(), propertyKeys);
-    } else if (wrapped.isOutBlockOffsetInitialized()) {
-      return wrapped.outNode().get().getEdgeProperties(Direction.OUT, this, wrapped.getOutBlockOffset(), propertyKeys);
-    } else {
-      throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
-    }
-  }
-
-  @Override
-  public <V> Property<V> property(String propertyKey) {
-    if (wrapped.isInBlockOffsetInitialized()) {
-      return wrapped.inNode().get().getEdgeProperty(Direction.IN, this, wrapped.getInBlockOffset(), propertyKey);
-    } else if (wrapped.isOutBlockOffsetInitialized()) {
-      return wrapped.outNode().get().getEdgeProperty(Direction.OUT, this, wrapped.getOutBlockOffset(), propertyKey);
-    } else {
-      throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
-    }
+    OdbEdgeTp3 self = this;
+    final Stream<Property<V>> stream =
+      Stream.of(propertyKeys)
+            .map(key -> new OdbProperty<>(key, edge.property2(key), self));
+    return stream.iterator();
   }
 
   public boolean isRemoved() {
-    return wrapped.isRemoved();
+    return edge.isRemoved();
   }
 
   @Override
@@ -93,12 +85,12 @@ public class OdbEdgeTp3 implements Edge {
     }
 
     OdbEdgeTp3 otherEdge = (OdbEdgeTp3) other;
-    return wrapped.equals(otherEdge.wrapped);
+    return edge.equals(otherEdge.edge);
   }
 
   @Override
   public int hashCode() {
-    return wrapped.hashCode();
+    return edge.hashCode();
   }
 
 }

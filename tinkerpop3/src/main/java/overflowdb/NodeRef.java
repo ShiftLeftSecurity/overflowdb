@@ -1,10 +1,5 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import overflowdb.tinkerpop.Converters;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,7 +18,7 @@ import java.util.Optional;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
+public abstract class NodeRef<N extends OdbNode> implements Node {
   public final long id;
   protected final OdbGraph graph;
   private N node;
@@ -42,7 +37,7 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     this.id = id;
 
     // this new NodeRef may refer to an already existing node. if so: assign the underlying node
-    final Vertex maybeAlreadyExistent = graph.vertex(id);
+    final Node maybeAlreadyExistent = graph.node(id);
     if (maybeAlreadyExistent != null) {
       final Optional<N> nodeOption = ((NodeRef) maybeAlreadyExistent).getOption();
       if (nodeOption.isPresent()) {
@@ -118,18 +113,8 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
     return graph.storage.readNode(nodeId);
   }
 
-  @Override
-  public Object id() {
-    return id;
-  }
-
   public long id2() {
     return id;
-  }
-
-  @Override
-  public OdbGraph graph() {
-    return graph;
   }
 
   @Override
@@ -156,11 +141,6 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   }
 
   @Override
-  public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    return this.get().addEdge(label, inVertex, keyValues);
-  }
-
-  @Override
   public OdbEdge addEdge2(String label, Node inNode, Object... keyValues) {
     return this.get().addEdge2(label, inNode, keyValues);
   }
@@ -181,16 +161,6 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   }
 
   @Override
-  public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String key, V value, Object... keyValues) {
-    return this.get().property(cardinality, key, value, keyValues);
-  }
-
-  @Override
-  public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
-    return this.get().properties(propertyKeys);
-  }
-
-  @Override
   public Map<String, Object> propertyMap() {
     return this.get().propertyMap();
   }
@@ -203,21 +173,6 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
   @Override
   public <P> void setProperty(String key, P value) {
     this.get().setProperty(key, value);
-  }
-
-  @Override
-  public Iterator<Edge> edges(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
-    return this.get().edges(direction, edgeLabels);
-  }
-
-  @Override
-  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction, String... edgeLabels) {
-    return nodes(Converters.fromTinker(direction), edgeLabels);
-  }
-
-  /* lookup adjacent nodes via direction and labels */
-  public Iterator<Vertex> nodes(Direction direction, String... edgeLabels) {
-    return this.get().nodes(direction, edgeLabels);
   }
 
   /* adjacent OUT nodes (all labels) */
@@ -258,37 +213,37 @@ public abstract class NodeRef<N extends OdbNode> implements Vertex, Node {
 
   /* adjacent OUT edges (all labels) */
   @Override
-  public Iterator<OdbEdgeTp3> outE() {
+  public Iterator<OdbEdge> outE() {
     return this.get().outE();
   }
 
   /* adjacent OUT edges for given labels */
   @Override
-  public Iterator<OdbEdgeTp3> outE(String... edgeLabels) {
+  public Iterator<OdbEdge> outE(String... edgeLabels) {
     return this.get().outE(edgeLabels);
   }
 
   /* adjacent IN edges (all labels) */
   @Override
-  public Iterator<OdbEdgeTp3> inE() {
+  public Iterator<OdbEdge> inE() {
     return this.get().inE();
   }
 
   /* adjacent IN edges for given labels */
   @Override
-  public Iterator<OdbEdgeTp3> inE(String... edgeLabels) {
+  public Iterator<OdbEdge> inE(String... edgeLabels) {
     return this.get().inE(edgeLabels);
   }
 
   /* adjacent OUT/IN edges (all labels) */
   @Override
-  public Iterator<OdbEdgeTp3> bothE() {
+  public Iterator<OdbEdge> bothE() {
     return this.get().bothE();
   }
 
   /* adjacent OUT/IN edges for given labels */
   @Override
-  public Iterator<OdbEdgeTp3> bothE(String... edgeLabels) {
+  public Iterator<OdbEdge> bothE(String... edgeLabels) {
     return this.get().bothE(edgeLabels);
   }
 
