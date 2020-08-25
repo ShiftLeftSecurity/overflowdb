@@ -1,6 +1,6 @@
 package overflowdb.tinkerpop;
 
-import overflowdb.OdbEdge;
+import overflowdb.OdbEdgeTp3;
 import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -135,7 +135,7 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
       jsonGenerator.writeStartArray();
 
-      final Iterator<OdbEdge> edges = graph.edges();
+      final Iterator<OdbEdgeTp3> edges = graph.edges();
       while (edges.hasNext()) {
         serializerProvider.defaultSerializeValue(edges.next(), jsonGenerator);
       }
@@ -169,7 +169,7 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       jsonGenerator.writeString(ArrayList.class.getName());
       jsonGenerator.writeStartArray();
 
-      final Iterator<OdbEdge> edges = graph.edges();
+      final Iterator<OdbEdgeTp3> edges = graph.edges();
       while (edges.hasNext()) {
         GraphSONUtil.writeWithType(edges.next(), jsonGenerator, serializerProvider, typeSerializer);
       }

@@ -365,7 +365,7 @@ public abstract class OdbNode implements Vertex, Node {
 
   @Override
   public Edge addEdge(String label, Vertex inNode, Object... keyValues) {
-    return addEdge2(label, (Node) inNode, keyValues);
+    return new OdbEdgeTp3(addEdge2(label, (Node) inNode, keyValues));
   }
 
   @Override
@@ -374,13 +374,13 @@ public abstract class OdbNode implements Vertex, Node {
     final MultiIterator2<Edge> multiIterator = new MultiIterator2<>();
     if (direction == Direction.IN || direction == Direction.BOTH) {
       for (String label : calcInLabels(edgeLabels)) {
-        Iterator<OdbEdge> edgeIterator = createDummyEdgeIterator(Direction.IN, label);
+        Iterator<OdbEdgeTp3> edgeIterator = createDummyEdgeIterator(Direction.IN, label);
         multiIterator.addIterator(edgeIterator);
       }
     }
     if (direction == Direction.OUT || direction == Direction.BOTH) {
       for (String label : calcOutLabels(edgeLabels)) {
-        Iterator<OdbEdge> edgeIterator = createDummyEdgeIterator(Direction.OUT, label);
+        Iterator<OdbEdgeTp3> edgeIterator = createDummyEdgeIterator(Direction.OUT, label);
         multiIterator.addIterator(edgeIterator);
       }
     }

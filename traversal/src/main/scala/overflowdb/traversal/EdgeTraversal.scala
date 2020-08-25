@@ -1,8 +1,8 @@
 package overflowdb.traversal
 
-import overflowdb.{Node, OdbEdge}
+import overflowdb.{Node, OdbEdgeTp3}
 
-class EdgeTraversal[E <: OdbEdge](val traversal: Traversal[E]) extends AnyVal {
+class EdgeTraversal[E <: OdbEdgeTp3](val traversal: Traversal[E]) extends AnyVal {
 
   /** traverse to outgoing node
    * A ---edge--> [B]

@@ -57,21 +57,21 @@ public interface Node extends OdbElement, Vertex {
   Iterator<Node> both(String... edgeLabels);
 
   /* adjacent OUT edges (all labels) */
-  Iterator<OdbEdge> outE();
+  Iterator<OdbEdgeTp3> outE();
 
   /* adjacent OUT edges for given labels */
-  Iterator<OdbEdge> outE(String... edgeLabels);
+  Iterator<OdbEdgeTp3> outE(String... edgeLabels);
 
   /* adjacent IN edges (all labels) */
-  Iterator<OdbEdge> inE();
+  Iterator<OdbEdgeTp3> inE();
 
   /* adjacent IN edges for given labels */
-  Iterator<OdbEdge> inE(String... edgeLabels);
+  Iterator<OdbEdgeTp3> inE(String... edgeLabels);
 
   /* adjacent OUT/IN edges (all labels) */
-  Iterator<OdbEdge> bothE();
+  Iterator<OdbEdgeTp3> bothE();
 
   /* adjacent OUT/IN edges for given labels */
-  Iterator<OdbEdge> bothE(String... edgeLabels);
+  Iterator<OdbEdgeTp3> bothE(String... edgeLabels);
 
 }

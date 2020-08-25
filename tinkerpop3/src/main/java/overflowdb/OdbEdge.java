@@ -1,18 +1,12 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
-import org.apache.tinkerpop.gremlin.structure.Property;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-import overflowdb.tinkerpop.OdbProperty;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import overflowdb.util.IteratorUtils;
 
-public abstract class OdbEdge implements Edge, OdbElement {
+public abstract class OdbEdge implements OdbElement {
   private final OdbGraph graph;
   private final String label;
   private final NodeRef outNode;
@@ -58,7 +52,7 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   public Iterator<NodeRef> bothNodes() {
-    return IteratorUtils.of(outNode, inNode);
+    return IteratorUtils.from(outNode, inNode);
   }
 
   public int getOutBlockOffset() {
@@ -78,41 +72,13 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   @Override
-  public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction) {
-    switch (direction) {
-      case OUT:
-        return IteratorUtils.of(outNode);
-      case IN:
-        return IteratorUtils.of(inNode);
-      default:
-        return IteratorUtils.of(outNode, inNode);
-    }
-  }
-
-  @Override
-  public Object id() {
-    return this;
-  }
-
-  @Override
   public String label() {
     return label;
   }
 
   @Override
-  public Graph graph() {
-    return graph;
-  }
-
-  @Override
   public OdbGraph graph2() {
     return graph;
-  }
-
-  @Override
-  public <V> Property<V> property(String key, V value) {
-    setProperty(key, value);
-    return new OdbProperty<>(key, value, this);
   }
 
   @Override
@@ -134,7 +100,7 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   @Override
-  public Set<String> keys() {
+  public Set<String> propertyKeys() {
     return specificKeys;
   }
 
@@ -146,17 +112,6 @@ public abstract class OdbEdge implements Edge, OdbElement {
   }
 
   @Override
-  public <V> Iterator<Property<V>> properties(String... propertyKeys) {
-    if (inBlockOffset != -1) {
-      return inNode.get().getEdgeProperties(Direction.IN, this, getInBlockOffset(), propertyKeys);
-    } else if (outBlockOffset != -1) {
-      return outNode.get().getEdgeProperties(Direction.OUT, this, getOutBlockOffset(), propertyKeys);
-    } else {
-      throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
-    }
-  }
-
-  @Override
   public Map<String, Object> propertyMap() {
     if (inBlockOffset != -1) {
       return inNode.get().getEdgePropertyMap(Direction.IN, this, getInBlockOffset());
@@ -164,17 +119,6 @@ public abstract class OdbEdge implements Edge, OdbElement {
       return outNode.get().getEdgePropertyMap(Direction.OUT, this, getOutBlockOffset());
     } else {
       throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
-    }
-  }
-
-  @Override
-  public <V> Property<V> property(String propertyKey) {
-    if (inBlockOffset != -1) {
-      return inNode.get().getEdgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
-    } else if (outBlockOffset != -1) {
-      return outNode.get().getEdgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
-    } else {
-      throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
   }
 
@@ -252,6 +196,14 @@ public abstract class OdbEdge implements Edge, OdbElement {
         inNode.get().blockOffsetToOccurrence(Direction.IN, label(), outNode, inBlockOffset);
     outBlockOffset = outNode.get().occurrenceToBlockOffset(Direction.OUT, label(), inNode,
         edgeOccurenceForSameLabelEdgesBetweenSameNodePair);
+  }
+
+  public boolean isInBlockOffsetInitialized() {
+    return inBlockOffset != -1;
+  }
+
+  public boolean isOutBlockOffsetInitialized() {
+    return outBlockOffset != -1;
   }
 
 }

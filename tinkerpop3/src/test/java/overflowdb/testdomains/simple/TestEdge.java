@@ -3,13 +3,13 @@ package overflowdb.testdomains.simple;
 import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbEdge;
+import overflowdb.OdbEdgeTp3;
 import overflowdb.OdbGraph;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class TestEdge extends OdbEdge {
+public class TestEdge extends OdbEdgeTp3 {
   public static final String LABEL = "testEdge";
   public static final String LONG_PROPERTY = "longProperty";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(LONG_PROPERTY));

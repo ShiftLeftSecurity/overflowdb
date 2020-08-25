@@ -9,8 +9,15 @@ import java.util.List;
 
 /**
  * Subclass-safe variant of MultiIterator from Tinkerpop
+ * // TODO drop 2 suffix once tinkerpop is gone
  */
 public final class MultiIterator2<T> implements Iterator<T>, Serializable {
+
+  public static <A> MultiIterator2<A> from(Iterator<A>... iterators) {
+    MultiIterator2<A> result = new MultiIterator2<>();
+    for (Iterator iter : iterators) result.addIterator(iter);
+    return result;
+  }
 
   private final List<Iterator<? extends T>> iterators = new ArrayList<>();
   private int current = 0;

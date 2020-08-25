@@ -285,7 +285,7 @@ public final class OdbGraph implements Graph {
 
   public int edgeCount() {
     int i = 0;
-    final Iterator<OdbEdge> edges = edges();
+    final Iterator<OdbEdgeTp3> edges = edges();
     while (edges.hasNext()) {
       edges.next();
       i++;
@@ -294,17 +294,17 @@ public final class OdbGraph implements Graph {
   }
 
   /** Iterator over all edges - alias for `edges` */
-  public Iterator<OdbEdge> E() {
+  public Iterator<OdbEdgeTp3> E() {
     return edges();
   }
 
   /** Iterator over all edges */
-  public Iterator<OdbEdge> edges() {
+  public Iterator<OdbEdgeTp3> edges() {
     return IteratorUtils.flatMap(nodes(), node -> node.outE());
   }
 
   /** Iterator over edges with given label */
-  public Iterator<OdbEdge> edges(String label) {
+  public Iterator<OdbEdgeTp3> edges(String label) {
     return IteratorUtils.flatMap(nodes(), node -> node.outE(label));
   }
 

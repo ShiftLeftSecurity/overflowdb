@@ -52,7 +52,7 @@ class NodeSugar(val node: Node) extends AnyVal {
 }
 
 private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq[Property[_]]) {
-  def -->(inNode: Node): OdbEdge = {
+  def -->(inNode: Node): OdbEdgeTp3 = {
     val keyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
     properties.foreach { case Property(key, value) =>

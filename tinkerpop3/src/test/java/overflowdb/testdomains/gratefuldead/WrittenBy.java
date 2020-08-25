@@ -4,13 +4,13 @@ import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbGraph;
-import overflowdb.OdbEdge;
+import overflowdb.OdbEdgeTp3;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class WrittenBy extends OdbEdge implements Serializable {
+public class WrittenBy extends OdbEdgeTp3 implements Serializable {
   public static final String LABEL = "writtenBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 

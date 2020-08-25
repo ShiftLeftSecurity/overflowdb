@@ -4,7 +4,7 @@ import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.OdbConfig;
-import overflowdb.OdbEdge;
+import overflowdb.OdbEdgeTp3;
 import overflowdb.OdbGraph;
 import overflowdb.testdomains.gratefuldead.Artist;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
@@ -35,7 +35,7 @@ public class GraphSaveRestoreTest {
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n1 = graph.addNode(Song.label, Song.NAME, "Song 2");
-      OdbEdge edge = n0.addEdge2(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
+      OdbEdgeTp3 edge = n0.addEdge2(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
       node0Id = n0.id2();
       node1Id = n1.id2();
     } // ARM auto-close will trigger saving to disk because we specified a location
@@ -142,7 +142,7 @@ public class GraphSaveRestoreTest {
     modifyAndCloseGraph(storageFile, graph -> {
       // update edge property
       Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
-      OdbEdge followedBy = newSong.inE().next();
+      OdbEdgeTp3 followedBy = newSong.inE().next();
       followedBy.setProperty(FollowedBy.WEIGHT, 10);
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
@@ -151,7 +151,7 @@ public class GraphSaveRestoreTest {
     modifyAndCloseGraph(storageFile, graph -> {
       // remove edge
       Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
-      OdbEdge followedBy = newSong.inE().next();
+      OdbEdgeTp3 followedBy = newSong.inE().next();
       followedBy.remove();
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
