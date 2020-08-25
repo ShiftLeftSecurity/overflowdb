@@ -3,7 +3,7 @@ package overflowdb.testdomains.simple;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
-import overflowdb.OdbNodeProperty;
+import overflowdb.tinkerpop.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 

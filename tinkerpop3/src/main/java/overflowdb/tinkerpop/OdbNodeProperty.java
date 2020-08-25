@@ -1,9 +1,10 @@
-package overflowdb;
+package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import overflowdb.OdbNode;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -63,7 +64,9 @@ public class OdbNodeProperty<V> implements Element, VertexProperty<V> {
 
   @Override
   public void remove() {
-    ((OdbNode) vertex).removeSpecificProperty(key);
+//    ((OdbNode) vertex).removeSpecificProperty(key);
+    // TODO uncomment once OdbNode is in tinkerpop package again
+    throw new RuntimeException("TODO uncomment once OdbNode is in tinkerpop package again");
   }
 
   @Override

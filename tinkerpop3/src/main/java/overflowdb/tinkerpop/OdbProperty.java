@@ -1,4 +1,4 @@
-package overflowdb;
+package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Property;

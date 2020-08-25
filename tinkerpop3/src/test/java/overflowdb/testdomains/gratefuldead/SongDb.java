@@ -3,15 +3,11 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
-import overflowdb.OdbNodeProperty;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 
 public class SongDb extends OdbNode {

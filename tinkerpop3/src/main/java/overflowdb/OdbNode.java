@@ -3,6 +3,8 @@ package overflowdb;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.tinkerpop.Converters;
+import overflowdb.tinkerpop.OdbNodeProperty;
+import overflowdb.tinkerpop.OdbProperty;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.PackedIntArray;

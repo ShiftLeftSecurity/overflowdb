@@ -5,6 +5,7 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import overflowdb.tinkerpop.OdbProperty;
 
 import java.util.Iterator;
 import java.util.Map;
