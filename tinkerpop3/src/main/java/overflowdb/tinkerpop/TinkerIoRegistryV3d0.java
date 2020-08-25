@@ -1,17 +1,14 @@
-package overflowdb.tp3;
+package overflowdb.tinkerpop;
 
 import overflowdb.OdbEdge;
 import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
-import org.apache.tinkerpop.gremlin.structure.io.GraphReader;
-import org.apache.tinkerpop.gremlin.structure.io.GraphWriter;
 import org.apache.tinkerpop.gremlin.structure.io.IoRegistry;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONIo;
 import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONTokens;
-import org.apache.tinkerpop.gremlin.structure.io.graphson.GraphSONUtil;
+import org.apache.tinkerpop.gremlin.structure.io.graphson.TinkerPopJacksonModule;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoIo;
 import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoWriter;
 import org.apache.tinkerpop.shaded.jackson.core.JsonGenerator;
@@ -20,9 +17,7 @@ import org.apache.tinkerpop.shaded.jackson.core.JsonProcessingException;
 import org.apache.tinkerpop.shaded.jackson.databind.DeserializationContext;
 import org.apache.tinkerpop.shaded.jackson.databind.SerializerProvider;
 import org.apache.tinkerpop.shaded.jackson.databind.deser.std.StdDeserializer;
-import org.apache.tinkerpop.shaded.jackson.databind.jsontype.TypeSerializer;
-import org.apache.tinkerpop.shaded.jackson.databind.module.SimpleModule;
-import org.apache.tinkerpop.shaded.jackson.databind.ser.std.StdSerializer;
+import org.apache.tinkerpop.shaded.jackson.databind.ser.std.StdScalarSerializer;
 import org.apache.tinkerpop.shaded.kryo.Kryo;
 import org.apache.tinkerpop.shaded.kryo.Serializer;
 import org.apache.tinkerpop.shaded.kryo.io.Input;
@@ -30,8 +25,9 @@ import org.apache.tinkerpop.shaded.kryo.io.Output;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * An implementation of the {@link IoRegistry} interface that provides serializers with custom configurations for
@@ -44,16 +40,16 @@ import java.util.Iterator;
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
+public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 
-  private static final TinkerIoRegistryV1d0 INSTANCE = new TinkerIoRegistryV1d0();
+  private static final TinkerIoRegistryV3d0 INSTANCE = new TinkerIoRegistryV3d0();
 
-  private TinkerIoRegistryV1d0() {
+  private TinkerIoRegistryV3d0() {
     register(GryoIo.class, OdbGraph.class, new GryoSerializer());
-    register(GraphSONIo.class, null, new TinkerModule());
+    register(GraphSONIo.class, null, new TinkerModuleV2d0());
   }
 
-  public static TinkerIoRegistryV1d0 instance() {
+  public static TinkerIoRegistryV3d0 instance() {
     return INSTANCE;
   }
 
@@ -93,26 +89,38 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
   }
 
   /**
-   * Provides a method to serialize an entire {@link OdbGraph} into itself for GraphSON.  This is useful when
+   * Provides a method to serialize an entire {@link OdbGraph} into itself for GraphSON. This is useful when
    * shipping small graphs around through Gremlin Server.
    */
-  final static class TinkerModule extends SimpleModule {
-    public TinkerModule() {
-      super("tinkergraph-1.0");
+  final static class TinkerModuleV2d0 extends TinkerPopJacksonModule {
+    public TinkerModuleV2d0() {
+      super("tinkergraph-2.0");
       addSerializer(OdbGraph.class, new JacksonSerializer());
       addDeserializer(OdbGraph.class, new JacksonDeserializer());
+    }
+
+    @Override
+    public Map<Class, String> getTypeDefinitions() {
+      return new HashMap<Class, String>() {{
+        put(OdbGraph.class, "graph");
+      }};
+    }
+
+    @Override
+    public String getTypeNamespace() {
+      return "tinker";
     }
   }
 
   /**
    * Serializes the graph into an edge list format.  Edge list is a better choices than adjacency list (which is
-   * typically standard from the {@link GraphReader} and {@link GraphWriter} perspective) in this case because
+   * typically standard from the {@link org.apache.tinkerpop.gremlin.structure.io.GraphReader} and {@link org.apache.tinkerpop.gremlin.structure.io.GraphWriter} perspective) in this case because
    * the use case for this isn't around massive graphs.  The use case is for "small" subgraphs that are being
    * shipped over the wire from Gremlin Server. Edge list format is a bit easier for non-JVM languages to work
    * with as a format and doesn't require a cache for loading (as vertex labels are not serialized in adjacency
    * list).
    */
-  final static class JacksonSerializer extends StdSerializer<OdbGraph> {
+  final static class JacksonSerializer extends StdScalarSerializer<OdbGraph> {
 
     public JacksonSerializer() {
       super(OdbGraph.class);
@@ -122,7 +130,6 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
     public void serialize(final OdbGraph graph, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider)
         throws IOException {
       jsonGenerator.writeStartObject();
-
       jsonGenerator.writeFieldName(GraphSONTokens.VERTICES);
       jsonGenerator.writeStartArray();
 
@@ -132,7 +139,6 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       }
 
       jsonGenerator.writeEndArray();
-
       jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
       jsonGenerator.writeStartArray();
 
@@ -142,42 +148,6 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       }
 
       jsonGenerator.writeEndArray();
-
-      jsonGenerator.writeEndObject();
-    }
-
-    @Override
-    public void serializeWithType(final OdbGraph graph, final JsonGenerator jsonGenerator,
-                                  final SerializerProvider serializerProvider, final TypeSerializer typeSerializer) throws IOException {
-      jsonGenerator.writeStartObject();
-      jsonGenerator.writeStringField(GraphSONTokens.CLASS, OdbGraph.class.getName());
-
-      jsonGenerator.writeFieldName(GraphSONTokens.VERTICES);
-      jsonGenerator.writeStartArray();
-      jsonGenerator.writeString(ArrayList.class.getName());
-      jsonGenerator.writeStartArray();
-
-      final Iterator<Vertex> vertices = graph.vertices();
-      while (vertices.hasNext()) {
-        GraphSONUtil.writeWithType(vertices.next(), jsonGenerator, serializerProvider, typeSerializer);
-      }
-
-      jsonGenerator.writeEndArray();
-      jsonGenerator.writeEndArray();
-
-      jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
-      jsonGenerator.writeStartArray();
-      jsonGenerator.writeString(ArrayList.class.getName());
-      jsonGenerator.writeStartArray();
-
-      final Iterator<OdbEdge> edges = graph.edges();
-      while (edges.hasNext()) {
-        GraphSONUtil.writeWithType(edges.next(), jsonGenerator, serializerProvider, typeSerializer);
-      }
-
-      jsonGenerator.writeEndArray();
-      jsonGenerator.writeEndArray();
-
       jsonGenerator.writeEndObject();
     }
   }
@@ -191,45 +161,28 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
     }
 
     @Override
-    public OdbGraph deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public OdbGraph deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
       throw new NotImplementedException("");
 //      final Configuration conf = new BaseConfiguration();
 //      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
 //      final OdbGraph graph = OdbGraph.open(conf);
 //
-//      final List<Map<String, Object>> edges;
-//      final List<Map<String, Object>> vertices;
-//      if (!jsonParser.getCurrentToken().isStructStart()) {
-//        if (!jsonParser.getCurrentName().equals(GraphSONTokens.VERTICES))
-//          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.VERTICES));
-//
-//        jsonParser.nextToken();
-//        vertices = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
-//        jsonParser.nextToken();
-//
-//        if (!jsonParser.getCurrentName().equals(GraphSONTokens.EDGES))
-//          throw new IOException(String.format("Expected a '%s' key", GraphSONTokens.EDGES));
-//
-//        jsonParser.nextToken();
-//        edges = (List<Map<String, Object>>) deserializationContext.readValue(jsonParser, ArrayList.class);
-//      } else {
-//        final Map<String, Object> graphData = deserializationContext.readValue(jsonParser, HashMap.class);
-//        vertices = (List<Map<String, Object>>) graphData.get(GraphSONTokens.VERTICES);
-//        edges = (List<Map<String, Object>>) graphData.get(GraphSONTokens.EDGES);
-//      }
-//
-//      for (Map<String, Object> vertexData : vertices) {
-//        final DetachedVertex detached = new DetachedVertex(vertexData.get(GraphSONTokens.ID),
-//            vertexData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) vertexData.get(GraphSONTokens.PROPERTIES));
-//        detached.attach(Attachable.Method.getOrCreate(graph));
-//      }
-//
-//      for (Map<String, Object> edgeData : edges) {
-//        final DetachedEdge detached = new DetachedEdge(edgeData.get(GraphSONTokens.ID),
-//            edgeData.get(GraphSONTokens.LABEL).toString(), (Map<String, Object>) edgeData.get(GraphSONTokens.PROPERTIES),
-//            edgeData.get(GraphSONTokens.OUT), edgeData.get(GraphSONTokens.OUT_LABEL).toString(),
-//            edgeData.get(GraphSONTokens.IN), edgeData.get(GraphSONTokens.IN_LABEL).toString());
-//        detached.attach(Attachable.Method.getOrCreate(graph));
+//      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
+//        if (jsonParser.getCurrentName().equals("vertices")) {
+//          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+//            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
+//              final DetachedVertex v = (DetachedVertex) deserializationContext.readValue(jsonParser, Vertex.class);
+//              v.attach(Attachable.Method.getOrCreate(graph));
+//            }
+//          }
+//        } else if (jsonParser.getCurrentName().equals("edges")) {
+//          while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
+//            if (jsonParser.currentToken() == JsonToken.START_OBJECT) {
+//              final DetachedEdge e = (DetachedEdge) deserializationContext.readValue(jsonParser, Edge.class);
+//              e.attach(Attachable.Method.getOrCreate(graph));
+//            }
+//          }
+//        }
 //      }
 //
 //      return graph;

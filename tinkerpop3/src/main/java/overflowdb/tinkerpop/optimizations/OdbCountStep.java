@@ -1,4 +1,4 @@
-package overflowdb.tp3.optimizations;
+package overflowdb.tinkerpop.optimizations;
 
 import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;

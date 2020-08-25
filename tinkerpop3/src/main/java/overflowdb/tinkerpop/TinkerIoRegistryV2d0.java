@@ -1,9 +1,8 @@
-package overflowdb.tp3;
+package overflowdb.tinkerpop;
 
 import overflowdb.OdbEdge;
 import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
 import org.apache.tinkerpop.gremlin.structure.io.IoRegistry;
@@ -41,16 +40,16 @@ import java.util.Map;
  *
  * @author Stephen Mallette (http://stephen.genoprime.com)
  */
-public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
+public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
 
-  private static final TinkerIoRegistryV3d0 INSTANCE = new TinkerIoRegistryV3d0();
+  private static final TinkerIoRegistryV2d0 INSTANCE = new TinkerIoRegistryV2d0();
 
-  private TinkerIoRegistryV3d0() {
+  private TinkerIoRegistryV2d0() {
     register(GryoIo.class, OdbGraph.class, new GryoSerializer());
     register(GraphSONIo.class, null, new TinkerModuleV2d0());
   }
 
-  public static TinkerIoRegistryV3d0 instance() {
+  public static TinkerIoRegistryV2d0 instance() {
     return INSTANCE;
   }
 
@@ -187,6 +186,11 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 //      }
 //
 //      return graph;
+    }
+
+    @Override
+    public boolean isCachable() {
+      return true;
     }
   }
 }

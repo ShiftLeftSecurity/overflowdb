@@ -1,4 +1,4 @@
-package overflowdb.tp3.optimizations;
+package overflowdb.tinkerpop.optimizations;
 
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;

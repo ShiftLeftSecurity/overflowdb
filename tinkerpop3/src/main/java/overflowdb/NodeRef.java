@@ -3,7 +3,7 @@ package overflowdb;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import overflowdb.tp3.Converters;
+import overflowdb.tinkerpop.Converters;
 
 import java.io.IOException;
 import java.util.Iterator;

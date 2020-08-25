@@ -1,4 +1,4 @@
-package overflowdb.tp3;
+package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.util.GraphVariableHelper;

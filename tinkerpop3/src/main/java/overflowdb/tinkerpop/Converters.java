@@ -1,4 +1,4 @@
-package overflowdb.tp3;
+package overflowdb.tinkerpop;
 
 import overflowdb.Direction;
 
