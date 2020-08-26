@@ -18,7 +18,7 @@ public class OdbEdgeTp3 implements Edge {
     return new OdbEdgeTp3(edge);
   }
 
-  public OdbEdgeTp3(OdbEdge edge) {
+  private OdbEdgeTp3(OdbEdge edge) {
     this.edge = edge;
   }
 

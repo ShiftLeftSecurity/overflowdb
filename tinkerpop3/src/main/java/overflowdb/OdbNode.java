@@ -1,7 +1,5 @@
 package overflowdb;
 
-import overflowdb.tinkerpop.OdbNodeProperty;
-import overflowdb.tinkerpop.OdbProperty;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.PackedIntArray;
@@ -11,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -55,15 +55,6 @@ public abstract class OdbNode implements Node {
 
   public abstract NodeLayoutInformation layoutInformation();
 
-  protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-    final Object value = specificProperty2(key);
-    if (value != null) return IteratorUtils.of(new OdbNodeProperty(this, key, value));
-    else return Collections.emptyIterator();
-  }
-
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  protected abstract Object specificProperty2(String key);
-
   public Object[] getAdjacentNodesWithProperties() {
     return adjacentNodesWithProperties;
   }
@@ -101,18 +92,6 @@ public abstract class OdbNode implements Node {
     return ref.label();
   }
 
-  /* You can override this default implementation in concrete specialised instances for performance
-   * if you like, since technically the Iterator isn't necessary.
-   * This default implementation works fine though. */
-  protected <V> VertexProperty<V> specificProperty(String key) {
-    Iterator<VertexProperty<V>> iter = specificProperties(key);
-    if (iter.hasNext()) {
-      return iter.next();
-    } else {
-      return VertexProperty.empty();
-    }
-  }
-
   @Override
   public Map<String, Object> propertyMap() {
     final Set<String> propertyKeys = layoutInformation().propertyKeys();
@@ -127,26 +106,31 @@ public abstract class OdbNode implements Node {
   }
 
   @Override
-  public <P> P property2(String propertyKey) {
-    return (P) specificProperty2(propertyKey);
+  public void setProperty(String key, Object value) {
+    updateSpecificProperty(key, value);
+    ref.graph.indexManager.putIfIndexed(key, value, ref);
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
   }
 
   @Override
-  public <P> void setProperty(String key, P value) {
-    this.property(VertexProperty.Cardinality.single, key, value);
+  public void removeProperty(String key) {
+    removeSpecificProperty(key);
+    ref.graph.indexManager.remove(key, ref);
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
   }
 
-  protected abstract <V> VertexProperty<V> updateSpecificProperty(
-      VertexProperty.Cardinality cardinality, String key, V value);
+  protected abstract void updateSpecificProperty(String key, Object value);
 
   protected abstract void removeSpecificProperty(String key);
 
   @Override
   public void remove() {
-    final List<Edge> edges = new ArrayList<>();
+    final List<OdbEdge> edges = new ArrayList<>();
     bothE().forEachRemaining(edges::add);
-    for (Edge edge : edges) {
-      if (!((OdbEdge) edge).isRemoved()) {
+    for (OdbEdge edge : edges) {
+      if (!edge.isRemoved()) {
         edge.remove();
       }
     }
@@ -165,19 +149,19 @@ public abstract class OdbNode implements Node {
     this.dirty = false;
   }
 
-  public <V> Iterator<Property<V>> getEdgeProperties(Direction direction,
+  public <V> Iterator<V> getEdgeProperties(Direction direction,
                                                      OdbEdge edge,
                                                      int blockOffset,
                                                      String... keys) {
-    List<Property<V>> result = new ArrayList<>();
+    List<V> result = new ArrayList<>();
 
     if (keys.length != 0) {
       for (String key : keys) {
-        result.add(getEdgeProperty(direction, edge, blockOffset, key));
+        result.add(getEdgeProperty2(direction, edge, blockOffset, key));
       }
     } else {
       for (String propertyKey : layoutInformation().edgePropertyKeys(edge.label())) {
-        result.add(getEdgeProperty(direction, edge, blockOffset, propertyKey));
+        result.add(getEdgeProperty2(direction, edge, blockOffset, propertyKey));
       }
     }
 
@@ -196,15 +180,12 @@ public abstract class OdbNode implements Node {
     return results;
   }
 
-  public <V> Property<V> getEdgeProperty(Direction direction,
-                                         OdbEdge edge,
-                                         int blockOffset,
-                                         String key) {
+  public <V> Optional<V> getEdgePropertyOption(Direction direction,
+                                               OdbEdge edge,
+                                               int blockOffset,
+                                               String key) {
     V value = getEdgeProperty2(direction, edge, blockOffset, key);
-    if (value == null) {
-      return EmptyProperty.instance();
-    }
-    return new OdbProperty<>(key, value, edge);
+    return Optional.ofNullable(value);
   }
 
   // TODO drop suffix `2` after tinkerpop interface is gone
@@ -297,23 +278,6 @@ public abstract class OdbNode implements Node {
   @Override
   public void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues) {
     addEdgeSilent(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
-  }
-
-  /* lookup adjacent nodes via direction and labels */
-  public Iterator<Vertex> nodes(Direction direction, String... edgeLabels) {
-    final MultiIterator2<Vertex> multiIterator = new MultiIterator2<>();
-    if (direction == Direction.IN || direction == Direction.BOTH) {
-      for (String label : calcInLabels(edgeLabels)) {
-        multiIterator.addIterator(in(label));
-      }
-    }
-    if (direction == Direction.OUT || direction == Direction.BOTH) {
-      for (String label : calcOutLabels(edgeLabels)) {
-        multiIterator.addIterator(out(label));
-      }
-    }
-
-    return multiIterator;
   }
 
   /* adjacent OUT nodes (all labels) */
@@ -432,7 +396,7 @@ public abstract class OdbNode implements Node {
     for (int i = start; i <= start + blockOffset; i += strideSize) {
       final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
-          adjacentNodeWithProperty.id().equals(otherNode.id())) {
+          adjacentNodeWithProperty.id2() == otherNode.id2()) {
         occurrenceCount++;
       }
     }
@@ -562,7 +526,7 @@ public abstract class OdbNode implements Node {
       return layoutInformation().allowedOutEdgeLabels();
     else if (direction.equals(Direction.IN))
       return layoutInformation().allowedInEdgeLabels();
-    else throw new NotImplementedException(direction.toString());
+    else throw new UnsupportedOperationException(direction.toString());
   }
 
   private int storeAdjacentNode(Direction direction,
@@ -573,11 +537,9 @@ public abstract class OdbNode implements Node {
 
     /* set edge properties */
     for (int i = 0; i < edgeKeyValues.length; i = i + 2) {
-      if (!edgeKeyValues[i].equals(T.id) && !edgeKeyValues[i].equals(T.label)) {
-        String key = (String) edgeKeyValues[i];
-        Object value = edgeKeyValues[i + 1];
-        setEdgeProperty(direction, edgeLabel, key, value, blockOffset);
-      }
+      String key = (String) edgeKeyValues[i];
+      Object value = edgeKeyValues[i + 1];
+      setEdgeProperty(direction, edgeLabel, key, value, blockOffset);
     }
 
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
@@ -647,22 +609,6 @@ public abstract class OdbNode implements Node {
    */
   private final int blockLength(int offsetPosition) {
     return edgeOffsets.get(2 * offsetPosition + 1);
-  }
-
-  private final String[] calcInLabels(String... edgeLabels) {
-    if (edgeLabels.length != 0) {
-      return edgeLabels;
-    } else {
-      return layoutInformation().allowedInEdgeLabels();
-    }
-  }
-
-  private final String[] calcOutLabels(String... edgeLabels) {
-    if (edgeLabels.length != 0) {
-      return edgeLabels;
-    } else {
-      return layoutInformation().allowedOutEdgeLabels();
-    }
   }
 
   /**

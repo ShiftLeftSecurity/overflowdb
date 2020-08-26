@@ -56,7 +56,7 @@ public final class OdbIndexManager {
     dirtyFlags.put(propertyName, false);
     valueToNodeIds.entrySet().parallelStream().forEach(entry ->
         LongStream.of(entry.getValue())
-          .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef)graph.vertex(nodeId))));
+          .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef) graph.node(nodeId))));
   }
 
   public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
@@ -115,15 +115,15 @@ public final class OdbIndexManager {
     }
   }
 
-  public final void remove(final String key, final Object value, final NodeRef nodeRef) {
+  public final void remove(final String key, final NodeRef nodeRef) {
     dirtyFlags.put(key, true);
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null != keyMap) {
-      Set<NodeRef> objects = keyMap.get(value);
+      Set<NodeRef> objects = keyMap.get(key);
       if (null != objects) {
         objects.remove(nodeRef);
         if (objects.size() == 0) {
-          keyMap.remove(value);
+          keyMap.remove(key);
         }
       }
     }

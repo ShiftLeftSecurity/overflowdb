@@ -17,7 +17,9 @@ public interface OdbElement {
   /** Map with all properties */
   Map<String, Object> propertyMap();
 
-  <P> void setProperty(String key, P value);
+  void setProperty(String key, Object value);
+
+  void removeProperty(String key);
 
   void remove();
 }

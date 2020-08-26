@@ -45,7 +45,16 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class OdbGraphTp3 implements Graph {
+  private final OdbGraph graph;
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
+  public static OdbGraphTp3 wrap(OdbGraph graph) {
+    return new OdbGraphTp3(graph);
+  }
+
+  private OdbGraphTp3(OdbGraph graph) {
+    this.graph = graph;
+  }
 
   static {
     TraversalStrategies.GlobalCache.registerStrategies(OdbGraphTp3.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
@@ -54,58 +63,7 @@ public final class OdbGraphTp3 implements Graph {
   }
 
   private final GraphFeatures features = new GraphFeatures();
-  protected final AtomicLong currentId = new AtomicLong(-1L);
-  protected final NodesList nodes = new NodesList(10000);
-
   protected final GraphVariables variables = new GraphVariables();
-  public final OdbIndexManager indexManager = new OdbIndexManager(this);
-  private final OdbConfig config;
-  private boolean closed = false;
-
-  protected final Map<String, NodeFactory> nodeFactoryByLabel;
-  protected final Map<String, EdgeFactory> edgeFactoryByLabel;
-
-  protected final OdbStorage storage;
-  protected final Optional<HeapUsageMonitor> heapUsageMonitor;
-  protected final ReferenceManager referenceManager;
-
-  public static OdbGraphTp3 open(OdbConfig configuration,
-                                 List<NodeFactory<?>> nodeFactories,
-                                 List<EdgeFactory<?>> edgeFactories) {
-    Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
-    Map<Integer, NodeFactory> nodeFactoryByLabelId = new HashMap<>(nodeFactories.size());
-    Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
-    nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
-    nodeFactories.forEach(factory -> nodeFactoryByLabelId.put(factory.forLabelId(), factory));
-    edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OdbGraphTp3(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
-  }
-
-  private OdbGraphTp3(OdbConfig config,
-                      Map<String, NodeFactory> nodeFactoryByLabel,
-                      Map<Integer, NodeFactory> nodeFactoryByLabelId,
-                      Map<String, EdgeFactory> edgeFactoryByLabel) {
-    this.config = config;
-    this.nodeFactoryByLabel = nodeFactoryByLabel;
-    this.edgeFactoryByLabel = edgeFactoryByLabel;
-
-    NodeDeserializer nodeDeserializer = new NodeDeserializer(
-        this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
-    if (config.getStorageLocation().isPresent()) {
-      storage = OdbStorage.createWithSpecificLocation(
-          nodeDeserializer,
-          new File(config.getStorageLocation().get()),
-          config.isSerializationStatsEnabled()
-      );
-      initElementCollections(storage);
-    } else {
-      storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
-    }
-    referenceManager = new ReferenceManager(storage);
-    heapUsageMonitor = config.isOverflowEnabled() ?
-        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
-        Optional.empty();
-  }
 
   private void initElementCollections(OdbStorage storage) {
     long start = System.currentTimeMillis();

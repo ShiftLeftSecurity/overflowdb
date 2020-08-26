@@ -15,7 +15,7 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
     return new NodeRefTp3<>(nodeRef);
   }
 
-  public NodeRefTp3(NodeRef<N> nodeRef) {
+  private NodeRefTp3(NodeRef<N> nodeRef) {
     this.nodeRef = nodeRef;
   }
 

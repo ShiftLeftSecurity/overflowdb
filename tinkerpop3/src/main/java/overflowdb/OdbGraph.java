@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public final class OdbGraph {
+public final class OdbGraph implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected final AtomicLong currentId = new AtomicLong(-1L);
@@ -133,26 +133,6 @@ public final class OdbGraph {
     return node;
   }
 
-  // TODO: move to tinkerpop-specific OdbGraph wrapper
-  @Override
-  public Vertex addVertex(final Object... keyValues) {
-    final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
-    Optional<Long> suppliedId = ElementHelper.getIdValue(keyValues).map(this::parseLong);
-    long id = suppliedId.orElseGet(() -> currentId.incrementAndGet());
-    return addNode(id, label, keyValues);
-  }
-
-  private long parseLong(Object id) {
-    if (id instanceof Long)
-      return (long) id;
-    else if (id instanceof Number)
-      return ((Number) id).longValue();
-    else if (id instanceof String)
-      return Long.parseLong((String) id);
-    else
-      throw new IllegalArgumentException(String.format("Expected an id that is convertible to Long but received %s", id.getClass()));
-  }
-
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
     final NodeRef node;
     if (!nodeFactoryByLabel.containsKey(label)) {
@@ -164,31 +144,6 @@ public final class OdbGraph {
     node = underlying.ref;
     ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);
     return node;
-  }
-
-  @Override
-  public <C extends GraphComputer> C compute(final Class<C> graphComputerClass) {
-    throw Graph.Exceptions.graphDoesNotSupportProvidedGraphComputer(graphComputerClass);
-  }
-
-  @Override
-  public GraphComputer compute() {
-    throw Graph.Exceptions.graphComputerNotSupported();
-  }
-
-  @Override
-  public Variables variables() {
-    return this.variables;
-  }
-
-  @Override
-  public <I extends Io> I io(final Io.Builder<I> builder) {
-    if (builder.requiresVersion(GryoVersion.V1_0) || builder.requiresVersion(GraphSONVersion.V1_0))
-      return (I) builder.graph(this).onMapper(mapper -> mapper.addRegistry(TinkerIoRegistryV1d0.instance())).create();
-    else if (builder.requiresVersion(GraphSONVersion.V2_0))   // there is no gryo v2
-      return (I) builder.graph(this).onMapper(mapper -> mapper.addRegistry(TinkerIoRegistryV2d0.instance())).create();
-    else
-      return (I) builder.graph(this).onMapper(mapper -> mapper.addRegistry(TinkerIoRegistryV3d0.instance())).create();
   }
 
   @Override
