@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class OdbNodeTp3 implements Vertex {
-  private final OdbNode node;
+  public final OdbNode node;
 
   public static OdbNodeTp3 wrap(OdbNode node) {
     return new OdbNodeTp3(node);

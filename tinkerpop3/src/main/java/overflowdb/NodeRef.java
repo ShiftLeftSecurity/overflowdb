@@ -171,7 +171,7 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   }
 
   @Override
-  public <P> void setProperty(String key, P value) {
+  public void setProperty(String key, Object value) {
     this.get().setProperty(key, value);
   }
 

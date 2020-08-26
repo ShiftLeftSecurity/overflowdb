@@ -82,7 +82,7 @@ public abstract class OdbEdge implements OdbElement {
   }
 
   @Override
-  public <P> void setProperty(String key, P value) {
+  public void setProperty(String key, Object value) {
     // TODO check if it's an allowed property key
     if (inBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
       if (outBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {

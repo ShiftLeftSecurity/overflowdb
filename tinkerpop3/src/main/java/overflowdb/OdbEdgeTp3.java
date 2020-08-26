@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class OdbEdgeTp3 implements Edge {
-  private final OdbEdge edge;
+  public final OdbEdge edge;
 
   public static OdbEdgeTp3 wrap(OdbEdge edge) {
     return new OdbEdgeTp3(edge);
@@ -46,7 +46,7 @@ public class OdbEdgeTp3 implements Edge {
 
   @Override
   public Graph graph() {
-    return edge.graph2();
+    return OdbGraphTp3.wrap(edge.graph2());
   }
 
   @Override
@@ -72,10 +72,6 @@ public class OdbEdgeTp3 implements Edge {
       Stream.of(propertyKeys)
             .map(key -> new OdbProperty<>(key, edge.property2(key), self));
     return stream.iterator();
-  }
-
-  public boolean isRemoved() {
-    return edge.isRemoved();
   }
 
   @Override

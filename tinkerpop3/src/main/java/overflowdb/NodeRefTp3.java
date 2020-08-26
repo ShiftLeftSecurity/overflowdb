@@ -2,6 +2,7 @@ package overflowdb;
 
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
@@ -9,7 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class NodeRefTp3<N extends OdbNode> implements Vertex {
-  private final NodeRef<N> nodeRef;
+  public final NodeRef<N> nodeRef;
 
   public static <N extends OdbNode> NodeRefTp3 wrap(NodeRef<N> nodeRef) {
     return new NodeRefTp3<>(nodeRef);
@@ -30,8 +31,8 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
   }
 
   @Override
-  public OdbGraph graph() {
-    return nodeRef.graph2();
+  public Graph graph() {
+    return OdbGraphTp3.wrap(nodeRef.graph2());
   }
 
   @Override
@@ -78,12 +79,7 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
-    return nodes(direction, edgeLabels);
-  }
-
-  /* lookup adjacent nodes via direction and labels */
-  public Iterator<Vertex> nodes(Direction direction, String... edgeLabels) {
-    return OdbNodeTp3.wrap(nodeRef.get()).nodes(direction, edgeLabels);
+    return OdbNodeTp3.wrap(nodeRef.get()).vertices(direction, edgeLabels);
   }
 
   @Override

@@ -1,6 +1,5 @@
 package overflowdb;
 
-import org.apache.commons.collections.iterators.EmptyIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
@@ -45,7 +44,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class OdbGraphTp3 implements Graph {
-  private final OdbGraph graph;
+  public final OdbGraph graph;
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   public static OdbGraphTp3 wrap(OdbGraph graph) {
@@ -292,23 +292,6 @@ public final class OdbGraphTp3 implements Graph {
 
   public final Node node(long id) {
     return nodes.nodeById(id);
-  }
-
-  /** Iterator over nodes with provided ids
-   * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public final Iterator<Node> nodes(long... ids) {
-    if (ids.length == 0) {
-      return EmptyIterator.INSTANCE;
-    } else if (ids.length == 1) {
-      // optimization for common case where only one id is requested
-      return IteratorUtils.of(node(ids[0]));
-    } else {
-      final Set<Long> idsSet = new HashSet<>(ids.length);
-      for (long id : ids) {
-        idsSet.add(id);
-      }
-      return IteratorUtils.map(idsSet.iterator(), id -> node(id));
-    }
   }
 
   public Iterator<Node> nodes(final String label) {

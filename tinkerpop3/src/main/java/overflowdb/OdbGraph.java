@@ -1,24 +1,17 @@
 package overflowdb;
 
-import org.apache.commons.collections.iterators.EmptyIterator;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.NotImplementedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.OdbStorage;
-import overflowdb.tinkerpop.GraphVariables;
-import overflowdb.tinkerpop.TinkerIoRegistryV1d0;
-import overflowdb.tinkerpop.TinkerIoRegistryV2d0;
-import overflowdb.tinkerpop.TinkerIoRegistryV3d0;
-import overflowdb.tinkerpop.optimizations.CountStrategy;
-import overflowdb.tinkerpop.optimizations.OdbGraphStepStrategy;
+import overflowdb.util.IteratorUtils;
 import overflowdb.util.MultiIterator2;
 import overflowdb.util.NodesList;
 import overflowdb.util.PropertyHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -167,44 +160,6 @@ public final class OdbGraph implements AutoCloseable {
     storage.close();
   }
 
-  @Override
-  public Transaction tx() {
-    throw Exceptions.transactionsNotSupported();
-  }
-
-  @Override
-  public Configuration configuration() {
-    throw new NotImplementedException("");
-  }
-
-  public Vertex vertex(final Long id) {
-    return node(id);
-  }
-
-  @Override
-  public Iterator<Vertex> vertices(final Object... idsOrVertices) {
-    if (idsOrVertices.length == 0) { //return all nodes - that's how the tinkerpop api rolls.
-      final Iterator<Node> nodeRefIter = nodes.iterator();
-      return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
-    } else {
-      final long[] ids = new long[idsOrVertices.length];
-      int idx = 0;
-      for (Object idOrNode : idsOrVertices) {
-        ids[idx++] = convertToId(idOrNode);
-      }
-      final Iterator<Node> nodeRefIter = nodes(ids);
-      return IteratorUtils.map(nodeRefIter, ref -> ref); // javac has humour
-    }
-  }
-
-  /** the tinkerpop api allows to pass the actual element instead of the ids :( */
-  private Long convertToId(Object idOrNode) {
-    if (idOrNode instanceof Long) return (Long) idOrNode;
-    else if (idOrNode instanceof Integer) return ((Integer) idOrNode).longValue();
-    else if (idOrNode instanceof Vertex) return (Long) ((Vertex) idOrNode).id();
-    else throw new IllegalArgumentException("unsupported id type: " + idOrNode.getClass() + " (" + idOrNode + "). Please pass one of [Long, OdbNode, NodeRef].");
-  }
-
   public int nodeCount() {
     return nodes.size();
   }
@@ -215,7 +170,7 @@ public final class OdbGraph implements AutoCloseable {
 
   public int edgeCount() {
     int i = 0;
-    final Iterator<OdbEdgeTp3> edges = edges();
+    final Iterator<OdbEdge> edges = edges();
     while (edges.hasNext()) {
       edges.next();
       i++;
@@ -224,26 +179,18 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   /** Iterator over all edges - alias for `edges` */
-  public Iterator<OdbEdgeTp3> E() {
+  public Iterator<OdbEdge> E() {
     return edges();
   }
 
   /** Iterator over all edges */
-  public Iterator<OdbEdgeTp3> edges() {
+  public Iterator<OdbEdge> edges() {
     return IteratorUtils.flatMap(nodes(), node -> node.outE());
   }
 
   /** Iterator over edges with given label */
-  public Iterator<OdbEdgeTp3> edges(String label) {
+  public Iterator<OdbEdge> edges(String label) {
     return IteratorUtils.flatMap(nodes(), node -> node.outE(label));
-  }
-
-  @Override
-  public Iterator<Edge> edges(final Object... ids) {
-    if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
-    MultiIterator2 multiIterator = new MultiIterator2();
-    nodes.iterator().forEachRemaining(vertex -> multiIterator.addIterator(vertex.edges(Direction.OUT)));
-    return multiIterator;
   }
 
   /** Iterator over all nodes - alias for `nodes` */
@@ -257,7 +204,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   /** Iterator over nodes with provided ids - alias for `nodes(ids...)`
-   * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
+   * note: does not return any nodes if no ids are provided */
   public Iterator<Node> V(long... ids) {
     return nodes(ids);
   }
@@ -270,10 +217,10 @@ public final class OdbGraph implements AutoCloseable {
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
   public final Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
-      return EmptyIterator.INSTANCE;
+      return Collections.emptyIterator();
     } else if (ids.length == 1) {
       // optimization for common case where only one id is requested
-      return IteratorUtils.of(node(ids[0]));
+      return IteratorUtils.from(node(ids[0]));
     } else {
       final Set<Long> idsSet = new HashSet<>(ids.length);
       for (long id : ids) {
@@ -288,7 +235,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final String... labels) {
-    final MultiIterator<Node> multiIterator = new MultiIterator<>();
+    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
@@ -296,7 +243,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final Set<String> labels) {
-    final MultiIterator<Node> multiIterator = new MultiIterator<>();
+    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
@@ -304,7 +251,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final P<String> labelPredicate) {
-    final MultiIterator<Node> multiIterator = new MultiIterator<>();
+    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
     for (String label : nodes.nodeLabels()) {
       if (labelPredicate.test(label)) {
         addNodesToMultiIterator(multiIterator, label);
@@ -313,16 +260,11 @@ public final class OdbGraph implements AutoCloseable {
     return multiIterator;
   }
 
-  private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
+  private final void addNodesToMultiIterator(final MultiIterator2<Node> multiIterator, final String label) {
     final Set<Node> ret = nodes.nodesByLabel(label);
     if (ret != null) {
       multiIterator.addIterator(ret.iterator());
     }
-  }
-
-  @Override
-  public Features features() {
-    return features;
   }
 
   public boolean isClosed() {
@@ -350,117 +292,6 @@ public final class OdbGraph implements AutoCloseable {
   public void remove(Node node) {
     nodes.remove(node);
     storage.removeNode(node.id2());
-  }
-
-  public class GraphFeatures implements Features {
-    private final OdbGraphFeatures graphFeatures = new OdbGraphFeatures();
-    private final OdbEdgeFeatures edgeFeatures = new OdbEdgeFeatures();
-    private final OdbVertexFeatures vertexFeatures = new OdbVertexFeatures();
-
-    private GraphFeatures() {
-    }
-
-    @Override
-    public GraphFeatures graph() {
-      return graphFeatures;
-    }
-
-    @Override
-    public EdgeFeatures edge() {
-      return edgeFeatures;
-    }
-
-    @Override
-    public VertexFeatures vertex() {
-      return vertexFeatures;
-    }
-
-    @Override
-    public String toString() {
-      return StringFactory.featureString(this);
-    }
-  }
-
-  public class OdbVertexFeatures implements Features.VertexFeatures {
-
-    private final OdbVertexPropertyFeatures vertexPropertyFeatures = new OdbVertexPropertyFeatures();
-
-    private OdbVertexFeatures() {
-    }
-
-    @Override
-    public Features.VertexPropertyFeatures properties() {
-      return vertexPropertyFeatures;
-    }
-
-    @Override
-    public boolean supportsCustomIds() {
-      return true;
-    }
-
-    @Override
-    public boolean willAllowId(final Object id) {
-      return id instanceof Number || id instanceof String;
-    }
-
-    @Override
-    public VertexProperty.Cardinality getCardinality(final String key) {
-      return VertexProperty.Cardinality.single;
-    }
-  }
-
-  public class OdbEdgeFeatures implements Features.EdgeFeatures {
-
-    private OdbEdgeFeatures() {
-    }
-
-    @Override
-    public boolean supportsCustomIds() {
-      return false;
-    }
-
-    @Override
-    public boolean willAllowId(final Object id) {
-      return false;
-    }
-  }
-
-  public class OdbGraphFeatures implements Features.GraphFeatures {
-
-    private OdbGraphFeatures() {
-    }
-
-    @Override
-    public boolean supportsConcurrentAccess() {
-      return false;
-    }
-
-    @Override
-    public boolean supportsTransactions() {
-      return false;
-    }
-
-    @Override
-    public boolean supportsThreadedTransactions() {
-      return false;
-    }
-
-  }
-
-  public class OdbVertexPropertyFeatures implements Features.VertexPropertyFeatures {
-
-    private OdbVertexPropertyFeatures() {
-    }
-
-    @Override
-    public boolean supportsCustomIds() {
-      return false;
-    }
-
-    @Override
-    public boolean willAllowId(final Object id) {
-      return false;
-    }
   }
 
 }
