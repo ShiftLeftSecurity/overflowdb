@@ -1,17 +1,15 @@
 package overflowdb.storage;
 
 import gnu.trove.map.hash.THashMap;
-import overflowdb.NodeFactory;
-import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
-import overflowdb.OdbNode;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
+import overflowdb.NodeFactory;
+import overflowdb.NodeRef;
+import overflowdb.OdbGraph;
+import overflowdb.OdbNode;
+import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -106,7 +104,7 @@ public class NodeDeserializer extends BookKeeper {
         return null;
       case NODE_REF:
         long id = value.asIntegerValue().asLong();
-        return graph.vertex(id);
+        return graph.node(id);
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
@@ -134,11 +132,11 @@ public class NodeDeserializer extends BookKeeper {
       case CHARACTER:
         return (char) value.asIntegerValue().asInt();
       default:
-        throw new NotImplementedException("unknown valueTypeId=`" + valueTypeId);
+        throw new UnsupportedOperationException("unknown valueTypeId=`" + valueTypeId);
     }
   }
 
-  protected final Object[] toTinkerpopKeyValues(Map<String, Object> properties) {
+  protected final Object[] toKeyValueArray(Map<String, Object> properties) {
     List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
     for (Map.Entry<String, Object> entry : properties.entrySet()) {
       //todo: We fail to properly intern strings contained in a List.
@@ -159,7 +157,7 @@ public class NodeDeserializer extends BookKeeper {
 
   protected final OdbNode createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
     OdbNode node = getNodeFactory(labelId).createNode(graph, id);
-    ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, toTinkerpopKeyValues(properties));
+    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
     node.setEdgeOffsets(edgeOffsets);
     node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
     node.markAsClean();

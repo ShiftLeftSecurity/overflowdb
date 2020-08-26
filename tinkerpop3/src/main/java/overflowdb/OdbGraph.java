@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 public final class OdbGraph implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -115,9 +116,8 @@ public final class OdbGraph implements AutoCloseable {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
-    ElementHelper.legalPropertyKeyValueArray(keyValues);
     if (nodes.contains(id)) {
-      throw Exceptions.vertexWithIdAlreadyExists(id);
+      throw new IllegalArgumentException(String.format("Vertex with id already exists: %s", id));
     }
 
     currentId.set(Long.max(id, currentId.get()));
@@ -127,21 +127,20 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
-    final NodeRef node;
     if (!nodeFactoryByLabel.containsKey(label)) {
       throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
-    final OdbNode underlying = factory.createNode(this, idValue);
-    this.referenceManager.registerRef(underlying.ref);
-    node = underlying.ref;
-    ElementHelper.attachProperties(node, VertexProperty.Cardinality.list, keyValues);
-    return node;
+    final OdbNode node = factory.createNode(this, idValue);
+    PropertyHelper.attachProperties(node, keyValues);
+    this.referenceManager.registerRef(node.ref);
+
+    return node.ref;
   }
 
   @Override
   public String toString() {
-    return StringFactory.graphString(this, "nodes: " + nodes.size());
+    return String.format("%s [%d nodes]", getClass().getSimpleName(), nodeCount());
   }
 
   /**
@@ -250,7 +249,7 @@ public final class OdbGraph implements AutoCloseable {
     return multiIterator;
   }
 
-  public Iterator<Node> nodes(final P<String> labelPredicate) {
+  public Iterator<Node> nodes(final Predicate<String> labelPredicate) {
     final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
     for (String label : nodes.nodeLabels()) {
       if (labelPredicate.test(label)) {

@@ -1,7 +1,7 @@
 package overflowdb.storage;
 
+import overflowdb.Node;
 import overflowdb.OdbNode;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -89,7 +89,7 @@ public class OdbStorage implements AutoCloseable {
     }
   }
 
-  public <A extends Vertex> A readNode(final long id) throws IOException {
+  public <A extends Node> A readNode(final long id) throws IOException {
     return (A) nodeDeserializer.get().deserialize(getNodesMVMap().get(id));
   }
 

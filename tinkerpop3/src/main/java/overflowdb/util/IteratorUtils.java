@@ -1,7 +1,9 @@
 package overflowdb.util;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 public class IteratorUtils {
@@ -27,6 +29,41 @@ public class IteratorUtils {
       }
     };
   }
+
+  public static final <S, E> Iterator<E> flatMap(final Iterator<S> iterator, final Function<S, Iterator<E>> function) {
+    return new Iterator<E>() {
+
+      private Iterator<E> currentIterator = Collections.emptyIterator();
+
+      @Override
+      public boolean hasNext() {
+        if (this.currentIterator.hasNext())
+          return true;
+        else {
+          while (iterator.hasNext()) {
+            this.currentIterator = function.apply(iterator.next());
+            if (this.currentIterator.hasNext())
+              return true;
+          }
+        }
+        return false;
+      }
+
+      @Override
+      public void remove() {
+        iterator.remove();
+      }
+
+      @Override
+      public E next() {
+        if (this.hasNext())
+          return this.currentIterator.next();
+        else
+          throw new NoSuchElementException();
+      }
+    };
+  }
+
 
   public static class SingleIterator<A> implements Iterator<A> {
     private A element;
