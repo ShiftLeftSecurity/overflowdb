@@ -1,6 +1,5 @@
 package overflowdb.tinkerpop.optimizations;
 
-import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
@@ -10,6 +9,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementExce
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+import overflowdb.OdbGraphTp3;
 
 import java.util.NoSuchElementException;
 
@@ -26,10 +26,10 @@ public final class OdbCountStep<S extends Element> extends AbstractStep<S, Long>
   protected Traverser.Admin<Long> processNextStart() throws NoSuchElementException {
     if (!this.done) {
       this.done = true;
-      final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
+      final OdbGraphTp3 graph = (OdbGraphTp3) this.getTraversal().getGraph().get();
       final long size;
       if (Vertex.class.isAssignableFrom(this.elementClass)) {
-        size = graph.nodeCount();
+        size = graph.graph.nodeCount();
       } else throw new NotImplementedException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
       return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
     } else

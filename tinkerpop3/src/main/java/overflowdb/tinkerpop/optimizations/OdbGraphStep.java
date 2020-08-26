@@ -1,6 +1,5 @@
 package overflowdb.tinkerpop.optimizations;
 
-import overflowdb.OdbGraph;
 import org.apache.tinkerpop.gremlin.process.traversal.Compare;
 import org.apache.tinkerpop.gremlin.process.traversal.P;
 import org.apache.tinkerpop.gremlin.process.traversal.step.HasContainerHolder;
@@ -13,6 +12,10 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
+import overflowdb.Node;
+import overflowdb.NodeRef;
+import overflowdb.NodeRefTp3;
+import overflowdb.OdbGraphTp3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +41,7 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
   }
 
   private Iterator<? extends Edge> edges() {
-    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
+    final OdbGraphTp3 graph = (OdbGraphTp3) this.getTraversal().getGraph().get();
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
     if (null == this.ids)
@@ -50,7 +53,7 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
   }
 
   private Iterator<? extends Vertex> vertices() {
-    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
+    final OdbGraphTp3 graph = (OdbGraphTp3) this.getTraversal().getGraph().get();
     final HasContainer indexedContainer = getIndexKey();
     final Optional<HasContainer> hasLabelContainer = findHasLabelStep();
     // ids are present, filter on them first
@@ -61,13 +64,15 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
     else if (hasLabelContainer.isPresent()) {
       P<String> hasLabelPredicate = (P<String>) hasLabelContainer.get().getPredicate();
       // unfortunately TP3 api doesn't seem to find out if it's the `Compare.eq` bipredicate, so we can optimise single-label lookups
-      return graph.nodes(hasLabelPredicate);
+      final Iterator<Node> nodes = graph.graph.nodes(hasLabelPredicate);
+      return IteratorUtils.map(nodes, node -> (NodeRefTp3) node);
     } else {
       if (indexedContainer == null) return this.iteratorList(graph.vertices());
       else {
-        return IteratorUtils.filter(
-            graph.indexManager.lookup(indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
-            nodeRef -> HasContainer.testAll(nodeRef, this.hasContainers));
+        final Iterator<NodeRef> nodes = IteratorUtils.filter(
+            graph.graph.indexManager.lookup(indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
+            nodeRef -> HasContainer.testAll(NodeRefTp3.wrap(nodeRef), this.hasContainers));
+        return IteratorUtils.map(nodes, node -> NodeRefTp3.wrap(node));
       }
     }
   }
@@ -84,8 +89,8 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
   }
 
   private HasContainer getIndexKey() {
-    final OdbGraph graph = (OdbGraph) this.getTraversal().getGraph().get();
-    final Set<String> indexedKeys = graph.indexManager.getIndexedNodeProperties();
+    final OdbGraphTp3 graph = (OdbGraphTp3) this.getTraversal().getGraph().get();
+    final Set<String> indexedKeys = graph.graph.indexManager.getIndexedNodeProperties();
 
     final Iterator<HasContainer> itty = IteratorUtils.filter(hasContainers.iterator(),
         c -> c.getPredicate().getBiPredicate() == Compare.eq && indexedKeys.contains(c.getKey()));

@@ -1,8 +1,7 @@
 package overflowdb.tinkerpop;
 
-import overflowdb.OdbEdgeTp3;
-import overflowdb.OdbGraph;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
 import org.apache.tinkerpop.gremlin.structure.io.IoRegistry;
@@ -22,6 +21,7 @@ import org.apache.tinkerpop.shaded.kryo.Kryo;
 import org.apache.tinkerpop.shaded.kryo.Serializer;
 import org.apache.tinkerpop.shaded.kryo.io.Input;
 import org.apache.tinkerpop.shaded.kryo.io.Output;
+import overflowdb.OdbGraphTp3;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,7 +31,7 @@ import java.util.Map;
 
 /**
  * An implementation of the {@link IoRegistry} interface that provides serializers with custom configurations for
- * implementation specific classes that might need to be serialized.  This registry allows a {@link OdbGraph} to
+ * implementation specific classes that might need to be serialized.  This registry allows a {@link OdbGraphTp3} to
  * be serialized directly which is useful for moving small graphs around on the network.
  * Most providers need not implement this kind of custom serializer as they will deal with much larger graphs that
  * wouldn't be practical to serialize in this fashion.  This is a bit of a special case for OverflowDb given its
@@ -45,7 +45,7 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
   private static final TinkerIoRegistryV2d0 INSTANCE = new TinkerIoRegistryV2d0();
 
   private TinkerIoRegistryV2d0() {
-    register(GryoIo.class, OdbGraph.class, new GryoSerializer());
+    register(GryoIo.class, OdbGraphTp3.class, new GryoSerializer());
     register(GraphSONIo.class, null, new TinkerModuleV2d0());
   }
 
@@ -54,12 +54,12 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
   }
 
   /**
-   * Provides a method to serialize an entire {@link OdbGraph} into itself for Gryo.  This is useful when
+   * Provides a method to serialize an entire {@link OdbGraphTp3} into itself for Gryo.  This is useful when
    * shipping small graphs around through Gremlin Server. Reuses the existing Kryo instance for serialization.
    */
-  final static class GryoSerializer extends Serializer<OdbGraph> {
+  final static class GryoSerializer extends Serializer<OdbGraphTp3> {
     @Override
-    public void write(final Kryo kryo, final Output output, final OdbGraph graph) {
+    public void write(final Kryo kryo, final Output output, final OdbGraphTp3 graph) {
       try (final ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
         GryoWriter.build().mapper(() -> kryo).create().writeGraph(stream, graph);
         final byte[] bytes = stream.toByteArray();
@@ -71,11 +71,11 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
     }
 
     @Override
-    public OdbGraph read(final Kryo kryo, final Input input, final Class<OdbGraph> clazz) {
+    public OdbGraphTp3 read(final Kryo kryo, final Input input, final Class<OdbGraphTp3> clazz) {
       throw new NotImplementedException("");
 //      final Configuration conf = new BaseConfiguration();
 //      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-//      final OdbGraph graph = OdbGraph.open(conf);
+//      final OdbGraphTp3 graph = OdbGraphTp3.open(conf);
 //      final int len = input.readInt();
 //      final byte[] bytes = input.readBytes(len);
 //      try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
@@ -89,20 +89,20 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
   }
 
   /**
-   * Provides a method to serialize an entire {@link OdbGraph} into itself for GraphSON. This is useful when
+   * Provides a method to serialize an entire {@link OdbGraphTp3} into itself for GraphSON. This is useful when
    * shipping small graphs around through Gremlin Server.
    */
   final static class TinkerModuleV2d0 extends TinkerPopJacksonModule {
     public TinkerModuleV2d0() {
       super("tinkergraph-2.0");
-      addSerializer(OdbGraph.class, new JacksonSerializer());
-      addDeserializer(OdbGraph.class, new JacksonDeserializer());
+      addSerializer(OdbGraphTp3.class, new JacksonSerializer());
+      addDeserializer(OdbGraphTp3.class, new JacksonDeserializer());
     }
 
     @Override
     public Map<Class, String> getTypeDefinitions() {
       return new HashMap<Class, String>() {{
-        put(OdbGraph.class, "graph");
+        put(OdbGraphTp3.class, "graph");
       }};
     }
 
@@ -120,14 +120,14 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
    * with as a format and doesn't require a cache for loading (as vertex labels are not serialized in adjacency
    * list).
    */
-  final static class JacksonSerializer extends StdScalarSerializer<OdbGraph> {
+  final static class JacksonSerializer extends StdScalarSerializer<OdbGraphTp3> {
 
     public JacksonSerializer() {
-      super(OdbGraph.class);
+      super(OdbGraphTp3.class);
     }
 
     @Override
-    public void serialize(final OdbGraph graph, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider)
+    public void serialize(final OdbGraphTp3 graph, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider)
         throws IOException {
       jsonGenerator.writeStartObject();
       jsonGenerator.writeFieldName(GraphSONTokens.VERTICES);
@@ -142,7 +142,7 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
       jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
       jsonGenerator.writeStartArray();
 
-      final Iterator<OdbEdgeTp3> edges = graph.edges();
+      final Iterator<Edge> edges = graph.edges();
       while (edges.hasNext()) {
         serializerProvider.defaultSerializeValue(edges.next(), jsonGenerator);
       }
@@ -155,17 +155,17 @@ public final class TinkerIoRegistryV2d0 extends AbstractIoRegistry {
   /**
    * Deserializes the edge list format.
    */
-  static class JacksonDeserializer extends StdDeserializer<OdbGraph> {
+  static class JacksonDeserializer extends StdDeserializer<OdbGraphTp3> {
     public JacksonDeserializer() {
-      super(OdbGraph.class);
+      super(OdbGraphTp3.class);
     }
 
     @Override
-    public OdbGraph deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    public OdbGraphTp3 deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
       throw new NotImplementedException("");
 //      final Configuration conf = new BaseConfiguration();
 //      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
-//      final OdbGraph graph = OdbGraph.open(conf);
+//      final OdbGraphTp3 graph = OdbGraphTp3.open(conf);
 //
 //      while (jsonParser.nextToken() != JsonToken.END_OBJECT) {
 //        if (jsonParser.getCurrentName().equals("vertices")) {
