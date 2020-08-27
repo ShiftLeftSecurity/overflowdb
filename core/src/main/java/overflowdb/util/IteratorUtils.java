@@ -1,7 +1,5 @@
 package overflowdb.util;
 
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -96,7 +94,7 @@ public class IteratorUtils {
             if (null != this.nextResult)
               return this.nextResult;
             else
-              throw FastNoSuchElementException.instance();
+              throw new NoSuchElementException();
           }
         } finally {
           this.nextResult = null;
