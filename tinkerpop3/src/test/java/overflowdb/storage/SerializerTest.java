@@ -4,7 +4,7 @@ import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbEdge;
+import overflowdb.Edge;
 import overflowdb.OdbGraph;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
@@ -62,8 +62,8 @@ public class SerializerTest {
       Node n0Deserialized = deserializer.deserialize(serializer.serialize(testNode1Db));
       Node n1Deserialized = deserializer.deserialize(serializer.serialize(testNode2Db));
 
-      OdbEdge edgeViaN0Deserialized = n0Deserialized.outE(TestEdge.LABEL).next();
-      OdbEdge edgeViaN1Deserialized = n1Deserialized.inE(TestEdge.LABEL).next();
+      Edge edgeViaN0Deserialized = n0Deserialized.outE(TestEdge.LABEL).next();
+      Edge edgeViaN1Deserialized = n1Deserialized.inE(TestEdge.LABEL).next();
 
       assertEquals(TestEdge.LABEL, edgeViaN0Deserialized.label());
       assertEquals(TestEdge.LABEL, edgeViaN1Deserialized.label());

@@ -1,6 +1,5 @@
 package overflowdb.tinkerpop;
 
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
 import org.apache.tinkerpop.gremlin.structure.io.GraphReader;
@@ -24,7 +23,7 @@ import org.apache.tinkerpop.shaded.kryo.Kryo;
 import org.apache.tinkerpop.shaded.kryo.Serializer;
 import org.apache.tinkerpop.shaded.kryo.io.Input;
 import org.apache.tinkerpop.shaded.kryo.io.Output;
-import overflowdb.OdbEdge;
+import overflowdb.Edge;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -134,7 +133,7 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       jsonGenerator.writeFieldName(GraphSONTokens.EDGES);
       jsonGenerator.writeStartArray();
 
-      final Iterator<OdbEdge> edges = graph.graph.edges();
+      final Iterator<Edge> edges = graph.graph.edges();
       while (edges.hasNext()) {
         serializerProvider.defaultSerializeValue(edges.next(), jsonGenerator);
       }
@@ -168,7 +167,7 @@ public final class TinkerIoRegistryV1d0 extends AbstractIoRegistry {
       jsonGenerator.writeString(ArrayList.class.getName());
       jsonGenerator.writeStartArray();
 
-      final Iterator<Edge> edges = graph.edges();
+      final Iterator<org.apache.tinkerpop.gremlin.structure.Edge> edges = graph.edges();
       while (edges.hasNext()) {
         GraphSONUtil.writeWithType(edges.next(), jsonGenerator, serializerProvider, typeSerializer);
       }

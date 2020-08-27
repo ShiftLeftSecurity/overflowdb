@@ -4,12 +4,12 @@ import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbGraph;
-import overflowdb.OdbEdge;
+import overflowdb.Edge;
 
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class SungBy extends OdbEdge {
+public class SungBy extends Edge {
   public static final String LABEL = "sungBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 

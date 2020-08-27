@@ -4,7 +4,7 @@ import overflowdb._
 import scala.jdk.CollectionConverters._
 
 class Connection(graph: OdbGraph, outVertex: NodeRef[ThingDb], inVertex: NodeRef[ThingDb])
-  extends OdbEdge(graph, Connection.Label, outVertex, inVertex, Connection.PropertyNames.all.asJava)
+  extends Edge(graph, Connection.Label, outVertex, inVertex, Connection.PropertyNames.all.asJava)
 
 object Connection {
   val Label = "connection"

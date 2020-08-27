@@ -3,7 +3,7 @@ package overflowdb;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DummyEdgeIterator implements Iterator<OdbEdge> {
+public class DummyEdgeIterator implements Iterator<Edge> {
   private final Object[] array;
   private int current;
   private final int begin;
@@ -35,11 +35,11 @@ public class DummyEdgeIterator implements Iterator<OdbEdge> {
   }
 
   @Override
-  public OdbEdge next() {
+  public Edge next() {
     if (!hasNext()) throw new NoSuchElementException();
 
     NodeRef otherRef = (NodeRef) array[current];
-    OdbEdge dummyEdge;
+    Edge dummyEdge;
     if (direction == Direction.OUT) {
       dummyEdge = thisRef.get().instantiateDummyEdge(label, thisRef, otherRef);
       dummyEdge.setOutBlockOffset(current - begin);

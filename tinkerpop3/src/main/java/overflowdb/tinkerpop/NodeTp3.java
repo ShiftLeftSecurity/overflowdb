@@ -1,7 +1,6 @@
 package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Direction;
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
@@ -9,7 +8,7 @@ import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.Node;
 import overflowdb.NodeRef;
-import overflowdb.OdbEdge;
+import overflowdb.Edge;
 import overflowdb.OdbNode;
 
 import java.util.Arrays;
@@ -64,10 +63,10 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
   }
 
   @Override
-  public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
+  public org.apache.tinkerpop.gremlin.structure.Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
     NodeRef inNode = ((NodeTp3) inVertex).nodeRef;
-    final OdbEdge odbEdge = nodeRef.addEdge(label, inNode, keyValues);
-    return OdbEdgeTp3.wrap(odbEdge);
+    final Edge edge = nodeRef.addEdge(label, inNode, keyValues);
+    return OdbEdgeTp3.wrap(edge);
   }
 
   @Override
@@ -106,8 +105,8 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
   }
 
   @Override
-  public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
-    final Iterator<OdbEdge> odbEdgeIterator;
+  public Iterator<org.apache.tinkerpop.gremlin.structure.Edge> edges(Direction direction, String... edgeLabels) {
+    final Iterator<Edge> odbEdgeIterator;
     if (edgeLabels.length == 0) { // tinkerpop convention: follow all available labels
       odbEdgeIterator = allEdges(direction);
     } else {
@@ -145,7 +144,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
     }
   }
 
-  private Iterator<OdbEdge> allEdges(Direction direction) {
+  private Iterator<Edge> allEdges(Direction direction) {
     switch (direction) {
       case OUT: return nodeRef.outE();
       case IN: return nodeRef.inE();
@@ -154,7 +153,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
     }
   }
 
-  private Iterator<OdbEdge> specificEdges(Direction direction, String... labels) {
+  private Iterator<Edge> specificEdges(Direction direction, String... labels) {
     switch (direction) {
       case OUT: return nodeRef.outE(labels);
       case IN: return nodeRef.inE(labels);

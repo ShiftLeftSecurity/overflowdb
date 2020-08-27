@@ -4,7 +4,7 @@ import overflowdb._
 import scala.jdk.CollectionConverters._
 
 class FollowedBy(graph: OdbGraph, outVertex: NodeRef[SongDb], inVertex: NodeRef[SongDb])
-  extends OdbEdge(graph, FollowedBy.Label, outVertex, inVertex, FollowedBy.PropertyNames.all.asJava)
+  extends Edge(graph, FollowedBy.Label, outVertex, inVertex, FollowedBy.PropertyNames.all.asJava)
 
 object FollowedBy {
   val Label = "followedBy"

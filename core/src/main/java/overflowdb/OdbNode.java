@@ -131,9 +131,9 @@ public abstract class OdbNode implements Node {
 
   @Override
   public void remove() {
-    final List<OdbEdge> edges = new ArrayList<>();
+    final List<Edge> edges = new ArrayList<>();
     bothE().forEachRemaining(edges::add);
-    for (OdbEdge edge : edges) {
+    for (Edge edge : edges) {
       if (!edge.isRemoved()) {
         edge.remove();
       }
@@ -154,7 +154,7 @@ public abstract class OdbNode implements Node {
   }
 
   public <V> Iterator<V> getEdgeProperties(Direction direction,
-                                                     OdbEdge edge,
+                                                     Edge edge,
                                                      int blockOffset,
                                                      String... keys) {
     List<V> result = new ArrayList<>();
@@ -172,7 +172,7 @@ public abstract class OdbNode implements Node {
     return result.iterator();
   }
 
-  public Map<String, Object> edgePropertyMap(Direction direction, OdbEdge edge, int blockOffset) {
+  public Map<String, Object> edgePropertyMap(Direction direction, Edge edge, int blockOffset) {
     final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
 
@@ -185,7 +185,7 @@ public abstract class OdbNode implements Node {
   }
 
   public <V> Optional<V> edgePropertyOption(Direction direction,
-                                            OdbEdge edge,
+                                            Edge edge,
                                             int blockOffset,
                                             String key) {
     V value = edgeProperty(direction, edge, blockOffset, key);
@@ -193,7 +193,7 @@ public abstract class OdbNode implements Node {
   }
 
   public <P> P edgeProperty(Direction direction,
-                            OdbEdge edge,
+                            Edge edge,
                             int blockOffset,
                             String key) {
     int propertyPosition = getEdgePropertyIndex(direction, edge.label(), key, blockOffset);
@@ -260,14 +260,14 @@ public abstract class OdbNode implements Node {
   }
 
   @Override
-  public OdbEdge addEdge(String label, Node inNode, Object... keyValues) {
+  public Edge addEdge(String label, Node inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
 
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
     int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
-    OdbEdge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
+    Edge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
     dummyEdge.setOutBlockOffset(outBlockOffset);
     dummyEdge.setInBlockOffset(inBlockOffset);
 
@@ -275,7 +275,7 @@ public abstract class OdbNode implements Node {
   }
 
   @Override
-  public OdbEdge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
+  public Edge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
     return addEdge(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 
@@ -341,8 +341,8 @@ public abstract class OdbNode implements Node {
 
   /* adjacent OUT edges (all labels) */
   @Override
-  public Iterator<OdbEdge> outE() {
-    final MultiIterator<OdbEdge> multiIterator = new MultiIterator<>();
+  public Iterator<Edge> outE() {
+    final MultiIterator<Edge> multiIterator = new MultiIterator<>();
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       multiIterator.addIterator(outE(label));
     }
@@ -351,14 +351,14 @@ public abstract class OdbNode implements Node {
 
   /* adjacent OUT edges for given labels */
   @Override
-  public Iterator<OdbEdge> outE(String... edgeLabels) {
+  public Iterator<Edge> outE(String... edgeLabels) {
     return createDummyEdgeIterator(Direction.OUT, edgeLabels);
   }
 
   /* adjacent IN edges (all labels) */
   @Override
-  public Iterator<OdbEdge> inE() {
-    final MultiIterator<OdbEdge> multiIterator = new MultiIterator<>();
+  public Iterator<Edge> inE() {
+    final MultiIterator<Edge> multiIterator = new MultiIterator<>();
     for (String label : layoutInformation().allowedInEdgeLabels()) {
       multiIterator.addIterator(inE(label));
     }
@@ -367,14 +367,14 @@ public abstract class OdbNode implements Node {
 
   /* adjacent IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> inE(String... edgeLabels) {
+  public Iterator<Edge> inE(String... edgeLabels) {
     return createDummyEdgeIterator(Direction.IN, edgeLabels);
   }
 
   /* adjacent OUT/IN edges (all labels) */
   @Override
-  public Iterator<OdbEdge> bothE() {
-    final MultiIterator<OdbEdge> multiIterator = new MultiIterator<>();
+  public Iterator<Edge> bothE() {
+    final MultiIterator<Edge> multiIterator = new MultiIterator<>();
     multiIterator.addIterator(outE());
     multiIterator.addIterator(inE());
     return multiIterator;
@@ -382,8 +382,8 @@ public abstract class OdbNode implements Node {
 
   /* adjacent OUT/IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> bothE(String... edgeLabels) {
-    final MultiIterator<OdbEdge> multiIterator = new MultiIterator<>();
+  public Iterator<Edge> bothE(String... edgeLabels) {
+    final MultiIterator<Edge> multiIterator = new MultiIterator<>();
     multiIterator.addIterator(outE(edgeLabels));
     multiIterator.addIterator(inE(edgeLabels));
     return multiIterator;
@@ -475,7 +475,7 @@ public abstract class OdbNode implements Node {
     this.markAsDirty();
   }
 
-  private Iterator<OdbEdge> createDummyEdgeIterator(Direction direction, String... labels) {
+  private Iterator<Edge> createDummyEdgeIterator(Direction direction, String... labels) {
     if (labels.length == 1) {
       return createDummyEdgeIteratorForSingleLabel(direction, labels[0]);
     } else {
@@ -483,7 +483,7 @@ public abstract class OdbNode implements Node {
           labels.length == 0
               ? allowedLabelsByDirection(direction)
               : labels;
-      final MultiIterator<OdbEdge> multiIterator = new MultiIterator<>();
+      final MultiIterator<Edge> multiIterator = new MultiIterator<>();
       for (String label : labelsToFollow) {
         multiIterator.addIterator(createDummyEdgeIteratorForSingleLabel(direction, label));
       }
@@ -491,7 +491,7 @@ public abstract class OdbNode implements Node {
     }
   }
 
-  private Iterator<OdbEdge> createDummyEdgeIteratorForSingleLabel(Direction direction, String label) {
+  private Iterator<Edge> createDummyEdgeIteratorForSingleLabel(Direction direction, String label) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
@@ -657,7 +657,7 @@ public abstract class OdbNode implements Node {
   /**
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
-  protected final OdbEdge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
+  protected final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");

@@ -10,12 +10,12 @@ public interface Node extends OdbElement {
    * These key/values must be provided in an even number where the odd numbered arguments are {@link String}
    * property keys and the even numbered arguments are the related property values.
    */
-  OdbEdge addEdge(String label, Node inNode, Object... keyValues);
+  Edge addEdge(String label, Node inNode, Object... keyValues);
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
    */
-  OdbEdge addEdge(String label, Node inNode, Map<String, Object> keyValues);
+  Edge addEdge(String label, Node inNode, Map<String, Object> keyValues);
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
@@ -52,21 +52,21 @@ public interface Node extends OdbElement {
   Iterator<Node> both(String... edgeLabels);
 
   /* adjacent OUT edges (all labels) */
-  Iterator<OdbEdge> outE();
+  Iterator<Edge> outE();
 
   /* adjacent OUT edges for given labels */
-  Iterator<OdbEdge> outE(String... edgeLabels);
+  Iterator<Edge> outE(String... edgeLabels);
 
   /* adjacent IN edges (all labels) */
-  Iterator<OdbEdge> inE();
+  Iterator<Edge> inE();
 
   /* adjacent IN edges for given labels */
-  Iterator<OdbEdge> inE(String... edgeLabels);
+  Iterator<Edge> inE(String... edgeLabels);
 
   /* adjacent OUT/IN edges (all labels) */
-  Iterator<OdbEdge> bothE();
+  Iterator<Edge> bothE();
 
   /* adjacent OUT/IN edges for given labels */
-  Iterator<OdbEdge> bothE(String... edgeLabels);
+  Iterator<Edge> bothE(String... edgeLabels);
 
 }

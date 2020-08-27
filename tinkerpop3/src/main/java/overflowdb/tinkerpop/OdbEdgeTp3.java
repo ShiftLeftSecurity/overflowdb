@@ -1,24 +1,23 @@
 package overflowdb.tinkerpop;
 
-import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import overflowdb.OdbEdge;
+import overflowdb.Edge;
 import overflowdb.util.IteratorUtils;
 
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class OdbEdgeTp3 implements Edge {
-  public final OdbEdge edge;
+public class OdbEdgeTp3 implements org.apache.tinkerpop.gremlin.structure.Edge {
+  public final Edge edge;
 
-  public static OdbEdgeTp3 wrap(OdbEdge edge) {
+  public static OdbEdgeTp3 wrap(Edge edge) {
     return new OdbEdgeTp3(edge);
   }
 
-  private OdbEdgeTp3(OdbEdge edge) {
+  private OdbEdgeTp3(Edge edge) {
     this.edge = edge;
   }
 

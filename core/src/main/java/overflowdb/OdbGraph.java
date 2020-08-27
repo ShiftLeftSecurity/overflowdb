@@ -169,7 +169,7 @@ public final class OdbGraph implements AutoCloseable {
 
   public int edgeCount() {
     int i = 0;
-    final Iterator<OdbEdge> edges = edges();
+    final Iterator<Edge> edges = edges();
     while (edges.hasNext()) {
       edges.next();
       i++;
@@ -178,17 +178,17 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   /** Iterator over all edges - alias for `edges` */
-  public Iterator<OdbEdge> E() {
+  public Iterator<Edge> E() {
     return edges();
   }
 
   /** Iterator over all edges */
-  public Iterator<OdbEdge> edges() {
+  public Iterator<Edge> edges() {
     return IteratorUtils.flatMap(nodes(), node -> node.outE());
   }
 
   /** Iterator over edges with given label */
-  public Iterator<OdbEdge> edges(String label) {
+  public Iterator<Edge> edges(String label) {
     return IteratorUtils.flatMap(nodes(), node -> node.outE(label));
   }
 

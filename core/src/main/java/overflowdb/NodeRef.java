@@ -142,12 +142,12 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   }
 
   @Override
-  public OdbEdge addEdge(String label, Node inNode, Object... keyValues) {
+  public Edge addEdge(String label, Node inNode, Object... keyValues) {
     return this.get().addEdge(label, inNode, keyValues);
   }
 
   @Override
-  public OdbEdge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
+  public Edge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
     return this.get().addEdge(label, inNode, keyValues);
   }
 
@@ -224,37 +224,37 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
 
   /* adjacent OUT edges (all labels) */
   @Override
-  public Iterator<OdbEdge> outE() {
+  public Iterator<Edge> outE() {
     return this.get().outE();
   }
 
   /* adjacent OUT edges for given labels */
   @Override
-  public Iterator<OdbEdge> outE(String... edgeLabels) {
+  public Iterator<Edge> outE(String... edgeLabels) {
     return this.get().outE(edgeLabels);
   }
 
   /* adjacent IN edges (all labels) */
   @Override
-  public Iterator<OdbEdge> inE() {
+  public Iterator<Edge> inE() {
     return this.get().inE();
   }
 
   /* adjacent IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> inE(String... edgeLabels) {
+  public Iterator<Edge> inE(String... edgeLabels) {
     return this.get().inE(edgeLabels);
   }
 
   /* adjacent OUT/IN edges (all labels) */
   @Override
-  public Iterator<OdbEdge> bothE() {
+  public Iterator<Edge> bothE() {
     return this.get().bothE();
   }
 
   /* adjacent OUT/IN edges for given labels */
   @Override
-  public Iterator<OdbEdge> bothE(String... edgeLabels) {
+  public Iterator<Edge> bothE(String... edgeLabels) {
     return this.get().bothE(edgeLabels);
   }
 

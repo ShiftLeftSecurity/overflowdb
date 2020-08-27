@@ -25,7 +25,7 @@ public class GraphCloneTest {
     // verify: structure, ids and properties should identical
     Node n0Copy = graph2.node(n0.id());
     Node n1Copy = graph2.node(n1.id());
-    OdbEdge eCopy = n0Copy.outE(TestEdge.LABEL).next();
+    Edge eCopy = n0Copy.outE(TestEdge.LABEL).next();
     assertEquals("n0", n0Copy.property(TestNode.STRING_PROPERTY));
     assertEquals("n1", n1Copy.property(TestNode.STRING_PROPERTY));
     assertEquals(eCopy.property(TestEdge.LONG_PROPERTY), new Long(3L));
