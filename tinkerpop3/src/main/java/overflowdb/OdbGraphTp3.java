@@ -7,6 +7,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
@@ -23,6 +24,7 @@ import overflowdb.tinkerpop.TinkerIoRegistryV3d0;
 import overflowdb.tinkerpop.optimizations.CountStrategy;
 import overflowdb.tinkerpop.optimizations.OdbGraphStepStrategy;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -47,9 +49,12 @@ public final class OdbGraphTp3 implements Graph {
   protected final GraphVariables variables = new GraphVariables();
 
   @Override
-  public Vertex addVertex(final Object... keyValues) {
+  public Vertex addVertex(Object... keyValues) {
     final String label = ElementHelper.getLabelValue(keyValues).orElse(Vertex.DEFAULT_LABEL);
     Optional<Long> suppliedId = ElementHelper.getIdValue(keyValues).map(this::parseLong);
+
+    keyValues = withoutTinkerpopSpecificEntries(keyValues);
+
     final Node newNode;
     if (suppliedId.isPresent()) {
       newNode = graph.addNode(suppliedId.get(), label, keyValues);
@@ -57,6 +62,17 @@ public final class OdbGraphTp3 implements Graph {
       newNode = graph.addNode(label, keyValues);
     }
     return NodeRefTp3.wrap((NodeRef) newNode);
+  }
+
+  private Object[] withoutTinkerpopSpecificEntries(final Object... keyValues) {
+    final ArrayList keyValuesWithoutTinkerpopSpecifics = new ArrayList();
+    for (int i = 0; i < keyValues.length; i = i + 2) {
+      if (!(keyValues[i] instanceof T)) {
+        keyValuesWithoutTinkerpopSpecifics.add(keyValues[i]);
+        keyValuesWithoutTinkerpopSpecifics.add(keyValues[i + 1]);
+      }
+    }
+    return keyValuesWithoutTinkerpopSpecifics.toArray();
   }
 
   private long parseLong(Object id) {

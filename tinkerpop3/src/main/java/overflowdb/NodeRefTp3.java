@@ -57,7 +57,7 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    Node inNode = (Node) inVertex;
+    NodeRef inNode = ((NodeRefTp3) inVertex).nodeRef;
     final OdbEdge odbEdge = nodeRef.addEdge2(label, inNode, keyValues);
     return OdbEdgeTp3.wrap(odbEdge);
   }

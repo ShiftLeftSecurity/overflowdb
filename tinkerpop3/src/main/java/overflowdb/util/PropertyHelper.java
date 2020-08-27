@@ -15,7 +15,7 @@ public class PropertyHelper {
       Object key = keyValues[i];
       Object value = keyValues[i + 1];
       if (!(key instanceof String))
-        throw new IllegalArgumentException(String.format("The provided key must be of type `String`, but was: $s (value=$s)", key.getClass(), key.toString()));
+        throw new IllegalArgumentException(String.format("The provided key must be of type `String`, but was: %s (value=%s)", key.getClass(), key.toString()));
       node.setProperty((String) key, value);
     }
   }

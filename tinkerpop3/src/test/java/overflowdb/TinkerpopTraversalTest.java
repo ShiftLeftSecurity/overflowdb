@@ -33,9 +33,9 @@ public class TinkerpopTraversalTest {
     try (OdbGraphTp3 graph = OdbGraphTp3.wrap(SimpleDomain.newGraph())) {
       Vertex vertex = graph.traversal().addV(TestNode.LABEL).next();
 
-      assertEquals(vertex, graph.traversal().V().next());
-      assertEquals(vertex, graph.traversal().V(vertex.id()).next());
-      assertEquals(vertex, graph.traversal().V(vertex).next());
+      assertEquals(vertex.id(), graph.traversal().V().next().id());
+      assertEquals(vertex.id(), graph.traversal().V(vertex.id()).next().id());
+      assertEquals(vertex.id(), graph.traversal().V(vertex).next().id());
     }
   }
 
@@ -53,8 +53,8 @@ public class TinkerpopTraversalTest {
 
       assertEquals(e, v0.edges(Direction.OUT).next());
       assertEquals(Long.valueOf(99), v0.edges(Direction.OUT).next().value(TestEdge.LONG_PROPERTY));
-      assertEquals(v1, v0.edges(Direction.OUT).next().inVertex());
-      assertEquals(v1, v0.vertices(Direction.OUT).next());
+      assertEquals(v1.id(), v0.edges(Direction.OUT).next().inVertex().id());
+      assertEquals(v1.id(), v0.vertices(Direction.OUT).next().id());
     }
   }
 
@@ -94,8 +94,8 @@ public class TinkerpopTraversalTest {
       assertEquals(4, __(garcia).in(WrittenBy.LABEL).toList().size());
       List<Vertex> songsWritten = __(garcia).in(WrittenBy.LABEL).has("name", "CREAM PUFF WAR").toList();
       assertEquals(songsWritten.size(), 1);
-      Song song = (Song) songsWritten.get(0);
-      assertEquals("CREAM PUFF WAR", song.name());
+      Vertex song = songsWritten.get(0);
+      assertEquals("CREAM PUFF WAR", song.value(Song.NAME));
 
       // outE
       assertEquals(1, __(song).outE(WrittenBy.LABEL).toList().size());
@@ -103,7 +103,7 @@ public class TinkerpopTraversalTest {
       // out
       List<Vertex> songOut = __(song).out(WrittenBy.LABEL).toList();
       assertEquals(1, songOut.size());
-      assertEquals(garcia, songOut.get(0));
+      assertEquals(garcia.id(), songOut.get(0).id());
 
       // bothE
       List<Edge> songBothE = __(song).bothE(WrittenBy.LABEL).toList();
@@ -112,16 +112,7 @@ public class TinkerpopTraversalTest {
       // both
       List<Vertex> songBoth = __(song).both(WrittenBy.LABEL).toList();
       assertEquals(1, songBoth.size());
-      assertEquals(garcia, songBoth.get(0));
-    }
-  }
-
-  @Test
-  public void handleEmptyProperties() throws IOException {
-    try (OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData()) {
-      List<Object> props1 = graph.traversal().V().values("foo").toList();
-      // results will be empty, but it should't crash. see https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/issues/12
-      assertEquals(props1.size(), 0);
+      assertEquals("Garcia", songBoth.get(0).value(Song.NAME));
     }
   }
 
@@ -133,69 +124,65 @@ public class TinkerpopTraversalTest {
 
       List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
       assertEquals(garcias.size(), 1);
-      Artist artist = (Artist) garcias.get(0);
-      ArtistDb garcia = artist.get();
-      assertEquals("Garcia", garcia.name());
+      Vertex garcia = garcias.get(0);
+      assertEquals("Garcia", garcia.value(Artist.NAME));
     }
   }
 
   @Test
   public void simpleTest() {
     try (OdbGraphTp3 graph = OdbGraphTp3.wrap(SimpleDomain.newGraph())) {
-      Vertex n1 = graph.addVertex(
+      Vertex node1 = graph.addVertex(
+          T.label,
           TestNode.LABEL,
           TestNode.STRING_PROPERTY, "node 1",
           TestNode.INT_PROPERTY, 42,
           TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
           TestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43));
-      Vertex n2 = graph.addVertex(
+      Vertex node2 = graph.addVertex(
+          T.label,
           TestNode.LABEL,
           TestNode.STRING_PROPERTY, "node 2",
           TestNode.INT_PROPERTY, 52,
           TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
           TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
-      Edge e = n1.addEdge(TestEdge.LABEL, n2, TestEdge.LONG_PROPERTY, 99l);
+      Edge edge = node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, 99l);
 
       //  verify that we can cast to our domain-specific nodes/edges
-      TestNode node1 = (TestNode) n1;
-      assertEquals("node 1", node1.stringProperty());
-      assertEquals(Integer.valueOf(42), node1.intProperty());
-      TestEdge testEdge = (TestEdge) e;
-      assertEquals(Long.valueOf(99), testEdge.longProperty());
+      assertEquals("node 1", node1.value(TestNode.STRING_PROPERTY));
+      assertEquals(Integer.valueOf(42), node1.value(TestNode.INT_PROPERTY));
+      assertEquals(Long.valueOf(99), edge.value(TestEdge.LONG_PROPERTY));
 
       // node traversals
-      assertSize(1, n1.vertices(Direction.OUT));
-      assertSize(0, n1.vertices(Direction.OUT, "otherLabel"));
-      assertSize(0, n2.vertices(Direction.OUT));
-      assertSize(0, n1.vertices(Direction.IN));
-      assertSize(1, n2.vertices(Direction.IN));
-      assertSize(1, n1.vertices(Direction.BOTH));
-      assertSize(1, n2.vertices(Direction.BOTH));
+      assertSize(1, node1.vertices(Direction.OUT));
+      assertSize(0, node1.vertices(Direction.OUT, "otherLabel"));
+      assertSize(0, node2.vertices(Direction.OUT));
+      assertSize(0, node1.vertices(Direction.IN));
+      assertSize(1, node2.vertices(Direction.IN));
+      assertSize(1, node1.vertices(Direction.BOTH));
+      assertSize(1, node2.vertices(Direction.BOTH));
 
       // edge traversals
-      assertSize(1, n1.edges(Direction.OUT));
-      assertEquals(TestEdge.LABEL, n1.edges(Direction.OUT).next().label());
-      assertSize(0, n1.edges(Direction.OUT, "otherLabel"));
-      assertSize(0, n2.edges(Direction.OUT));
-      assertSize(1, n2.edges(Direction.IN));
-      assertSize(1, n1.edges(Direction.BOTH));
-      assertSize(1, n1.edges(Direction.BOTH, TestEdge.LABEL));
-      assertSize(0, n1.edges(Direction.BOTH, "otherLabel"));
+      assertSize(1, node1.edges(Direction.OUT));
+      assertEquals(TestEdge.LABEL, node1.edges(Direction.OUT).next().label());
+      assertSize(0, node1.edges(Direction.OUT, "otherLabel"));
+      assertSize(0, node2.edges(Direction.OUT));
+      assertSize(1, node2.edges(Direction.IN));
+      assertSize(1, node1.edges(Direction.BOTH));
+      assertSize(1, node1.edges(Direction.BOTH, TestEdge.LABEL));
+      assertSize(0, node1.edges(Direction.BOTH, "otherLabel"));
 
       // node properties
-      // TODO move to tinkerpop-subproject once it's factored out
       Set stringProperties = graph.traversal().V().values(TestNode.STRING_PROPERTY).toSet();
       assertTrue(stringProperties.contains("node 1"));
       assertTrue(stringProperties.contains("node 2"));
-      assertEquals(42, (int) e.outVertex().value(TestNode.INT_PROPERTY));
-      assertEquals(52, (int) e.inVertex().value(TestNode.INT_PROPERTY));
+      assertEquals(42, (int) edge.outVertex().value(TestNode.INT_PROPERTY));
+      assertEquals(52, (int) edge.inVertex().value(TestNode.INT_PROPERTY));
 
       // edge properties
-      assertTrue(e instanceof TestEdge);
-      assertEquals(Long.valueOf(99l), ((TestEdge) e).longProperty());
-      assertEquals(Long.valueOf(99l), e.value(TestEdge.LONG_PROPERTY));
-      assertEquals(99l, (long) n1.edges(Direction.OUT).next().value(TestEdge.LONG_PROPERTY));
-      assertEquals(99l, (long) n2.edges(Direction.IN).next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(99l), edge.value(TestEdge.LONG_PROPERTY));
+      assertEquals(99l, (long) node1.edges(Direction.OUT).next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(99l, (long) node2.edges(Direction.IN).next().value(TestEdge.LONG_PROPERTY));
     }
   }
 
