@@ -1,5 +1,6 @@
 package overflowdb.traversal
 
+import org.apache.tinkerpop.gremlin.structure.Vertex
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
@@ -188,7 +189,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   }
 
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
-    val traversedNodes = mutable.ListBuffer.empty[Thing]
+    val traversedNodes = mutable.ListBuffer.empty[Any]
     def test(traverse: => Iterable[_]) = {
       traversedNodes.clear
       val results = traverse
@@ -205,11 +206,13 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     withClue("for reference: this behaviour is adapted from tinkerpop") {
       import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
       import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
-      test(
-        __(center).repeat(
-          __().sideEffect { x: Traverser[Thing] => traversedNodes += x.get }
-            .out().asInstanceOf[TPTraversal[_, Thing]]
-        ).toList.asScala)
+      test {
+        val centerTp3: Vertex = NodeRefTp3.wrap(center)
+        __(centerTp3).repeat(
+          __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
+            .out().asInstanceOf[TPTraversal[_, Vertex]]
+        ).toList.asScala
+      }
     }
   }
 
