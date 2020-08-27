@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{Node, OdbEdgeTp3}
+import overflowdb.{Node, OdbEdge}
 
 class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
 
@@ -12,7 +12,7 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
   def id(value: Long): Traversal[E] =
-    traversal.filter(_.id == value)
+    traversal.filter(_.id2 == value)
 
   /** Filter by given ids
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
@@ -54,27 +54,27 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
     traversal.flatMap(_.both(labels: _*))
 
   /** follow outgoing edges */
-  def outE: Traversal[OdbEdgeTp3] =
+  def outE: Traversal[OdbEdge] =
     traversal.flatMap(_.outE)
 
   /** follow outgoing edges of given label */
-  def outE(labels: String*): Traversal[OdbEdgeTp3] =
+  def outE(labels: String*): Traversal[OdbEdge] =
     traversal.flatMap(_.outE(labels: _*))
 
   /** follow incoming edges */
-  def inE: Traversal[OdbEdgeTp3] =
+  def inE: Traversal[OdbEdge] =
     traversal.flatMap(_.inE)
 
   /** follow incoming edges of given label */
-  def inE(labels: String*): Traversal[OdbEdgeTp3] =
+  def inE(labels: String*): Traversal[OdbEdge] =
     traversal.flatMap(_.inE(labels: _*))
 
   /** follow incoming and outgoing edges */
-  def bothE: Traversal[OdbEdgeTp3] =
+  def bothE: Traversal[OdbEdge] =
     traversal.flatMap(_.bothE)
 
   /** follow incoming and outgoing edges of given label */
-  def bothE(labels: String*): Traversal[OdbEdgeTp3] =
+  def bothE(labels: String*): Traversal[OdbEdge] =
     traversal.flatMap(_.bothE(labels: _*))
 
 }

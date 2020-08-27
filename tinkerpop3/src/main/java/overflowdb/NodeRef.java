@@ -167,7 +167,7 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   }
 
   @Override
-  public <P> P property2(String propertyKey) {
+  public Object property2(String propertyKey) {
     return this.get().property2(propertyKey);
   }
 

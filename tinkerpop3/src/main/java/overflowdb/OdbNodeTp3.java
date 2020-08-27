@@ -47,11 +47,11 @@ public class OdbNodeTp3 implements Vertex {
 
   @Override
   public <V> VertexProperty<V> property(String key) {
-    V value = node.property2(key);
+    Object value = node.property2(key);
     if (value == null)
       return VertexProperty.empty();
     else
-      return new OdbNodeProperty<>(this, key, value);
+      return new OdbNodeProperty<>(this, key, (V) value);
   }
 
   @Override

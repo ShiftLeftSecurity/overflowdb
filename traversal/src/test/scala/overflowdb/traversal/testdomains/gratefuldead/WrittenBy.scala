@@ -4,7 +4,7 @@ import overflowdb._
 import scala.jdk.CollectionConverters._
 
 class WrittenBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends OdbEdgeTp3(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.PropertyNames.all.asJava)
+  extends OdbEdge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.PropertyNames.all.asJava)
 
 object WrittenBy {
   val Label = "writtenBy"

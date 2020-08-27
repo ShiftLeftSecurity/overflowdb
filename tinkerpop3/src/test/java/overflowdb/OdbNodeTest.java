@@ -72,7 +72,7 @@ public class OdbNodeTest {
       assertSize(0, n1.bothE("otherLabel"));
 
       // node properties
-      Set<String> stringProperties = new HashSet();
+      Set stringProperties = new HashSet();
       graph.nodes().forEachRemaining(node -> stringProperties.add(node.property2(TestNode.STRING_PROPERTY)));
       assertTrue(stringProperties.contains("node 1"));
       assertTrue(stringProperties.contains("node 2"));
@@ -316,7 +316,7 @@ public class OdbNodeTest {
       song2.setProperty(Song.NAME, "song 2");
 
       assertNodeCount(2, graph);
-      Set<String> names = new HashSet<>();
+      Set names = new HashSet<>();
       graph.nodes().forEachRemaining(node -> names.add(node.property2("name")));
       assertTrue(names.contains("song 1"));
       assertTrue(names.contains("song 2"));

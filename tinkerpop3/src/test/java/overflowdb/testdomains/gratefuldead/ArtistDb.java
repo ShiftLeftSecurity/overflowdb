@@ -26,9 +26,9 @@ public class ArtistDb extends OdbNode {
   }
 
   @Override
-  public <A> A property2(String key) {
+  public Object property2(String key) {
     if (Artist.NAME.equals(key)) {
-      return (A) _name;
+      return _name;
     } else {
       return null;
     }

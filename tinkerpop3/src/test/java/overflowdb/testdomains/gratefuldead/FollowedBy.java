@@ -15,7 +15,7 @@ public class FollowedBy extends OdbEdge {
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(WEIGHT));
 
   public Integer weight() {
-    return property2(WEIGHT);
+    return (Integer) property2(WEIGHT);
   }
 
   public FollowedBy(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {

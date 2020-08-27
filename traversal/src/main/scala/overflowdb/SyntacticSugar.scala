@@ -29,7 +29,7 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
 
 class ElementSugar(val element: OdbElement) extends AnyVal {
   def property[P](propertyKey: PropertyKey[P]): P =
-    element.property2[P](propertyKey.name)
+    element.property2(propertyKey.name).asInstanceOf[P]
 
   def propertyOption[P](propertyKey: PropertyKey[P]): Option[P] =
     Option(property[P](propertyKey))
@@ -52,7 +52,7 @@ class NodeSugar(val node: Node) extends AnyVal {
 }
 
 private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq[Property[_]]) {
-  def -->(inNode: Node): OdbEdgeTp3 = {
+  def -->(inNode: Node): OdbEdge = {
     val keyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
     properties.foreach { case Property(key, value) =>

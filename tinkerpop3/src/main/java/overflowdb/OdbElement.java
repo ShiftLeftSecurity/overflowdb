@@ -12,7 +12,7 @@ public interface OdbElement {
   Set<String> propertyKeys();
 
   // TODO drop suffix `2` after tinkerpop interface is gone
-  <P> P property2(String propertyKey);
+  Object property2(String propertyKey);
 
   /** Map with all properties */
   Map<String, Object> propertyMap();

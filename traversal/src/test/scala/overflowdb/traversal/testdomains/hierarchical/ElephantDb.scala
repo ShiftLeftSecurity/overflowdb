@@ -1,6 +1,5 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import org.apache.tinkerpop.gremlin.structure.VertexProperty
 import overflowdb.{NodeRef, OdbNode}
 
 class ElephantDb(ref: NodeRef[ElephantDb]) extends OdbNode(ref) with Animal {
@@ -15,17 +14,16 @@ class ElephantDb(ref: NodeRef[ElephantDb]) extends OdbNode(ref) with Animal {
     properties
   }
 
-  override protected def specificProperty2(key: String) =
+  override def property2(key: String) =
     key match {
       case Elephant.PropertyNames.Name => _name
       case _ => null
     }
 
-  override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) =
+  override protected def updateSpecificProperty(key: String, value: Object) =
     key match {
       case Elephant.PropertyNames.Name =>
         _name = value.asInstanceOf[String]
-        property(Elephant.PropertyNames.Name)
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }

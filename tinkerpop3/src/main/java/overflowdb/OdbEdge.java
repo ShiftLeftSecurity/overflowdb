@@ -129,7 +129,7 @@ public abstract class OdbEdge implements OdbElement {
   }
 
   // TODO drop suffix `2` after tinkerpop interface is gone
-  public <P> P property2(String propertyKey) {
+  public Object property2(String propertyKey) {
     if (inBlockOffset != -1) {
       return inNode.get().getEdgeProperty2(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {

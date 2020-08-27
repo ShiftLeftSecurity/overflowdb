@@ -70,7 +70,7 @@ public class OdbEdgeTp3 implements Edge {
     OdbEdgeTp3 self = this;
     final Stream<Property<V>> stream =
       Stream.of(propertyKeys)
-            .map(key -> new OdbProperty<>(key, edge.property2(key), self));
+            .map(key -> new OdbProperty<>(key, (V) edge.property2(key), self));
     return stream.iterator();
   }
 

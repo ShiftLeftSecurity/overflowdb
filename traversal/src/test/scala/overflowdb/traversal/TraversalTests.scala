@@ -1,8 +1,8 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+import overflowdb.{Node, toElementSugar}
 
 import scala.collection.mutable
 
@@ -33,7 +33,7 @@ class TraversalTests extends WordSpec with Matchers {
       .start
       .out
       .sideEffectPF {
-        case node if node.property2[String](Thing.PropertyNames.Name).startsWith("L") =>
+        case node if node.property(Thing.Properties.Name).startsWith("L") =>
           sack.addOne(node)
       }
       .out
