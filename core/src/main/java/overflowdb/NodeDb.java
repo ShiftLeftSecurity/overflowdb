@@ -16,11 +16,16 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Node that stores adjacent Nodes directly, rather than via edges.
- * Motivation: in many graph use cases, edges don't hold any properties and thus accounts for more memory and
- * traversal time than necessary
+ * Holds node properties and edges to adjacent nodes (including edge properties).
+ * Each {{@link NodeRef}} refers to exactly one NodeDb instance, and if required can set that instance to `null`, thus
+ * freeing up memory, e.g. if heap memory is low. While {{@link NodeRef}} instances are very small (they will never be
+ * garbage collected), NodeDb instances consume a bit more space.
+ *
+ * Adjacent nodes and edge properties are stored in a flat array (adjacentNodesWithProperties).
+ * Edges only exist virtually and are created on request. This allows for a small memory footprint, especially given
+ * that most graph domains have magnitudes more edges than nodes.
  */
-public abstract class OdbNode implements Node {
+public abstract class NodeDb implements Node {
   public final NodeRef ref;
 
   /**
@@ -42,7 +47,7 @@ public abstract class OdbNode implements Node {
 
   private static final String[] ALL_LABELS = new String[0];
 
-  protected OdbNode(NodeRef ref) {
+  protected NodeDb(NodeRef ref) {
     this.ref = ref;
 
     ref.setNode(this);
@@ -699,6 +704,6 @@ public abstract class OdbNode implements Node {
 
   @Override
   public boolean equals(final Object obj) {
-    return (obj instanceof OdbNode) && id() == ((OdbNode) obj).id();
+    return (obj instanceof NodeDb) && id() == ((NodeDb) obj).id();
   }
 }

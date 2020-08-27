@@ -9,7 +9,7 @@ import overflowdb.OdbGraph;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
-import overflowdb.testdomains.simple.TestNodeDb;
+import overflowdb.testdomains.simple.TestNodeDbDb;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ public class SerializerTest {
           TestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43)
       );
 
-      TestNodeDb testNodeDb = testNode.get();
+      TestNodeDbDb testNodeDb = testNode.get();
       byte[] bytes = serializer.serialize(testNodeDb);
       Node deserialized = deserializer.deserialize(bytes);
 
@@ -57,8 +57,8 @@ public class SerializerTest {
       TestNode testNode2 = (TestNode) graph.addNode(TestNode.LABEL);
       testNode1.addEdge(TestEdge.LABEL, testNode2, TestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
-      TestNodeDb testNode1Db = testNode1.get();
-      TestNodeDb testNode2Db = testNode2.get();
+      TestNodeDbDb testNode1Db = testNode1.get();
+      TestNodeDbDb testNode2Db = testNode2.get();
       Node n0Deserialized = deserializer.deserialize(serializer.serialize(testNode1Db));
       Node n1Deserialized = deserializer.deserialize(serializer.serialize(testNode2Db));
 
@@ -79,7 +79,7 @@ public class SerializerTest {
 
   private NodeDeserializer newDeserializer(OdbGraph graph) {
     Map<Integer, NodeFactory> nodeFactories = new HashMap();
-    nodeFactories.put(TestNodeDb.layoutInformation.labelId, TestNode.factory);
+    nodeFactories.put(TestNodeDbDb.layoutInformation.labelId, TestNode.factory);
     return new NodeDeserializer(graph, nodeFactories, true);
   }
 

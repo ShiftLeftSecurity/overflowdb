@@ -1,7 +1,7 @@
 package overflowdb.storage;
 
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 import overflowdb.util.PackedIntArray;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -16,7 +16,7 @@ public class NodeSerializer extends BookKeeper {
     super(statsEnabled);
   }
 
-  public byte[] serialize(OdbNode node) throws IOException {
+  public byte[] serialize(NodeDb node) throws IOException {
     long startTimeNanos = getStartTimeNanos();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */

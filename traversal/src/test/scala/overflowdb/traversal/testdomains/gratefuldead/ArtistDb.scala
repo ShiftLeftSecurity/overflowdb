@@ -1,9 +1,9 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
 import overflowdb.traversal._
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 
-class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
+class ArtistDb(ref: NodeRef[ArtistDb]) extends NodeDb(ref) {
   /* name property */
   def name: String = _name
   private var _name: String = null

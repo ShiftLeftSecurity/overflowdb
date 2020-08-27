@@ -2,15 +2,14 @@ package overflowdb.testdomains.gratefuldead;
 
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import overflowdb.NodeDb;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class SongDb extends OdbNode {
+public class SongDb extends NodeDb {
   protected SongDb(NodeRef ref) {
     super(ref);
   }

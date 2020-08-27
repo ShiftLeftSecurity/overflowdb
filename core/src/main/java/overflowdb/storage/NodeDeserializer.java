@@ -8,7 +8,7 @@ import org.msgpack.value.Value;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.OdbGraph;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class NodeDeserializer extends BookKeeper {
     return interned == null ? s : interned;
   }
 
-  public final OdbNode deserialize(byte[] bytes) throws IOException {
+  public final NodeDb deserialize(byte[] bytes) throws IOException {
     long startTimeNanos = getStartTimeNanos();
     if (null == bytes)
       return null;
@@ -47,7 +47,7 @@ public class NodeDeserializer extends BookKeeper {
     final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
     final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
-    OdbNode node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
     if (statsEnabled) recordStatistics(startTimeNanos);
     return node;
@@ -155,8 +155,8 @@ public class NodeDeserializer extends BookKeeper {
     return getNodeFactory(labelId).createNodeRef(graph, id);
   }
 
-  protected final OdbNode createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
-    OdbNode node = getNodeFactory(labelId).createNode(graph, id);
+  protected final NodeDb createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
+    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
     PropertyHelper.attachProperties(node, toKeyValueArray(properties));
     node.setEdgeOffsets(edgeOffsets);
     node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);

@@ -6,7 +6,7 @@ import overflowdb.OdbGraph;
 
 import java.util.List;
 
-public class TestNode extends NodeRef<TestNodeDb> {
+public class TestNode extends NodeRef<TestNodeDbDb> {
   public static final String LABEL = "testNode";
 
   public static final String STRING_PROPERTY = "StringProperty";
@@ -39,7 +39,7 @@ public class TestNode extends NodeRef<TestNodeDb> {
     return get().intListProperty();
   }
 
-  public static NodeFactory<TestNodeDb> factory = new NodeFactory<TestNodeDb>() {
+  public static NodeFactory<TestNodeDbDb> factory = new NodeFactory<TestNodeDbDb>() {
 
     @Override
     public String forLabel() {
@@ -48,12 +48,12 @@ public class TestNode extends NodeRef<TestNodeDb> {
 
     @Override
     public int forLabelId() {
-      return TestNodeDb.layoutInformation.labelId;
+      return TestNodeDbDb.layoutInformation.labelId;
     }
 
     @Override
-    public TestNodeDb createNode(NodeRef<TestNodeDb> ref) {
-      return new TestNodeDb(ref);
+    public TestNodeDbDb createNode(NodeRef<TestNodeDbDb> ref) {
+      return new TestNodeDbDb(ref);
     }
 
     @Override

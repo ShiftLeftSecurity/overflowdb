@@ -11,7 +11,7 @@ import java.util.Set;
  * Lightweight (w.r.t. memory usage) reference to for an OdbNode, which is stored in the `node` member.
  * When running low on memory (as detected by {{@link HeapUsageMonitor}}), the {{@link ReferenceManager}} may set
  * that member to `null`, so that the garbage collector can free up some heap, thus avoiding @{@link OutOfMemoryError}.
- * Note that this model only works if nothing else holds references to the {@link OdbNode} - which is therefor strongly
+ * Note that this model only works if nothing else holds references to the {@link NodeDb} - which is therefor strongly
  * discouraged. Instead, the entire application should only ever hold onto {@link NodeRef} instances.
  *
  * When the `node` member is currently null, but is then required (e.g. to lookup a property or an edge), the node will
@@ -19,7 +19,7 @@ import java.util.Set;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends OdbNode> implements Node {
+public abstract class NodeRef<N extends NodeDb> implements Node {
   public final long id;
   protected final OdbGraph graph;
   private N node;
@@ -61,7 +61,7 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   }
 
   protected byte[] serializeWhenDirty() {
-    OdbNode node = this.node;
+    NodeDb node = this.node;
     if (node != null && node.isDirty()) {
       return graph.storage.serialize(node);
     }

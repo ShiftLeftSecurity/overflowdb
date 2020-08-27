@@ -2,7 +2,7 @@ package overflowdb.testdomains.simple;
 
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class TestNodeDb extends OdbNode {
-  protected TestNodeDb(NodeRef ref) {
+public class TestNodeDbDb extends NodeDb {
+  protected TestNodeDbDb(NodeRef ref) {
     super(ref);
   }
 

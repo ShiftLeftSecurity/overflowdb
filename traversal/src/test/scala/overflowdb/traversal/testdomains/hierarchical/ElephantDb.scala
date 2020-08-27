@@ -1,8 +1,8 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 
-class ElephantDb(ref: NodeRef[ElephantDb]) extends OdbNode(ref) with Animal {
+class ElephantDb(ref: NodeRef[ElephantDb]) extends NodeDb(ref) with Animal {
   override def species = "Elephant"
 
   private var _name: String = null

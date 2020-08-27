@@ -2,14 +2,14 @@ package overflowdb.testdomains.gratefuldead;
 
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class ArtistDb extends OdbNode {
+public class ArtistDb extends NodeDb {
   protected ArtistDb(NodeRef ref) {
     super(ref);
   }

@@ -1,9 +1,9 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
 import overflowdb.traversal._
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 
-class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) {
+class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
   private var _name: String = null
   private var _songType: String = null
   private var _performances: Integer = null

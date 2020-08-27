@@ -7,7 +7,7 @@ import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.hash.THashSet;
 import overflowdb.Node;
 import overflowdb.NodeRef;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,8 +90,8 @@ public class NodesList {
     nodes[index] = null;
     emptySlots.set(index);
 
-    NodeRef ref = node instanceof OdbNode
-        ? ((OdbNode) node).ref
+    NodeRef ref = node instanceof NodeDb
+        ? ((NodeDb) node).ref
         : (NodeRef) node;
     nodesByLabel.get(node.label()).remove(ref);
 

@@ -1,6 +1,6 @@
 package overflowdb;
 
-public abstract class NodeFactory<V extends OdbNode> {
+public abstract class NodeFactory<V extends NodeDb> {
   public abstract String forLabel();
 
   /** unique id for this node's label

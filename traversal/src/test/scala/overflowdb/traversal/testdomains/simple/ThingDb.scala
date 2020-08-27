@@ -3,7 +3,7 @@ package overflowdb.traversal.testdomains.simple
 import overflowdb._
 import overflowdb.traversal._
 
-class ThingDb(ref: NodeRef[ThingDb]) extends OdbNode(ref) {
+class ThingDb(ref: NodeRef[ThingDb]) extends NodeDb(ref) {
   private var _name: String = null
   private var _size: Integer = null
 

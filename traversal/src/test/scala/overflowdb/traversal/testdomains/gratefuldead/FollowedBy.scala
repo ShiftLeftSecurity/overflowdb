@@ -22,7 +22,7 @@ object FollowedBy {
   var factory: EdgeFactory[FollowedBy] = new EdgeFactory[FollowedBy] {
     override def forLabel(): String = FollowedBy.Label
 
-    override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): FollowedBy =
+    override def createEdge(graph: OdbGraph, outNode: NodeRef[NodeDb], inNode: NodeRef[NodeDb]): FollowedBy =
       new FollowedBy(graph, outNode.asInstanceOf[NodeRef[SongDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }

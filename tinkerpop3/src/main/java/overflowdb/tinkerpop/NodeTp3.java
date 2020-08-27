@@ -9,17 +9,17 @@ import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.Node;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class NodeTp3<N extends OdbNode> implements Vertex {
+public class NodeTp3<N extends NodeDb> implements Vertex {
   public final NodeRef<N> nodeRef;
 
-  public static <N extends OdbNode> NodeTp3 wrap(NodeRef<N> nodeRef) {
+  public static <N extends NodeDb> NodeTp3 wrap(NodeRef<N> nodeRef) {
     return new NodeTp3<>(nodeRef);
   }
 

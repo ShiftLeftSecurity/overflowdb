@@ -19,7 +19,7 @@ object WrittenBy {
   var factory: EdgeFactory[WrittenBy] = new EdgeFactory[WrittenBy] {
     override def forLabel(): String = WrittenBy.Label
 
-    override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): WrittenBy =
+    override def createEdge(graph: OdbGraph, outNode: NodeRef[NodeDb], inNode: NodeRef[NodeDb]): WrittenBy =
       new WrittenBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }

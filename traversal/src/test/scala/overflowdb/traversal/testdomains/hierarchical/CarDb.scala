@@ -1,8 +1,8 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 
-class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
+class CarDb(ref: NodeRef[CarDb]) extends NodeDb(ref) {
   private var _name: String = null
 
   def name: String = _name

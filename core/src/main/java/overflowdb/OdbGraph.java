@@ -131,7 +131,7 @@ public final class OdbGraph implements AutoCloseable {
       throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
-    final OdbNode node = factory.createNode(this, idValue);
+    final NodeDb node = factory.createNode(this, idValue);
     PropertyHelper.attachProperties(node, keyValues);
     this.referenceManager.registerRef(node.ref);
 

@@ -1,7 +1,7 @@
 package overflowdb.traversal.help
 
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 import java.lang.annotation.{Annotation => JAnnotation}
 
 import org.reflections.Reflections
@@ -21,7 +21,7 @@ class TraversalHelp(domainBasePackage: String) {
   val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 
   def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
-    val isNode = classOf[OdbNode].isAssignableFrom(elementClass)
+    val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
     val stepDocs = {

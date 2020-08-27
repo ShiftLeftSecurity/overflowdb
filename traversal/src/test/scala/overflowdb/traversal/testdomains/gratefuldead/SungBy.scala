@@ -20,7 +20,7 @@ object SungBy {
   var factory: EdgeFactory[SungBy] = new EdgeFactory[SungBy] {
     override def forLabel(): String = SungBy.Label
 
-    override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): SungBy =
+    override def createEdge(graph: OdbGraph, outNode: NodeRef[NodeDb], inNode: NodeRef[NodeDb]): SungBy =
       new SungBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }

@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class OdbNodeTest {
+public class NodeDbTest {
 
   @Test
   public void simpleTest() {

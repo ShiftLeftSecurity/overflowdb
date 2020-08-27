@@ -1,7 +1,7 @@
 package overflowdb.storage;
 
 import overflowdb.Node;
-import overflowdb.OdbNode;
+import overflowdb.NodeDb;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -70,12 +70,12 @@ public class OdbStorage implements AutoCloseable {
     logger.trace("storage file: " + mvstoreFile);
   }
 
-  public void persist(final OdbNode node) {
+  public void persist(final NodeDb node) {
     final long id = node.ref.id;
     persist(id, serialize(node));
   }
 
-  public byte[] serialize(OdbNode node) {
+  public byte[] serialize(NodeDb node) {
     try {
       return nodeSerializer.serialize(node);
     } catch (IOException e) {
