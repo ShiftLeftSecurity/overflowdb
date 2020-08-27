@@ -2,13 +2,13 @@ package overflowdb.testdomains.gratefuldead;
 
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 
 public class Artist extends NodeRef<ArtistDb> {
   public static final String label = "artist";
   public static final String NAME = "name";
 
-  public Artist(OdbGraph graph, long id) {
+  public Artist(Graph graph, long id) {
     super(graph, id);
   }
 
@@ -38,7 +38,7 @@ public class Artist extends NodeRef<ArtistDb> {
     }
 
     @Override
-    public Artist createNodeRef(OdbGraph graph, long id) {
+    public Artist createNodeRef(Graph graph, long id) {
       return new Artist(graph, id);
     }
   };

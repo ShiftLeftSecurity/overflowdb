@@ -4,7 +4,7 @@ import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,7 +14,7 @@ public class TestEdge extends Edge {
   public static final String LONG_PROPERTY = "longProperty";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(LONG_PROPERTY));
 
-  public TestEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+  public TestEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -31,7 +31,7 @@ public class TestEdge extends Edge {
     }
 
     @Override
-    public TestEdge createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+    public TestEdge createEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
       return new TestEdge(graph, outVertex, inVertex);
     }
   };

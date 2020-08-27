@@ -24,7 +24,7 @@ public class NodeDbTest {
 
   @Test
   public void simpleTest() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n1 = graph.addNode(
           TestNode.LABEL,
           TestNode.STRING_PROPERTY, "node 1",
@@ -91,7 +91,7 @@ public class NodeDbTest {
 
   @Test
   public void testEdgeEquality() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -108,7 +108,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaNewEdge() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -123,7 +123,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaQueriedEdge() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -137,7 +137,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaDifferenceQueriedEdges() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -153,7 +153,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaNewEdgeMultiple() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -170,7 +170,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaQueriedEdgeMultiple() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -192,7 +192,7 @@ public class NodeDbTest {
 
   @Test
   public void setAndGetEdgePropertyViaDifferenceQueriedEdgesMultiple() {
-    OdbGraph graph = SimpleDomain.newGraph();
+    Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
@@ -217,7 +217,7 @@ public class NodeDbTest {
 
   @Test
   public void removeEdgeSimple() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
       Edge edge = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
@@ -231,7 +231,7 @@ public class NodeDbTest {
 
   @Test
   public void removeEdgeComplex1() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
       Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
@@ -250,7 +250,7 @@ public class NodeDbTest {
 
   @Test
   public void removeEdgeComplex2() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
       Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
@@ -269,7 +269,7 @@ public class NodeDbTest {
 
   @Test
   public void removeEdgeComplexAfterSerialization() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
       n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
@@ -294,7 +294,7 @@ public class NodeDbTest {
 
   @Test
   public void removeNodeSimple() {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
       n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
@@ -308,7 +308,7 @@ public class NodeDbTest {
 
   @Test
   public void shouldAllowAddingElementsAndSettingProperties() {
-    try(OdbGraph graph = GratefulDead.open()) {
+    try(Graph graph = GratefulDead.open()) {
 
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
@@ -330,7 +330,7 @@ public class NodeDbTest {
 
   @Test
   public void shouldSupportEdgeRemoval1() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
@@ -345,7 +345,7 @@ public class NodeDbTest {
 
   @Test
   public void shouldSupportEdgeRemoval2() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -366,7 +366,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove1() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -384,7 +384,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove2() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -402,7 +402,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove3() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -420,7 +420,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove4() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -438,7 +438,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove5_twoEdgesBetweenTwoNodes() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -454,7 +454,7 @@ public class NodeDbTest {
 
   @Test
   public void nodeRemove6() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -479,7 +479,7 @@ public class NodeDbTest {
 
   @Test
   public void shouldAllowToSpecifyIds() {
-    try(OdbGraph graph = GratefulDead.open()) {
+    try(Graph graph = GratefulDead.open()) {
       Node n10 = graph.addNode(10l, Song.label, Song.NAME, "Song 10");
       Node n20 = graph.addNode(20l, Song.label, Song.NAME, "Song 20");
       n10.addEdge(FollowedBy.LABEL, n20, FollowedBy.WEIGHT, 5);
@@ -491,7 +491,7 @@ public class NodeDbTest {
 
   @Test
   public void shouldReturnElementRefs() {
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
       Edge e4 = n0.addEdge(FollowedBy.LABEL, n2);
@@ -500,11 +500,11 @@ public class NodeDbTest {
     }
   }
 
-  private void assertNodeCount(int expected, OdbGraph graph) {
+  private void assertNodeCount(int expected, Graph graph) {
     assertEquals("node count different to expected", expected, graph.nodeCount());
   }
 
-  private void assertEdgeCount(int expected, OdbGraph graph) {
+  private void assertEdgeCount(int expected, Graph graph) {
     assertEquals("edge count different to expected", expected, graph.edgeCount());
   }
 

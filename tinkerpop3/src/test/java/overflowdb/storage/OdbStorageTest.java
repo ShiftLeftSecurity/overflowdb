@@ -2,8 +2,8 @@ package overflowdb.storage;
 
 import org.junit.Test;
 import overflowdb.Node;
-import overflowdb.OdbConfig;
-import overflowdb.OdbGraph;
+import overflowdb.Config;
+import overflowdb.Graph;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
 
@@ -20,11 +20,11 @@ public class OdbStorageTest {
   @Test
   public void persistToFileIfStorageConfigured() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    OdbConfig config = OdbConfig.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
+    Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     // open empty graph, add one node, close graph
     final long song1Id;
-    try (OdbGraph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.open(config)) {
       assertEquals(0, graph.nodeCount());
       final Node song1 = graph.addNode(Song.label, Song.NAME, "Song 1");
       song1Id = song1.id();
@@ -32,7 +32,7 @@ public class OdbStorageTest {
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reopen graph: node should be there
-    try (OdbGraph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.open(config)) {
       assertEquals(1, graph.nodeCount());
       final Node song1 = graph.node(song1Id);
       assertEquals("node should have been persisted to disk and reloaded when reopened the graph",
@@ -43,7 +43,7 @@ public class OdbStorageTest {
       assertEquals(0, graph.nodeCount());
     }
 
-    try (OdbGraph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.open(config)) {
       assertEquals(0, graph.nodeCount());
     }
 
@@ -54,7 +54,7 @@ public class OdbStorageTest {
   public void shouldDeleteTmpStorageIfNoStorageLocationConfigured() {
     final File tmpStorageFile;
 
-    try (OdbGraph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.open()) {
       graph.addNode(Song.label, Song.NAME, "Song 1");
       tmpStorageFile = graph.getStorage().getStorageFile();
     } // ARM auto-close will trigger saving to disk because we specified a location

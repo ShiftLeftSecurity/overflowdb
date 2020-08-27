@@ -3,7 +3,7 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.Edge;
 
 import java.util.Arrays;
@@ -18,7 +18,7 @@ public class FollowedBy extends Edge {
     return (Integer) property(WEIGHT);
   }
 
-  public FollowedBy(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+  public FollowedBy(Graph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -31,7 +31,7 @@ public class FollowedBy extends Edge {
     }
 
     @Override
-    public FollowedBy createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+    public FollowedBy createEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
       return new FollowedBy(graph, outVertex, inVertex);
     }
   };

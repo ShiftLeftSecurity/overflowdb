@@ -5,7 +5,7 @@ import overflowdb.Node;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
@@ -22,7 +22,7 @@ public class SerializerTest {
 
   @Test
   public void serializeVertex() throws IOException {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       NodeSerializer serializer = new NodeSerializer(false);
       NodeDeserializer deserializer = newDeserializer(graph);
       TestNode testNode = (TestNode) graph.addNode(
@@ -49,7 +49,7 @@ public class SerializerTest {
 
   @Test
   public void serializeWithEdge() throws IOException {
-    try (OdbGraph graph = SimpleDomain.newGraph()) {
+    try (Graph graph = SimpleDomain.newGraph()) {
       NodeSerializer serializer = new NodeSerializer(true);
       NodeDeserializer deserializer = newDeserializer(graph);
 
@@ -77,7 +77,7 @@ public class SerializerTest {
     }
   }
 
-  private NodeDeserializer newDeserializer(OdbGraph graph) {
+  private NodeDeserializer newDeserializer(Graph graph) {
     Map<Integer, NodeFactory> nodeFactories = new HashMap();
     nodeFactories.put(TestNodeDbDb.layoutInformation.labelId, TestNode.factory);
     return new NodeDeserializer(graph, nodeFactories, true);

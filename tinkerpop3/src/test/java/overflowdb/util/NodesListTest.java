@@ -2,8 +2,8 @@ package overflowdb.util;
 
 import org.junit.Test;
 import overflowdb.NodeRef;
-import overflowdb.OdbConfig;
-import overflowdb.OdbGraph;
+import overflowdb.Config;
+import overflowdb.Graph;
 
 import java.util.ArrayList;
 import java.util.Vector;
@@ -191,5 +191,5 @@ public class NodesListTest {
     };
   }
 
-  private OdbGraph dummyGraph = OdbGraph.open(OdbConfig.withoutOverflow(), new ArrayList<>(), new ArrayList<>());
+  private Graph dummyGraph = Graph.open(Config.withoutOverflow(), new ArrayList<>(), new ArrayList<>());
 }

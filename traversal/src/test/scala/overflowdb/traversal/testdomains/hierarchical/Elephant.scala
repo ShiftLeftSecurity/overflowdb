@@ -1,11 +1,11 @@
 package overflowdb.traversal.testdomains.hierarchical
 
 import overflowdb.traversal.Traversal
-import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
+import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Elephant(graph: OdbGraph, id: Long) extends NodeRef[ElephantDb](graph, id) with Mammal {
+class Elephant(graph: Graph, id: Long) extends NodeRef[ElephantDb](graph, id) with Mammal {
   override def label: String = Elephant.Label
   override def species = "Elephant"
   override def canSwim = true
@@ -30,7 +30,7 @@ object Elephant {
     override def forLabel: String = Label
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ElephantDb]) = new ElephantDb(ref)
-    override def createNodeRef(graph: OdbGraph, id: Long) = new Elephant(graph, id)
+    override def createNodeRef(graph: Graph, id: Long) = new Elephant(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =

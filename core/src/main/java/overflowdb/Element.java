@@ -3,10 +3,10 @@ package overflowdb;
 import java.util.Map;
 import java.util.Set;
 
-public interface OdbElement {
+public interface Element {
   String label();
 
-  OdbGraph graph();
+  Graph graph();
 
   Set<String> propertyKeys();
 

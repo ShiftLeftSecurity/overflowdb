@@ -3,7 +3,7 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.EdgeFactory;
 import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.Edge;
 
 import java.io.Serializable;
@@ -14,7 +14,7 @@ public class WrittenBy extends Edge implements Serializable {
   public static final String LABEL = "writtenBy";
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList());
 
-  public WrittenBy(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+  public WrittenBy(Graph graph, NodeRef outVertex, NodeRef inVertex) {
     super(graph, LABEL, outVertex, inVertex, PROPERTY_KEYS);
   }
 
@@ -27,7 +27,7 @@ public class WrittenBy extends Edge implements Serializable {
     }
 
     @Override
-    public WrittenBy createEdge(OdbGraph graph, NodeRef outVertex, NodeRef inVertex) {
+    public WrittenBy createEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
       return new WrittenBy(graph, outVertex, inVertex);
     }
   };

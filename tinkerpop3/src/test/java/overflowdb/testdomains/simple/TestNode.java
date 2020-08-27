@@ -2,7 +2,7 @@ package overflowdb.testdomains.simple;
 
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ public class TestNode extends NodeRef<TestNodeDbDb> {
   public static final String STRING_LIST_PROPERTY = "StringListProperty";
   public static final String INT_LIST_PROPERTY = "IntListProperty";
 
-  public TestNode(OdbGraph graph, long id) {
+  public TestNode(Graph graph, long id) {
     super(graph, id);
   }
 
@@ -57,7 +57,7 @@ public class TestNode extends NodeRef<TestNodeDbDb> {
     }
 
     @Override
-    public TestNode createNodeRef(OdbGraph graph, long id) {
+    public TestNode createNodeRef(Graph graph, long id) {
       return new TestNode(graph, id);
     }
   };

@@ -11,14 +11,14 @@ public class GraphCloneTest {
 
   @Test
   public void shouldDeepCloneGraph() {
-    OdbConfig config = OdbConfig.withoutOverflow();
-    OdbGraph graph = SimpleDomain.newGraph(config);
+    Config config = Config.withoutOverflow();
+    Graph graph = SimpleDomain.newGraph(config);
     Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
     Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
     n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 3L);
 
     // copy graph
-    OdbGraph graph2 = SimpleDomain.newGraph(config);
+    Graph graph2 = SimpleDomain.newGraph(config);
     graph.copyTo(graph2);
     assertEquals(graph2.nodeCount(), 2);
     assertEquals(graph2.edgeCount(), 1);

@@ -11,14 +11,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.LongStream;
 
-public final class OdbIndexManager {
+public final class IndexManager {
 
-  private final OdbGraph graph;
+  private final Graph graph;
   // TODO use concurrent but memory efficient map
   protected Map<String, Map<Object, Set<NodeRef>>> indexes = new ConcurrentHashMap<>();
   protected Map<String, Boolean> dirtyFlags = new ConcurrentHashMap<>();
 
-  public OdbIndexManager(OdbGraph graph) {
+  public IndexManager(Graph graph) {
     this.graph = graph;
   }
 

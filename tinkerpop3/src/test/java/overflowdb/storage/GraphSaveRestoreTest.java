@@ -3,9 +3,9 @@ package overflowdb.storage;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.junit.Test;
 import overflowdb.Node;
-import overflowdb.OdbConfig;
+import overflowdb.Config;
 import overflowdb.Edge;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.tinkerpop.OdbGraphTp3;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
@@ -35,7 +35,7 @@ public class GraphSaveRestoreTest {
     final Long node0Id;
     final Long node1Id;
     // create graph and store in specified location
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, false)) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n1 = graph.addNode(Song.label, Song.NAME, "Song 2");
       Edge edge = n0.addEdge(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
@@ -44,7 +44,7 @@ public class GraphSaveRestoreTest {
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, false)) {
       assertEquals(2, graph.nodeCount());
       assertEquals(1, graph.edgeCount());
       assertEquals("Song 1", graph.node(node0Id).property(Song.NAME));
@@ -64,12 +64,12 @@ public class GraphSaveRestoreTest {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.deleteOnExit();
 
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, false)) {
       loadGraphMl(graph);
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, false)) {
       assertEquals(808, graph.nodeCount());
       assertEquals(8049, graph.edgeCount());
     }
@@ -80,12 +80,12 @@ public class GraphSaveRestoreTest {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.deleteOnExit();
 
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, true)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, true)) {
       loadGraphMl(graph);
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
-    try (OdbGraph graph = openGratefulDeadGraph(storageFile, true)) {
+    try (Graph graph = openGratefulDeadGraph(storageFile, true)) {
       assertEquals(808, graph.nodeCount());
       assertEquals(8049, graph.edgeCount());
     }
@@ -169,24 +169,24 @@ public class GraphSaveRestoreTest {
     });
 
     // verify that deleted node is actually gone
-    OdbGraph graph = openGratefulDeadGraph(storageFile, false);
+    Graph graph = openGratefulDeadGraph(storageFile, false);
     assertFalse("node should have been deleted from storage", getSongs(graph, "new song").hasNext());
   }
 
-  private void modifyAndCloseGraph(File storageFile, Function<OdbGraph, Integer> graphModifications) {
-    OdbGraph graph = openGratefulDeadGraph(storageFile, false);
+  private void modifyAndCloseGraph(File storageFile, Function<Graph, Integer> graphModifications) {
+    Graph graph = openGratefulDeadGraph(storageFile, false);
     int expectedSerializationCount = graphModifications.apply(graph);
     graph.close();
     assertEquals(expectedSerializationCount, graph.getStorage().nodeSerializer.getSerializedCount());
   }
 
-  private OdbGraph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
-    OdbConfig config = enableOverflow ? OdbConfig.withDefaults() : OdbConfig.withoutOverflow();
+  private Graph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
+    Config config = enableOverflow ? Config.withDefaults() : Config.withoutOverflow();
     config = config.withSerializationStatsEnabled();
     return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 
-  private void loadGraphMl(OdbGraph graph) throws RuntimeException {
+  private void loadGraphMl(Graph graph) throws RuntimeException {
     try {
       OdbGraphTp3.wrap(graph).io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
     } catch (IOException e) {
@@ -194,7 +194,7 @@ public class GraphSaveRestoreTest {
     }
   }
 
-  private Iterator<Node> getSongs(OdbGraph graph, String songName) {
+  private Iterator<Node> getSongs(Graph graph, String songName) {
     return IteratorUtils.filter(graph.nodes(Song.label), n -> n.property(Song.NAME).equals(songName));
   }
 

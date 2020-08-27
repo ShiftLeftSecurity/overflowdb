@@ -6,8 +6,8 @@ import java.util.Objects;
 import java.util.Set;
 import overflowdb.util.IteratorUtils;
 
-public abstract class Edge implements OdbElement {
-  private final OdbGraph graph;
+public abstract class Edge implements Element {
+  private final Graph graph;
   private final String label;
   private final NodeRef outNode;
   private final NodeRef inNode;
@@ -29,7 +29,7 @@ public abstract class Edge implements OdbElement {
 
   private static final int UNINITIALIZED_BLOCK_OFFSET = -1;
 
-  public Edge(OdbGraph graph,
+  public Edge(Graph graph,
               String label,
               NodeRef outNode,
               NodeRef inVertex,
@@ -77,7 +77,7 @@ public abstract class Edge implements OdbElement {
   }
 
   @Override
-  public OdbGraph graph() {
+  public Graph graph() {
     return graph;
   }
 

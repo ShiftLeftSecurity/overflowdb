@@ -1,11 +1,11 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{OdbElement, Property, PropertyPredicate, PropertyKey}
+import overflowdb.{Element, Property, PropertyPredicate, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends AnyVal {
+class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal {
 
   /** traverse to the element label */
   @Doc("Traverse to the element label")

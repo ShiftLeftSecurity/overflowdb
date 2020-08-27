@@ -7,7 +7,7 @@ import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.NodeDb;
 import overflowdb.util.PropertyHelper;
 
@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeDeserializer extends BookKeeper {
-  protected final OdbGraph graph;
+  protected final Graph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private ConcurrentHashMap<String, String> interner;
 
-  public NodeDeserializer(OdbGraph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
+  public NodeDeserializer(Graph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
     super(statsEnabled);
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;

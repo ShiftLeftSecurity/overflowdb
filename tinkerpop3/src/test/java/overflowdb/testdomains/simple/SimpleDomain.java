@@ -1,17 +1,17 @@
 package overflowdb.testdomains.simple;
 
-import overflowdb.OdbConfig;
-import overflowdb.OdbGraph;
+import overflowdb.Config;
+import overflowdb.Graph;
 
 import java.util.Arrays;
 
 public class SimpleDomain {
-  public static OdbGraph newGraph() {
-    return newGraph(OdbConfig.withoutOverflow());
+  public static Graph newGraph() {
+    return newGraph(Config.withoutOverflow());
   }
 
-  public static OdbGraph newGraph(OdbConfig config) {
-    return OdbGraph.open(
+  public static Graph newGraph(Config config) {
+    return Graph.open(
         config,
         Arrays.asList(TestNode.factory),
         Arrays.asList(TestEdge.factory)

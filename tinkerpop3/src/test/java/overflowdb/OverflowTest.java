@@ -15,11 +15,11 @@ public class OverflowTest {
   // it'll be much slower due to the serialization to disk, but should not crash
   // important: use all the following vm opts:  `-Xms256m -Xmx256m`
   public void shouldAllowGraphsLargerThanMemory() {
-    OdbConfig config = OdbConfig.withoutOverflow();
+    Config config = Config.withoutOverflow();
 //    OdbConfig config = OdbConfig.withDefaults();
     int nodeCount = 100_000;
     int currentInt = 0;
-    try(OdbGraph graph = SimpleDomain.newGraph(config)) {
+    try(Graph graph = SimpleDomain.newGraph(config)) {
       for (long i = 0; i < nodeCount; i++) {
         if (i % 1000 == 0) {
           System.out.println(i + " nodes created");

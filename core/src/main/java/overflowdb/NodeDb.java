@@ -1,6 +1,7 @@
 package overflowdb;
 
 import overflowdb.util.ArrayOffsetIterator;
+import overflowdb.util.DummyEdgeIterator;
 import overflowdb.util.MultiIterator;
 import overflowdb.util.PackedIntArray;
 import overflowdb.util.PropertyHelper;
@@ -84,7 +85,7 @@ public abstract class NodeDb implements Node {
   public abstract Map<String, Object> valueMap();
 
   @Override
-  public OdbGraph graph() {
+  public Graph graph() {
     return ref.graph;
   }
 
@@ -662,7 +663,7 @@ public abstract class NodeDb implements Node {
   /**
    * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
    */
-  protected final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
+  public final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");

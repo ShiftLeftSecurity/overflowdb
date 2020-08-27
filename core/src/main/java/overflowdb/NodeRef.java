@@ -21,10 +21,10 @@ import java.util.Set;
  */
 public abstract class NodeRef<N extends NodeDb> implements Node {
   public final long id;
-  protected final OdbGraph graph;
+  protected final Graph graph;
   private N node;
 
-  public NodeRef(final OdbGraph graph, N node) {
+  public NodeRef(final Graph graph, N node) {
     this.graph = graph;
     this.node = node;
     this.id = node.ref.id;
@@ -33,7 +33,7 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
   /**
    * used when creating a node without the underlying instance at hand
    */
-  public NodeRef(final OdbGraph graph, final long id) {
+  public NodeRef(final Graph graph, final long id) {
     this.graph = graph;
     this.id = id;
 
@@ -119,7 +119,7 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
   }
 
   @Override
-  public OdbGraph graph() {
+  public Graph graph() {
     return graph;
   }
 

@@ -1,6 +1,6 @@
 package overflowdb
 
-class GraphSugar(val graph: OdbGraph) extends AnyVal {
+class GraphSugar(val graph: Graph) extends AnyVal {
   def nodeOption(id: Long): Option[Node] =
     Option(graph.node(id))
 
@@ -27,7 +27,7 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
   }
 }
 
-class ElementSugar(val element: OdbElement) extends AnyVal {
+class ElementSugar(val element: Element) extends AnyVal {
   def property[P](propertyKey: PropertyKey[P]): P =
     element.property(propertyKey.name).asInstanceOf[P]
 

@@ -5,7 +5,6 @@ import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Transaction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -18,7 +17,7 @@ import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.Node;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 import overflowdb.tinkerpop.optimizations.CountStrategy;
 import overflowdb.tinkerpop.optimizations.OdbGraphStepStrategy;
 
@@ -26,19 +25,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 
-public final class OdbGraphTp3 implements Graph {
-  public final OdbGraph graph;
+public final class OdbGraphTp3 implements org.apache.tinkerpop.gremlin.structure.Graph {
+  public final Graph graph;
 
-  public static OdbGraphTp3 wrap(OdbGraph graph) {
+  public static OdbGraphTp3 wrap(Graph graph) {
     return new OdbGraphTp3(graph);
   }
 
-  private OdbGraphTp3(OdbGraph graph) {
+  private OdbGraphTp3(Graph graph) {
     this.graph = graph;
   }
 
   static {
-    TraversalStrategies.GlobalCache.registerStrategies(OdbGraphTp3.class, TraversalStrategies.GlobalCache.getStrategies(Graph.class).clone().addStrategies(
+    TraversalStrategies.GlobalCache.registerStrategies(OdbGraphTp3.class, TraversalStrategies.GlobalCache.getStrategies(org.apache.tinkerpop.gremlin.structure.Graph.class).clone().addStrategies(
         OdbGraphStepStrategy.instance(),
         CountStrategy.instance()));
   }

@@ -2,7 +2,7 @@ package overflowdb.testdomains.gratefuldead;
 
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbGraph;
+import overflowdb.Graph;
 
 public class Song extends NodeRef<SongDb> {
   public static final String label = "song";
@@ -10,7 +10,7 @@ public class Song extends NodeRef<SongDb> {
   public static final String SONG_TYPE = "songType";
   public static final String PERFORMANCES = "performances";
 
-  public Song(OdbGraph graph, long id) {
+  public Song(Graph graph, long id) {
     super(graph, id);
   }
 
@@ -48,7 +48,7 @@ public class Song extends NodeRef<SongDb> {
     }
 
     @Override
-    public Song createNodeRef(OdbGraph graph, long id) {
+    public Song createNodeRef(Graph graph, long id) {
       return new Song(graph, id);
     }
   };

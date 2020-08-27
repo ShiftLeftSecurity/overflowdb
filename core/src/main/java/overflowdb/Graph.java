@@ -22,13 +22,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
-public final class OdbGraph implements AutoCloseable {
+public final class Graph implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   protected final AtomicLong currentId = new AtomicLong(-1L);
   protected final NodesList nodes = new NodesList(10000);
-  public final OdbIndexManager indexManager = new OdbIndexManager(this);
-  private final OdbConfig config;
+  public final IndexManager indexManager = new IndexManager(this);
+  private final Config config;
   private boolean closed = false;
 
   protected final Map<String, NodeFactory> nodeFactoryByLabel;
@@ -38,22 +38,22 @@ public final class OdbGraph implements AutoCloseable {
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
-  public static OdbGraph open(OdbConfig configuration,
-                              List<NodeFactory<?>> nodeFactories,
-                              List<EdgeFactory<?>> edgeFactories) {
+  public static Graph open(Config configuration,
+                           List<NodeFactory<?>> nodeFactories,
+                           List<EdgeFactory<?>> edgeFactories) {
     Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
     Map<Integer, NodeFactory> nodeFactoryByLabelId = new HashMap<>(nodeFactories.size());
     Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     nodeFactories.forEach(factory -> nodeFactoryByLabelId.put(factory.forLabelId(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new OdbGraph(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
+    return new Graph(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
   }
 
-  private OdbGraph(OdbConfig config,
-                   Map<String, NodeFactory> nodeFactoryByLabel,
-                   Map<Integer, NodeFactory> nodeFactoryByLabelId,
-                   Map<String, EdgeFactory> edgeFactoryByLabel) {
+  private Graph(Config config,
+                Map<String, NodeFactory> nodeFactoryByLabel,
+                Map<Integer, NodeFactory> nodeFactoryByLabelId,
+                Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -275,7 +275,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   /** Copies all nodes/edges into the given empty graph, preserving their ids and properties. */
-  public void copyTo(OdbGraph destination) {
+  public void copyTo(Graph destination) {
     if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
     nodes().forEachRemaining(node -> {
       destination.addNode(node.id(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));

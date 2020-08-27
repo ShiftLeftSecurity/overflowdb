@@ -3,7 +3,7 @@ package overflowdb;
 import java.util.Iterator;
 import java.util.Map;
 
-public interface Node extends OdbElement {
+public interface Node extends Element {
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.

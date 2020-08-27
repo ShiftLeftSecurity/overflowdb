@@ -1,4 +1,8 @@
-package overflowdb;
+package overflowdb.util;
+
+import overflowdb.Direction;
+import overflowdb.Edge;
+import overflowdb.NodeRef;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
