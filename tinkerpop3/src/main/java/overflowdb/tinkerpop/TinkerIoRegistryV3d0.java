@@ -1,7 +1,6 @@
 package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
 import org.apache.tinkerpop.gremlin.structure.io.IoRegistry;
@@ -71,7 +70,7 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraphTp3 read(final Kryo kryo, final Input input, final Class<OdbGraphTp3> clazz) {
-      throw new NotImplementedException("");
+      throw new UnsupportedOperationException();
 //      final Configuration conf = new BaseConfiguration();
 //      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
 //      final OdbGraphTp3 graph = OdbGraphTp3.open(conf);
@@ -161,7 +160,7 @@ public final class TinkerIoRegistryV3d0 extends AbstractIoRegistry {
 
     @Override
     public OdbGraphTp3 deserialize(final JsonParser jsonParser, final DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-      throw new NotImplementedException("");
+      throw new UnsupportedOperationException();
 //      final Configuration conf = new BaseConfiguration();
 //      conf.setProperty("gremlin.tinkergraph.defaultVertexPropertyCardinality", "list");
 //      final OdbGraphTp3 graph = OdbGraphTp3.open(conf);

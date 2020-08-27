@@ -1,7 +1,6 @@
 package overflowdb.tinkerpop;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
 import org.apache.tinkerpop.gremlin.process.traversal.TraversalStrategies;
 import org.apache.tinkerpop.gremlin.structure.Direction;
@@ -130,7 +129,7 @@ public final class OdbGraphTp3 implements Graph {
 
   @Override
   public Configuration configuration() {
-    throw new NotImplementedException("");
+    throw new UnsupportedOperationException();
   }
 
   @Override

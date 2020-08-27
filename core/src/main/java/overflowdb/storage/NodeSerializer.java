@@ -3,7 +3,6 @@ package overflowdb.storage;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
 import overflowdb.util.PackedIntArray;
-import org.apache.commons.lang3.NotImplementedException;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
@@ -108,7 +107,7 @@ public class NodeSerializer extends BookKeeper {
       packer.packByte(ValueTypes.CHARACTER.id);
       packer.packInt((Character) value);
     } else {
-      throw new NotImplementedException("id type `" + value.getClass() + "` not yet supported");
+      throw new UnsupportedOperationException("id type `" + value.getClass() + "` not yet supported");
     }
   }
 

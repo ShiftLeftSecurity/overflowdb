@@ -1,6 +1,5 @@
 package overflowdb.tinkerpop.optimizations;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.process.traversal.Step;
 import org.apache.tinkerpop.gremlin.process.traversal.Traversal;
 import org.apache.tinkerpop.gremlin.process.traversal.Traverser;
@@ -30,7 +29,7 @@ public final class OdbCountStep<S extends Element> extends AbstractStep<S, Long>
       final long size;
       if (Vertex.class.isAssignableFrom(this.elementClass)) {
         size = graph.graph.nodeCount();
-      } else throw new NotImplementedException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
+      } else throw new UnsupportedOperationException("edges only exist virtually. run e.g. `g.V().outE().count()` instead");
       return this.getTraversal().getTraverserGenerator().generate(size, (Step) this, 1L);
     } else
       throw FastNoSuchElementException.instance();
