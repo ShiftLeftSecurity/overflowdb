@@ -1,11 +1,10 @@
 package overflowdb.util;
 
-import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Subclass-safe variant of MultiIterator from Tinkerpop
@@ -53,7 +52,7 @@ public final class MultiIterator2<T> implements Iterator<T>, Serializable {
 
   @Override
   public T next() {
-    if (this.iterators.isEmpty()) throw FastNoSuchElementException.instance();
+    if (this.iterators.isEmpty()) throw new NoSuchElementException();
 
     Iterator<? extends T> currentIterator = iterators.get(this.current);
     while (true) {
@@ -66,7 +65,7 @@ public final class MultiIterator2<T> implements Iterator<T>, Serializable {
         currentIterator = iterators.get(current);
       }
     }
-    throw FastNoSuchElementException.instance();
+    throw new NoSuchElementException();
   }
 
   public void clear() {

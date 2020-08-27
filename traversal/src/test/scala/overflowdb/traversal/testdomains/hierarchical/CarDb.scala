@@ -1,6 +1,5 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import org.apache.tinkerpop.gremlin.structure.VertexProperty
 import overflowdb.{NodeRef, OdbNode}
 
 class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
