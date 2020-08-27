@@ -1,23 +1,20 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.process.traversal.P;
-import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Test;
-import overflowdb.testdomains.gratefuldead.Artist;
-import overflowdb.testdomains.gratefuldead.ArtistDb;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
+import overflowdb.util.IteratorUtils;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -75,8 +72,8 @@ public class OdbNodeTest {
       assertSize(0, n1.bothE("otherLabel"));
 
       // node properties
-      // TODO move to tinkerpop-subproject once it's factored out
-      Set stringProperties = graph.traversal().V().values(TestNode.STRING_PROPERTY).toSet();
+      Set<String> stringProperties = new HashSet();
+      graph.nodes().forEachRemaining(node -> stringProperties.add(node.property2(TestNode.STRING_PROPERTY)));
       assertTrue(stringProperties.contains("node 1"));
       assertTrue(stringProperties.contains("node 2"));
       assertEquals(42, e.outNode().property2(TestNode.INT_PROPERTY));
@@ -85,7 +82,7 @@ public class OdbNodeTest {
       // edge properties
       assertTrue(e instanceof TestEdge);
       assertEquals(Long.valueOf(99l), ((TestEdge) e).longProperty());
-      assertEquals(Long.valueOf(99l), e.value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(99l), e.property2(TestEdge.LONG_PROPERTY));
       assertEquals(99l, (long) n1.outE().next().property2(TestEdge.LONG_PROPERTY));
       assertEquals(99l, (long) n2.inE().next().property2(TestEdge.LONG_PROPERTY));
       assertEquals(new HashMap<String, Object>() {{ put(TestEdge.LONG_PROPERTY, 99l); }}, n2.inE().next().propertyMap());
@@ -262,10 +259,10 @@ public class OdbNodeTest {
       edge1.remove();
 
       Iterator<OdbEdge> n0outEdges = n0.outE();
-      assertEquals(Long.valueOf(0), n0outEdges.next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(0), n0outEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
       Iterator<OdbEdge> n1inEdges = n0.outE();
-      assertEquals(Long.valueOf(0), n1inEdges.next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(0), n1inEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
   }
@@ -280,14 +277,17 @@ public class OdbNodeTest {
 
       // round trip serialization, delete edge with longProperty=0;
       graph.referenceManager.clearAllReferences();
-      // TODO move to tinkerpop-subproject once it's factored out
-      graph.traversal().V(n0.id()).outE().has(TestEdge.LONG_PROPERTY, P.eq(0l)).drop().iterate();
+      graph.node(n0.id2()).outE().forEachRemaining(edge -> {
+        if (0L == (long) edge.property2(TestEdge.LONG_PROPERTY)) {
+          edge.remove();
+        }
+      });
 
       Iterator<OdbEdge> n0outEdges = n0.outE();
-      assertEquals(Long.valueOf(1), n0outEdges.next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(1), n0outEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
       Iterator<OdbEdge> n1inEdges = n1.inE();
-      assertEquals(Long.valueOf(1), n1inEdges.next().value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.valueOf(1), n1inEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
   }
@@ -316,14 +316,14 @@ public class OdbNodeTest {
       song2.setProperty(Song.NAME, "song 2");
 
       assertNodeCount(2, graph);
-      // TODO move to tinkerpop-subproject once it's factored out
-      Set<Object> names = graph.traversal().V().values("name").toSet();
+      Set<String> names = new HashSet<>();
+      graph.nodes().forEachRemaining(node -> names.add(node.property2("name")));
       assertTrue(names.contains("song 1"));
       assertTrue(names.contains("song 2"));
 
       song1.addEdge2(FollowedBy.LABEL, song2, FollowedBy.WEIGHT, new Integer(42));
-      // TODO move to tinkerpop-subproject once it's factored out
-      assertEquals(42, graph.traversal().E().values(FollowedBy.WEIGHT).next());
+      Iterator<OdbEdge> edgesWithWeight = IteratorUtils.filter(graph.edges(), edge -> edge.property2(FollowedBy.WEIGHT) != null);
+      assertEquals(42, (int) edgesWithWeight.next().property2(FollowedBy.WEIGHT));
       assertEquals(42, (int) song1.outE().next().property2(FollowedBy.WEIGHT));
     }
   }
@@ -470,8 +470,10 @@ public class OdbNodeTest {
       assertEdgeCount(2, graph);
 
       assertSize(2, graph.nodes(Song.label));
-      // TODO move to tinkerpop-subproject once it's factored out
-      assertEquals(new Long(2), graph.traversal().E().hasLabel(FollowedBy.LABEL).count().next());
+
+      AtomicInteger followedByEdgeCount = new AtomicInteger();
+      graph.edges(FollowedBy.LABEL).forEachRemaining(edge -> followedByEdgeCount.getAndIncrement());
+      assertEquals(2, followedByEdgeCount.get());
     }
   }
 
@@ -503,7 +505,7 @@ public class OdbNodeTest {
   }
 
   private void assertEdgeCount(int expected, OdbGraph graph) {
-    assertEquals("edge count different to expected", expected, graph.traversal().E().toList().size());
+    assertEquals("edge count different to expected", expected, graph.edgeCount());
   }
 
   private void assertSize(int expected, Iterator iter) {

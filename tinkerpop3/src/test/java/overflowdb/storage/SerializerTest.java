@@ -4,7 +4,7 @@ import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
-import overflowdb.OdbEdgeTp3;
+import overflowdb.OdbEdge;
 import overflowdb.OdbGraph;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
@@ -55,27 +55,25 @@ public class SerializerTest {
 
       TestNode testNode1 = (TestNode) graph.addNode(TestNode.LABEL);
       TestNode testNode2 = (TestNode) graph.addNode(TestNode.LABEL);
-      TestEdge testEdge = (TestEdge) testNode1.addEdge2(TestEdge.LABEL, testNode2, TestEdge.LONG_PROPERTY, Long.MAX_VALUE);
+      testNode1.addEdge2(TestEdge.LABEL, testNode2, TestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
       TestNodeDb testNode1Db = testNode1.get();
       TestNodeDb testNode2Db = testNode2.get();
       Node n0Deserialized = deserializer.deserialize(serializer.serialize(testNode1Db));
       Node n1Deserialized = deserializer.deserialize(serializer.serialize(testNode2Db));
 
-      OdbEdgeTp3 edgeViaN0Deserialized = n0Deserialized.outE(TestEdge.LABEL).next();
-      OdbEdgeTp3 edgeViaN1Deserialized = n1Deserialized.inE(TestEdge.LABEL).next();
+      OdbEdge edgeViaN0Deserialized = n0Deserialized.outE(TestEdge.LABEL).next();
+      OdbEdge edgeViaN1Deserialized = n1Deserialized.inE(TestEdge.LABEL).next();
 
-      assertEquals(testEdge.id(), edgeViaN0Deserialized.id());
-      assertEquals(testEdge.id(), edgeViaN1Deserialized.id());
       assertEquals(TestEdge.LABEL, edgeViaN0Deserialized.label());
       assertEquals(TestEdge.LABEL, edgeViaN1Deserialized.label());
-      assertEquals(Long.MAX_VALUE, (long) edgeViaN0Deserialized.value(TestEdge.LONG_PROPERTY));
-      assertEquals(Long.MAX_VALUE, (long) edgeViaN1Deserialized.value(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.MAX_VALUE, (long) edgeViaN0Deserialized.property2(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.MAX_VALUE, (long) edgeViaN1Deserialized.property2(TestEdge.LONG_PROPERTY));
 
-      assertEquals(testNode1.id2(), edgeViaN0Deserialized.outNode().id2());
-      assertEquals(testNode2.id2(), edgeViaN0Deserialized.inNode().id2());
-      assertEquals(testNode1.id2(), edgeViaN1Deserialized.outNode().id2());
-      assertEquals(testNode2.id2(), edgeViaN1Deserialized.inNode().id2());
+      assertEquals(testNode1, edgeViaN0Deserialized.outNode());
+      assertEquals(testNode2, edgeViaN0Deserialized.inNode());
+      assertEquals(testNode1, edgeViaN1Deserialized.outNode());
+      assertEquals(testNode2, edgeViaN1Deserialized.inNode());
     }
   }
 

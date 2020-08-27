@@ -183,7 +183,7 @@ public class GraphSaveRestoreTest {
   private OdbGraph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
     OdbConfig config = enableOverflow ? OdbConfig.withDefaults() : OdbConfig.withoutOverflow();
     config = config.withSerializationStatsEnabled();
-    return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath())).graph;
+    return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 
   private void loadGraphMl(OdbGraph graph) throws RuntimeException {

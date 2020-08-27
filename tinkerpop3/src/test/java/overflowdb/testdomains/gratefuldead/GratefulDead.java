@@ -9,28 +9,29 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class GratefulDead {
-  public static OdbGraphTp3 open() {
+  public static OdbGraph open() {
     return open(OdbConfig.withoutOverflow());
   }
 
-  public static OdbGraphTp3 open(OdbConfig config) {
-    return OdbGraphTp3.wrap(
-        OdbGraph.open(
-          config,
-          Arrays.asList(Song.factory, Artist.factory),
-          Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
-        )
+  public static OdbGraph open(OdbConfig config) {
+    return OdbGraph.open(
+        config,
+        Arrays.asList(Song.factory, Artist.factory),
+        Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
     );
   }
 
   public static OdbGraphTp3 openAndLoadSampleData() throws IOException {
-    OdbGraphTp3 graph = open();
+    OdbGraphTp3 graph = OdbGraphTp3.wrap(open());
     loadData(graph);
     return graph;
   }
 
   public static OdbGraphTp3 openAndLoadSampleData(String path) throws IOException {
-    OdbGraphTp3 graph = open(OdbConfig.withDefaults().withStorageLocation(path));
+    OdbGraphTp3 graph =
+      OdbGraphTp3.wrap(
+        open(OdbConfig.withDefaults().withStorageLocation(path))
+      );
     loadData(graph);
     return graph;
   }
