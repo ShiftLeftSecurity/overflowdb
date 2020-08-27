@@ -27,7 +27,7 @@ public class OdbStorageTest {
     try (OdbGraph graph = GratefulDead.open(config)) {
       assertEquals(0, graph.nodeCount());
       final Node song1 = graph.addNode(Song.label, Song.NAME, "Song 1");
-      song1Id = song1.id2();
+      song1Id = song1.id();
       assertEquals(1, graph.nodeCount());
     } // ARM auto-close will trigger saving to disk because we specified a location
 
@@ -36,7 +36,7 @@ public class OdbStorageTest {
       assertEquals(1, graph.nodeCount());
       final Node song1 = graph.node(song1Id);
       assertEquals("node should have been persisted to disk and reloaded when reopened the graph",
-          "Song 1", song1.property2(Song.NAME));
+          "Song 1", song1.property(Song.NAME));
 
       // delete the node, close the graph
       song1.remove();

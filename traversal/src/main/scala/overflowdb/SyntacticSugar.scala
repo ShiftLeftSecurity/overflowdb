@@ -29,17 +29,15 @@ class GraphSugar(val graph: OdbGraph) extends AnyVal {
 
 class ElementSugar(val element: OdbElement) extends AnyVal {
   def property[P](propertyKey: PropertyKey[P]): P =
-    element.property2(propertyKey.name).asInstanceOf[P]
+    element.property(propertyKey.name).asInstanceOf[P]
 
   def propertyOption[P](propertyKey: PropertyKey[P]): Option[P] =
     Option(property[P](propertyKey))
 
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  def setProperty2[P](propertyKeyValue: Property[P]): Unit =
-    setProperty2(propertyKeyValue.key, propertyKeyValue.value)
+  def setProperty[P](propertyKeyValue: Property[P]): Unit =
+    setProperty(propertyKeyValue.key, propertyKeyValue.value)
 
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  def setProperty2[P](propertyKey: PropertyKey[P], value: P): Unit =
+  def setProperty[P](propertyKey: PropertyKey[P], value: P): Unit =
     element.setProperty(propertyKey.name, value)
 }
 
@@ -62,7 +60,7 @@ private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq
       i += 1
     }
 
-    outNode.addEdge2(label, inNode, keyValues: _*)
+    outNode.addEdge(label, inNode, keyValues: _*)
   }
 }
 

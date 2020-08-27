@@ -64,9 +64,7 @@ public class OdbNodeProperty<V> implements Element, VertexProperty<V> {
 
   @Override
   public void remove() {
-//    ((OdbNode) vertex).removeSpecificProperty(key);
-    // TODO uncomment once OdbNode is in tinkerpop package again
-    throw new RuntimeException("TODO uncomment once OdbNode is in tinkerpop package again");
+    ((NodeTp3) vertex).nodeRef.removeProperty(key);
   }
 
   @Override

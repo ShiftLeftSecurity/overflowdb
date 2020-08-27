@@ -33,7 +33,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
 
   "filter steps" can {
     "filter by id" in {
-      graph.V.hasId(center.id2).property(Name).toList shouldBe List("Center")
+      graph.V.hasId(center.id).property(Name).toList shouldBe List("Center")
     }
 
     "filter by label" in {

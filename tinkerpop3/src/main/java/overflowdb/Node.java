@@ -10,14 +10,12 @@ public interface Node extends OdbElement {
    * These key/values must be provided in an even number where the odd numbered arguments are {@link String}
    * property keys and the even numbered arguments are the related property values.
    */
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  OdbEdge addEdge2(String label, Node inNode, Object... keyValues);
+  OdbEdge addEdge(String label, Node inNode, Object... keyValues);
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
    */
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  OdbEdge addEdge2(String label, Node inNode, Map<String, Object> keyValues);
+  OdbEdge addEdge(String label, Node inNode, Map<String, Object> keyValues);
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
@@ -33,8 +31,7 @@ public interface Node extends OdbElement {
    */
   void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues);
 
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  long id2();
+  long id();
 
   /* adjacent OUT nodes (all labels) */
   Iterator<Node> out();

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
-import overflowdb.util.MultiIterator2;
+import overflowdb.util.MultiIterator;
 import overflowdb.util.NodesList;
 import overflowdb.util.PropertyHelper;
 
@@ -234,7 +234,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final String... labels) {
-    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
@@ -242,7 +242,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final Set<String> labels) {
-    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : labels) {
       addNodesToMultiIterator(multiIterator, label);
     }
@@ -250,7 +250,7 @@ public final class OdbGraph implements AutoCloseable {
   }
 
   public Iterator<Node> nodes(final Predicate<String> labelPredicate) {
-    final MultiIterator2<Node> multiIterator = new MultiIterator2<>();
+    final MultiIterator<Node> multiIterator = new MultiIterator<>();
     for (String label : nodes.nodeLabels()) {
       if (labelPredicate.test(label)) {
         addNodesToMultiIterator(multiIterator, label);
@@ -259,7 +259,7 @@ public final class OdbGraph implements AutoCloseable {
     return multiIterator;
   }
 
-  private final void addNodesToMultiIterator(final MultiIterator2<Node> multiIterator, final String label) {
+  private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
     final Set<Node> ret = nodes.nodesByLabel(label);
     if (ret != null) {
       multiIterator.addIterator(ret.iterator());
@@ -278,19 +278,19 @@ public final class OdbGraph implements AutoCloseable {
   public void copyTo(OdbGraph destination) {
     if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
     nodes().forEachRemaining(node -> {
-      destination.addNode(node.id2(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));
+      destination.addNode(node.id(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));
     });
 
     edges().forEachRemaining(edge -> {
-      final Node inNode = destination.node(edge.inNode().id2());
-      final Node outNode = destination.node(edge.outNode().id2());
-      outNode.addEdge2(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertyMap()));
+      final Node inNode = destination.node(edge.inNode().id());
+      final Node outNode = destination.node(edge.outNode().id());
+      outNode.addEdge(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertyMap()));
     });
   }
 
   public void remove(Node node) {
     nodes.remove(node);
-    storage.removeNode(node.id2());
+    storage.removeNode(node.id());
   }
 
 }

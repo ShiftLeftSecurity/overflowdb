@@ -37,12 +37,12 @@ public class SerializerTest {
       byte[] bytes = serializer.serialize(testNodeDb);
       Node deserialized = deserializer.deserialize(bytes);
 
-      assertEquals(testNodeDb.id2(), deserialized.id2());
+      assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.label(), deserialized.label());
       assertEquals(testNodeDb.propertyMap(), deserialized.propertyMap());
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
-      assertEquals(testNode.id2(), deserializedRef.id);
+      assertEquals(testNode.id(), deserializedRef.id);
       assertEquals(TestNode.LABEL, deserializedRef.label());
     }
   }
@@ -55,7 +55,7 @@ public class SerializerTest {
 
       TestNode testNode1 = (TestNode) graph.addNode(TestNode.LABEL);
       TestNode testNode2 = (TestNode) graph.addNode(TestNode.LABEL);
-      testNode1.addEdge2(TestEdge.LABEL, testNode2, TestEdge.LONG_PROPERTY, Long.MAX_VALUE);
+      testNode1.addEdge(TestEdge.LABEL, testNode2, TestEdge.LONG_PROPERTY, Long.MAX_VALUE);
 
       TestNodeDb testNode1Db = testNode1.get();
       TestNodeDb testNode2Db = testNode2.get();
@@ -67,8 +67,8 @@ public class SerializerTest {
 
       assertEquals(TestEdge.LABEL, edgeViaN0Deserialized.label());
       assertEquals(TestEdge.LABEL, edgeViaN1Deserialized.label());
-      assertEquals(Long.MAX_VALUE, (long) edgeViaN0Deserialized.property2(TestEdge.LONG_PROPERTY));
-      assertEquals(Long.MAX_VALUE, (long) edgeViaN1Deserialized.property2(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.MAX_VALUE, (long) edgeViaN0Deserialized.property(TestEdge.LONG_PROPERTY));
+      assertEquals(Long.MAX_VALUE, (long) edgeViaN1Deserialized.property(TestEdge.LONG_PROPERTY));
 
       assertEquals(testNode1, edgeViaN0Deserialized.outNode());
       assertEquals(testNode2, edgeViaN0Deserialized.inNode());

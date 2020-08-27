@@ -29,7 +29,7 @@ class SongDb(ref: NodeRef[SongDb]) extends OdbNode(ref) {
     properties
   }
 
-  override def property2(key: String) =
+  override def property(key: String) =
     key match {
       case Song.PropertyNames.Name => _name
       case Song.PropertyNames.SongType => _songType

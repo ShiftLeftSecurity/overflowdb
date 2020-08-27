@@ -8,12 +8,11 @@ import java.util.NoSuchElementException;
 
 /**
  * Subclass-safe variant of MultiIterator from Tinkerpop
- * // TODO drop 2 suffix once tinkerpop is gone
  */
-public final class MultiIterator2<T> implements Iterator<T>, Serializable {
+public final class MultiIterator<T> implements Iterator<T>, Serializable {
 
-  public static <A> MultiIterator2<A> from(Iterator<A>... iterators) {
-    MultiIterator2<A> result = new MultiIterator2<>();
+  public static <A> MultiIterator<A> from(Iterator<A>... iterators) {
+    MultiIterator<A> result = new MultiIterator<>();
     for (Iterator iter : iterators) result.addIterator(iter);
     return result;
   }

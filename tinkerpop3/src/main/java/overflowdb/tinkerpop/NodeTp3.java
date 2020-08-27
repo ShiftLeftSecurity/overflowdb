@@ -30,7 +30,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public Object id() {
-    return nodeRef.id2();
+    return nodeRef.id();
   }
 
   @Override
@@ -40,7 +40,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public Graph graph() {
-    return OdbGraphTp3.wrap(nodeRef.graph2());
+    return OdbGraphTp3.wrap(nodeRef.graph());
   }
 
   @Override
@@ -66,7 +66,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
     NodeRef inNode = ((NodeTp3) inVertex).nodeRef;
-    final OdbEdge odbEdge = nodeRef.addEdge2(label, inNode, keyValues);
+    final OdbEdge odbEdge = nodeRef.addEdge(label, inNode, keyValues);
     return OdbEdgeTp3.wrap(odbEdge);
   }
 
@@ -82,7 +82,7 @@ public class NodeTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public <V> VertexProperty<V> property(String key) {
-    Object value = nodeRef.property2(key);
+    Object value = nodeRef.property(key);
     if (value == null)
       return VertexProperty.empty();
     else

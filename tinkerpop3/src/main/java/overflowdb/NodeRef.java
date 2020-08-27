@@ -114,12 +114,12 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
     return graph.storage.readNode(nodeId);
   }
 
-  public long id2() {
+  public long id() {
     return id;
   }
 
   @Override
-  public OdbGraph graph2() {
+  public OdbGraph graph() {
     return graph;
   }
 
@@ -133,22 +133,22 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id2());
+    return Objects.hash(id());
   }
 
   @Override
   public boolean equals(final Object obj) {
-    return (obj instanceof Node) && id2() == ((Node) obj).id2();
+    return (obj instanceof Node) && id() == ((Node) obj).id();
   }
 
   @Override
-  public OdbEdge addEdge2(String label, Node inNode, Object... keyValues) {
-    return this.get().addEdge2(label, inNode, keyValues);
+  public OdbEdge addEdge(String label, Node inNode, Object... keyValues) {
+    return this.get().addEdge(label, inNode, keyValues);
   }
 
   @Override
-  public OdbEdge addEdge2(String label, Node inNode, Map<String, Object> keyValues) {
-    return this.get().addEdge2(label, inNode, keyValues);
+  public OdbEdge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
+    return this.get().addEdge(label, inNode, keyValues);
   }
 
   @Override
@@ -167,8 +167,8 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   }
 
   @Override
-  public Object property2(String propertyKey) {
-    return this.get().property2(propertyKey);
+  public Object property(String propertyKey) {
+    return this.get().property(propertyKey);
   }
 
   @Override

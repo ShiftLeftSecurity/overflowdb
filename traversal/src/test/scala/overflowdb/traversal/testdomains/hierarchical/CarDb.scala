@@ -13,7 +13,7 @@ class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
     properties
   }
 
-  override def property2(key: String) =
+  override def property(key: String) =
     key match {
       case Car.PropertyNames.Name => _name
       case _ => null

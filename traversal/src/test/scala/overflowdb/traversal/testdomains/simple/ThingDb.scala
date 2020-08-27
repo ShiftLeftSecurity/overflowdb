@@ -20,7 +20,7 @@ class ThingDb(ref: NodeRef[ThingDb]) extends OdbNode(ref) {
     properties
   }
 
-  override def property2(key: String) =
+  override def property(key: String) =
     key match {
       case Thing.PropertyNames.Name => _name
       case Thing.PropertyNames.Size => _size

@@ -77,7 +77,7 @@ public abstract class OdbEdge implements OdbElement {
   }
 
   @Override
-  public OdbGraph graph2() {
+  public OdbGraph graph() {
     return graph;
   }
 
@@ -120,20 +120,19 @@ public abstract class OdbEdge implements OdbElement {
   @Override
   public Map<String, Object> propertyMap() {
     if (inBlockOffset != -1) {
-      return inNode.get().getEdgePropertyMap(Direction.IN, this, getInBlockOffset());
+      return inNode.get().edgePropertyMap(Direction.IN, this, getInBlockOffset());
     } else if (outBlockOffset != -1) {
-      return outNode.get().getEdgePropertyMap(Direction.OUT, this, getOutBlockOffset());
+      return outNode.get().edgePropertyMap(Direction.OUT, this, getOutBlockOffset());
     } else {
       throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
     }
   }
 
-  // TODO drop suffix `2` after tinkerpop interface is gone
-  public Object property2(String propertyKey) {
+  public Object property(String propertyKey) {
     if (inBlockOffset != -1) {
-      return inNode.get().getEdgeProperty2(Direction.IN, this, inBlockOffset, propertyKey);
+      return inNode.get().edgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
-      return outNode.get().getEdgeProperty2(Direction.OUT, this, outBlockOffset, propertyKey);
+      return outNode.get().edgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
@@ -152,8 +151,8 @@ public abstract class OdbEdge implements OdbElement {
     OdbEdge otherEdge = (OdbEdge) other;
     fixupBlockOffsetsIfNecessary(otherEdge);
 
-    return this.inNode.id2() == otherEdge.inNode.id2() &&
-        this.outNode.id2() == otherEdge.outNode.id2() &&
+    return this.inNode.id() == otherEdge.inNode.id() &&
+        this.outNode.id() == otherEdge.outNode.id() &&
         this.label.equals(otherEdge.label) &&
         (this.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
             otherEdge.inBlockOffset == UNINITIALIZED_BLOCK_OFFSET ||
@@ -169,7 +168,7 @@ public abstract class OdbEdge implements OdbElement {
     // we do not hash over the block offsets as those may change.
     // This results in hash collisions for edges with the same label between the
     // same nodes but since those are deemed very rare this is ok.
-    return Objects.hash(inNode.id2(), outNode.id2(), label);
+    return Objects.hash(inNode.id(), outNode.id(), label);
   }
 
   private void fixupBlockOffsetsIfNecessary(OdbEdge otherEdge) {

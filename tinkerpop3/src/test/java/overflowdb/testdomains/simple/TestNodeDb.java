@@ -44,7 +44,7 @@ public class TestNodeDb extends OdbNode {
 
   /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
   @Override
-  public Object property2(String key) {
+  public Object property(String key) {
     if (TestNode.STRING_PROPERTY.equals(key)) {
       return _stringProperty;
     } else if (key == TestNode.STRING_LIST_PROPERTY) {

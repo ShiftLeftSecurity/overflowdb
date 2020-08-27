@@ -52,14 +52,14 @@ public class NodesList {
     }
 
     nodes[index] = node;
-    nodeIndexByNodeId.put(node.id2(), index);
+    nodeIndexByNodeId.put(node.id(), index);
     nodesByLabel(node.label()).add(node);
     size++;
   }
 
   private void verifyUniqueId(Node node) {
-    if (nodeIndexByNodeId.containsKey(node.id2())) {
-      Node existingNode = nodeById(node.id2());
+    if (nodeIndexByNodeId.containsKey(node.id())) {
+      Node existingNode = nodeById(node.id());
       throw new AssertionError("different Node with same id already exists in this NodesList: " + existingNode);
     }
   }
@@ -86,7 +86,7 @@ public class NodesList {
   }
 
   public void remove(Node node) {
-    int index = nodeIndexByNodeId.remove(node.id2());
+    int index = nodeIndexByNodeId.remove(node.id());
     nodes[index] = null;
     emptySlots.set(index);
 
@@ -155,7 +155,7 @@ public class NodesList {
     int idx = 0;
     while (idx < this.nodes.length) {
       Node node = this.nodes[idx];
-      nodeIndexByNodeId.put(node.id2(), idx);
+      nodeIndexByNodeId.put(node.id(), idx);
       nodesByLabel(node.label()).add(node);
       idx++;
     }

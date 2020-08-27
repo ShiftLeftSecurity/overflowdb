@@ -41,7 +41,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       graph + (Thing.Label, 99, Thing.Properties.Name -> "one thing")
       SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
-      graph.node(99).property2("name") shouldBe "one thing"
+      graph.node(99).property("name") shouldBe "one thing"
     }
 
     "fail for unknown nodeType" in {
@@ -57,8 +57,8 @@ class GraphSugarTests extends WordSpec with Matchers {
     "retrieve a node, or not" in {
       val graph = SimpleDomain.newGraph
       val node = graph + Thing.Label
-      graph.nodeOption(node.id2) shouldBe Some(node)
-      graph.nodeOption(node.id2 + 1) shouldBe None
+      graph.nodeOption(node.id) shouldBe Some(node)
+      graph.nodeOption(node.id + 1) shouldBe None
     }
   }
 

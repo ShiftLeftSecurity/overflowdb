@@ -38,24 +38,24 @@ public class GraphSaveRestoreTest {
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n1 = graph.addNode(Song.label, Song.NAME, "Song 2");
-      OdbEdge edge = n0.addEdge2(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
-      node0Id = n0.id2();
-      node1Id = n1.id2();
+      OdbEdge edge = n0.addEdge(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
+      node0Id = n0.id();
+      node1Id = n1.id();
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reload from disk
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       assertEquals(2, graph.nodeCount());
       assertEquals(1, graph.edgeCount());
-      assertEquals("Song 1", graph.node(node0Id).property2(Song.NAME));
-      assertEquals("Song 2", graph.node(node1Id).property2(Song.NAME));
-      assertEquals("Song 2", graph.node(node0Id).out(FollowedBy.LABEL).next().property2(Song.NAME));
+      assertEquals("Song 1", graph.node(node0Id).property(Song.NAME));
+      assertEquals("Song 2", graph.node(node1Id).property(Song.NAME));
+      assertEquals("Song 2", graph.node(node0Id).out(FollowedBy.LABEL).next().property(Song.NAME));
 
       // ensure we can add more elements
       Node n1 = graph.node(node1Id);
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 3");
-      n1.addEdge2(FollowedBy.LABEL, n2, FollowedBy.WEIGHT, 43);
-      assertEquals("Song 3", graph.node(node0Id).out().next().out(FollowedBy.LABEL).next().property2(Song.NAME));
+      n1.addEdge(FollowedBy.LABEL, n2, FollowedBy.WEIGHT, 43);
+      assertEquals("Song 3", graph.node(node0Id).out().next().out(FollowedBy.LABEL).next().property(Song.NAME));
     }
   }
 
@@ -121,7 +121,7 @@ public class GraphSaveRestoreTest {
       Node newSong = graph.addNode(Song.label);
       newSong.setProperty(Song.NAME, "new song");
       Node youngBlood = getSongs(graph, "YOUNG BLOOD").next();
-      youngBlood.addEdge2(FollowedBy.LABEL, newSong);
+      youngBlood.addEdge(FollowedBy.LABEL, newSong);
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
     });
@@ -195,7 +195,7 @@ public class GraphSaveRestoreTest {
   }
 
   private Iterator<Node> getSongs(OdbGraph graph, String songName) {
-    return IteratorUtils.filter(graph.nodes(Song.label), n -> n.property2(Song.NAME).equals(songName));
+    return IteratorUtils.filter(graph.nodes(Song.label), n -> n.property(Song.NAME).equals(songName));
   }
 
 }

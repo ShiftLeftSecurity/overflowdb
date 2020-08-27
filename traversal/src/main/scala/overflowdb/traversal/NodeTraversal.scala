@@ -6,20 +6,20 @@ import overflowdb.{Node, OdbEdge}
 class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
 
   @Doc("Traverse to node id")
-  def id: Traversal[Long] = traversal.map(_.id2)
+  def id: Traversal[Long] = traversal.map(_.id)
 
   /** Filter by given id
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
   def id(value: Long): Traversal[E] =
-    traversal.filter(_.id2 == value)
+    traversal.filter(_.id == value)
 
   /** Filter by given ids
    * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.id(value)`.
    * Use `traversalSource.withId` instead, it is much faster */
   def id(values: Long*): Traversal[E] = {
     val wanted = values.toSet
-    traversal.filter(element => wanted.contains(element.id2))
+    traversal.filter(element => wanted.contains(element.id))
   }
 
   /** alias for {{{id}}} */

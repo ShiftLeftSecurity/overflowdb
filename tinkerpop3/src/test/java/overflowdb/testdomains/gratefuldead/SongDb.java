@@ -37,7 +37,7 @@ public class SongDb extends OdbNode {
   }
 
   @Override
-  public Object property2(String key) {
+  public Object property(String key) {
     if (Song.NAME.equals(key)) {
       return _name;
     } else if (key == Song.SONG_TYPE) {

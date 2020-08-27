@@ -36,7 +36,7 @@ public final class OdbIndexManager {
     dirtyFlags.put(propertyName, true);
 
     graph.nodes.iterator().forEachRemaining(node -> {
-      Object value = node.property2(propertyName);
+      Object value = node.property(propertyName);
       if (value != null) {
         put(propertyName, value, (NodeRef) node);
       }

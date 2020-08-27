@@ -20,7 +20,7 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
     properties
   }
   
-  override def property2(key: String) =
+  override def property(key: String) =
     key match {
       case Artist.PropertyNames.Name => _name
       case _ => null
@@ -30,7 +30,7 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends OdbNode(ref) {
     key match {
       case Artist.PropertyNames.Name =>
         _name = value.asInstanceOf[String]
-        property2(Artist.PropertyNames.Name)
+        property(Artist.PropertyNames.Name)
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }

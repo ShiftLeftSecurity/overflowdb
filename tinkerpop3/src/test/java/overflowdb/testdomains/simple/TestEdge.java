@@ -19,7 +19,7 @@ public class TestEdge extends OdbEdge {
   }
 
   public Long longProperty() {
-    return (Long) property2(LONG_PROPERTY);
+    return (Long) property(LONG_PROPERTY);
   }
 
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
