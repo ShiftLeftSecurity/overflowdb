@@ -56,15 +56,18 @@ public class OdbNodeTp3 implements Vertex {
 
   @Override
   public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
+    final Iterator<VertexProperty<V>> properties;
     if (propertyKeys.length == 1) { // treating as special case for performance
-      return IteratorUtils.of(property(propertyKeys[0]));
+      properties = IteratorUtils.of(property(propertyKeys[0]));
     } else if (propertyKeys.length == 0) { // return all properties
       Stream<VertexProperty<V>> vertexPropertyStream = keys().stream().map(this::property);
-      return vertexPropertyStream.iterator();
+      properties = vertexPropertyStream.iterator();
     } else {
       Stream<VertexProperty<V>> vertexPropertyStream = Arrays.stream(propertyKeys).map(this::property);
-      return vertexPropertyStream.iterator();
+      properties = vertexPropertyStream.iterator();
     }
+
+    return IteratorUtils.filter(properties, p -> p.isPresent());
   }
 
   @Override
