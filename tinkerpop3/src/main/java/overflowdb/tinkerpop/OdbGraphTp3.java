@@ -1,4 +1,4 @@
-package overflowdb;
+package overflowdb.tinkerpop;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.NotImplementedException;
@@ -17,10 +17,9 @@ import org.apache.tinkerpop.gremlin.structure.io.gryo.GryoVersion;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-import overflowdb.tinkerpop.GraphVariables;
-import overflowdb.tinkerpop.TinkerIoRegistryV1d0;
-import overflowdb.tinkerpop.TinkerIoRegistryV2d0;
-import overflowdb.tinkerpop.TinkerIoRegistryV3d0;
+import overflowdb.Node;
+import overflowdb.NodeRef;
+import overflowdb.OdbGraph;
 import overflowdb.tinkerpop.optimizations.CountStrategy;
 import overflowdb.tinkerpop.optimizations.OdbGraphStepStrategy;
 
@@ -61,7 +60,7 @@ public final class OdbGraphTp3 implements Graph {
     } else {
       newNode = graph.addNode(label, keyValues);
     }
-    return NodeRefTp3.wrap((NodeRef) newNode);
+    return NodeTp3.wrap((NodeRef) newNode);
   }
 
   private Object[] withoutTinkerpopSpecificEntries(final Object... keyValues) {
@@ -113,7 +112,7 @@ public final class OdbGraphTp3 implements Graph {
 
   @Override
   public String toString() {
-    return StringFactory.graphString(this, "nodes: " + graph.nodes.size());
+    return StringFactory.graphString(this, "nodes: " + graph.nodeCount());
   }
 
   /**
@@ -137,8 +136,8 @@ public final class OdbGraphTp3 implements Graph {
   @Override
   public Iterator<Vertex> vertices(final Object... idsOrVertices) {
     if (idsOrVertices.length == 0) { //return all nodes as per tinkerpop semantics
-      final Iterator<Node> nodeRefIter = graph.nodes.iterator();
-      return IteratorUtils.map(nodeRefIter, ref -> NodeRefTp3.wrap((NodeRef) ref));
+      final Iterator<Node> nodeRefIter = graph.nodes();
+      return IteratorUtils.map(nodeRefIter, ref -> NodeTp3.wrap((NodeRef) ref));
     } else {
       final long[] ids = new long[idsOrVertices.length];
       int idx = 0;
@@ -146,7 +145,7 @@ public final class OdbGraphTp3 implements Graph {
         ids[idx++] = convertToId(idOrNode);
       }
       final Iterator<Node> nodeRefIter = graph.nodes(ids);
-      return IteratorUtils.map(nodeRefIter, ref -> NodeRefTp3.wrap((NodeRef) ref));
+      return IteratorUtils.map(nodeRefIter, ref -> NodeTp3.wrap((NodeRef) ref));
     }
   }
 
@@ -161,7 +160,7 @@ public final class OdbGraphTp3 implements Graph {
   @Override
   public Iterator<Edge> edges(final Object... ids) {
     if (ids.length > 0) throw new IllegalArgumentException("edges only exist virtually, and they don't have ids");
-    return IteratorUtils.flatMap(graph.nodes.iterator(), node -> NodeRefTp3.wrap((NodeRef) node).edges(Direction.OUT));
+    return IteratorUtils.flatMap(graph.nodes(), node -> NodeTp3.wrap((NodeRef) node).edges(Direction.OUT));
   }
 
   @Override

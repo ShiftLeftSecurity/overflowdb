@@ -7,6 +7,7 @@ import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
 import overflowdb.testdomains.gratefuldead.SungBy;
 import overflowdb.testdomains.gratefuldead.WrittenBy;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.io.IOException;
 

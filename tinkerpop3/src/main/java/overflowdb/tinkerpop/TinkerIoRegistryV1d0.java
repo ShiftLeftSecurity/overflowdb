@@ -26,8 +26,6 @@ import org.apache.tinkerpop.shaded.kryo.Serializer;
 import org.apache.tinkerpop.shaded.kryo.io.Input;
 import org.apache.tinkerpop.shaded.kryo.io.Output;
 import overflowdb.OdbEdge;
-import overflowdb.OdbEdgeTp3;
-import overflowdb.OdbGraphTp3;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

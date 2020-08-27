@@ -6,6 +6,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.io.File;
 import java.io.IOException;

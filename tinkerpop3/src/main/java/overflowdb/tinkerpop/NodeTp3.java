@@ -1,4 +1,4 @@
-package overflowdb;
+package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Edge;
@@ -7,21 +7,24 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 import org.apache.tinkerpop.gremlin.structure.util.ElementHelper;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
-import overflowdb.tinkerpop.OdbNodeProperty;
+import overflowdb.Node;
+import overflowdb.NodeRef;
+import overflowdb.OdbEdge;
+import overflowdb.OdbNode;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class NodeRefTp3<N extends OdbNode> implements Vertex {
+public class NodeTp3<N extends OdbNode> implements Vertex {
   public final NodeRef<N> nodeRef;
 
-  public static <N extends OdbNode> NodeRefTp3 wrap(NodeRef<N> nodeRef) {
-    return new NodeRefTp3<>(nodeRef);
+  public static <N extends OdbNode> NodeTp3 wrap(NodeRef<N> nodeRef) {
+    return new NodeTp3<>(nodeRef);
   }
 
-  private NodeRefTp3(NodeRef<N> nodeRef) {
+  private NodeTp3(NodeRef<N> nodeRef) {
     this.nodeRef = nodeRef;
   }
 
@@ -62,7 +65,7 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
-    NodeRef inNode = ((NodeRefTp3) inVertex).nodeRef;
+    NodeRef inNode = ((NodeTp3) inVertex).nodeRef;
     final OdbEdge odbEdge = nodeRef.addEdge2(label, inNode, keyValues);
     return OdbEdgeTp3.wrap(odbEdge);
   }
@@ -121,7 +124,7 @@ public class NodeRefTp3<N extends OdbNode> implements Vertex {
     } else {
       nodeIterator = specificNodes(direction, edgeLabels);
     }
-    return IteratorUtils.map(nodeIterator, x -> NodeRefTp3.wrap((NodeRef) x));
+    return IteratorUtils.map(nodeIterator, x -> NodeTp3.wrap((NodeRef) x));
   }
 
   private Iterator<Node> allNodes(Direction direction) {

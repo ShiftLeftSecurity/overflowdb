@@ -3,7 +3,7 @@ package overflowdb.testdomains.gratefuldead;
 import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import overflowdb.OdbConfig;
 import overflowdb.OdbGraph;
-import overflowdb.OdbGraphTp3;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.io.IOException;
 import java.util.Arrays;

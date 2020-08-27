@@ -6,7 +6,7 @@ import overflowdb.Node;
 import overflowdb.OdbConfig;
 import overflowdb.OdbEdge;
 import overflowdb.OdbGraph;
-import overflowdb.OdbGraphTp3;
+import overflowdb.tinkerpop.OdbGraphTp3;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;

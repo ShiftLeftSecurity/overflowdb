@@ -14,8 +14,8 @@ import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 import overflowdb.Node;
 import overflowdb.NodeRef;
-import overflowdb.NodeRefTp3;
-import overflowdb.OdbGraphTp3;
+import overflowdb.tinkerpop.NodeTp3;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,14 +65,14 @@ public final class OdbGraphStep<S, E extends Element> extends GraphStep<S, E> im
       P<String> hasLabelPredicate = (P<String>) hasLabelContainer.get().getPredicate();
       // unfortunately TP3 api doesn't seem to find out if it's the `Compare.eq` bipredicate, so we can optimise single-label lookups
       final Iterator<Node> nodes = graph.graph.nodes(hasLabelPredicate);
-      return IteratorUtils.map(nodes, node -> NodeRefTp3.wrap((NodeRef) node));
+      return IteratorUtils.map(nodes, node -> NodeTp3.wrap((NodeRef) node));
     } else {
       if (indexedContainer == null) return this.iteratorList(graph.vertices());
       else {
         final Iterator<NodeRef> nodes = IteratorUtils.filter(
             graph.graph.indexManager.lookup(indexedContainer.getKey(), indexedContainer.getPredicate().getValue()).iterator(),
-            nodeRef -> HasContainer.testAll(NodeRefTp3.wrap(nodeRef), this.hasContainers));
-        return IteratorUtils.map(nodes, node -> NodeRefTp3.wrap(node));
+            nodeRef -> HasContainer.testAll(NodeTp3.wrap(nodeRef), this.hasContainers));
+        return IteratorUtils.map(nodes, node -> NodeTp3.wrap(node));
       }
     }
   }

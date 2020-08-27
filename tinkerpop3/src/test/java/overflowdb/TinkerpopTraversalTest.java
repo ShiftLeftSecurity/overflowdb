@@ -6,7 +6,6 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.junit.Test;
 import overflowdb.testdomains.gratefuldead.Artist;
-import overflowdb.testdomains.gratefuldead.ArtistDb;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
@@ -14,6 +13,7 @@ import overflowdb.testdomains.gratefuldead.WrittenBy;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.io.IOException;
 import java.util.Arrays;

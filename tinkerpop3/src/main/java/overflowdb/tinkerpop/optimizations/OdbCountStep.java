@@ -9,7 +9,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementExce
 import org.apache.tinkerpop.gremlin.structure.Element;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
-import overflowdb.OdbGraphTp3;
+import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.util.NoSuchElementException;
 

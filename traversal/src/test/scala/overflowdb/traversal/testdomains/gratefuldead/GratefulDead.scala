@@ -2,8 +2,9 @@ package overflowdb.traversal.testdomains.gratefuldead
 
 import java.util
 
+import overflowdb.tinkerpop.OdbGraphTp3
 import overflowdb.traversal.{Traversal, TraversalSource}
-import overflowdb.{OdbConfig, OdbGraph, OdbGraphTp3}
+import overflowdb.{OdbConfig, OdbGraph}
 
 /* visual schema: https://raw.githubusercontent.com/apache/tinkerpop/347eb9a8231c48aa22eced9b07dd6241305898c6/docs/static/images/grateful-dead-schema.png */
 object GratefulDead {

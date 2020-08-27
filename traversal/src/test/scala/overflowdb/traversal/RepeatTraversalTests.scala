@@ -3,6 +3,7 @@ package overflowdb.traversal
 import org.apache.tinkerpop.gremlin.structure.Vertex
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
+import overflowdb.tinkerpop.NodeTp3
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
@@ -207,7 +208,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
       import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
       test {
-        val centerTp3: Vertex = NodeRefTp3.wrap(center)
+        val centerTp3: Vertex = NodeTp3.wrap(center)
         __(centerTp3).repeat(
           __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
             .out().asInstanceOf[TPTraversal[_, Vertex]]

@@ -1,10 +1,10 @@
-package overflowdb;
+package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.Property;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
-import overflowdb.tinkerpop.OdbProperty;
+import overflowdb.OdbEdge;
 import overflowdb.util.IteratorUtils;
 
 import java.util.Iterator;
@@ -26,11 +26,11 @@ public class OdbEdgeTp3 implements Edge {
   public Iterator<Vertex> vertices(org.apache.tinkerpop.gremlin.structure.Direction direction) {
     switch (direction) {
       case OUT:
-        return IteratorUtils.from(NodeRefTp3.wrap(edge.outNode()));
+        return IteratorUtils.from(NodeTp3.wrap(edge.outNode()));
       case IN:
-        return IteratorUtils.from(NodeRefTp3.wrap(edge.inNode()));
+        return IteratorUtils.from(NodeTp3.wrap(edge.inNode()));
       default:
-        return IteratorUtils.from(NodeRefTp3.wrap(edge.outNode()), NodeRefTp3.wrap(edge.inNode()));
+        return IteratorUtils.from(NodeTp3.wrap(edge.outNode()), NodeTp3.wrap(edge.inNode()));
     }
   }
 

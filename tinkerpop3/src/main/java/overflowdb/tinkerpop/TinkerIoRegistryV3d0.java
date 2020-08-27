@@ -1,8 +1,6 @@
 package overflowdb.tinkerpop;
 
 import org.apache.tinkerpop.gremlin.structure.Edge;
-import overflowdb.OdbEdgeTp3;
-import overflowdb.OdbGraphTp3;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.structure.io.AbstractIoRegistry;
