@@ -214,6 +214,16 @@ public abstract class OdbNode implements Node {
     this.markAsDirty();
   }
 
+  public void removeEdgeProperty(Direction direction, String edgeLabel, String key, int blockOffset) {
+    int propertyPosition = getEdgePropertyIndex(direction, edgeLabel, key, blockOffset);
+    if (propertyPosition == -1) {
+      throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
+    }
+    adjacentNodesWithProperties[propertyPosition] = null;
+    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+    this.markAsDirty();
+  }
+
   private int calcAdjacentNodeIndex(Direction direction,
                                     String edgeLabel,
                                     int blockOffset) {

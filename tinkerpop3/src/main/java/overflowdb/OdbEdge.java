@@ -105,6 +105,12 @@ public abstract class OdbEdge implements OdbElement {
   }
 
   @Override
+  public void removeProperty(String key) {
+    inNode.get().removeEdgeProperty(Direction.IN, label, key, inBlockOffset);
+    outNode.get().removeEdgeProperty(Direction.OUT, label, key, outBlockOffset);
+  }
+
+  @Override
   public void remove() {
     fixupBlockOffsets();
     outNode.get().removeEdge(Direction.OUT, label(), outBlockOffset);
