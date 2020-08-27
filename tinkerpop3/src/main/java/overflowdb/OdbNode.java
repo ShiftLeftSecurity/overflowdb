@@ -94,15 +94,19 @@ public abstract class OdbNode implements Node {
 
   @Override
   public Map<String, Object> propertyMap() {
-    final Set<String> propertyKeys = layoutInformation().propertyKeys();
-    final Map<String, Object> results = new HashMap<>(propertyKeys.size());
+    final Map<String, Object> results = new HashMap<>(propertyKeys().size());
 
-    for (String propertyKey : propertyKeys) {
+    for (String propertyKey : propertyKeys()) {
       final Object value = property2(propertyKey);
       if (value != null) results.put(propertyKey, value);
     }
 
     return results;
+  }
+
+  @Override
+  public Set<String> propertyKeys() {
+    return layoutInformation().propertyKeys();
   }
 
   @Override

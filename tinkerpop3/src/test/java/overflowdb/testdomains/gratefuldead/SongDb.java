@@ -37,13 +37,13 @@ public class SongDb extends OdbNode {
   }
 
   @Override
-  protected Object specificProperty2(String key) {
+  public <A> A property2(String key) {
     if (Song.NAME.equals(key)) {
-      return _name;
+      return (A) _name;
     } else if (key == Song.SONG_TYPE) {
-      return _songType;
+      return (A) _songType;
     } else if (key == Song.PERFORMANCES) {
-      return _performances;
+      return (A) _performances;
     } else {
       return null;
     }
@@ -59,8 +59,7 @@ public class SongDb extends OdbNode {
   }
 
   @Override
-  protected <V> VertexProperty<V> updateSpecificProperty(
-      VertexProperty.Cardinality cardinality, String key, V value) {
+  protected void updateSpecificProperty(String key, Object value) {
     if (Song.NAME.equals(key)) {
       this._name = (String) value;
     } else if (Song.SONG_TYPE.equals(key)) {
@@ -70,7 +69,6 @@ public class SongDb extends OdbNode {
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
-    return property(key);
   }
 
 

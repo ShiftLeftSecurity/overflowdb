@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Lightweight (w.r.t. memory usage) reference to for an OdbNode, which is stored in the `node` member.
@@ -173,6 +174,16 @@ public abstract class NodeRef<N extends OdbNode> implements Node {
   @Override
   public void setProperty(String key, Object value) {
     this.get().setProperty(key, value);
+  }
+
+  @Override
+  public Set<String> propertyKeys() {
+    return this.get().propertyKeys();
+  }
+
+  @Override
+  public void removeProperty(String key) {
+    this.get().removeProperty(key);
   }
 
   /* adjacent OUT nodes (all labels) */

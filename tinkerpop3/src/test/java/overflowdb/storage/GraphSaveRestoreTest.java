@@ -4,16 +4,18 @@ import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.OdbConfig;
-import overflowdb.OdbEdgeTp3;
+import overflowdb.OdbEdge;
 import overflowdb.OdbGraph;
-import overflowdb.testdomains.gratefuldead.Artist;
+import overflowdb.OdbGraphTp3;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
+import overflowdb.util.IteratorUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Iterator;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
@@ -21,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 
 /**
  * save and restore a graph from disk overlay
+ * TODO move to core... cannot do currently because it depends on loading graph from graphml...
  */
 public class GraphSaveRestoreTest {
 
@@ -35,7 +38,7 @@ public class GraphSaveRestoreTest {
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n1 = graph.addNode(Song.label, Song.NAME, "Song 2");
-      OdbEdgeTp3 edge = n0.addEdge2(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
+      OdbEdge edge = n0.addEdge2(FollowedBy.LABEL, n1, FollowedBy.WEIGHT, 42);
       node0Id = n0.id2();
       node1Id = n1.id2();
     } // ARM auto-close will trigger saving to disk because we specified a location
@@ -43,7 +46,7 @@ public class GraphSaveRestoreTest {
     // reload from disk
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       assertEquals(2, graph.nodeCount());
-      assertEquals(Long.valueOf(1), graph.traversal().V().outE().count().next());
+      assertEquals(1, graph.edgeCount());
       assertEquals("Song 1", graph.node(node0Id).property2(Song.NAME));
       assertEquals("Song 2", graph.node(node1Id).property2(Song.NAME));
       assertEquals("Song 2", graph.node(node0Id).out(FollowedBy.LABEL).next().property2(Song.NAME));
@@ -68,7 +71,7 @@ public class GraphSaveRestoreTest {
     // reload from disk
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, false)) {
       assertEquals(808, graph.nodeCount());
-      assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
+      assertEquals(8049, graph.edgeCount());
     }
   }
 
@@ -84,7 +87,7 @@ public class GraphSaveRestoreTest {
     // reload from disk
     try (OdbGraph graph = openGratefulDeadGraph(storageFile, true)) {
       assertEquals(808, graph.nodeCount());
-      assertEquals(Long.valueOf(8049), graph.traversal().V().outE().count().next());
+      assertEquals(8049, graph.edgeCount());
     }
   }
 
@@ -108,7 +111,7 @@ public class GraphSaveRestoreTest {
 
     modifyAndCloseGraph(storageFile, graph -> {
       // traversing (and thus deserializing nodes), but making no changes
-      graph.traversal().V().has(Artist.NAME, "Garcia").next();
+      graph.nodes().forEachRemaining(x -> {});
       int expectedSerializationCount = 0;
       return expectedSerializationCount;
     });
@@ -117,7 +120,7 @@ public class GraphSaveRestoreTest {
       // new node, connected with existing node 'garcia'
       Node newSong = graph.addNode(Song.label);
       newSong.setProperty(Song.NAME, "new song");
-      Node youngBlood = (Node) graph.traversal().V().has(Song.NAME, "YOUNG BLOOD").next();
+      Node youngBlood = getSongs(graph, "YOUNG BLOOD").next();
       youngBlood.addEdge2(FollowedBy.LABEL, newSong);
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
@@ -125,7 +128,7 @@ public class GraphSaveRestoreTest {
 
     modifyAndCloseGraph(storageFile, graph -> {
       // update node property
-      Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
+      Node newSong = getSongs(graph, "new song").next();
       newSong.setProperty(Song.PERFORMANCES, 5);
       int expectedSerializationCount = 1;
       return expectedSerializationCount;
@@ -141,8 +144,8 @@ public class GraphSaveRestoreTest {
 
     modifyAndCloseGraph(storageFile, graph -> {
       // update edge property
-      Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
-      OdbEdgeTp3 followedBy = newSong.inE().next();
+      Node newSong = getSongs(graph, "new song").next();
+      OdbEdge followedBy = newSong.inE().next();
       followedBy.setProperty(FollowedBy.WEIGHT, 10);
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
@@ -150,8 +153,8 @@ public class GraphSaveRestoreTest {
 
     modifyAndCloseGraph(storageFile, graph -> {
       // remove edge
-      Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
-      OdbEdgeTp3 followedBy = newSong.inE().next();
+      Node newSong = getSongs(graph, "new song").next();
+      OdbEdge followedBy = newSong.inE().next();
       followedBy.remove();
       int expectedSerializationCount = 2; // both youngBlood and newSong should be serialized
       return expectedSerializationCount;
@@ -159,7 +162,7 @@ public class GraphSaveRestoreTest {
 
     modifyAndCloseGraph(storageFile, graph -> {
       // remove node
-      Node newSong = (Node) graph.traversal().V().has(Song.NAME, "new song").next();
+      Node newSong = getSongs(graph, "new song").next();
       newSong.remove();
       int expectedSerializationCount = 0;
       return expectedSerializationCount;
@@ -167,7 +170,7 @@ public class GraphSaveRestoreTest {
 
     // verify that deleted node is actually gone
     OdbGraph graph = openGratefulDeadGraph(storageFile, false);
-    assertFalse("node should have been deleted from storage", graph.traversal().V().has(Song.NAME, "new song").hasNext());
+    assertFalse("node should have been deleted from storage", getSongs(graph, "new song").hasNext());
   }
 
   private void modifyAndCloseGraph(File storageFile, Function<OdbGraph, Integer> graphModifications) {
@@ -180,15 +183,19 @@ public class GraphSaveRestoreTest {
   private OdbGraph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
     OdbConfig config = enableOverflow ? OdbConfig.withDefaults() : OdbConfig.withoutOverflow();
     config = config.withSerializationStatsEnabled();
-    return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath()));
+    return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath())).graph;
   }
 
   private void loadGraphMl(OdbGraph graph) throws RuntimeException {
     try {
-      graph.io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
+      OdbGraphTp3.wrap(graph).io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private Iterator<Node> getSongs(OdbGraph graph, String songName) {
+    return IteratorUtils.filter(graph.nodes(Song.label), n -> n.property2(Song.NAME).equals(songName));
   }
 
 }

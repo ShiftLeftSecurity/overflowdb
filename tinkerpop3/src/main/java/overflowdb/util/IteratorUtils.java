@@ -1,10 +1,13 @@
 package overflowdb.util;
 
+import org.apache.tinkerpop.gremlin.process.traversal.util.FastNoSuchElementException;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class IteratorUtils {
 
@@ -64,6 +67,54 @@ public class IteratorUtils {
     };
   }
 
+  public static final <S> Iterator<S> filter(final Iterator<S> iterator, final Predicate<S> predicate) {
+    return new Iterator<S>() {
+      S nextResult = null;
+
+      @Override
+      public boolean hasNext() {
+        if (null != this.nextResult) {
+          return true;
+        } else {
+          advance();
+          return null != this.nextResult;
+        }
+      }
+
+      @Override
+      public void remove() {
+        iterator.remove();
+      }
+
+      @Override
+      public S next() {
+        try {
+          if (null != this.nextResult) {
+            return this.nextResult;
+          } else {
+            advance();
+            if (null != this.nextResult)
+              return this.nextResult;
+            else
+              throw FastNoSuchElementException.instance();
+          }
+        } finally {
+          this.nextResult = null;
+        }
+      }
+
+      private final void advance() {
+        this.nextResult = null;
+        while (iterator.hasNext()) {
+          final S s = iterator.next();
+          if (predicate.test(s)) {
+            this.nextResult = s;
+            return;
+          }
+        }
+      }
+    };
+  }
 
   public static class SingleIterator<A> implements Iterator<A> {
     private A element;

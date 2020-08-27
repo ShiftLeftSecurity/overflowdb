@@ -1,12 +1,12 @@
 package overflowdb;
 
+import org.junit.Test;
 import overflowdb.testdomains.gratefuldead.Artist;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
 import overflowdb.testdomains.gratefuldead.SungBy;
 import overflowdb.testdomains.gratefuldead.WrittenBy;
-import org.junit.Test;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ public class TraversalOptimizationTest {
 
   @Test
   public void optimizationStrategyAffectedSteps() throws IOException {
-    try (OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
+    try (OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData()) {
       // using `g.V().hasLabel(lbl)` optimization
       assertEquals(584, graph.traversal().V().hasLabel(Song.label).toList().size());
       assertEquals(142, graph.traversal().V().has(Song.PERFORMANCES, 1).toList().size());

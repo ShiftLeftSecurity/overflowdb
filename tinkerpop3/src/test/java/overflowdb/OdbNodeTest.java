@@ -40,7 +40,7 @@ public class OdbNodeTest {
           TestNode.INT_PROPERTY, 52,
           TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
           TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
-      OdbEdgeTp3 e = n1.addEdge2(TestEdge.LABEL, n2, TestEdge.LONG_PROPERTY, 99l);
+      OdbEdge e = n1.addEdge2(TestEdge.LABEL, n2, TestEdge.LONG_PROPERTY, 99l);
 
       //  verify that we can cast to our domain-specific nodes/edges
       TestNode node1 = (TestNode) n1;
@@ -93,31 +93,16 @@ public class OdbNodeTest {
   }
 
   @Test
-  public void loadGratefulDeadGraph() throws IOException {
-    try(OdbGraph graph = GratefulDead.openAndLoadSampleData()) {
-      final Node node1 = graph.node(1);
-      assertEquals("HEY BO DIDDLEY", node1.property2("name"));
-
-      // TODO move to tinkerpop-subproject once it's factored out
-      List<Vertex> garcias = graph.traversal().V().has("name", "Garcia").toList();
-      assertEquals(garcias.size(), 1);
-      Artist artist = (Artist) garcias.get(0);
-      ArtistDb garcia = artist.get();
-      assertEquals("Garcia", garcia.name());
-    }
-  }
-
-  @Test
   public void testEdgeEquality() {
     OdbGraph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
 
-    OdbEdgeTp3 e0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 99l);
+    OdbEdge e0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 99l);
 
-    OdbEdgeTp3 e0FromOut = n0.outE().next();
-    OdbEdgeTp3 e0FromIn = n1.inE().next();
+    OdbEdge e0FromOut = n0.outE().next();
+    OdbEdge e0FromIn = n1.inE().next();
 
     assertEquals(e0, e0FromOut);
     assertEquals(e0, e0FromIn);
@@ -131,10 +116,10 @@ public class OdbNodeTest {
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
 
-    OdbEdgeTp3 e0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
+    OdbEdge e0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
     assertEquals(1L, (long) e0.property2(TestEdge.LONG_PROPERTY));
 
-    OdbEdgeTp3 e1 = n0.addEdge2(TestEdge.LABEL, n1);
+    OdbEdge e1 = n0.addEdge2(TestEdge.LABEL, n1);
     e1.setProperty(TestEdge.LONG_PROPERTY, 2L);
     assertEquals(2L, (long) e1.property2(TestEdge.LONG_PROPERTY));
   }
@@ -148,7 +133,7 @@ public class OdbNodeTest {
 
     n0.addEdge2(TestEdge.LABEL, n1);
 
-    OdbEdgeTp3 e0 = n0.outE(TestEdge.LABEL).next();
+    OdbEdge e0 = n0.outE(TestEdge.LABEL).next();
     e0.setProperty(TestEdge.LONG_PROPERTY, 1L);
     assertEquals(1L, (long) e0.property2(TestEdge.LONG_PROPERTY));
   }
@@ -162,10 +147,10 @@ public class OdbNodeTest {
 
     n0.addEdge2(TestEdge.LABEL, n1);
 
-    OdbEdgeTp3 e0ViaOut = n0.outE(TestEdge.LABEL).next();
+    OdbEdge e0ViaOut = n0.outE(TestEdge.LABEL).next();
     e0ViaOut.setProperty(TestEdge.LONG_PROPERTY, 1L);
 
-    OdbEdgeTp3 e0ViaIn = n1.inE(TestEdge.LABEL).next();
+    OdbEdge e0ViaIn = n1.inE(TestEdge.LABEL).next();
     assertEquals(1L, (long) e0ViaIn.property2(TestEdge.LONG_PROPERTY));
   }
 
@@ -176,8 +161,8 @@ public class OdbNodeTest {
     Node n0 = graph.addNode(TestNode.LABEL);
     Node n1 = graph.addNode(TestNode.LABEL);
 
-    OdbEdgeTp3 e0 = n0.addEdge2(TestEdge.LABEL, n1);
-    OdbEdgeTp3 e1 = n0.addEdge2(TestEdge.LABEL, n1);
+    OdbEdge e0 = n0.addEdge2(TestEdge.LABEL, n1);
+    OdbEdge e1 = n0.addEdge2(TestEdge.LABEL, n1);
 
     e0.setProperty(TestEdge.LONG_PROPERTY, 1L);
     e1.setProperty(TestEdge.LONG_PROPERTY, 2L);
@@ -196,10 +181,10 @@ public class OdbNodeTest {
     n0.addEdge2(TestEdge.LABEL, n1);
     n0.addEdge2(TestEdge.LABEL, n1);
 
-    Iterator<OdbEdgeTp3> edgeIt = n0.outE(TestEdge.LABEL);
+    Iterator<OdbEdge> edgeIt = n0.outE(TestEdge.LABEL);
 
-    OdbEdgeTp3 e0 = edgeIt.next();
-    OdbEdgeTp3 e1 = edgeIt.next();
+    OdbEdge e0 = edgeIt.next();
+    OdbEdge e1 = edgeIt.next();
 
     e0.setProperty(TestEdge.LONG_PROPERTY, 1L);
     e1.setProperty(TestEdge.LONG_PROPERTY, 2L);
@@ -218,13 +203,13 @@ public class OdbNodeTest {
     n0.addEdge2(TestEdge.LABEL, n1);
     n0.addEdge2(TestEdge.LABEL, n1);
 
-    Iterator<OdbEdgeTp3> outEdgeIt = n0.outE(TestEdge.LABEL);
-    Iterator<OdbEdgeTp3> inEdgeIt = n1.inE(TestEdge.LABEL);
+    Iterator<OdbEdge> outEdgeIt = n0.outE(TestEdge.LABEL);
+    Iterator<OdbEdge> inEdgeIt = n1.inE(TestEdge.LABEL);
 
-    OdbEdgeTp3 e0ViaOut = outEdgeIt.next();
-    OdbEdgeTp3 e1ViaOut = outEdgeIt.next();
-    OdbEdgeTp3 e0ViaIn = inEdgeIt.next();
-    OdbEdgeTp3 e1ViaIn = inEdgeIt.next();
+    OdbEdge e0ViaOut = outEdgeIt.next();
+    OdbEdge e1ViaOut = outEdgeIt.next();
+    OdbEdge e0ViaIn = inEdgeIt.next();
+    OdbEdge e1ViaIn = inEdgeIt.next();
 
     e0ViaOut.setProperty(TestEdge.LONG_PROPERTY, 1L);
     e1ViaOut.setProperty(TestEdge.LONG_PROPERTY, 2L);
@@ -238,7 +223,7 @@ public class OdbNodeTest {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      OdbEdgeTp3 edge = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      OdbEdge edge = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
 
       edge.remove();
 
@@ -252,15 +237,15 @@ public class OdbNodeTest {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      OdbEdgeTp3 edge0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
-      OdbEdgeTp3 edge1 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      OdbEdge edge0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
+      OdbEdge edge1 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
 
       edge0.remove();
 
-      Iterator<OdbEdgeTp3> n0outEdges = n0.outE();
+      Iterator<OdbEdge> n0outEdges = n0.outE();
       assertEquals(1l, (long) n0outEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
-      Iterator<OdbEdgeTp3> n1inEdges = n1.inE();
+      Iterator<OdbEdge> n1inEdges = n1.inE();
       assertEquals(1l, (long) n1inEdges.next().property2(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
@@ -271,15 +256,15 @@ public class OdbNodeTest {
     try (OdbGraph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      OdbEdgeTp3 edge0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
-      OdbEdgeTp3 edge1 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      OdbEdge edge0 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
+      OdbEdge edge1 = n0.addEdge2(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
 
       edge1.remove();
 
-      Iterator<OdbEdgeTp3> n0outEdges = n0.outE();
+      Iterator<OdbEdge> n0outEdges = n0.outE();
       assertEquals(Long.valueOf(0), n0outEdges.next().value(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
-      Iterator<OdbEdgeTp3> n1inEdges = n0.outE();
+      Iterator<OdbEdge> n1inEdges = n0.outE();
       assertEquals(Long.valueOf(0), n1inEdges.next().value(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
@@ -298,10 +283,10 @@ public class OdbNodeTest {
       // TODO move to tinkerpop-subproject once it's factored out
       graph.traversal().V(n0.id()).outE().has(TestEdge.LONG_PROPERTY, P.eq(0l)).drop().iterate();
 
-      Iterator<OdbEdgeTp3> n0outEdges = n0.outE();
+      Iterator<OdbEdge> n0outEdges = n0.outE();
       assertEquals(Long.valueOf(1), n0outEdges.next().value(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
-      Iterator<OdbEdgeTp3> n1inEdges = n1.inE();
+      Iterator<OdbEdge> n1inEdges = n1.inE();
       assertEquals(Long.valueOf(1), n1inEdges.next().value(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
@@ -348,7 +333,7 @@ public class OdbNodeTest {
     try (OdbGraph graph = GratefulDead.open()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
-      OdbEdgeTp3 followedBy = song1.addEdge2(FollowedBy.LABEL, song2);
+      OdbEdge followedBy = song1.addEdge2(FollowedBy.LABEL, song2);
       assertNodeCount(2, graph);
       assertEdgeCount(1, graph);
 
@@ -364,8 +349,8 @@ public class OdbNodeTest {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
-      OdbEdgeTp3 edge1 = song1.addEdge2(FollowedBy.LABEL, song2);
-      OdbEdgeTp3 edge2 = song1.addEdge2(FollowedBy.LABEL, song3);
+      OdbEdge edge1 = song1.addEdge2(FollowedBy.LABEL, song2);
+      OdbEdge edge2 = song1.addEdge2(FollowedBy.LABEL, song3);
       assertNodeCount(3, graph);
       assertEdgeCount(2, graph);
 
@@ -507,7 +492,7 @@ public class OdbNodeTest {
     try (OdbGraph graph = GratefulDead.open()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
-      OdbEdgeTp3 e4 = n0.addEdge2(FollowedBy.LABEL, n2);
+      OdbEdge e4 = n0.addEdge2(FollowedBy.LABEL, n2);
       assertTrue(n0 instanceof NodeRef);
       assertTrue(n0.out().next() instanceof NodeRef);
     }

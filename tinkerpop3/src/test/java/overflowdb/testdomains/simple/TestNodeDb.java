@@ -3,16 +3,11 @@ package overflowdb.testdomains.simple;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
-import overflowdb.tinkerpop.OdbNodeProperty;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
-import org.apache.tinkerpop.gremlin.util.iterator.IteratorUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,24 +42,17 @@ public class TestNodeDb extends OdbNode {
     return layoutInformation;
   }
 
-  @Override
-  protected <V> Iterator<VertexProperty<V>> specificProperties(String key) {
-    final Object value = specificProperty2(key);
-    if (value != null) return IteratorUtils.of(new OdbNodeProperty(this, key, value));
-    else return Collections.emptyIterator();
-  }
-
   /* note: usage of `==` (pointer comparison) over `.equals` (String content comparison) is intentional for performance - use the statically defined strings */
   @Override
-  protected Object specificProperty2(String key) {
+  public <A> A property2(String key) {
     if (TestNode.STRING_PROPERTY.equals(key)) {
-      return _stringProperty;
+      return (A) _stringProperty;
     } else if (key == TestNode.STRING_LIST_PROPERTY) {
-      return _stringListProperty;
+      return (A) _stringListProperty;
     } else if (key == TestNode.INT_PROPERTY) {
-      return _intProperty;
+      return (A) _intProperty;
     } else if (key == TestNode.INT_LIST_PROPERTY) {
-      return _intListProperty;
+      return (A) _intListProperty;
     } else {
       return null;
     }
@@ -81,8 +69,7 @@ public class TestNodeDb extends OdbNode {
   }
 
   @Override
-  protected <V> VertexProperty<V> updateSpecificProperty(
-      VertexProperty.Cardinality cardinality, String key, V value) {
+  protected void updateSpecificProperty(String key, Object value) {
     if (TestNode.STRING_PROPERTY.equals(key)) {
       this._stringProperty = (String) value;
     } else if (TestNode.STRING_LIST_PROPERTY.equals(key)) {
@@ -104,7 +91,6 @@ public class TestNodeDb extends OdbNode {
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
-    return property(key);
   }
 
   @Override

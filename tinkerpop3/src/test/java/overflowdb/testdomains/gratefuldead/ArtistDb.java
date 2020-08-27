@@ -3,7 +3,6 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.OdbNode;
-import org.apache.tinkerpop.gremlin.structure.VertexProperty;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,9 +26,9 @@ public class ArtistDb extends OdbNode {
   }
 
   @Override
-  protected Object specificProperty2(String key) {
+  public <A> A property2(String key) {
     if (Artist.NAME.equals(key)) {
-      return _name;
+      return (A) _name;
     } else {
       return null;
     }
@@ -43,14 +42,12 @@ public class ArtistDb extends OdbNode {
   }
 
   @Override
-  protected <V> VertexProperty<V> updateSpecificProperty(
-      VertexProperty.Cardinality cardinality, String key, V value) {
+  protected void updateSpecificProperty(String key, Object value) {
     if (Artist.NAME.equals(key)) {
       this._name = (String) value;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
-    return property(key);
   }
 
   @Override
