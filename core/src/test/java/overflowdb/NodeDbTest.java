@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -42,7 +43,12 @@ public class NodeDbTest {
       //  verify that we can cast to our domain-specific nodes/edges
       TestNode node1 = (TestNode) n1;
       assertEquals("node 1", node1.stringProperty());
+      assertEquals("node 1", node1.property(TestNode.STRING_PROPERTY));
+      assertEquals("node 1", node1.property(new PropertyKey<>(TestNode.STRING_PROPERTY)));
+      assertEquals(Optional.of("node 1"), node1.propertyOption(TestNode.STRING_PROPERTY));
+      assertEquals(Optional.of("node 1"), node1.propertyOption(new PropertyKey<>(TestNode.STRING_PROPERTY)));
       assertEquals(Integer.valueOf(42), node1.intProperty());
+
       TestEdge testEdge = (TestEdge) e;
       assertEquals(Long.valueOf(99), testEdge.longProperty());
 
