@@ -6,6 +6,7 @@ import overflowdb.Graph;
 import java.util.Arrays;
 
 public class SimpleDomain {
+
   public static Graph newGraph() {
     return newGraph(Config.withoutOverflow());
   }
