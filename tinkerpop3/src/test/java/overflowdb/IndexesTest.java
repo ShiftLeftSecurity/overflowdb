@@ -6,6 +6,7 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.util.TimeUtil;
 import org.junit.Ignore;
 import org.junit.Test;
+import overflowdb.testdomains.gratefuldead.GratefulDeadTp3;
 import overflowdb.tinkerpop.OdbGraphTp3;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class IndexesTest {
     final double avgTimeWithoutIndex;
 
     { // tests with index
-      OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData();
+      OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData();
       graph.graph.indexManager.createNodePropertyIndex("performances");
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
@@ -36,7 +37,7 @@ public class IndexesTest {
     }
 
     { // tests without index
-      OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData();
+      OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -59,7 +60,7 @@ public class IndexesTest {
     { // tests with index
       OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.open());
       graph.graph.indexManager.createNodePropertyIndex("performances");
-      GratefulDead.loadData(graph);
+      GratefulDeadTp3.loadData(graph);
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -67,7 +68,7 @@ public class IndexesTest {
     }
 
     { // tests without index
-      OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData();
+      OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData();
       GraphTraversalSource g = graph.traversal();
       assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       avgTimeWithoutIndex = TimeUtil.clock(loops, () -> g.V().has("performances", P.eq(1)).count().next());
@@ -90,7 +91,7 @@ public class IndexesTest {
     // tests with index
     int loops = 1000;
     avgTimeWithIndexCreation = TimeUtil.clock(loops, () -> {
-      try(OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData()) {
+      try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData()) {
         graph.graph.indexManager.createNodePropertyIndex("performances");
         GraphTraversalSource g = graph.traversal();
         assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
@@ -99,7 +100,7 @@ public class IndexesTest {
       }
     });
     // save indexes
-    try(OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
+    try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
       graph.graph.indexManager.createNodePropertyIndex("performances");
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -121,7 +122,7 @@ public class IndexesTest {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
     // save indexes
-    try(OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
+    try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
       graph.graph.indexManager.createNodePropertyIndex("performances");
       assertEquals(584, graph.graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.graph.indexManager.getIndexedNodeProperties());

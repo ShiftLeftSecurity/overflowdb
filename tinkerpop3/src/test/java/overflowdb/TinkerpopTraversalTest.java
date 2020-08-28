@@ -8,6 +8,7 @@ import org.junit.Test;
 import overflowdb.testdomains.gratefuldead.Artist;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
+import overflowdb.testdomains.gratefuldead.GratefulDeadTp3;
 import overflowdb.testdomains.gratefuldead.Song;
 import overflowdb.testdomains.gratefuldead.WrittenBy;
 import overflowdb.testdomains.simple.SimpleDomain;
@@ -83,7 +84,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void testBasicSteps() throws IOException {
-    try (OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData()) {
+    try (OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData()) {
       Vertex garcia = graph.traversal().V().has("name", "Garcia").next();
 
       // inE
@@ -118,7 +119,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void loadGratefulDeadGraph() throws IOException {
-    try(OdbGraphTp3 graph = GratefulDead.openAndLoadSampleData()) {
+    try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData()) {
       final Vertex node1 = graph.vertices(1).next();
       assertEquals("HEY BO DIDDLEY", node1.values("name").next());
 
