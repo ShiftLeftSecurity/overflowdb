@@ -1,9 +1,7 @@
 package overflowdb.traversal
 
-import org.apache.tinkerpop.gremlin.structure.Vertex
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
-import overflowdb.tinkerpop.NodeTp3
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
@@ -204,17 +202,18 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
     test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
 
-    withClue("for reference: this behaviour is adapted from tinkerpop") {
-      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
-      test {
-        val centerTp3: Vertex = NodeTp3.wrap(center)
-        __(centerTp3).repeat(
-          __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
-            .out().asInstanceOf[TPTraversal[_, Vertex]]
-        ).toList.asScala
-      }
-    }
+//    withClue("for reference: this behaviour is adapted from tinkerpop") {
+//      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+//      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
+//      import org.apache.tinkerpop.gremlin.structure.Vertex
+//      test {
+//        val centerTp3: Vertex = NodeTp3.wrap(center)
+//        __(centerTp3).repeat(
+//          __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
+//            .out().asInstanceOf[TPTraversal[_, Vertex]]
+//        ).toList.asScala
+//      }
+//    }
   }
 
   "uses DFS (depth first search) by default" in {

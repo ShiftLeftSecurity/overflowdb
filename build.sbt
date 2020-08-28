@@ -4,10 +4,12 @@ ThisBuild/scalaVersion := "2.13.2"
 publish/skip := true
 enablePlugins(GitVersioning)
 
-//TODO factor out `core` from tinkerpop3
 lazy val core = project.in(file("core"))
-lazy val traversal = project.in(file("traversal")).dependsOn(tinkerpop3)
 lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->compile;test->test")
+
+lazy val traversal = project.in(file("traversal"))
+                       .dependsOn(core)
+                       .dependsOn(tinkerpop3 % "test->test") //only for GratefulDeadTest - change that
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,

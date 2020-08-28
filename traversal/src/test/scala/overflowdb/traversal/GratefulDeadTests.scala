@@ -4,6 +4,7 @@ import overflowdb.traversal.filter.StringPropertyFilter.InvalidRegexException
 import overflowdb.traversal.testdomains.gratefuldead._
 import org.scalatest.{Matchers, WordSpec}
 
+// TODO this should really be in the `traversal` project, we only need tinkerpop to load the data...
 class GratefulDeadTests extends WordSpec with Matchers {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
