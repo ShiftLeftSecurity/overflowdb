@@ -1,7 +1,7 @@
 package overflowdb;
 
-import org.apache.tinkerpop.gremlin.structure.Element;
-import org.apache.tinkerpop.gremlin.structure.Property;
+// import org.apache.tinkerpop.gremlin.structure.Element;
+// import org.apache.tinkerpop.gremlin.structure.Property;
 import org.junit.Test;
 
 import java.io.IOException;
