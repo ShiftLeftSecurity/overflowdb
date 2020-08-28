@@ -2,7 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
-import overflowdb.{Node, toElementSugar}
+import overflowdb._
 
 import scala.collection.mutable
 
@@ -119,7 +119,7 @@ class TraversalTests extends WordSpec with Matchers {
 
     "provide node-specific overview" when {
       "using simple domain" in {
-        val thingTraversal: Traversal[testdomains.simple.Thing] = Traversal.empty
+        val thingTraversal: Traversal[Thing] = Traversal.empty
         thingTraversal.help should include("Available steps for Thing")
         thingTraversal.help should include(".name")
 
@@ -130,7 +130,7 @@ class TraversalTests extends WordSpec with Matchers {
       }
 
       "using hierarchical domain" in {
-        import testdomains.hierarchical.{Animal, Car, Elephant, Mammal}
+        import overflowdb.traversal.testdomains.hierarchical._
         Traversal.empty[Animal].help should include("species of the animal")
         Traversal.empty[Mammal].help should include("can this mammal swim?")
         Traversal.empty[Elephant].help should include("name of the elephant")

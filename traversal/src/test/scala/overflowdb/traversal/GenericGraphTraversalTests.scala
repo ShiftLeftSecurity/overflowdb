@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
+import overflowdb._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
@@ -62,7 +63,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
 
     "filter by property key/value" in {
       graph.V.has(Name, "R1").size shouldBe 1
-      graph.V.has(Name -> "R1").size shouldBe 1
+      graph.V.has(Name.of("R1")).size shouldBe 1
       graph.V.has(Name.where(P.eq("R1"))).size shouldBe 1
       graph.V.has(Name.where(P.matches("[LR]."))).size shouldBe 8
       graph.V.has(Name.where(_.matches("[LR]."))).size shouldBe 8
@@ -72,10 +73,10 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       graph.V.has(Name.where(P.without(Set("L1", "L2")))).size shouldBe 7
       graph.V.has(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 6
       graph.V.has(Name.where(_.endsWith("1"))).size shouldBe 2
-      graph.E.has(Distance -> 10).size shouldBe 2
+      graph.E.has(Distance.of(10)).size shouldBe 2
 
       graph.V.hasNot(Name, "R1").size shouldBe 8
-      graph.V.hasNot(Name -> "R1").size shouldBe 8
+      graph.V.hasNot(Name.of("R1")).size shouldBe 8
       graph.V.hasNot(Name.where(P.eq("R1"))).size shouldBe 8
       graph.V.hasNot(Name.where(P.matches("[LR]."))).size shouldBe 1
       graph.V.hasNot(Name.where(_.matches("[LR]."))).size shouldBe 1
@@ -85,7 +86,7 @@ class GenericGraphTraversalTests extends WordSpec with Matchers {
       graph.V.hasNot(Name.where(P.without(Set("L1", "L2")))).size shouldBe 2
       graph.V.hasNot(Name.where(P.without("L1", "L2", "L3"))).size shouldBe 3
       graph.V.hasNot(Name.where(_.endsWith("1"))).size shouldBe 7
-      graph.E.hasNot(Distance -> 10).size shouldBe 6
+      graph.E.hasNot(Distance.of(10)).size shouldBe 6
     }
 
     "`where` step taking a traversal" in {

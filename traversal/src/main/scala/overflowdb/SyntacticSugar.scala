@@ -1,5 +1,12 @@
 package overflowdb
 
+class PropertyPredicate[A](val key: PropertyKey[A], val predicate: A => Boolean)
+
+class PropertyKeyOps[A](val propertyKey: PropertyKey[A]) extends AnyVal {
+  def where(predicate: A => Boolean): PropertyPredicate[A] =
+    new PropertyPredicate[A](propertyKey, predicate)
+}
+
 class GraphSugar(val graph: Graph) extends AnyVal {
   def nodeOption(id: Long): Option[Node] =
     Option(graph.node(id))
@@ -27,20 +34,6 @@ class GraphSugar(val graph: Graph) extends AnyVal {
   }
 }
 
-class ElementSugar(val element: Element) extends AnyVal {
-  def property[P](propertyKey: PropertyKey[P]): P =
-    element.property(propertyKey.name).asInstanceOf[P]
-
-  def propertyOption[P](propertyKey: PropertyKey[P]): Option[P] =
-    Option(property[P](propertyKey))
-
-  def setProperty[P](propertyKeyValue: Property[P]): Unit =
-    setProperty(propertyKeyValue.key, propertyKeyValue.value)
-
-  def setProperty[P](propertyKey: PropertyKey[P], value: P): Unit =
-    element.setProperty(propertyKey.name, value)
-}
-
 class NodeSugar(val node: Node) extends AnyVal {
   def ---(label: String): SemiEdge =
     new SemiEdge(node, label, Seq.empty)
@@ -53,10 +46,10 @@ private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq
   def -->(inNode: Node): Edge = {
     val keyValues = new Array[Any](properties.size * 2)
     var i: Int = 0
-    properties.foreach { case Property(key, value) =>
-      keyValues.update(i, key.name)
+    properties.foreach { property =>
+      keyValues.update(i, property.key.name)
       i += 1
-      keyValues.update(i, value)
+      keyValues.update(i, property.value)
       i += 1
     }
 

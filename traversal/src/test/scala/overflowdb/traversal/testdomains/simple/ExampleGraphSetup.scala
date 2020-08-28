@@ -8,7 +8,7 @@ import overflowdb.traversal.Traversal
  * */
 object ExampleGraphSetup {
   val nonExistingLabel = "this label does not exist"
-  val nonExistingPropertyKey = PropertyKey[String]("this property key does not exist")
+  val nonExistingPropertyKey = new PropertyKey[String]("this property key does not exist")
   val graph = SimpleDomain.newGraph
 
   val l3 = addThing("L3")
@@ -25,16 +25,16 @@ object ExampleGraphSetup {
   l1 --- Connection.Label --> l2
   l2 --- Connection.Label --> l3
   center --- Connection.Label --> r1
-  r1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r2
-  r2 --- (Connection.Label, Connection.Properties.Distance -> 10) --> r3
-  r3 --- (Connection.Label, Connection.Properties.Distance -> 13) --> r4
-  r4 --- (Connection.Label, Connection.Properties.Distance -> 14) --> r5
+  r1 --- (Connection.Label, Connection.Properties.Distance.of(10)) --> r2
+  r2 --- (Connection.Label, Connection.Properties.Distance.of(10)) --> r3
+  r3 --- (Connection.Label, Connection.Properties.Distance.of(13)) --> r4
+  r4 --- (Connection.Label, Connection.Properties.Distance.of(14)) --> r5
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
   def centerTrav = Traversal.fromSingle(center)
 
   private def addThing(name: String): Thing = {
-    val node = graph + (Thing.Label, Thing.Properties.Name -> name)
+    val node = graph + (Thing.Label, Thing.Properties.Name.of(name))
     node.asInstanceOf[Thing]
   }
 

@@ -10,18 +10,18 @@ class TraversalSourceTest extends WordSpec with Matchers {
     val graph = SimpleDomain.newGraph
     import Thing.Properties.Name
 
-    val one = graph + (Thing.Label, Name -> "one")
-    val two1 = graph + (Thing.Label, Name -> "two")
-    val two2 = graph + (Thing.Label, Name -> "two")
+    val one = graph + (Thing.Label, Name.of("one"))
+    val two1 = graph + (Thing.Label, Name.of("two"))
+    val two2 = graph + (Thing.Label, Name.of("two"))
 
     def verify() = {
-      TraversalSource(graph).has(Name -> "one").toSet shouldBe Set(one)
-      TraversalSource(graph).has(Name -> "two").toSet shouldBe Set(two1, two2)
-      TraversalSource(graph).has(Name -> "unknown").toSet shouldBe Set.empty
+      TraversalSource(graph).has(Name.of("one")).toSet shouldBe Set(one)
+      TraversalSource(graph).has(Name.of("two")).toSet shouldBe Set(two1, two2)
+      TraversalSource(graph).has(Name.of("unknown")).toSet shouldBe Set.empty
 
-      TraversalSource(graph).labelAndProperty(Thing.Label, Name -> "two").toSet shouldBe Set(two1, two2)
-      TraversalSource(graph).labelAndProperty(Thing.Label, Name -> "unknown").toSet shouldBe Set.empty
-      TraversalSource(graph).labelAndProperty("unknown", Name -> "two").toSet shouldBe Set.empty
+      TraversalSource(graph).labelAndProperty(Thing.Label, Name.of("two")).toSet shouldBe Set(two1, two2)
+      TraversalSource(graph).labelAndProperty(Thing.Label, Name.of("unknown")).toSet shouldBe Set.empty
+      TraversalSource(graph).labelAndProperty("unknown", Name.of("two")).toSet shouldBe Set.empty
     }
 
     verify()

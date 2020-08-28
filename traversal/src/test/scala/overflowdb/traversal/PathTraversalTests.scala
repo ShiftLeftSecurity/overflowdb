@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.{Node, toElementSugar}
+import overflowdb._
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 

@@ -27,9 +27,9 @@ object Song {
   val LabelId = 5
 
   object Properties {
-    val Name = PropertyKey[String](PropertyNames.Name)
-    val SongType = PropertyKey[String](PropertyNames.SongType)
-    val Performances = PropertyKey[Int](PropertyNames.Performances)
+    val Name = new PropertyKey[String](PropertyNames.Name)
+    val SongType = new PropertyKey[String](PropertyNames.SongType)
+    val Performances = new PropertyKey[Int](PropertyNames.Performances)
   }
 
   object PropertyNames {

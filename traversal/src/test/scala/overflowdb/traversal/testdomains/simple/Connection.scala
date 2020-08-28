@@ -10,8 +10,8 @@ object Connection {
   val Label = "connection"
 
   object Properties {
-    val Distance = PropertyKey[Int](PropertyNames.Distance)
-    val Name = PropertyKey[String](PropertyNames.Name)
+    val Distance = new PropertyKey[Int](PropertyNames.Distance)
+    val Name = new PropertyKey[String](PropertyNames.Name)
   }
 
   object PropertyNames {

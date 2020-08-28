@@ -23,8 +23,8 @@ object Thing {
   val LabelId = 6
 
   object Properties {
-    val Name = PropertyKey[String](PropertyNames.Name)
-    val Size = PropertyKey[Integer](PropertyNames.Size)
+    val Name = new PropertyKey[String](PropertyNames.Name)
+    val Size = new PropertyKey[Integer](PropertyNames.Size)
   }
 
   object PropertyNames {

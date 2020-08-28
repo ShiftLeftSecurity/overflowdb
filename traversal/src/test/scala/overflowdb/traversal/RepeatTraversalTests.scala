@@ -260,7 +260,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     // using circular graph so that we can repeat any number of times
     val graph = SimpleDomain.newGraph
 
-    def addThing(name: String) = graph + (Thing.Label, Name -> name)
+    def addThing(name: String) = graph + (Thing.Label, Name.of(name))
 
     val a = addThing("a")
     val b = addThing("b")

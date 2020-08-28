@@ -3,6 +3,7 @@ package overflowdb;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import overflowdb.util.IteratorUtils;
 
@@ -136,6 +137,31 @@ public abstract class Edge implements Element {
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
+  }
+
+  @Override
+  public <A> A property(PropertyKey<A> key) {
+    return (A) property(key.name);
+  }
+
+  @Override
+  public <A> Optional<A> propertyOption(PropertyKey<A> key) {
+    return Optional.ofNullable(property(key));
+  }
+
+  @Override
+  public Optional<Object> propertyOption(String key) {
+    return Optional.ofNullable(property(key));
+  }
+
+  @Override
+  public <A> void setProperty(PropertyKey<A> key, A value) {
+    setProperty(key.name, value);
+  }
+
+  @Override
+  public void setProperty(Property<?> property) {
+    setProperty(property.key.name, property.value);
   }
 
   public boolean isRemoved() {

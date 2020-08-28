@@ -15,7 +15,7 @@ object Car {
   val LabelId = 7
 
   object Properties {
-    val Name = PropertyKey[String](PropertyNames.Name)
+    val Name = new PropertyKey[String](PropertyNames.Name)
   }
 
   object PropertyNames {

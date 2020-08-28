@@ -99,6 +99,21 @@ public abstract class NodeDb implements Node {
   }
 
   @Override
+  public <A> A property(PropertyKey<A> key) {
+    return (A) property(key.name);
+  }
+
+  @Override
+  public <A> Optional<A> propertyOption(PropertyKey<A> key) {
+    return Optional.ofNullable(property(key));
+  }
+
+  @Override
+  public Optional<Object> propertyOption(String key) {
+    return Optional.ofNullable(property(key));
+  }
+
+  @Override
   public Map<String, Object> propertyMap() {
     final Map<String, Object> results = new HashMap<>(propertyKeys().size());
 
@@ -121,6 +136,16 @@ public abstract class NodeDb implements Node {
     ref.graph.indexManager.putIfIndexed(key, value, ref);
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
+  }
+
+  @Override
+  public <A> void setProperty(PropertyKey<A> key, A value) {
+    setProperty(key.name, value);
+  }
+
+  @Override
+  public void setProperty(Property<?> property) {
+    setProperty(property.key.name, property.value);
   }
 
   @Override

@@ -172,6 +172,31 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
   }
 
   @Override
+  public <A> A property(PropertyKey<A> key) {
+    return get().property(key);
+  }
+
+  @Override
+  public <A> Optional<A> propertyOption(PropertyKey<A> key) {
+    return get().propertyOption(key);
+  }
+
+  @Override
+  public Optional<Object> propertyOption(String key) {
+    return get().propertyOption(key);
+  }
+
+  @Override
+  public <A> void setProperty(PropertyKey<A> key, A value) {
+    get().setProperty(key, value);
+  }
+
+  @Override
+  public void setProperty(Property<?> property) {
+    get().setProperty(property);
+  }
+
+  @Override
   public void setProperty(String key, Object value) {
     this.get().setProperty(key, value);
   }

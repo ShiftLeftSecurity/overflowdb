@@ -2,7 +2,9 @@ package overflowdb
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal._
+import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
 import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.Thing.Properties._
 
 class GraphSugarTests extends WordSpec with Matchers {
 
@@ -21,16 +23,15 @@ class GraphSugarTests extends WordSpec with Matchers {
 
     "add a node with property" in {
       val graph = SimpleDomain.newGraph
-      graph + (Thing.Label, Thing.Properties.Name -> "one thing")
+      graph + (Thing.Label, Name.of("one thing"))
       graph.nodeCount shouldBe 1
       SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
     }
 
     "add nodes with multiple properties" in {
-      import Thing.Properties._
       val graph = SimpleDomain.newGraph
-      graph + (Thing.Label, Name -> "one thing")
-      graph + (Thing.Label, Name -> "another thing", Size -> 42)
+      graph + (Thing.Label, Name.of("one thing"))
+      graph + (Thing.Label, Name.of("another thing"), Size.of(42))
       SimpleDomain.traversal(graph).things.propertyMap.toSet shouldBe Set(
         Map(("name", "one thing")),
         Map(("name", "another thing"), ("size", 42))
@@ -39,7 +40,7 @@ class GraphSugarTests extends WordSpec with Matchers {
 
     "add a node with property and id" in {
       val graph = SimpleDomain.newGraph
-      graph + (Thing.Label, 99, Thing.Properties.Name -> "one thing")
+      graph + (Thing.Label, 99, Name.of("one thing"))
       SimpleDomain.traversal(graph).things.name.toList shouldBe List("one thing")
       graph.node(99).property("name") shouldBe "one thing"
     }
@@ -76,7 +77,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
-      node1 --- (Connection.Label, Connection.Properties.Distance -> 10) --> node2
+      node1 --- (Connection.Label, Distance.of(10)) --> node2
 
       node1.out(Connection.Label).next shouldBe node2
       node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
@@ -88,8 +89,8 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
-      node1 --- (Connection.Label, Distance -> 10) --> node2
-      node1 --- (Connection.Label, Distance -> 30, Name -> "Alternative") --> node2
+      node1 --- (Connection.Label, Distance.of(10)) --> node2
+      node1 --- (Connection.Label, Distance.of(30), Name.of("Alternative")) --> node2
 
       node1.out(Connection.Label).toList shouldBe List(node2, node2)
       node1.outE(Connection.Label).propertyMap.toSet shouldBe Set(
