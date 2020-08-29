@@ -30,8 +30,8 @@ class GraphSugarTests extends WordSpec with Matchers {
 
     "add nodes with multiple properties" in {
       val graph = SimpleDomain.newGraph
-      graph + (Thing.Label, Name.of("one thing"))
-      graph + (Thing.Label, Name.of("another thing"), Size.of(42))
+      graph + (Thing.Label, Name -> "one thing")
+      graph + (Thing.Label, Name -> "another thing", Size -> 42)
       SimpleDomain.traversal(graph).things.propertyMap.toSet shouldBe Set(
         Map(("name", "one thing")),
         Map(("name", "another thing"), ("size", 42))
@@ -77,7 +77,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label
       val node2 = graph + Thing.Label
-      node1 --- (Connection.Label, Distance.of(10)) --> node2
+      node1 --- (Connection.Label, Distance -> 10) --> node2
 
       node1.out(Connection.Label).next shouldBe node2
       node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10

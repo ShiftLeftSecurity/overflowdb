@@ -3,6 +3,9 @@ package overflowdb
 class PropertyPredicate[A](val key: PropertyKey[A], val predicate: A => Boolean)
 
 class PropertyKeyOps[A](val propertyKey: PropertyKey[A]) extends AnyVal {
+  def -> (value: A): Property[A] =
+    propertyKey.of(value)
+
   def where(predicate: A => Boolean): PropertyPredicate[A] =
     new PropertyPredicate[A](propertyKey, predicate)
 }
