@@ -71,7 +71,7 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public void persist(final NodeDb node) {
-    final long id = node.ref.id;
+    final long id = node.ref.id();
     persist(id, serialize(node));
   }
 

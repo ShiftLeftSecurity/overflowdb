@@ -151,8 +151,8 @@ public class NodesListTest {
     assertEquals(1, nl.nodesByLabel("B").size());
     assertTrue(nl.nodesByLabel("A").contains(ref1));
     assertTrue(nl.nodesByLabel("B").contains(ref2));
-    assertEquals(ref1, nl.nodeById(ref1.id));
-    assertEquals(ref2, nl.nodeById(ref2.id));
+    assertEquals(ref1, nl.nodeById(ref1.id()));
+    assertEquals(ref2, nl.nodeById(ref2.id()));
   }
 
   @Test

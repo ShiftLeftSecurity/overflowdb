@@ -20,7 +20,7 @@ import java.util.Set;
  * are lazily on demand as described above.
  */
 public abstract class NodeRef<N extends NodeDb> implements Node {
-  public final long id;
+  protected final long id;
   protected final Graph graph;
   private N node;
 

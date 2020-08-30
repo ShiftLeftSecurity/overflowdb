@@ -42,7 +42,7 @@ public class SerializerTest {
       assertEquals(testNodeDb.propertyMap(), deserialized.propertyMap());
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
-      assertEquals(testNode.id(), deserializedRef.id);
+      assertEquals(testNode.id(), deserializedRef.id());
       assertEquals(TestNode.LABEL, deserializedRef.label());
     }
   }

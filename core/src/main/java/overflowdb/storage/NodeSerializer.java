@@ -22,7 +22,7 @@ public class NodeSerializer extends BookKeeper {
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
       node.markAsClean();
 
-      packer.packLong(node.ref.id);
+      packer.packLong(node.ref.id());
       packer.packInt(node.layoutInformation().labelId);
 
       packProperties(packer, node.valueMap());
@@ -70,7 +70,7 @@ public class NodeSerializer extends BookKeeper {
       packer.packNil();
     } else if (value instanceof NodeRef) {
       packer.packByte(ValueTypes.NODE_REF.id);
-      packer.packLong(((NodeRef) value).id);
+      packer.packLong(((NodeRef) value).id());
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);
