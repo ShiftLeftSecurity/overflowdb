@@ -1,11 +1,11 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
 import overflowdb.traversal.Traversal
-import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
+import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Song(graph: OdbGraph, id: Long) extends NodeRef[SongDb](graph, id) {
+class Song(graph: Graph, id: Long) extends NodeRef[SongDb](graph, id) {
   override def label: String = Song.Label
 
   def name: String = get.name
@@ -27,9 +27,9 @@ object Song {
   val LabelId = 5
 
   object Properties {
-    val Name = PropertyKey[String](PropertyNames.Name)
-    val SongType = PropertyKey[String](PropertyNames.SongType)
-    val Performances = PropertyKey[Int](PropertyNames.Performances)
+    val Name = new PropertyKey[String](PropertyNames.Name)
+    val SongType = new PropertyKey[String](PropertyNames.SongType)
+    val Performances = new PropertyKey[Int](PropertyNames.Performances)
   }
 
   object PropertyNames {
@@ -43,7 +43,7 @@ object Song {
     override def forLabel: String = Label
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[SongDb]) = new SongDb(ref)
-    override def createNodeRef(graph: OdbGraph, id: Long) = new Song(graph, id)
+    override def createNodeRef(graph: Graph, id: Long) = new Song(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =

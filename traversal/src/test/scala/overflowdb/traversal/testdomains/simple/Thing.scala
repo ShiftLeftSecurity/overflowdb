@@ -1,11 +1,11 @@
 package overflowdb.traversal.testdomains.simple
 
 import overflowdb.traversal._
-import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, OdbGraph, PropertyKey}
+import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class Thing(graph: OdbGraph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
+class Thing(graph: Graph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
   override def label: String = Thing.Label
 
   def name: String = get.name
@@ -23,8 +23,8 @@ object Thing {
   val LabelId = 6
 
   object Properties {
-    val Name = PropertyKey[String](PropertyNames.Name)
-    val Size = PropertyKey[Integer](PropertyNames.Size)
+    val Name = new PropertyKey[String](PropertyNames.Name)
+    val Size = new PropertyKey[Integer](PropertyNames.Size)
   }
 
   object PropertyNames {
@@ -37,7 +37,7 @@ object Thing {
     override def forLabel: String = Label
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ThingDb]) = new ThingDb(ref)
-    override def createNodeRef(graph: OdbGraph, id: Long) = new Thing(graph, id)
+    override def createNodeRef(graph: Graph, id: Long) = new Thing(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =

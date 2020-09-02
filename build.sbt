@@ -4,8 +4,12 @@ ThisBuild/scalaVersion := "2.13.2"
 publish/skip := true
 enablePlugins(GitVersioning)
 
-lazy val tinkerpop3 = project.in(file("tinkerpop3"))
-lazy val traversal = project.in(file("traversal")).dependsOn(tinkerpop3) //TODO factor out `core` from tinkerpop3
+lazy val core = project.in(file("core"))
+lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->compile;test->test")
+
+lazy val traversal = project.in(file("traversal"))
+                       .dependsOn(core)
+                       .dependsOn(tinkerpop3 % "test->test") // TODO drop this dependency - currently necessary for GratefulDeadTest which uses graphml loading
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,

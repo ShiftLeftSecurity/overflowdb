@@ -19,19 +19,19 @@ package object traversal {
   implicit def toNodeTraversal[A <: Node](traversal: Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
 
-  implicit def toEdgeTraversal[A <: OdbEdge](traversal: Traversal[A]): EdgeTraversal[A] =
+  implicit def toEdgeTraversal[A <: Edge](traversal: Traversal[A]): EdgeTraversal[A] =
     new EdgeTraversal[A](traversal)
 
-  implicit def toElementTraversal[A <: OdbElement](traversal: Traversal[A]): ElementTraversal[A] =
+  implicit def toElementTraversal[A <: Element](traversal: Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](traversal)
 
   implicit def toNodeTraversalViaAdditionalImplicit[A <: Node, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
     new NodeTraversal[A](toTraversal(traversable))
 
-  implicit def toEdgeTraversalViaAdditionalImplicit[A <: OdbEdge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
+  implicit def toEdgeTraversalViaAdditionalImplicit[A <: Edge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
     new EdgeTraversal[A](toTraversal(traversable))
 
-  implicit def toElementTraversalViaAdditionalImplicit[A <: OdbElement, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
+  implicit def toElementTraversalViaAdditionalImplicit[A <: Element, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](toTraversal(traversable))
 
   implicit class NodeOps[N <: Node](val node: N) extends AnyVal {

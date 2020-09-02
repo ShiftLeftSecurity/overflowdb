@@ -1,7 +1,7 @@
 package overflowdb.traversal.testdomains.hierarchical
 
 import overflowdb.traversal.{Traversal, TraversalSource, help}
-import overflowdb.{OdbConfig, OdbGraph}
+import overflowdb.{Config, Graph}
 import java.util
 
 import overflowdb.traversal.help.{Doc, TraversalHelp}
@@ -12,20 +12,20 @@ import overflowdb.traversal.help.{Doc, TraversalHelp}
   * Elephant (extends Animal)
   * */
 object HierarchicalDomain {
-  def newGraph: OdbGraph = newGraph(OdbConfig.withoutOverflow)
+  def newGraph: Graph = newGraph(Config.withoutOverflow)
 
-  def newGraph(config: OdbConfig): OdbGraph =
-    OdbGraph.open(config,
+  def newGraph(config: Config): Graph =
+    Graph.open(config,
       util.Arrays.asList(Car.factory, Elephant.factory),
       util.Arrays.asList())
 
-  def traversal(graph: OdbGraph) = new HierarchicalDomainTraversalSource(graph)
+  def traversal(graph: Graph) = new HierarchicalDomainTraversalSource(graph)
 
   lazy val help = new TraversalHelp(getClass.getPackage.getName)
 }
 
 @help.TraversalSource
-class HierarchicalDomainTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
+class HierarchicalDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
 
   @Doc("all cars")
   def car: Traversal[Car] = label(Car.Label).cast[Car]

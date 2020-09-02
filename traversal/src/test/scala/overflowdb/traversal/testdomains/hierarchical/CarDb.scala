@@ -1,9 +1,8 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import org.apache.tinkerpop.gremlin.structure.VertexProperty
-import overflowdb.{NodeRef, OdbNode}
+import overflowdb.{NodeRef, NodeDb}
 
-class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
+class CarDb(ref: NodeRef[CarDb]) extends NodeDb(ref) {
   private var _name: String = null
 
   def name: String = _name
@@ -14,17 +13,16 @@ class CarDb(ref: NodeRef[CarDb]) extends OdbNode(ref) {
     properties
   }
 
-  override protected def specificProperty2(key: String) =
+  override def property(key: String) =
     key match {
       case Car.PropertyNames.Name => _name
       case _ => null
     }
 
-  override protected def updateSpecificProperty[V](cardinality: VertexProperty.Cardinality, key: String, value: V) =
+  override protected def updateSpecificProperty(key: String, value: Object) =
     key match {
       case Car.PropertyNames.Name =>
         _name = value.asInstanceOf[String]
-        property(Car.PropertyNames.Name)
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }

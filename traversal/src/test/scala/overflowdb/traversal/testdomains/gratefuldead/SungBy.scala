@@ -3,8 +3,8 @@ package overflowdb.traversal.testdomains.gratefuldead
 import overflowdb._
 import scala.jdk.CollectionConverters._
 
-class SungBy(graph: OdbGraph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends OdbEdge(graph, SungBy.Label, outVertex, inVertex, SungBy.PropertyNames.all.asJava)
+class SungBy(graph: Graph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
+  extends Edge(graph, SungBy.Label, outVertex, inVertex, SungBy.PropertyNames.all.asJava)
 
 object SungBy {
   val Label = "sungBy"
@@ -20,7 +20,7 @@ object SungBy {
   var factory: EdgeFactory[SungBy] = new EdgeFactory[SungBy] {
     override def forLabel(): String = SungBy.Label
 
-    override def createEdge(graph: OdbGraph, outNode: NodeRef[OdbNode], inNode: NodeRef[OdbNode]): SungBy =
+    override def createEdge(graph: Graph, outNode: NodeRef[NodeDb], inNode: NodeRef[NodeDb]): SungBy =
       new SungBy(graph, outNode.asInstanceOf[NodeRef[ArtistDb]], inNode.asInstanceOf[NodeRef[SongDb]])
   }
 }

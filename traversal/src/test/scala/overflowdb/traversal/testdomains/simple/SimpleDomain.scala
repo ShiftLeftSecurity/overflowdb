@@ -1,7 +1,7 @@
 package overflowdb.traversal.testdomains.simple
 
 import overflowdb.traversal.{Traversal, TraversalSource, help}
-import overflowdb.{OdbConfig, OdbGraph}
+import overflowdb.{Config, Graph}
 import java.util
 
 import overflowdb.traversal.help.{Doc, TraversalHelp}
@@ -10,20 +10,20 @@ import overflowdb.traversal.help.{Doc, TraversalHelp}
  * Thing --- Connection --> Thing
  * */
 object SimpleDomain {
-  def newGraph: OdbGraph = newGraph(OdbConfig.withoutOverflow)
+  def newGraph: Graph = newGraph(Config.withoutOverflow)
 
-  def newGraph(config: OdbConfig): OdbGraph =
-    OdbGraph.open(config,
+  def newGraph(config: Config): Graph =
+    Graph.open(config,
       util.Arrays.asList(Thing.factory),
       util.Arrays.asList(Connection.factory))
 
-  def traversal(graph: OdbGraph) = new SimpleDomainTraversalSource(graph)
+  def traversal(graph: Graph) = new SimpleDomainTraversalSource(graph)
 
   lazy val help = new TraversalHelp(getClass.getPackage.getName)
 }
 
 @help.TraversalSource
-class SimpleDomainTraversalSource(graph: OdbGraph) extends TraversalSource(graph) {
+class SimpleDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
 
   @Doc("all things")
   def things: Traversal[Thing] = label(Thing.Label).cast[Thing]

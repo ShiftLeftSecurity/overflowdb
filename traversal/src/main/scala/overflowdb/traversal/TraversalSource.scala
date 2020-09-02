@@ -1,9 +1,9 @@
 package overflowdb.traversal
 
-import overflowdb.{Node, OdbGraph, Property}
+import overflowdb.{Node, Graph, Property}
 import scala.jdk.CollectionConverters._
 
-class TraversalSource(graph: OdbGraph) {
+class TraversalSource(graph: Graph) {
   def all: Traversal[Node] =
     Traversal(graph.nodes())
 
@@ -18,6 +18,9 @@ class TraversalSource(graph: OdbGraph) {
 
   def label(label: String): Traversal[Node] =
     Traversal(graph.nodes(label))
+
+  def hasLabel(label: String): Traversal[Node] =
+    this.label(label)
 
   def labelTyped[A <: Node](label: String): Traversal[A] =
     this.label(label).cast[A]
@@ -58,5 +61,5 @@ class TraversalSource(graph: OdbGraph) {
 }
 
 object TraversalSource {
-  def apply(graph: OdbGraph): TraversalSource = new TraversalSource(graph)
+  def apply(graph: Graph): TraversalSource = new TraversalSource(graph)
 }

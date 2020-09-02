@@ -1,11 +1,11 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{OdbElement, Property, PropertyPredicate, PropertyKey}
+import overflowdb.{Element, Property, PropertyPredicate, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends AnyVal {
+class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal {
 
   /** traverse to the element label */
   @Doc("Traverse to the element label")
@@ -51,11 +51,11 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
 
   /** Filter elements by existence of property (irrespective of value) */
   def has(name: String): Traversal[E] =
-    traversal.filter(_.property2(name) != null)
+    traversal.filter(_.property(name) != null)
 
   /** Filter elements by (non-)existence of property (irrespective of value) */
   def hasNot(name: String): Traversal[E] =
-    traversal.filter(_.property2(name) == null)
+    traversal.filter(_.property(name) == null)
 
   /** Filter elements by property value */
   def has(keyValue: Property[_]): Traversal[E] =
@@ -90,11 +90,11 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
 
   /** Filter elements by property value */
   def has(key: String, value: Any): Traversal[E] =
-    traversal.filter(_.property2(key) == value)
+    traversal.filter(_.property(key) == value)
 
   /** Filter elements by property value */
   def hasNot(key: String, value: Any): Traversal[E] =
-    traversal.filter(_.property2(key) != value)
+    traversal.filter(_.property(key) != value)
 
   /** Filter elements by property with given predicate.
    * @example from GenericGraphTraversalTest
@@ -115,13 +115,13 @@ class ElementTraversal[E <: OdbElement](val traversal: Traversal[E]) extends Any
     property(key.name)
 
   def property[A](key: String): Traversal[A] =
-    traversal.map(_.property2[A](key)).filter(_ != null)
+    traversal.map(_.property(key).asInstanceOf[A]).filter(_ != null)
 
   def propertyOption[A](key: PropertyKey[A]): Traversal[Option[A]] =
     propertyOption(key.name)
 
   def propertyOption[A](key: String): Traversal[Option[A]] =
-    traversal.map(element => Option(element.property2[A](key)))
+    traversal.map(element => Option(element.property(key).asInstanceOf[A]))
 
   def propertyMap: Traversal[Map[String, Object]] =
     traversal.map(_.propertyMap.asScala.toMap)
