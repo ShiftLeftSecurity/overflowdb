@@ -38,9 +38,9 @@ public class IteratorUtils {
 
       @Override
       public boolean hasNext() {
-        if (this.currentIterator.hasNext())
+        if (this.currentIterator.hasNext()) {
           return true;
-        else {
+        } else {
           while (iterator.hasNext()) {
             this.currentIterator = function.apply(iterator.next());
             if (this.currentIterator.hasNext())

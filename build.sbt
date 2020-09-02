@@ -9,7 +9,7 @@ lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->
 
 lazy val traversal = project.in(file("traversal"))
                        .dependsOn(core)
-                       .dependsOn(tinkerpop3 % "test->test") //only for GratefulDeadTest - change that
+                       .dependsOn(tinkerpop3 % "test->test") // TODO drop this dependency - currently necessary for GratefulDeadTest which uses graphml loading
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,

@@ -71,7 +71,7 @@ public class NodeTp3<N extends NodeDb> implements Vertex {
 
   @Override
   public <V> VertexProperty<V> property(VertexProperty.Cardinality cardinality, String key, V value, Object... keyValues) {
-    if (cardinality != VertexProperty.Cardinality.single || keyValues.length > 0) {
+    if (cardinality == null || cardinality != VertexProperty.Cardinality.single || keyValues.length > 0) {
       throw new UnsupportedOperationException("only Cardinality.single properties are supported for now");
     }
     ElementHelper.validateProperty(key, value);
@@ -91,9 +91,9 @@ public class NodeTp3<N extends NodeDb> implements Vertex {
   @Override
   public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
     final Iterator<VertexProperty<V>> props;
-    if (propertyKeys.length == 1) { // treating as special case for performance
+    if (propertyKeys != null && propertyKeys.length == 1) { // treating as special case for performance
       props = IteratorUtils.of(property(propertyKeys[0]));
-    } else if (propertyKeys.length == 0) { // return all properties
+    } else if (propertyKeys != null && propertyKeys.length == 0) { // return all properties
       Stream<VertexProperty<V>> vertexPropertyStream = keys().stream().map(this::property);
       props = vertexPropertyStream.iterator();
     } else {

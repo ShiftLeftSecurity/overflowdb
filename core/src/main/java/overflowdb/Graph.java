@@ -11,6 +11,7 @@ import overflowdb.util.PropertyHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,15 +19,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 public final class Graph implements AutoCloseable {
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private static final Logger logger = LoggerFactory.getLogger(Graph.class);
 
   protected final AtomicLong currentId = new AtomicLong(-1L);
-  protected final NodesList nodes = new NodesList(10000);
+  protected final NodesList nodes = new NodesList();
   public final IndexManager indexManager = new IndexManager(this);
   private final Config config;
   private boolean closed = false;
@@ -90,7 +93,7 @@ public final class Graph implements AutoCloseable {
         final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
         nodes.add(nodeRef);
         importCount++;
-        if (importCount % 131072 == 0) {
+        if (importCount % 131072 == 0) { // some random magic number that allows for quick division
           logger.debug("imported " + importCount + " elements - still running...");
         }
         if (nodeRef.id > maxId) maxId = nodeRef.id;
@@ -102,7 +105,7 @@ public final class Graph implements AutoCloseable {
     currentId.set(maxId + 1);
     indexManager.initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
-    logger.info("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
+    logger.debug("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
   }
 
 
@@ -167,6 +170,9 @@ public final class Graph implements AutoCloseable {
     return nodes.cardinality(label);
   }
 
+  /** calculates the number of edges in the graph
+   * Note: this is an expensive operation, because edges are stored as part of the nodes
+   */
   public int edgeCount() {
     int i = 0;
     final Iterator<Edge> edges = edges();
@@ -221,11 +227,9 @@ public final class Graph implements AutoCloseable {
       // optimization for common case where only one id is requested
       return IteratorUtils.from(node(ids[0]));
     } else {
-      final Set<Long> idsSet = new HashSet<>(ids.length);
-      for (long id : ids) {
-        idsSet.add(id);
-      }
-      return IteratorUtils.map(idsSet.iterator(), id -> node(id));
+      return IteratorUtils.map(
+          Arrays.stream(ids).iterator(),
+          this::node);
     }
   }
 

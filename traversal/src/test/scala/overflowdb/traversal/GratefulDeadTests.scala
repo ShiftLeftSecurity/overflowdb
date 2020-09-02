@@ -17,7 +17,7 @@ class GratefulDeadTests extends WordSpec with Matchers {
       gratefulDead.label(Artist.Label).size shouldBe 224
       gratefulDead.id(1).label.head shouldBe Song.Label
       gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
-      gratefulDead.ids(3, 4).property[String]("name").l shouldBe Seq("BERTHA", "NOT FADE AWAY")
+      gratefulDead.ids(3, 4).property[String]("name").toSet shouldBe Set("BERTHA", "NOT FADE AWAY")
       gratefulDead.all.has(Song.Properties.SongType).size shouldBe 584
       gratefulDead.all.has(Song.Properties.Performances, 2).size shouldBe 36
     }

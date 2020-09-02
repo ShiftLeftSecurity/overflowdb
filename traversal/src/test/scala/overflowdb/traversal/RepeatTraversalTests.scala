@@ -202,6 +202,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out).l)
     test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
 
+    // for reference: this is the equivalent in tinkerpop - this doesn't compile any more because we dropped that dependency
 //    withClue("for reference: this behaviour is adapted from tinkerpop") {
 //      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
 //      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}

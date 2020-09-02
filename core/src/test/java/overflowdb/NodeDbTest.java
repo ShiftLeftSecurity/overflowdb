@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 public class NodeDbTest {
 
   @Test
-  public void simpleTest() {
+  public void overviewTest() {
     try (Graph graph = SimpleDomain.newGraph()) {
       Node n1 = graph.addNode(
           TestNode.LABEL,
