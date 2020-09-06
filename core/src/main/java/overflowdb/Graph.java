@@ -152,14 +152,17 @@ public final class Graph implements AutoCloseable {
   @Override
   public void close() {
     this.closed = true;
-    heapUsageMonitor.ifPresent(monitor -> monitor.close());
-    if (config.getStorageLocation().isPresent()) {
-      /* persist to disk */
-      indexManager.storeIndexes(storage);
-      referenceManager.clearAllReferences();
+    try {
+      heapUsageMonitor.ifPresent(monitor -> monitor.close());
+      if (config.getStorageLocation().isPresent()) {
+        /* persist to disk */
+        indexManager.storeIndexes(storage);
+        referenceManager.clearAllReferences();
+      }
+    } finally {
+      referenceManager.close();
+      storage.close();
     }
-    referenceManager.close();
-    storage.close();
   }
 
   public int nodeCount() {
