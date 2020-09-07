@@ -96,6 +96,6 @@ public class HeapUsageMonitor implements AutoCloseable {
         throw new RuntimeException("unable to remove GC monitor", e);
       }
     }
-    logger.info("uninstalled GC monitors.");
+    logger.debug("uninstalled GC monitors.");
   }
 }
