@@ -1,5 +1,7 @@
 package overflowdb.traversal.filter
 
+import scala.util.matching.Regex
+
 /** commonly used predicates e.g. for Traversal.has|hasNot|is steps */
 object P {
   def eq[A](a: A): A => Boolean =
@@ -15,11 +17,21 @@ object P {
     within(values.to(Set))
 
   def without[A](values: Set[A]): A => Boolean =
-    { a: A => !values.contains(a) }
+    a => !values.contains(a)
 
   def without[A](values: A*): A => Boolean =
     without(values.to(Set))
 
   def matches(regex: String): String => Boolean =
-    _.matches(regex)
+    matches(regex.r)
+
+  def matches(regex: Regex): String => Boolean =
+    regex.matches
+
+  /* true if (at least) one of the given regexes matches */
+  def matches(regexes: String*): String => Boolean = {
+    val regexes0 = regexes.map(_.r)
+    value => regexes0.exists(_.matches(value))
+  }
+
 }
