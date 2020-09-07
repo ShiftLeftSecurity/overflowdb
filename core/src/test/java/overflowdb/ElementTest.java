@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class ElementTest {
@@ -480,6 +481,50 @@ public class ElementTest {
       AtomicInteger followedByEdgeCount = new AtomicInteger();
       graph.edges(FollowedBy.LABEL).forEachRemaining(edge -> followedByEdgeCount.getAndIncrement());
       assertEquals(2, followedByEdgeCount.get());
+    }
+  }
+
+  @Test
+  public void removeNodeProperty() {
+    Graph graph = SimpleDomain.newGraph();
+    final String testValue = "a string value";
+
+    Node node = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, testValue);
+    assertEquals(testValue, node.property(TestNode.STRING_PROPERTY));
+    assertEquals(testValue, ((TestNode)node).stringProperty());
+
+    node.removeProperty(TestNode.STRING_PROPERTY);
+    assertEquals(Optional.empty(), node.propertyOption(TestNode.STRING_PROPERTY));
+    assertNull(node.property(TestNode.STRING_PROPERTY));
+    assertNull(((TestNode)node).stringProperty());
+  }
+
+  @Test
+  public void removeEdgeProperty() {
+    Graph graph = SimpleDomain.newGraph();
+    final Long testValue = 99L;
+
+    Node n0 = graph.addNode(TestNode.LABEL);
+    Node n1 = graph.addNode(TestNode.LABEL);
+    Edge e0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, testValue);
+
+    { // property value should be set, no matter how we access the edge
+      Edge e0FromOut = n0.outE().next();
+      Edge e0FromIn = n1.inE().next();
+
+      assertEquals(testValue, e0.property(TestEdge.LONG_PROPERTY));
+      assertEquals(testValue, e0FromOut.property(TestEdge.LONG_PROPERTY));
+      assertEquals(testValue, e0FromIn.property(TestEdge.LONG_PROPERTY));
+    }
+
+    {
+      e0.removeProperty(TestEdge.LONG_PROPERTY);
+      Edge e0FromOut = n0.outE().next();
+      Edge e0FromIn = n1.inE().next();
+
+      assertNull(e0.property(TestEdge.LONG_PROPERTY));
+      assertNull(e0FromOut.property(TestEdge.LONG_PROPERTY));
+      assertNull(e0FromIn.property(TestEdge.LONG_PROPERTY));
     }
   }
 
