@@ -296,8 +296,17 @@ public final class Graph implements AutoCloseable {
   }
 
   public void remove(Node node) {
-    nodes.remove(node);
+    final NodeRef nodeRef = getNodeRef(node);
+    nodes.remove(nodeRef);
+    indexManager.removeElement(nodeRef);
     storage.removeNode(node.id());
+  }
+
+  private NodeRef getNodeRef(Node node) {
+    if (node instanceof NodeRef)
+      return (NodeRef) node;
+    else
+      return ((NodeDb) node).ref;
   }
 
 }

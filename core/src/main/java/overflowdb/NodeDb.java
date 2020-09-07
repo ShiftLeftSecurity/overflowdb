@@ -150,8 +150,9 @@ public abstract class NodeDb implements Node {
 
   @Override
   public void removeProperty(String key) {
+    Object oldValue = property(key);
     removeSpecificProperty(key);
-    ref.graph.indexManager.remove(key, ref);
+    ref.graph.indexManager.remove(key, oldValue, ref);
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
   }
