@@ -39,6 +39,34 @@ public class IndexManagerTest {
     }
   }
 
+  @Test
+  public void handleNodePropertyRemoval() {
+    try (Graph graph = SimpleDomain.newGraph()) {
+      IndexManager indexManager = graph.indexManager;
+      final String testValue = "test value one";
+      Node node = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, testValue);
+      indexManager.createNodePropertyIndex(TestNode.STRING_PROPERTY);
+      assertEqualContents(Arrays.asList(node), indexManager.lookup(TestNode.STRING_PROPERTY, testValue));
+
+      node.removeProperty(TestNode.STRING_PROPERTY);
+      assertTrue(indexManager.lookup(TestNode.STRING_PROPERTY, testValue).isEmpty());
+    }
+  }
+
+  @Test
+  public void handleNodeRemoval() {
+    try (Graph graph = SimpleDomain.newGraph()) {
+      IndexManager indexManager = graph.indexManager;
+      final String testValue = "test value one";
+      Node node = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, testValue);
+      indexManager.createNodePropertyIndex(TestNode.STRING_PROPERTY);
+      assertEqualContents(Arrays.asList(node), indexManager.lookup(TestNode.STRING_PROPERTY, testValue));
+
+      node.remove();
+      assertTrue(indexManager.lookup(TestNode.STRING_PROPERTY, testValue).isEmpty());
+    }
+  }
+
   private void assertEqualContents(List expected, List actual) {
     assertEquals(expected.size(), actual.size());
 

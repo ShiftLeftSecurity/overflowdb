@@ -114,11 +114,11 @@ public final class IndexManager {
     }
   }
 
-  protected final void remove(final String key, final NodeRef nodeRef) {
+  protected final void remove(final String key, final Object value, final NodeRef nodeRef) {
     dirtyFlags.put(key, true);
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null != keyMap) {
-      Set<NodeRef> objects = keyMap.get(key);
+      Set<NodeRef> objects = keyMap.get(value);
       if (null != objects) {
         objects.remove(nodeRef);
         if (objects.size() == 0) {
