@@ -14,7 +14,6 @@ import java.util.stream.LongStream;
 public final class IndexManager {
 
   private final Graph graph;
-  // TODO use concurrent but memory efficient map
   protected Map<String, Map<Object, Set<NodeRef>>> indexes = new ConcurrentHashMap<>();
   protected Map<String, Boolean> dirtyFlags = new ConcurrentHashMap<>();
 
@@ -52,16 +51,16 @@ public final class IndexManager {
       throw new IllegalArgumentException("Illegal property name: " + propertyName);
   }
 
-  public final void loadNodePropertyIndex(final String propertyName, Map<Object, long[]> valueToNodeIds) {
+  private final void loadNodePropertyIndex(final String propertyName, Map<Object, long[]> valueToNodeIds) {
     dirtyFlags.put(propertyName, false);
     valueToNodeIds.entrySet().parallelStream().forEach(entry ->
         LongStream.of(entry.getValue())
           .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef) graph.node(nodeId))));
   }
 
-  public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
-    dirtyFlags.put(key, true);
+  protected void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
     if (indexes.containsKey(key)) {
+      dirtyFlags.put(key, true);
       put(key, newValue, nodeRef);
     }
   }
@@ -115,7 +114,7 @@ public final class IndexManager {
     }
   }
 
-  public final void remove(final String key, final NodeRef nodeRef) {
+  protected final void remove(final String key, final NodeRef nodeRef) {
     dirtyFlags.put(key, true);
     final Map<Object, Set<NodeRef>> keyMap = indexes.get(key);
     if (null != keyMap) {
@@ -129,7 +128,7 @@ public final class IndexManager {
     }
   }
 
-  public final void removeElement(final NodeRef nodeRef) {
+  protected final void removeElement(final NodeRef nodeRef) {
     for (String propertyName : indexes.keySet())
       dirtyFlags.put(propertyName, true);
     for (Map<Object, Set<NodeRef>> map : indexes.values()) {
@@ -139,23 +138,23 @@ public final class IndexManager {
     }
   }
 
-  public Map<Object, Set<NodeRef>> getIndexMap(String propertyName) {
+  private Map<Object, Set<NodeRef>> getIndexMap(String propertyName) {
     return this.indexes.get(propertyName);
   }
 
-  public void initializeStoredIndices(OdbStorage storage) {
+  protected void initializeStoredIndices(OdbStorage storage) {
     storage
         .getIndexNames()
         .stream()
         .forEach(indexName -> loadIndex(indexName, storage));
   }
 
-  public void loadIndex(String indexName, OdbStorage storage) {
+  private void loadIndex(String indexName, OdbStorage storage) {
     final MVMap<Object, long[]> indexMVMap = storage.openIndex(indexName);
     loadNodePropertyIndex(indexName, indexMVMap);
   }
 
-  public void storeIndexes(OdbStorage storage) {
+  protected void storeIndexes(OdbStorage storage) {
     getIndexedNodeProperties()
         .stream()
         .forEach(propertyName ->
