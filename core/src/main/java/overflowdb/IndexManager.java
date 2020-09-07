@@ -58,7 +58,7 @@ public final class IndexManager {
           .forEach(nodeId -> put(propertyName, entry.getKey(), (NodeRef) graph.node(nodeId))));
   }
 
-  protected void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
+  public void putIfIndexed(final String key, final Object newValue, final NodeRef nodeRef) {
     if (indexes.containsKey(key)) {
       dirtyFlags.put(key, true);
       put(key, newValue, nodeRef);
