@@ -13,14 +13,8 @@ object P {
   def within[A](values: Set[A]): A => Boolean =
     values.contains
 
-  def within[A](values: A*): A => Boolean =
-    within(values.to(Set))
-
   def without[A](values: Set[A]): A => Boolean =
     a => !values.contains(a)
-
-  def without[A](values: A*): A => Boolean =
-    without(values.to(Set))
 
   def matches(regex: String): String => Boolean =
     matches(regex.r)
