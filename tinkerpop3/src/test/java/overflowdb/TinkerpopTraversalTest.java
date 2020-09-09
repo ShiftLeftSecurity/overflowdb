@@ -61,7 +61,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void basicOutInSteps() {
-    try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.open())) {
+    try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.newGraph())) {
       Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
       Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
       v0.addEdge(FollowedBy.LABEL, v2);

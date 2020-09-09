@@ -1,13 +1,18 @@
 package overflowdb;
 
 import org.junit.Test;
+import overflowdb.testdomains.gratefuldead.Artist;
+import overflowdb.testdomains.gratefuldead.FollowedBy;
+import overflowdb.testdomains.gratefuldead.GratefulDead;
+import overflowdb.testdomains.gratefuldead.Song;
+import overflowdb.testdomains.gratefuldead.WrittenBy;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 
 import static org.junit.Assert.assertEquals;
 
-public class GraphCloneTest {
+public class GraphTest {
 
   @Test
   public void shouldDeepCloneGraph() {

@@ -183,7 +183,7 @@ public class GraphSaveRestoreTest {
   private Graph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {
     Config config = enableOverflow ? Config.withDefaults() : Config.withoutOverflow();
     config = config.withSerializationStatsEnabled();
-    return GratefulDead.open(config.withStorageLocation(overflowDb.getAbsolutePath()));
+    return GratefulDead.newGraph(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 
   private void loadGraphMl(Graph graph) throws RuntimeException {
