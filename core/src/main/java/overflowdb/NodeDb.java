@@ -35,7 +35,7 @@ public abstract class NodeDb implements Node {
   private Object[] adjacentNodesWithProperties = new Object[0];
 
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
-   * i.e. each adjancent edge type has two entries in this array. */
+   * i.e. each adjacent edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
 
   /**
