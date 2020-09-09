@@ -15,6 +15,28 @@ import static org.junit.Assert.assertEquals;
 public class GraphTest {
 
   @Test
+  public void elementCounts() {
+    Graph graph = GratefulDead.newGraph();
+    Node artist1 = graph.addNode(Artist.label);
+    Node artist2 = graph.addNode(Artist.label);
+    Node song1 = graph.addNode(Song.label);
+    Node song2 = graph.addNode(Song.label);
+    song1.addEdge(WrittenBy.LABEL, artist1);
+    song2.addEdge(WrittenBy.LABEL, artist2);
+    song1.addEdge(FollowedBy.LABEL, song2);
+    song2.addEdge(FollowedBy.LABEL, song1); //loop :)
+
+    assertEquals(4, graph.nodeCount());
+    assertEquals(4, graph.edgeCount());
+
+    // should still work after element removal
+
+    song2.remove();
+    assertEquals(3, graph.nodeCount());
+    assertEquals(1, graph.edgeCount());
+  }
+
+  @Test
   public void shouldDeepCloneGraph() {
     Config config = Config.withoutOverflow();
     Graph graph = SimpleDomain.newGraph(config);

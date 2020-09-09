@@ -68,5 +68,4 @@ public interface Node extends Element {
 
   /* adjacent OUT/IN edges for given labels */
   Iterator<Edge> bothE(String... edgeLabels);
-
 }

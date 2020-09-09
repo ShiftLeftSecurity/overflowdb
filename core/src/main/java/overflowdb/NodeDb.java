@@ -35,7 +35,7 @@ public abstract class NodeDb implements Node {
   private Object[] adjacentNodesWithProperties = new Object[0];
 
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
-   * i.e. each outgoing edge type has two entries in this array. */
+   * i.e. each adjancent edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
 
   /**
@@ -419,6 +419,26 @@ public abstract class NodeDb implements Node {
     multiIterator.addIterator(outE(edgeLabels));
     multiIterator.addIterator(inE(edgeLabels));
     return multiIterator;
+  }
+
+  protected int outEdgeCount() {
+    int outEdgeCount = 0;
+    for (String label : layoutInformation().allowedOutEdgeLabels()) {
+      int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
+      if (offsetPos != -1) {
+        int start = startIndex(offsetPos);
+        int length = blockLength(offsetPos);
+        int strideSize = getStrideSize(label);
+        for (int i = start;
+             i < adjacentNodesWithProperties.length && i < start + length;
+             i += strideSize) {
+           if (adjacentNodesWithProperties[i] != null) {
+             outEdgeCount++;
+           }
+        }
+      }
+    }
+    return outEdgeCount;
   }
 
   /**

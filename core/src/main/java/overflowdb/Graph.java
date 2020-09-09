@@ -177,13 +177,13 @@ public final class Graph implements AutoCloseable {
    * Note: this is an expensive operation, because edges are stored as part of the nodes
    */
   public int edgeCount() {
-    int i = 0;
-    final Iterator<Edge> edges = edges();
-    while (edges.hasNext()) {
-      edges.next();
-      i++;
+    int edgeCount = 0;
+    final Iterator<Node> nodes = nodes();
+    while (nodes.hasNext()) {
+      NodeDb node = getNodeDb(nodes.next());
+      edgeCount += node.outEdgeCount();
     }
-    return i;
+    return edgeCount;
   }
 
   /** Iterator over all edges - alias for `edges` */
@@ -307,6 +307,13 @@ public final class Graph implements AutoCloseable {
       return (NodeRef) node;
     else
       return ((NodeDb) node).ref;
+  }
+
+  private NodeDb getNodeDb(Node node) {
+    if (node instanceof NodeDb)
+      return (NodeDb) node;
+    else
+      return ((NodeRef) node).get();
   }
 
 }

@@ -120,6 +120,9 @@ public class TinkerpopTraversalTest {
   @Test
   public void loadGratefulDeadGraph() throws IOException {
     try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData()) {
+      assertEquals(808, graph.graph.nodeCount());
+      assertEquals(8049, graph.graph.edgeCount());
+
       final Vertex node1 = graph.vertices(1).next();
       assertEquals("HEY BO DIDDLEY", node1.values("name").next());
 
