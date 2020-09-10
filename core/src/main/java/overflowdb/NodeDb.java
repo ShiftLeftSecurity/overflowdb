@@ -429,8 +429,9 @@ public abstract class NodeDb implements Node {
         int start = startIndex(offsetPos);
         int length = blockLength(offsetPos);
         int strideSize = getStrideSize(label);
+        int exclusiveEnd = start + length;
         for (int i = start;
-             i < adjacentNodesWithProperties.length && i < start + length;
+             i < adjacentNodesWithProperties.length && i < exclusiveEnd;
              i += strideSize) {
            if (adjacentNodesWithProperties[i] != null) {
              outEdgeCount++;
@@ -490,7 +491,8 @@ public abstract class NodeDb implements Node {
     int strideSize = getStrideSize(label);
 
     int currentOccurrence = 0;
-    for (int i = start; i < start + length; i += strideSize) {
+    int exclusiveEnd = start + length;
+    for (int i = start; i < exclusiveEnd; i += strideSize) {
       final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
           adjacentNodeWithProperty.id() == adjacentNode.id()) {
