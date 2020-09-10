@@ -126,9 +126,17 @@ class TraversalTests extends WordSpec with Matchers {
      buffer.toSet shouldBe Set(l1, r1)
   }
 
-  "sort steps should order" in {
+  ".sort steps should order" in {
     Traversal(1,3,2).sorted.l shouldBe Seq(1,2,3)
     Traversal("aa", "aaa", "a").sortBy(_.length).l shouldBe Seq("a", "aa", "aaa")
+  }
+
+  ".groupCount step" in {
+    Traversal("b", "a", "b").groupCount.head shouldBe
+      Map("a" -> 1, "b" -> 2)
+
+    Traversal("aaa", "bbb", "cc").groupCount(_.length).head shouldBe
+      Map(2 -> 1, 3 -> 2)
   }
 
   ".help step" should {

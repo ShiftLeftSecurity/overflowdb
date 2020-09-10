@@ -230,6 +230,23 @@ class Traversal[A](elements: IterableOnce[A])
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)
 
+  /** group elements and count how often they appear */
+  @Doc("group elements and count how often they appear")
+  def groupCount: Traversal[Map[A, Int]] =
+    groupCount(identity)
+
+  /** group elements by a given transformation function and count how often the results appear */
+  @Doc("group elements by a given transformation function and count how often the results appear")
+  def groupCount[B](by: A => B): Traversal[Map[B, Int]] = {
+    val counts = mutable.Map.empty[B, Int].withDefaultValue(0)
+    this.foreach { a =>
+      val b = by(a)
+      val newValue = counts(b) + 1
+      counts.update(b, newValue)
+    }
+    Traversal.fromSingle(counts.to(Map))
+  }
+
   def path: Traversal[Vector[Any]] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
