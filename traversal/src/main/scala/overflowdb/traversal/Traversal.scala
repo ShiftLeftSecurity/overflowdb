@@ -26,8 +26,15 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iterator.toList
 
+  /** Execute the traversal without returning anything */
+  @Doc("Execute the traversal without returning anything")
   def iterate: Unit =
     while (hasNext) next
+
+  /** Execute the traversal without returning anything @alias for {{{iterate}}} */
+  @Doc("Execute the traversal without returning anything")
+  def exec: Unit =
+    iterate
 
   /**
    * Print help/documentation based on the current elementType `A`.
@@ -204,6 +211,11 @@ class Traversal[A](elements: IterableOnce[A])
         case option if option.nonEmpty => option
       }.getOrElse(Traversal.empty)
     }
+
+  /** aggregate all objects at this point into the given collection (side effect)
+   * e.g. `mutable.ArrayBuffer.empty[A]` */
+  def aggregate(into: mutable.Growable[A]): Traversal[A] =
+    sideEffect(into.addOne(_))
 
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)

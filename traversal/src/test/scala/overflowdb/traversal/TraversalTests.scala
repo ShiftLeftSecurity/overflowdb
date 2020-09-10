@@ -120,6 +120,12 @@ class TraversalTests extends WordSpec with Matchers {
     traversal.l shouldBe Seq(artist1, artist2)
   }
 
+  ".aggregate step stores all objects at this point into a given collection" in {
+     val buffer = mutable.ArrayBuffer.empty[Thing]
+     center.start.followedBy.aggregate(buffer).followedBy.iterate
+     buffer.toSet shouldBe Set(l1, r1)
+  }
+
   ".help step" should {
     "give a domain overview" in {
       simpleDomain.help should include(".things")
