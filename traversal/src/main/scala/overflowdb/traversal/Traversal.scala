@@ -217,6 +217,16 @@ class Traversal[A](elements: IterableOnce[A])
   def aggregate(into: mutable.Growable[A]): Traversal[A] =
     sideEffect(into.addOne(_))
 
+  /** sort elements by their natural order */
+  @Doc("sort elements by their natural order")
+  def sorted(implicit ord: Ordering[A]): Traversal[A] =
+    Traversal(elements.to(Seq).sorted)
+
+  /** sort elements by the value of the given transformation function */
+  @Doc("sort elements by the value of the given transformation function")
+  def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Traversal[A] =
+    Traversal(elements.to(Seq).sortBy(f))
+
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)
 
