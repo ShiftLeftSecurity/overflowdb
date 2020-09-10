@@ -58,7 +58,7 @@ public class IndexesTest {
     final double avgTimeWithoutIndex;
 
     { // tests with index
-      OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.open());
+      OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.newGraph());
       graph.graph.indexManager.createNodePropertyIndex("performances");
       GratefulDeadTp3.loadData(graph);
       GraphTraversalSource g = graph.traversal();
@@ -107,7 +107,7 @@ public class IndexesTest {
     }
     // tests with stored index
     avgTimeWithStoredIndex = TimeUtil.clock(loops, () -> {
-      try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.open(Config.withDefaults().withStorageLocation(overflowDb.getAbsolutePath())))) {
+      try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.newGraph(Config.withDefaults().withStorageLocation(overflowDb.getAbsolutePath())))) {
         GraphTraversalSource g = graph.traversal();
         assertEquals(142, (long) g.V().has("performances", P.eq(1)).count().next());
       }
@@ -128,7 +128,7 @@ public class IndexesTest {
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.graph.indexManager.getIndexedNodeProperties());
     }
     // tests with stored index
-    try(Graph graph = GratefulDead.open(Config.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
+    try(Graph graph = GratefulDead.newGraph(Config.withDefaults().withStorageLocation(overflowDb.getAbsolutePath()))) {
       assertEquals(584, graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.indexManager.getIndexedNodeProperties());
     }

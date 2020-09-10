@@ -35,7 +35,7 @@ public abstract class NodeDb implements Node {
   private Object[] adjacentNodesWithProperties = new Object[0];
 
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
-   * i.e. each outgoing edge type has two entries in this array. */
+   * i.e. each adjacent edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
 
   /**
@@ -421,6 +421,27 @@ public abstract class NodeDb implements Node {
     return multiIterator;
   }
 
+  protected int outEdgeCount() {
+    int outEdgeCount = 0;
+    for (String label : layoutInformation().allowedOutEdgeLabels()) {
+      int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
+      if (offsetPos != -1) {
+        int start = startIndex(offsetPos);
+        int length = blockLength(offsetPos);
+        int strideSize = getStrideSize(label);
+        int exclusiveEnd = start + length;
+        for (int i = start;
+             i < adjacentNodesWithProperties.length && i < exclusiveEnd;
+             i += strideSize) {
+           if (adjacentNodesWithProperties[i] != null) {
+             outEdgeCount++;
+           }
+        }
+      }
+    }
+    return outEdgeCount;
+  }
+
   /**
    * If there are multiple edges between the same two nodes with the same label, we use the
    * `occurrence` to differentiate between those edges. Both nodes use the same occurrence
@@ -470,7 +491,8 @@ public abstract class NodeDb implements Node {
     int strideSize = getStrideSize(label);
 
     int currentOccurrence = 0;
-    for (int i = start; i < start + length; i += strideSize) {
+    int exclusiveEnd = start + length;
+    for (int i = start; i < exclusiveEnd; i += strideSize) {
       final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
           adjacentNodeWithProperty.id() == adjacentNode.id()) {

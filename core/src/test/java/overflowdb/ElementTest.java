@@ -315,7 +315,7 @@ public class ElementTest {
 
   @Test
   public void shouldAllowAddingElementsAndSettingProperties() {
-    try(Graph graph = GratefulDead.open()) {
+    try(Graph graph = GratefulDead.newGraph()) {
 
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
@@ -337,7 +337,7 @@ public class ElementTest {
 
   @Test
   public void shouldSupportEdgeRemoval1() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Edge followedBy = song1.addEdge(FollowedBy.LABEL, song2);
@@ -352,7 +352,7 @@ public class ElementTest {
 
   @Test
   public void shouldSupportEdgeRemoval2() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -373,7 +373,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove1() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -391,7 +391,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove2() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -409,7 +409,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove3() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -427,7 +427,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove4() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -445,7 +445,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove5_twoEdgesBetweenTwoNodes() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       song1.addEdge(FollowedBy.LABEL, song2);
@@ -461,7 +461,7 @@ public class ElementTest {
 
   @Test
   public void nodeRemove6() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node song1 = graph.addNode(Song.label);
       Node song2 = graph.addNode(Song.label);
       Node song3 = graph.addNode(Song.label);
@@ -530,7 +530,7 @@ public class ElementTest {
 
   @Test
   public void shouldAllowToSpecifyIds() {
-    try(Graph graph = GratefulDead.open()) {
+    try(Graph graph = GratefulDead.newGraph()) {
       Node n10 = graph.addNode(10l, Song.label, Song.NAME, "Song 10");
       Node n20 = graph.addNode(20l, Song.label, Song.NAME, "Song 20");
       n10.addEdge(FollowedBy.LABEL, n20, FollowedBy.WEIGHT, 5);
@@ -542,7 +542,7 @@ public class ElementTest {
 
   @Test
   public void shouldReturnElementRefs() {
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
       Edge e4 = n0.addEdge(FollowedBy.LABEL, n2);

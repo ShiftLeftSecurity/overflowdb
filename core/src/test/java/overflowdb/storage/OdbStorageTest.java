@@ -23,7 +23,7 @@ public class OdbStorageTest {
 
     // open empty graph, add one node, close graph
     final long song1Id;
-    try (Graph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.newGraph(config)) {
       assertEquals(0, graph.nodeCount());
       final Node song1 = graph.addNode(Song.label, Song.NAME, "Song 1");
       song1Id = song1.id();
@@ -31,7 +31,7 @@ public class OdbStorageTest {
     } // ARM auto-close will trigger saving to disk because we specified a location
 
     // reopen graph: node should be there
-    try (Graph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.newGraph(config)) {
       assertEquals(1, graph.nodeCount());
       final Node song1 = graph.node(song1Id);
       assertEquals("node should have been persisted to disk and reloaded when reopened the graph",
@@ -42,7 +42,7 @@ public class OdbStorageTest {
       assertEquals(0, graph.nodeCount());
     }
 
-    try (Graph graph = GratefulDead.open(config)) {
+    try (Graph graph = GratefulDead.newGraph(config)) {
       assertEquals(0, graph.nodeCount());
     }
 
@@ -53,7 +53,7 @@ public class OdbStorageTest {
   public void shouldDeleteTmpStorageIfNoStorageLocationConfigured() {
     final File tmpStorageFile;
 
-    try (Graph graph = GratefulDead.open()) {
+    try (Graph graph = GratefulDead.newGraph()) {
       graph.addNode(Song.label, Song.NAME, "Song 1");
       tmpStorageFile = graph.getStorage().getStorageFile();
     } // ARM auto-close will trigger saving to disk because we specified a location

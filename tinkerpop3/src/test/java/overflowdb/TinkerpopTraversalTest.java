@@ -61,7 +61,7 @@ public class TinkerpopTraversalTest {
 
   @Test
   public void basicOutInSteps() {
-    try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.open())) {
+    try(OdbGraphTp3 graph = OdbGraphTp3.wrap(GratefulDead.newGraph())) {
       Vertex v0 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 1");
       Vertex v2 = graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
       v0.addEdge(FollowedBy.LABEL, v2);
@@ -120,6 +120,9 @@ public class TinkerpopTraversalTest {
   @Test
   public void loadGratefulDeadGraph() throws IOException {
     try(OdbGraphTp3 graph = GratefulDeadTp3.openAndLoadSampleData()) {
+      assertEquals(808, graph.graph.nodeCount());
+      assertEquals(8049, graph.graph.edgeCount());
+
       final Vertex node1 = graph.vertices(1).next();
       assertEquals("HEY BO DIDDLEY", node1.values("name").next());
 
