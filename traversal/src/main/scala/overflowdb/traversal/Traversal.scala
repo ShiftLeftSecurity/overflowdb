@@ -47,6 +47,9 @@ class Traversal[A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     mapElements(_.asInstanceOf[B])
 
+  def collectAll[B <: A: ClassTag]: Traversal[B] =
+    collect { case b: B => b}
+
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
   def dedup: Traversal[A] =
     Traversal(iterator.distinct)

@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.Node
 import scala.collection.mutable
 
@@ -107,6 +108,16 @@ class TraversalTests extends WordSpec with Matchers {
     val traversal: Traversal[Node] = center.start.out.out
     val results: Seq[Thing] = traversal.cast[Thing].l
     results shouldBe Seq(l2, r2)
+  }
+
+  ".collectAll step should collect (and cast) all elements of the given type" in {
+    val graph = GratefulDead.newGraph
+    val song = graph.addNode(Song.Label)
+    val artist1 = graph.addNode(Artist.Label)
+    val artist2 = graph.addNode(Artist.Label)
+
+    val traversal: Traversal[Artist] = Traversal(graph.nodes).collectAll[Artist]
+    traversal.l shouldBe Seq(artist1, artist2)
   }
 
   ".help step" should {
