@@ -143,10 +143,18 @@ class TraversalTests extends WordSpec with Matchers {
     val traversal: Traversal[(Int, Traversal[String])] =
       Traversal("aaa", "bbb", "cc").groupBy(_.length)
 
-    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSet)}.toSet
+    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSet) }.toSet
     results shouldBe Set(
-        2 -> Set("cc"),
-        3 -> Set("aaa", "bbb"))
+      2 -> Set("cc"),
+      3 -> Set("aaa", "bbb"))
+  }
+  
+  ".groupMap step" in {
+    val traversal = Traversal(("a", 1), ("a", 2)).groupMap(_._1)(_._2)
+
+    val Seq(keys -> values) = traversal.l
+    keys shouldBe "a"
+    values.toSet shouldBe(Set(1, 2))
   }
 
   ".help step" should {
