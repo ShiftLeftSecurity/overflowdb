@@ -37,6 +37,7 @@ class Traversal[A](elements: IterableOnce[A])
    * Note that this works independently of tab completion and implicit conversions in scope - it will simply list
    * all documented steps in the classpath
    * */
+  @Doc("print help/documentation based on the current elementType `A`.")
   def help()(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
@@ -46,16 +47,25 @@ class Traversal[A](elements: IterableOnce[A])
   def count: Traversal[Int] =
     Traversal.fromSingle(iterator.size)
 
+  /** casts all elements to given type
+    * note: this can lead to casting errors
+    * @see {{{collectAll}}} as a safe alternative */
+  @Doc("casts all elements to given type")
   def cast[B]: Traversal[B] =
     mapElements(_.asInstanceOf[B])
 
+  /** collects and all elements of the given type */
+  @Doc("collects and all elements of the provided type")
   def collectAll[B <: A: ClassTag]: Traversal[B] =
     collect { case b: B => b}
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
+  @Doc("deduplicate elements of this traversal - a.k.a. distinct, unique, ...")
   def dedup: Traversal[A] =
     Traversal(iterator.distinct)
 
+  /** deduplicate elements of this traversal by a given function */
+  @Doc("deduplicate elements of this traversal by a given function")
   def dedupBy(fun: A => Any): Traversal[A] =
     Traversal(iterator.distinctBy(fun))
 
@@ -69,37 +79,39 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** perform side effect without changing the contents of the traversal
    *  will only apply the partialFunction if it is defined for the given input - analogous to `collect` */
+  @Doc("perform side effect without changing the contents of the traversal")
   def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] =
     mapElements { a =>
       pf.applyOrElse(a, {_: A => ()})
       a
     }
 
-  /** Filter step: only preserves elements if the provided traversal has at least one result.
-   * inverse: {{{not/whereNot}}} */
+  /** only preserves elements if the provided traversal has at least one result */
+  @Doc("only preserves elements if the provided traversal has at least one result")
   def where(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     filter { a: A =>
       trav(Traversal.fromSingle(a)).hasNext
     }
 
-  /** Filter step: only preserves elements if the provided traversal does _not_ have any results.
-   * inverse: {{{where}}} */
+  /** only preserves elements if the provided traversal does _not_ have any results */
+  @Doc("only preserves elements if the provided traversal does _not_ have any results")
   def whereNot(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     filterNot { a: A =>
       trav(Traversal.fromSingle(a)).hasNext
     }
 
-  /** Filter step: only preserves elements if the provided traversal does _not_ have any results.
-   * alias for {{{whereNot}}} */
+  /** only preserves elements if the provided traversal does _not_ have any results - alias for whereNot */
+  @Doc("only preserves elements if the provided traversal does _not_ have any results - alias for whereNot")
   def not(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     whereNot(trav)
 
-  /** Filter step: only preserves elements for which _at least one of_ the given traversals has at least one result.
+  /** only preserves elements for which _at least one of_ the given traversals has at least one result
    * Works for arbitrary amount of 'OR' traversals.
    * @example {{{
    *   .or(_.label("someLabel"),
    *       _.has("someProperty"))
    * }}} */
+  @Doc("only preserves elements for which _at least one of_ the given traversals has at least one result")
   def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
     filter { a: A =>
       traversals.exists { trav =>
@@ -107,12 +119,13 @@ class Traversal[A](elements: IterableOnce[A])
       }
     }
 
-  /** Filter step: only preserves elements for which _all of_ the given traversals has at least one result.
+  /** only preserves elements for which _all of_ the given traversals have at least one result
    * Works for arbitrary amount of 'AND' traversals.
    * @example {{{
    *   .and(_.label("someLabel"),
    *        _.has("someProperty"))
    * }}} */
+  @Doc("only preserves elements for which _all of_ the given traversals have at least one result")
   def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
     filter { a: A =>
       traversals.forall { trav =>
@@ -149,6 +162,7 @@ class Traversal[A](elements: IterableOnce[A])
    *
    * @see RepeatTraversalTests for more detail and examples for all of the above.
    */
+  @Doc("repeat the given traversal")
   def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
     (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
     : Traversal[B] = {
@@ -176,6 +190,7 @@ class Traversal[A](elements: IterableOnce[A])
    * }}}
    * @see LogicalStepsTests
    */
+  @Doc("allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...")
   def choose[BranchOn >: Null, NewEnd]
     (on: Traversal[A] => Traversal[BranchOn])
     (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
@@ -200,6 +215,7 @@ class Traversal[A](elements: IterableOnce[A])
    * }}}
    * @see LogicalStepsTests
    */
+  @Doc("evaluates the provided traversals in order and returns the first traversal that emits at least one element")
   def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
     flatMap { a: A =>
       options.iterator.map(_.apply(Traversal.fromSingle(a))).collectFirst {
@@ -208,7 +224,14 @@ class Traversal[A](elements: IterableOnce[A])
     }
 
   /** aggregate all objects at this point into the given collection (side effect)
-   * e.g. `mutable.ArrayBuffer.empty[A]` */
+   * @example
+   * {{{
+   *  val xs = mutable.ArrayBuffer.empty[A]
+   *  myTraversal.aggregate(xs).foo.bar
+   *  // xs will be filled once `myTraversal` is executed
+   * }}}
+   **/
+  @Doc("aggregate all objects at this point into the given collection (side effect)")
   def aggregate(into: mutable.Growable[A]): Traversal[A] =
     sideEffect(into.addOne(_))
 
@@ -221,9 +244,6 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc("sort elements by the value of the given transformation function")
   def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Traversal[A] =
     Traversal(elements.to(Seq).sortBy(f))
-
-  def enablePathTracking: PathAwareTraversal[A] =
-    PathAwareTraversal.from(elements)
 
   /** group elements and count how often they appear */
   @Doc("group elements and count how often they appear")
@@ -242,6 +262,18 @@ class Traversal[A](elements: IterableOnce[A])
     Traversal.fromSingle(counts.to(Map))
   }
 
+  @Doc("enable path tracking - prerequisite for path/simplePath steps")
+  def enablePathTracking: PathAwareTraversal[A] =
+    PathAwareTraversal.from(elements)
+
+  /** retrieve entire path that has been traversed thus far 
+    * prerequisite: enablePathTracking has been called previously
+    * @example
+    * {{{
+    *  myTraversal.enablePathTracking.out.out.path.toList
+    * }}}
+    */
+  @Doc("retrieve entire path that has been traversed thus far")
   def path: Traversal[Vector[Any]] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
