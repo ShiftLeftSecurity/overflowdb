@@ -31,11 +31,6 @@ class Traversal[A](elements: IterableOnce[A])
   def iterate: Unit =
     while (hasNext) next
 
-  /** Execute the traversal without returning anything @alias for {{{iterate}}} */
-  @Doc("Execute the traversal without returning anything")
-  def exec: Unit =
-    iterate
-
   /**
    * Print help/documentation based on the current elementType `A`.
    * Relies on all step extensions being annotated with @TraversalExt / @Doc

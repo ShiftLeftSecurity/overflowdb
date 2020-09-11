@@ -148,7 +148,7 @@ class TraversalTests extends WordSpec with Matchers {
       2 -> Set("cc"),
       3 -> Set("aaa", "bbb"))
   }
-  
+
   ".groupMap step" in {
     val traversal = Traversal(("a", 1), ("a", 2)).groupMap(_._1)(_._2)
 
