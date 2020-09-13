@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.Node
 import scala.collection.mutable
 
@@ -107,6 +108,53 @@ class TraversalTests extends WordSpec with Matchers {
     val traversal: Traversal[Node] = center.start.out.out
     val results: Seq[Thing] = traversal.cast[Thing].l
     results shouldBe Seq(l2, r2)
+  }
+
+  ".collectAll step should collect (and cast) all elements of the given type" in {
+    val graph = GratefulDead.newGraph
+    val song = graph.addNode(Song.Label)
+    val artist1 = graph.addNode(Artist.Label)
+    val artist2 = graph.addNode(Artist.Label)
+
+    val traversal: Traversal[Artist] = Traversal(graph.nodes).collectAll[Artist]
+    traversal.l shouldBe Seq(artist1, artist2)
+  }
+
+  ".aggregate step stores all objects at this point into a given collection" in {
+     val buffer = mutable.ArrayBuffer.empty[Thing]
+     center.start.followedBy.aggregate(buffer).followedBy.iterate
+     buffer.toSet shouldBe Set(l1, r1)
+  }
+
+  ".sort steps should order" in {
+    Traversal(1,3,2).sorted.l shouldBe Seq(1,2,3)
+    Traversal("aa", "aaa", "a").sortBy(_.length).l shouldBe Seq("a", "aa", "aaa")
+  }
+
+  ".groupCount step" in {
+    Traversal("b", "a", "b").groupCount.head shouldBe
+      Map("a" -> 1, "b" -> 2)
+
+    Traversal("aaa", "bbb", "cc").groupCount(_.length).head shouldBe
+      Map(2 -> 1, 3 -> 2)
+  }
+
+  ".groupBy step" in {
+    val traversal: Traversal[(Int, Traversal[String])] =
+      Traversal("aaa", "bbb", "cc").groupBy(_.length)
+
+    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSet) }.toSet
+    results shouldBe Set(
+      2 -> Set("cc"),
+      3 -> Set("aaa", "bbb"))
+  }
+
+  ".groupMap step" in {
+    val traversal = Traversal(("a", 1), ("a", 2)).groupMap(_._1)(_._2)
+
+    val Seq(keys -> values) = traversal.l
+    keys shouldBe "a"
+    values.toSet shouldBe(Set(1, 2))
   }
 
   ".help step" should {
