@@ -56,7 +56,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** collects and all elements of the given type */
   @Doc("collects and all elements of the provided type")
-  def collectAll[B <: A: ClassTag]: Traversal[B] =
+  def collectAll[B: ClassTag]: Traversal[B] =
     collect { case b: B => b}
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
