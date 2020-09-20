@@ -4,7 +4,7 @@ import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import overflowdb.{NodeRef, NodeDb}
 import java.lang.annotation.{Annotation => JAnnotation}
 
-import org.reflections.Reflections
+import org.reflections8.Reflections
 
 import scala.annotation.tailrec
 import scala.reflect.runtime.universe.runtimeMirror
