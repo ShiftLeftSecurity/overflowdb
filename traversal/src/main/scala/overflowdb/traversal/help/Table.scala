@@ -12,7 +12,7 @@ case class Table(columnNames: Iterable[String], rows: Iterable[Iterable[String]]
       val charset = StandardCharsets.UTF_8
       val baos = use(new ByteArrayOutputStream)
       val ps = use(new PrintStream(baos, true, charset.name))
-      val rowsAsArray = rows.map(_.toArray.asInstanceOf[Array[Object]]).toArray
+      val rowsAsArray = rows.map(_.map(_ + " ").toArray.asInstanceOf[Array[Object]]).toArray
       new TextTable(columnNames.toArray, rowsAsArray).printTable(ps, 0)
       new String(baos.toByteArray, charset)
     }.get
