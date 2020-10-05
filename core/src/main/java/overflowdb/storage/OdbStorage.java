@@ -96,7 +96,7 @@ public class OdbStorage implements AutoCloseable {
   /** flush any remaining changes in underlying storage to disk */
   public void flush() {
     if (mvstore != null) {
-      logger.debug("flushing to disk");
+      logger.trace("flushing to disk");
       mvstore.commit();
     }
   }

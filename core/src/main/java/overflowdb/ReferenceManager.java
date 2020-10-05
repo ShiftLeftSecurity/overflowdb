@@ -1,9 +1,9 @@
 package overflowdb;
 
-import overflowdb.storage.OdbStorage;
-import overflowdb.util.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.storage.OdbStorage;
+import overflowdb.util.NamedThreadFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,8 +83,8 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     if (!refsToClear.isEmpty()) {
       safelyClearReferences(refsToClear);
       if (logger.isInfoEnabled()) logger.info("completed clearing of " + refsToClear.size() + " references");
-      if (logger.isDebugEnabled()) logger.debug("current clearable queue size: " + clearableRefs.size());
-      if (logger.isDebugEnabled()) logger.debug("references cleared in total: " + totalReleaseCount);
+      if (logger.isDebugEnabled()) logger.debug("remaining clearable references: " + clearableRefs.size());
+      if (logger.isTraceEnabled()) logger.trace("references cleared in total: " + totalReleaseCount);
     }
   }
 
@@ -161,17 +161,26 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       return null;
   }
 
-
   /**
    * writes all references to disk overflow, blocks until complete.
    * useful when saving the graph
    */
   public void clearAllReferences() {
+    int initialRefCount = clearableRefs.size();
+    int clearedCount = 0;
     while (!clearableRefs.isEmpty()) {
-      int clearableRefsSize = clearableRefs.size();
-      logger.info("clearing all (" + clearableRefsSize + ") references - this may take some time");
       try {
-        syncClearReferences(clearableRefsSize);
+        final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
+        if (!refsToClear.isEmpty()) {
+          int clearCountCurr = refsToClear.size();
+          safelyClearReferences(refsToClear);
+          clearedCount += clearCountCurr;
+        }
+
+        if (logger.isInfoEnabled()) {
+          float progressPercent = 100f * clearedCount / initialRefCount;
+          logger.info(String.format("progress of clearing references: %.2f%s", Float.min(100f, progressPercent), "%"));
+        }
       } catch (Exception e) {
         throw new RuntimeException("error while clearing references to disk", e);
       }
