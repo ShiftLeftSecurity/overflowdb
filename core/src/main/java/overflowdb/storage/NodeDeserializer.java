@@ -21,12 +21,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
+  private final Map<Integer, EdgeOffsetMapping> edgeOffsetMappings;
   private ConcurrentHashMap<String, String> interner;
 
-  public NodeDeserializer(Graph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
+  public NodeDeserializer(Graph graph,
+                          Map<Integer, NodeFactory> nodeFactoryByLabelId,
+                          Map<Integer, EdgeOffsetMapping> edgeOffsetMappings,
+                          boolean statsEnabled) {
     super(statsEnabled);
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
+    this.edgeOffsetMappings = edgeOffsetMappings;
     this.interner = new ConcurrentHashMap<>();
   }
 
@@ -35,7 +40,7 @@ public class NodeDeserializer extends BookKeeper {
     return interned == null ? s : interned;
   }
 
-  public final NodeDb deserialize(byte[] bytes) throws IOException {
+  public final NodeDb deserialize(byte[] bytes) throws IOException, BackwardsCompatibilityException {
     long startTimeNanos = getStartTimeNanos();
     if (null == bytes)
       return null;
@@ -44,7 +49,15 @@ public class NodeDeserializer extends BookKeeper {
     final long id = unpacker.unpackLong();
     final int labelId = unpacker.unpackInt();
     final Map<String, Object> properties = unpackProperties(unpacker);
-    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
+
+    final int[] edgeOffsets;
+    if (edgeOffsetMappings.containsKey(labelId)) {
+      int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker);
+      int allowedEdgeTypeCount = getNodeFactory(labelId).allowedEdges().length;
+      edgeOffsets = handleBackwardsCompatibility(edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId), allowedEdgeTypeCount);
+    } else {
+      edgeOffsets = unpackEdgeOffsets(unpacker);
+    }
     final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
     NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
@@ -82,6 +95,25 @@ public class NodeDeserializer extends BookKeeper {
     for (int i = 0; i < size; i++) {
       edgeOffsets[i] = unpacker.unpackInt();
     }
+    return edgeOffsets;
+  }
+
+  /** backwards compatibility: node from storage was serialized with different edgeOffsets
+   * Try to handle gracefully: if we can map the stored edges to the current schema, let's do so.
+   * i.e. if the current schema still contains all of edges from that old schema
+   * Most common case: an edge was added.
+   *
+   * @throws BackwardsCompatibilityException if the storage contains edges that we do not know about, e.g because they were removed from the given node
+   */
+  private final int[] handleBackwardsCompatibility(int[] edgeOffsetsFromStorage, EdgeOffsetMapping edgeOffsetMapping, int allowedEdgeTypeCount) throws BackwardsCompatibilityException {
+    int[] edgeOffsets = new int[allowedEdgeTypeCount * 2];
+
+    for (int idxFromStorage = 0; idxFromStorage < edgeOffsetsFromStorage.length; idxFromStorage+=2) {
+      int idxForCurrentSchema = edgeOffsetMapping.forStorageIndex(idxFromStorage);
+      edgeOffsets[idxForCurrentSchema] = edgeOffsets[idxFromStorage];
+      edgeOffsets[idxForCurrentSchema + 1] = edgeOffsets[idxFromStorage + 1];
+    }
+
     return edgeOffsets;
   }
 
