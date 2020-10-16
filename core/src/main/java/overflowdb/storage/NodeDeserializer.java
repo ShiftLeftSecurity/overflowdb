@@ -13,6 +13,7 @@ import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -21,17 +22,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
-  private final Map<Integer, EdgeOffsetMapping> edgeOffsetMappings;
+  private final Map<Integer, EdgeOffsetMapping> edgeOffsetMappings = new HashMap<>();
   private ConcurrentHashMap<String, String> interner;
 
   public NodeDeserializer(Graph graph,
                           Map<Integer, NodeFactory> nodeFactoryByLabelId,
-                          Map<Integer, EdgeOffsetMapping> edgeOffsetMappings,
                           boolean statsEnabled) {
     super(statsEnabled);
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
-    this.edgeOffsetMappings = edgeOffsetMappings;
     this.interner = new ConcurrentHashMap<>();
   }
 
@@ -53,8 +52,7 @@ public class NodeDeserializer extends BookKeeper {
     final int[] edgeOffsets;
     if (edgeOffsetMappings.containsKey(labelId)) {
       int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker);
-      int allowedEdgeTypeCount = getNodeFactory(labelId).allowedEdges().length;
-      edgeOffsets = handleBackwardsCompatibility(edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId), allowedEdgeTypeCount);
+      edgeOffsets = handleBackwardsCompatibility(edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId));
     } else {
       edgeOffsets = unpackEdgeOffsets(unpacker);
     }
@@ -98,6 +96,17 @@ public class NodeDeserializer extends BookKeeper {
     return edgeOffsets;
   }
 
+  /** Register an edge offset mapping for the given nodeType id.
+   *
+   * Context: When opening an old storage format, the schema may have changed in between, and edge offsets may be
+   * different from the current schema. When writing to the storage, the old edge offsets are being written to the
+   * metadata table though, so that we can create a mapping old -> current to provide some backwards compatibility.
+   *
+   */
+  public void registerEdgeOffsetMapping(int nodeTypeId, EdgeOffsetMapping mapping) {
+    this.edgeOffsetMappings.put(nodeTypeId, mapping);
+  }
+
   /** backwards compatibility: node from storage was serialized with different edgeOffsets
    * Try to handle gracefully: if we can map the stored edges to the current schema, let's do so.
    * i.e. if the current schema still contains all of edges from that old schema
@@ -105,11 +114,12 @@ public class NodeDeserializer extends BookKeeper {
    *
    * @throws BackwardsCompatibilityException if the storage contains edges that we do not know about, e.g because they were removed from the given node
    */
-  private final int[] handleBackwardsCompatibility(int[] edgeOffsetsFromStorage, EdgeOffsetMapping edgeOffsetMapping, int allowedEdgeTypeCount) throws BackwardsCompatibilityException {
+  private final int[] handleBackwardsCompatibility(int[] edgeOffsetsFromStorage, EdgeOffsetMapping edgeOffsetMapping) throws BackwardsCompatibilityException {
+    int allowedEdgeTypeCount = edgeOffsetMapping.currentAllowedEdgeCount;
     int[] edgeOffsets = new int[allowedEdgeTypeCount * 2];
 
     for (int idxFromStorage = 0; idxFromStorage < edgeOffsetsFromStorage.length; idxFromStorage+=2) {
-      int idxForCurrentSchema = edgeOffsetMapping.forStorageIndex(idxFromStorage);
+      int idxForCurrentSchema = edgeOffsetMapping.currentIdxForStorageIndex(idxFromStorage);
       edgeOffsets[idxForCurrentSchema] = edgeOffsets[idxFromStorage];
       edgeOffsets[idxForCurrentSchema + 1] = edgeOffsets[idxFromStorage + 1];
     }

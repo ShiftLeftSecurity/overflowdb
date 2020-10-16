@@ -61,15 +61,17 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    NodeDeserializer nodeDeserializer = new NodeDeserializer(
-        this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
+    /* TODO fill the above with `NodeLabelId -> Map[EdgeLabel -> Int]` for both IN/OUT edges
+     * layoutinformation for all node types
+     * from metadata table from storage
+     */
+
+    NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
     if (config.getStorageLocation().isPresent()) {
-      storage = OdbStorage.createWithSpecificLocation(
-          nodeDeserializer,
-          new File(config.getStorageLocation().get()),
-          config.isSerializationStatsEnabled()
-      );
-      initElementCollections(storage);
+      File storageFile = new File(config.getStorageLocation().get());
+      boolean isExistingStorage = storageFile.exists();
+      storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, storageFile, config.isSerializationStatsEnabled());
+      if (isExistingStorage) initElementCollections(storage);
     } else {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
     }
@@ -86,11 +88,14 @@ public final class Graph implements AutoCloseable {
     int importCount = 0;
     long maxId = currentId.get();
 
+    final NodeDeserializer nodeDeserializer = storage.getNodeDeserializer().get();
+//    nodeDeserializer.registerEdgeOffsetMapping();
+
     final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedNodes.iterator();
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
-        final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
+        final NodeRef nodeRef = nodeDeserializer.deserializeRef(entry.getValue());
         nodes.add(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) { // some random magic number that allows for quick division
