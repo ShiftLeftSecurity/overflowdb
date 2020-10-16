@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
   private static final String INDEX_PREFIX = "index_";
+  private static final String METADATA_KEY_SCHEMA_VERSION = "schema_version";
+  private static final String METADATA_KEY_SCHEMA_HASH = "schema_hash";
+  private static final String METADATA_KEY_EDGE_OFFSETS = "edge_offsets";
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer;
   protected final Optional<NodeDeserializer> nodeDeserializer;
@@ -24,6 +28,7 @@ public class OdbStorage implements AutoCloseable {
   private final boolean doPersist;
   private MVStore mvstore; // initialized in `getNodesMVMap`
   private MVMap<Long, byte[]> nodesMVMap;
+  private MVMap<String, byte[]> metadataMVMap;
   private boolean closed;
 
   public static OdbStorage createWithTempFile(
@@ -133,6 +138,20 @@ public class OdbStorage implements AutoCloseable {
     if (nodesMVMap == null)
       nodesMVMap = mvstore.openMap("nodes");
     return nodesMVMap;
+  }
+
+  private MVMap<String, byte[]> getMetadataMVMap() {
+    if (mvstore == null) {
+      mvstore = initializeMVStore();
+    }
+
+    if (metadataMVMap == null)
+      metadataMVMap = mvstore.openMap("metadata");
+    return metadataMVMap;
+  }
+
+  public Metadata getMetadata () {
+    // TODO
   }
 
   private MVStore initializeMVStore() {

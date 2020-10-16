@@ -89,6 +89,8 @@ public final class Graph implements AutoCloseable {
     long maxId = currentId.get();
 
     final NodeDeserializer nodeDeserializer = storage.getNodeDeserializer().get();
+    // TODO complete, extract
+    storage.getNodesMVMap()
 //    nodeDeserializer.registerEdgeOffsetMapping();
 
     final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedNodes.iterator();
