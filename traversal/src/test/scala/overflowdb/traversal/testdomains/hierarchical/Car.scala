@@ -1,6 +1,6 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
+import overflowdb.{Graph, NodeFactory, NodeLayoutInformation, NodeRef, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
@@ -28,6 +28,7 @@ object Car {
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[CarDb]) = new CarDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Car(graph, id)
+    override val layoutInformation = Car.layoutInformation
   }
 
   val layoutInformation: NodeLayoutInformation =

@@ -2,6 +2,8 @@ package overflowdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.storage.EdgeOffset;
+import overflowdb.storage.EdgeOffsetMapping;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
@@ -14,16 +16,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-import java.util.stream.StreamSupport;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Graph implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(Graph.class);
@@ -61,17 +62,15 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    /* TODO fill the above with `NodeLabelId -> Map[EdgeLabel -> Int]` for both IN/OUT edges
-     * layoutinformation for all node types
-     * from metadata table from storage
-     */
-
     NodeDeserializer nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
     if (config.getStorageLocation().isPresent()) {
       File storageFile = new File(config.getStorageLocation().get());
       boolean isExistingStorage = storageFile.exists();
       storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, storageFile, config.isSerializationStatsEnabled());
-      if (isExistingStorage) initElementCollections(storage);
+      if (isExistingStorage) {
+        initElementCollections(storage, nodeDeserializer);
+        initBackwardsCompatibleEdgeOffsetMappings(storage, nodeDeserializer, nodeFactoryByLabelId);
+      }
     } else {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
     }
@@ -81,17 +80,39 @@ public final class Graph implements AutoCloseable {
         Optional.empty();
   }
 
-  private void initElementCollections(OdbStorage storage) {
+  // TODO move, doc, rename, refactor
+  private void initBackwardsCompatibleEdgeOffsetMappings(OdbStorage storage,
+                                                         NodeDeserializer nodeDeserializer,
+                                                         Map<Integer, NodeFactory> nodeFactoryByLabelId) {
+    storage.edgeOffsets().forEach(edgeOffsetFromStorage -> {
+      final int nodeTypeId = edgeOffsetFromStorage.nodeTypeId;
+      final Direction direction = edgeOffsetFromStorage.direction;
+      final String edgeType = edgeOffsetFromStorage.edgeType;
+      if (nodeFactoryByLabelId.containsKey(nodeTypeId)) {
+        final NodeLayoutInformation nodeLayoutInformation = nodeFactoryByLabelId.get(nodeTypeId).layoutInformation();
+
+        final int currentEdgeOffset;
+        if (direction == Direction.IN) {
+          currentEdgeOffset = nodeLayoutInformation.inEdgeToOffsetPosition(edgeType);
+        } else if (direction == Direction.IN) {
+          currentEdgeOffset = nodeLayoutInformation.inEdgeToOffsetPosition(edgeType);
+        } else {
+          throw new AssertionError(String.format("direction must be either IN or OUT, but found: %s", direction));
+        }
+
+        if (currentEdgeOffset != edgeOffsetFromStorage.offset) {
+          nodeDeserializer.registerEdgeOffsetMapping(nodeTypeId, currentEdgeOffset, edgeOffsetFromStorage.offset);
+        }
+      }
+    });
+  }
+
+  private void initElementCollections(OdbStorage storage, NodeDeserializer nodeDeserializer) {
     long start = System.currentTimeMillis();
     final Set<Map.Entry<Long, byte[]>> serializedNodes = storage.allNodes();
     logger.info("initializing " + serializedNodes.size() + " nodes from existing storage - this may take some time");
     int importCount = 0;
     long maxId = currentId.get();
-
-    final NodeDeserializer nodeDeserializer = storage.getNodeDeserializer().get();
-    // TODO complete, extract
-    storage.getNodesMVMap()
-//    nodeDeserializer.registerEdgeOffsetMapping();
 
     final Iterator<Map.Entry<Long, byte[]>> serializedVertexIter = serializedNodes.iterator();
     while (serializedVertexIter.hasNext()) {
@@ -165,6 +186,7 @@ public final class Graph implements AutoCloseable {
         /* persist to disk */
         indexManager.storeIndexes(storage);
         referenceManager.clearAllReferences();
+        storage.persistEdgeOffsets(nodeFactoryByLabel.values().stream().map(NodeFactory::layoutInformation));
       }
     } finally {
       referenceManager.close();

@@ -2,26 +2,26 @@ package overflowdb.storage;
 
 import java.util.Map;
 
+// TODO use, doc
 public class EdgeOffsetMapping {
-  public final int forNodeLabelId;
-  public final String forNodeLabel;
-  public final int currentAllowedEdgeCount;
+  public final int nodeTypeId;
   private final Map<Integer, Integer> storageOffsetIdxToCurrentSchemaIdx;
 
-  public EdgeOffsetMapping(int forNodeLabelId, String forNodeLabel, int currentAllowedEdgeCount, Map<Integer, Integer> storageOffsetIdxToCurrentSchemaIdx) {
-    this.forNodeLabelId = forNodeLabelId;
-    this.forNodeLabel = forNodeLabel;
-    this.currentAllowedEdgeCount = currentAllowedEdgeCount;
+  public EdgeOffsetMapping(int nodeTypeId, Map<Integer, Integer> storageOffsetIdxToCurrentSchemaIdx) {
+    this.nodeTypeId = nodeTypeId;
     this.storageOffsetIdxToCurrentSchemaIdx = storageOffsetIdxToCurrentSchemaIdx;
   }
 
   public int currentIdxForStorageIndex(int idxFromStorage) {
     if (!storageOffsetIdxToCurrentSchemaIdx.containsKey(idxFromStorage)) {
-      // TODO better error
+      // TODO better error msg with more context
       throw new BackwardsCompatibilityException("unable to translate TODO foo");
     } else {
       return storageOffsetIdxToCurrentSchemaIdx.get(idxFromStorage);
     }
   }
 
+  public void addMapping(int currentEdgeOffset, int offsetFromStorage) {
+    storageOffsetIdxToCurrentSchemaIdx.put(offsetFromStorage, currentEdgeOffset);
+  }
 }

@@ -31,6 +31,7 @@ object Elephant {
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ElephantDb]) = new ElephantDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Elephant(graph, id)
+    override val layoutInformation = Elephant.layoutInformation
   }
 
   val layoutInformation: NodeLayoutInformation =

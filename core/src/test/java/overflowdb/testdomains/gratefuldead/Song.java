@@ -1,8 +1,9 @@
 package overflowdb.testdomains.gratefuldead;
 
-import overflowdb.NodeFactory;
-import overflowdb.NodeRef;
 import overflowdb.Graph;
+import overflowdb.NodeFactory;
+import overflowdb.NodeLayoutInformation;
+import overflowdb.NodeRef;
 
 public class Song extends NodeRef<SongDb> {
   public static final String label = "song";
@@ -50,6 +51,11 @@ public class Song extends NodeRef<SongDb> {
     @Override
     public Song createNodeRef(Graph graph, long id) {
       return new Song(graph, id);
+    }
+
+    @Override
+    public NodeLayoutInformation layoutInformation() {
+      return SongDb.layoutInformation;
     }
   };
 

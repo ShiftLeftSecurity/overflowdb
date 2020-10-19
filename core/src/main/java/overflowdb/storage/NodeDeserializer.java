@@ -5,7 +5,9 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
+import overflowdb.Direction;
 import overflowdb.NodeFactory;
+import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Graph;
 import overflowdb.NodeDb;
@@ -51,8 +53,11 @@ public class NodeDeserializer extends BookKeeper {
 
     final int[] edgeOffsets;
     if (edgeOffsetMappings.containsKey(labelId)) {
+      final NodeLayoutInformation nodeLayoutInformation = getNodeFactory(labelId).layoutInformation();
+      int allowedEdgeTypeCount =
+          nodeLayoutInformation.allowedInEdgeLabels().length + nodeLayoutInformation.allowedOutEdgeLabels().length;
       int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker);
-      edgeOffsets = handleBackwardsCompatibility(edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId));
+      edgeOffsets = handleBackwardsCompatibility(allowedEdgeTypeCount, edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId));
     } else {
       edgeOffsets = unpackEdgeOffsets(unpacker);
     }
@@ -101,21 +106,21 @@ public class NodeDeserializer extends BookKeeper {
    * Context: When opening an old storage format, the schema may have changed in between, and edge offsets may be
    * different from the current schema. When writing to the storage, the old edge offsets are being written to the
    * metadata table though, so that we can create a mapping old -> current to provide some backwards compatibility.
-   *
    */
-  public void registerEdgeOffsetMapping(int nodeTypeId, EdgeOffsetMapping mapping) {
-    this.edgeOffsetMappings.put(nodeTypeId, mapping);
+  public void registerEdgeOffsetMapping(int nodeTypeId, int currentEdgeOffset, int offsetFromStorage) {
+    edgeOffsetMappings
+        .computeIfAbsent(nodeTypeId, id -> new EdgeOffsetMapping(id, new HashMap<>()))
+        .addMapping(currentEdgeOffset, offsetFromStorage);
   }
 
-  /** backwards compatibility: node from storage was serialized with different edgeOffsets
+  /** Backwards compatibility: node from storage was serialized with different edgeOffsets
    * Try to handle gracefully: if we can map the stored edges to the current schema, let's do so.
-   * i.e. if the current schema still contains all of edges from that old schema
-   * Most common case: an edge was added.
+   * e.g. if the current schema still contains all of edges from that old schema, we can just adjust the edgeOffset
+   * entry positions. Most common case: an edge was added.
    *
    * @throws BackwardsCompatibilityException if the storage contains edges that we do not know about, e.g because they were removed from the given node
    */
-  private final int[] handleBackwardsCompatibility(int[] edgeOffsetsFromStorage, EdgeOffsetMapping edgeOffsetMapping) throws BackwardsCompatibilityException {
-    int allowedEdgeTypeCount = edgeOffsetMapping.currentAllowedEdgeCount;
+  private final int[] handleBackwardsCompatibility(int allowedEdgeTypeCount, int[] edgeOffsetsFromStorage, EdgeOffsetMapping edgeOffsetMapping) throws BackwardsCompatibilityException {
     int[] edgeOffsets = new int[allowedEdgeTypeCount * 2];
 
     for (int idxFromStorage = 0; idxFromStorage < edgeOffsetsFromStorage.length; idxFromStorage+=2) {
@@ -213,5 +218,4 @@ public class NodeDeserializer extends BookKeeper {
 
     return nodeFactoryByLabelId.get(labelId);
   }
-
 }
