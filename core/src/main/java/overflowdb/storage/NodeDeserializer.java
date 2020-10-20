@@ -54,10 +54,10 @@ public class NodeDeserializer extends BookKeeper {
     final NodeLayoutInformation nodeLayoutInformation = getNodeFactory(labelId).layoutInformation();
     final int allowedEdgeTypeCount = nodeLayoutInformation.allowedInEdgeLabels().length + nodeLayoutInformation.allowedOutEdgeLabels().length;
     if (edgeOffsetMappings.containsKey(labelId)) {
-      int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker, allowedEdgeTypeCount);
+      int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker);
       edgeOffsets = handleBackwardsCompatibility(allowedEdgeTypeCount, edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId));
     } else {
-      edgeOffsets = unpackEdgeOffsets(unpacker, allowedEdgeTypeCount);
+      edgeOffsets = ensureMinSize(unpackEdgeOffsets(unpacker), allowedEdgeTypeCount * 2);
     }
     final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
@@ -65,6 +65,16 @@ public class NodeDeserializer extends BookKeeper {
 
     if (statsEnabled) recordStatistics(startTimeNanos);
     return node;
+  }
+
+  private int[] ensureMinSize(int[] array, int minSize) {
+    if (array.length >= minSize) {
+      return array;
+    } else {
+      int[] newArray = new int[minSize];
+      System.arraycopy(array, 0, newArray, 0, array.length);
+      return newArray;
+    }
   }
 
   /**
@@ -90,10 +100,10 @@ public class NodeDeserializer extends BookKeeper {
     return res;
   }
 
-  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker, int allowedEdgeTypeCount) throws IOException {
-    int arrayFromStorageLength = unpacker.unpackArrayHeader();
-    int[] edgeOffsets = new int[allowedEdgeTypeCount * 2];
-    for (int i = 0; i < arrayFromStorageLength; i++) {
+  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
+    int size = unpacker.unpackArrayHeader();
+    int[] edgeOffsets = new int[size];
+    for (int i = 0; i < size; i++) {
       edgeOffsets[i] = unpacker.unpackInt();
     }
     return edgeOffsets;
@@ -123,8 +133,8 @@ public class NodeDeserializer extends BookKeeper {
 
     for (int idxFromStorage = 0; idxFromStorage < edgeOffsetsFromStorage.length; idxFromStorage+=2) {
       int idxForCurrentSchema = edgeOffsetMapping.currentIdxForStorageIndex(idxFromStorage);
-      edgeOffsets[idxForCurrentSchema] = edgeOffsets[idxFromStorage];
-      edgeOffsets[idxForCurrentSchema + 1] = edgeOffsets[idxFromStorage + 1];
+      edgeOffsets[idxForCurrentSchema] = edgeOffsetsFromStorage[idxFromStorage];
+      edgeOffsets[idxForCurrentSchema + 1] = edgeOffsetsFromStorage[idxFromStorage + 1];
     }
 
     return edgeOffsets;
