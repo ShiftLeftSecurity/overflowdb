@@ -5,12 +5,11 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
-import overflowdb.Direction;
+import overflowdb.Graph;
+import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
-import overflowdb.Graph;
-import overflowdb.NodeDb;
 import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
@@ -52,14 +51,13 @@ public class NodeDeserializer extends BookKeeper {
     final Map<String, Object> properties = unpackProperties(unpacker);
 
     final int[] edgeOffsets;
+    final NodeLayoutInformation nodeLayoutInformation = getNodeFactory(labelId).layoutInformation();
+    final int allowedEdgeTypeCount = nodeLayoutInformation.allowedInEdgeLabels().length + nodeLayoutInformation.allowedOutEdgeLabels().length;
     if (edgeOffsetMappings.containsKey(labelId)) {
-      final NodeLayoutInformation nodeLayoutInformation = getNodeFactory(labelId).layoutInformation();
-      int allowedEdgeTypeCount =
-          nodeLayoutInformation.allowedInEdgeLabels().length + nodeLayoutInformation.allowedOutEdgeLabels().length;
-      int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker);
+      int[] edgeOffsetsFromStorage = unpackEdgeOffsets(unpacker, allowedEdgeTypeCount);
       edgeOffsets = handleBackwardsCompatibility(allowedEdgeTypeCount, edgeOffsetsFromStorage, edgeOffsetMappings.get(labelId));
     } else {
-      edgeOffsets = unpackEdgeOffsets(unpacker);
+      edgeOffsets = unpackEdgeOffsets(unpacker, allowedEdgeTypeCount);
     }
     final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
 
@@ -92,10 +90,10 @@ public class NodeDeserializer extends BookKeeper {
     return res;
   }
 
-  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
-    int size = unpacker.unpackArrayHeader();
-    int[] edgeOffsets = new int[size];
-    for (int i = 0; i < size; i++) {
+  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker, int allowedEdgeTypeCount) throws IOException {
+    int arrayFromStorageLength = unpacker.unpackArrayHeader();
+    int[] edgeOffsets = new int[allowedEdgeTypeCount * 2];
+    for (int i = 0; i < arrayFromStorageLength; i++) {
       edgeOffsets[i] = unpacker.unpackInt();
     }
     return edgeOffsets;

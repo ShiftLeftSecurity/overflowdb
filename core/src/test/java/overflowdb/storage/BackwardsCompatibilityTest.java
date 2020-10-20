@@ -30,6 +30,7 @@ public class BackwardsCompatibilityTest {
     storageFile.delete();
     Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
+    final long thing1Id;
     {
       Graph graph = Graph.open(config,
           Arrays.asList(SchemaV1.Thing1.nodeFactory, SchemaV1.Thing2.nodeFactory),
@@ -39,34 +40,25 @@ public class BackwardsCompatibilityTest {
       thing1.addEdge(SchemaV1.Connection1.LABEL, thing2);
       assertEquals(2, graph.nodeCount());
       assertEquals(1, graph.edgeCount());
+      thing1Id = thing1.id();
       graph.close();
     }
 
-//    {
-//      Graph graph = Graph.open(config,
-//          Arrays.asList(SchemaV2.Thing.nodeFactory),
-////          Arrays.asList(SchemaV1.Thing.nodeFactory),
-//          Arrays.asList(SchemaV1.Connection1.factory, SchemaV2.Connection2.factory));
-//      assertEquals(2, graph.nodeCount());
-//
-////      final Iterator<Node> nodes = graph.nodes();
-////      while (nodes.hasNext()) {
-////        nodes.next().outE().forEachRemaining(System.out::println);
-//        // why the heck is there a Connection2? only when using SchemaV2.Thing.nodeFactory
-//        // verify: is this fixed by the backwards compat handling?
-//        // TODO: try both ways: (Connection2, Connection) and (Connection, Connection2) in layoutInformation
-////      }
-//      Node node0 = graph.node(0);
-//      node0.outE().forEachRemaining(System.out::println);
-//
-//      Node node1 = graph.node(1);
-//      node1.outE().forEachRemaining(System.out::println);
-//
-////      graph.edges().forEachRemaining(e -> System.out.println(e));
-//      assertEquals(1, graph.edgeCount());
-//      // TODO more tests: walk edge, ensure it's of the right type
-//      graph.close();
-//    }
+    {
+      Graph graph = Graph.open(config,
+          Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
+          Arrays.asList(SchemaV1.Connection1.factory, SchemaV2.Connection2.factory));
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
+
+      Node thing1 = graph.node(0);
+      SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
+      SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
+      Node thing2 = connection.inNode();
+      SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
+
+      graph.close();
+    }
 
     storageFile.delete(); //cleanup after test
   }
@@ -197,6 +189,105 @@ class SchemaV1 {
 
 /* additions compared to SchemaV1: there's an additional edge 'Connection2' between Thing1 and Thing2 */
 class SchemaV2 {
+  static class Thing1 extends DummyNodeDb {
+    static final int LABEL_ID = 1;
+    static final String LABEL = "Thing1";
+
+    static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+        LABEL_ID,
+        Collections.emptySet(),
+        Arrays.asList(SchemaV1.Connection1.layoutInformation, Connection2.layoutInformation),
+        Arrays.asList()
+    );
+
+    static NodeFactory<Thing1> nodeFactory = new NodeFactory<Thing1>() {
+      public String forLabel() {
+        return LABEL;
+      }
+
+      public int forLabelId() {
+        return LABEL_ID;
+      }
+
+      public Thing1 createNode(NodeRef<Thing1> ref) {
+        return new Thing1(ref);
+      }
+
+      @Override
+      public NodeRef<Thing1> createNodeRef(Graph graph, long id) {
+        return new NodeRef<Thing1>(graph, id) {
+          @Override
+          public String label() {
+            return LABEL;
+          }
+        };
+      }
+
+      @Override
+      public NodeLayoutInformation layoutInformation() {
+        return layoutInformation;
+      }
+    };
+
+    protected Thing1(NodeRef ref) {
+      super(ref);
+    }
+
+    @Override
+    public NodeLayoutInformation layoutInformation() {
+      return layoutInformation;
+    }
+  }
+
+  static class Thing2 extends DummyNodeDb {
+    static final int LABEL_ID = 2;
+    static final String LABEL = "Thing2";
+
+    static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
+        LABEL_ID,
+        Collections.emptySet(),
+        Arrays.asList(),
+        Arrays.asList(SchemaV1.Connection1.layoutInformation, Connection2.layoutInformation)
+    );
+
+    static NodeFactory<Thing2> nodeFactory = new NodeFactory<Thing2>() {
+      public String forLabel() {
+        return LABEL;
+      }
+
+      public int forLabelId() {
+        return LABEL_ID;
+      }
+
+      public Thing2 createNode(NodeRef<Thing2> ref) {
+        return new Thing2(ref);
+      }
+
+      @Override
+      public NodeRef<Thing2> createNodeRef(Graph graph, long id) {
+        return new NodeRef<Thing2>(graph, id) {
+          @Override
+          public String label() {
+            return LABEL;
+          }
+        };
+      }
+
+      @Override
+      public NodeLayoutInformation layoutInformation() {
+        return layoutInformation;
+      }
+    };
+
+    protected Thing2(NodeRef ref) {
+      super(ref);
+    }
+
+    @Override
+    public NodeLayoutInformation layoutInformation() {
+      return layoutInformation;
+    }
+  }
 
   static class Connection2 extends Edge {
     public static final String LABEL = "Connection2";

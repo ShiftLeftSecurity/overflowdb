@@ -2,8 +2,6 @@ package overflowdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import overflowdb.storage.EdgeOffset;
-import overflowdb.storage.EdgeOffsetMapping;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
@@ -23,8 +21,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class Graph implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(Graph.class);
@@ -69,7 +65,7 @@ public final class Graph implements AutoCloseable {
       storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, storageFile, config.isSerializationStatsEnabled());
       if (isExistingStorage) {
         initElementCollections(storage, nodeDeserializer);
-//        initBackwardsCompatibleEdgeOffsetMappings(storage, nodeDeserializer, nodeFactoryByLabelId);
+        initBackwardsCompatibleEdgeOffsetMappings(storage, nodeDeserializer, nodeFactoryByLabelId);
       }
     } else {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
