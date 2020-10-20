@@ -196,7 +196,7 @@ class SchemaV2 {
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
         LABEL_ID,
         Collections.emptySet(),
-        Arrays.asList(SchemaV1.Connection1.layoutInformation, Connection2.layoutInformation),
+        Arrays.asList(Connection2.layoutInformation, SchemaV1.Connection1.layoutInformation),
         Arrays.asList()
     );
 
@@ -247,7 +247,7 @@ class SchemaV2 {
         LABEL_ID,
         Collections.emptySet(),
         Arrays.asList(),
-        Arrays.asList(SchemaV1.Connection1.layoutInformation, Connection2.layoutInformation)
+        Arrays.asList(Connection2.layoutInformation, SchemaV1.Connection1.layoutInformation)
     );
 
     static NodeFactory<Thing2> nodeFactory = new NodeFactory<Thing2>() {
