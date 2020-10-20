@@ -13,6 +13,7 @@ public class EdgeOffsetMapping {
   }
 
   public int currentIdxForStorageIndex(int idxFromStorage) {
+//      return storageOffsetIdxToCurrentSchemaIdx.getOrDefault(idxFromStorage, idxFromStorage);
     if (!storageOffsetIdxToCurrentSchemaIdx.containsKey(idxFromStorage)) {
       // TODO better error msg with more context
       throw new BackwardsCompatibilityException("unable to translate TODO foo");

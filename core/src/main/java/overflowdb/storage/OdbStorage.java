@@ -219,7 +219,7 @@ public class OdbStorage implements AutoCloseable {
 
           final MVMap<String, Integer> edgeOffsetMap = mvstore.openMap(mapName);
           Set<EdgeOffset> offsets = new HashSet<>(edgeOffsetMap.size());
-          edgeOffsetMap.forEach((edgeLabel, offset) -> new EdgeOffset(nodeId, direction, edgeLabel, offset));
+          edgeOffsetMap.forEach((edgeLabel, offset) -> offsets.add(new EdgeOffset(nodeId, direction, edgeLabel, offset)));
           return offsets.stream();
         })
         .collect(Collectors.toSet());
@@ -227,7 +227,7 @@ public class OdbStorage implements AutoCloseable {
 
   // TODO move, doc
   private String edgeOffsetMapName(int nodeTypeId, Direction direction) {
-    return String.format("%d%d__%s", EDGE_OFFSET_PREFIX, nodeTypeId, direction.toString());
+    return String.format("%s%d__%s", EDGE_OFFSET_PREFIX, nodeTypeId, direction.toString());
   }
 
   // TODO move, doc

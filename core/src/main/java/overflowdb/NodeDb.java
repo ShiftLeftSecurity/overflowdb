@@ -714,7 +714,7 @@ public abstract class NodeDb implements Node {
   public final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
-      throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
+      throw new IllegalArgumentException(String.format("No EdgeFactory for label=`%s` available - please register when instantiating the graph.", label));
     return edgeFactory.createEdge(ref.graph, outNode, inNode);
   }
 

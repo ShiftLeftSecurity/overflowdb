@@ -69,7 +69,7 @@ public final class Graph implements AutoCloseable {
       storage = OdbStorage.createWithSpecificLocation(nodeDeserializer, storageFile, config.isSerializationStatsEnabled());
       if (isExistingStorage) {
         initElementCollections(storage, nodeDeserializer);
-        initBackwardsCompatibleEdgeOffsetMappings(storage, nodeDeserializer, nodeFactoryByLabelId);
+//        initBackwardsCompatibleEdgeOffsetMappings(storage, nodeDeserializer, nodeFactoryByLabelId);
       }
     } else {
       storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
@@ -94,8 +94,8 @@ public final class Graph implements AutoCloseable {
         final int currentEdgeOffset;
         if (direction == Direction.IN) {
           currentEdgeOffset = nodeLayoutInformation.inEdgeToOffsetPosition(edgeType);
-        } else if (direction == Direction.IN) {
-          currentEdgeOffset = nodeLayoutInformation.inEdgeToOffsetPosition(edgeType);
+        } else if (direction == Direction.OUT) {
+          currentEdgeOffset = nodeLayoutInformation.outEdgeToOffsetPosition(edgeType);
         } else {
           throw new AssertionError(String.format("direction must be either IN or OUT, but found: %s", direction));
         }
@@ -159,7 +159,7 @@ public final class Graph implements AutoCloseable {
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
     if (!nodeFactoryByLabel.containsKey(label)) {
-      throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
+      throw new IllegalArgumentException(String.format("No NodeFactory for label=`%s` available - please register when instantiating the graph.", label));
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final NodeDb node = factory.createNode(this, idValue);
