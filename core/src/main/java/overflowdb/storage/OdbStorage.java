@@ -1,27 +1,21 @@
 package overflowdb.storage;
 
+import overflowdb.Node;
+import overflowdb.NodeDb;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import overflowdb.Direction;
-import overflowdb.Node;
-import overflowdb.NodeDb;
-import overflowdb.NodeLayoutInformation;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class OdbStorage implements AutoCloseable {
   private static final String INDEX_PREFIX = "index_";
-  private static final String EDGE_OFFSET_PREFIX = "schema_edge_offsets__";
-
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer;
   protected final Optional<NodeDeserializer> nodeDeserializer;
@@ -154,19 +148,21 @@ public class OdbStorage implements AutoCloseable {
     return nodeDeserializer;
   }
 
-  public Set<String> getIndexNames() {
-    return mvstore
+  private Map<String, String> getIndexNameMap(MVStore store) {
+    return store
         .getMapNames()
         .stream()
         .filter(s -> s.startsWith(INDEX_PREFIX))
-        .map(this::removeIndexPrefix)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toConcurrentMap(s -> removeIndexPrefix(s), s -> s));
   }
 
-  private String removeIndexPrefix(String mapName) {
-    if (!mapName.startsWith(INDEX_PREFIX))
-      throw new AssertionError(String.format("attempted to treat %s as an index table, but it doesn't have the correct `%s` prefix!", mapName, INDEX_PREFIX));
-    return mapName.substring(INDEX_PREFIX.length());
+  public Set<String> getIndexNames() {
+    return getIndexNameMap(mvstore).keySet();
+  }
+
+  private String removeIndexPrefix(String s) {
+    assert s.startsWith(INDEX_PREFIX);
+    return s.substring(INDEX_PREFIX.length());
   }
 
   public MVMap<Object, long[]> openIndex(String indexName) {
@@ -184,57 +180,5 @@ public class OdbStorage implements AutoCloseable {
 
   public void clearIndex(String indexName) {
     openIndex(indexName).clear();
-  }
-
-  //  schema_edgeoffsets_$nodeTypeId_$direction_$edgeType -> Map(CDG -> 5, REF -> 6, ...)
-  // TODO call this when saving the graph
-  // TODO move, doc
-  public void persistEdgeOffsets(Stream<NodeLayoutInformation> nodeLayoutInfos) {
-    nodeLayoutInfos.forEach(layout -> {
-      final MVMap<String, Integer> inEdgeOffsetsMap = edgeOffsetsMap(layout.labelId, Direction.IN);
-      for (String label : layout.allowedInEdgeLabels()) {
-        inEdgeOffsetsMap.put(label, layout.inEdgeToOffsetPosition(label));
-      }
-
-      final MVMap<String, Integer> outEdgeOffsetsMap = edgeOffsetsMap(layout.labelId, Direction.OUT);
-      for (String label : layout.allowedOutEdgeLabels()) {
-        outEdgeOffsetsMap.put(label, layout.outEdgeToOffsetPosition(label));
-      }
-    });
-    flush();
-  }
-
-  // TODO call this when opening the graph, create EdgeOffsetMappings
-  // TODO move, doc
-  public Set<EdgeOffset> edgeOffsets() {
-    return mvstore
-        .getMapNames()
-        .stream()
-        .filter(s -> s.startsWith(EDGE_OFFSET_PREFIX))
-        .flatMap(mapName -> {
-          // TODO do some validation
-          String[] parts = mapName.split("__");
-          int nodeId = Integer.parseInt(parts[1]);
-          Direction direction = Direction.valueOf(parts[2]);
-
-          final MVMap<String, Integer> edgeOffsetMap = mvstore.openMap(mapName);
-          Set<EdgeOffset> offsets = new HashSet<>(edgeOffsetMap.size());
-          edgeOffsetMap.forEach((edgeLabel, offset) -> offsets.add(new EdgeOffset(nodeId, direction, edgeLabel, offset)));
-          return offsets.stream();
-        })
-        .collect(Collectors.toSet());
-  }
-
-  // TODO move, doc
-  private String edgeOffsetMapName(int nodeTypeId, Direction direction) {
-    return String.format("%s%d__%s", EDGE_OFFSET_PREFIX, nodeTypeId, direction.toString());
-  }
-
-  // TODO move, doc
-  private MVMap<String, Integer> edgeOffsetsMap(int nodeTypeId, Direction direction) {
-    if (mvstore == null) {
-      mvstore = initializeMVStore();
-    }
-    return mvstore.openMap(edgeOffsetMapName(nodeTypeId, direction));
   }
 }

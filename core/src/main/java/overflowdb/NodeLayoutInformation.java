@@ -11,7 +11,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Contains all static node-specific information for serialization / deserialization and in-memory representation.
+ * Contains all static node-specific information for serialization / deserialization.
  * <p>
  * Please make sure to instantiate only one instance per node type to not waste memory.
  */

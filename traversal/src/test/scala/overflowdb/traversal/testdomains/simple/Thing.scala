@@ -38,7 +38,6 @@ object Thing {
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ThingDb]) = new ThingDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Thing(graph, id)
-    override val layoutInformation = Thing.layoutInformation
   }
 
   val layoutInformation: NodeLayoutInformation =

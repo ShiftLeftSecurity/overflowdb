@@ -1,7 +1,7 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
 import overflowdb.traversal.Traversal
-import overflowdb.{Graph, NodeFactory, NodeLayoutInformation, NodeRef, PropertyKey}
+import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
@@ -35,7 +35,6 @@ object Artist {
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ArtistDb]) = new ArtistDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Artist(graph, id)
-    override val layoutInformation = Artist.layoutInformation
   }
 
   val layoutInformation: NodeLayoutInformation =

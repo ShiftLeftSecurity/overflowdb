@@ -44,7 +44,6 @@ object Song {
     override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[SongDb]) = new SongDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Song(graph, id)
-    override val layoutInformation = Song.layoutInformation
   }
 
   val layoutInformation: NodeLayoutInformation =

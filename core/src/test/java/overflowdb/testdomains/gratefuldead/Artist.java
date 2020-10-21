@@ -1,9 +1,8 @@
 package overflowdb.testdomains.gratefuldead;
 
-import overflowdb.Graph;
 import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
+import overflowdb.Graph;
 
 public class Artist extends NodeRef<ArtistDb> {
   public static final String label = "artist";
@@ -41,11 +40,6 @@ public class Artist extends NodeRef<ArtistDb> {
     @Override
     public Artist createNodeRef(Graph graph, long id) {
       return new Artist(graph, id);
-    }
-
-    @Override
-    public NodeLayoutInformation layoutInformation() {
-      return ArtistDb.layoutInformation;
     }
   };
 }

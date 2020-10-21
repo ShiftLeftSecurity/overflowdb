@@ -1,7 +1,6 @@
 package overflowdb.testdomains.simple;
 
 import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Graph;
 
@@ -60,11 +59,6 @@ public class TestNode extends NodeRef<TestNodeDb> {
     @Override
     public TestNode createNodeRef(Graph graph, long id) {
       return new TestNode(graph, id);
-    }
-
-    @Override
-    public NodeLayoutInformation layoutInformation() {
-      return TestNodeDb.layoutInformation;
     }
   };
 

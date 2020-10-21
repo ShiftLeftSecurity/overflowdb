@@ -70,6 +70,7 @@ public class SongDb extends NodeDb {
     }
   }
 
+
   @Override
   protected void removeSpecificProperty(String key) {
     if (Song.NAME.equals(key)) {
