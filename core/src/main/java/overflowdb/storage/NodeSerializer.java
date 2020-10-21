@@ -27,7 +27,7 @@ public class NodeSerializer extends BookKeeper {
 
       packProperties(packer, node.valueMap());
       packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
-      packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
+      packAdjacentNodesWithEdgeProperties(packer, node.getAdjacentNodesWithEdgeProperties());
 
       if (statsEnabled) recordStatistics(startTimeNanos);
       return packer.toByteArray();
@@ -53,10 +53,10 @@ public class NodeSerializer extends BookKeeper {
     }
   }
 
-  private void packAdjacentNodesWithProperties(MessageBufferPacker packer, Object[] adjacentNodesWithProperties) throws IOException {
-    packer.packArrayHeader(adjacentNodesWithProperties.length);
-    for (int i = 0; i < adjacentNodesWithProperties.length; i++) {
-      packTypedValue(packer, adjacentNodesWithProperties[i]);
+  private void packAdjacentNodesWithEdgeProperties(MessageBufferPacker packer, Object[] adjacentNodesWithEdgeProperties) throws IOException {
+    packer.packArrayHeader(adjacentNodesWithEdgeProperties.length);
+    for (int i = 0; i < adjacentNodesWithEdgeProperties.length; i++) {
+      packTypedValue(packer, adjacentNodesWithEdgeProperties[i]);
     }
   }
 
