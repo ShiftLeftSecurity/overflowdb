@@ -44,7 +44,7 @@ public abstract class NodeDb implements Node {
    * `true`  when node is first created, or is modified (property or edges)
    * `false` when node is freshly serialized to disk or deserialized from disk
    */
-  private boolean dirty;
+  private volatile boolean dirty;
 
   private static final String[] ALL_LABELS = new String[0];
 
