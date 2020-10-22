@@ -1,15 +1,17 @@
 package overflowdb.storage;
 
-import overflowdb.NodeRef;
+import overflowdb.Node;
+import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeDb;
-import overflowdb.util.PackedIntArray;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class NodeSerializer extends BookKeeper {
   public NodeSerializer(boolean statsEnabled) {
@@ -19,15 +21,18 @@ public class NodeSerializer extends BookKeeper {
   public byte[] serialize(NodeDb node) throws IOException {
     long startTimeNanos = getStartTimeNanos();
     try (MessageBufferPacker packer = MessagePack.newDefaultBufferPacker()) {
+      NodeLayoutInformation layoutInformation = node.layoutInformation();
       /* marking as clean *before* we start serializing - if node is modified any time afterwards it'll be marked as dirty */
       node.markAsClean();
 
       packer.packLong(node.ref.id());
-      packer.packInt(node.layoutInformation().labelId);
+      packer.packInt(layoutInformation.labelId);
 
       packProperties(packer, node.valueMap());
-      packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
-      packAdjacentNodesWithEdgeProperties(packer, node.getAdjacentNodesWithEdgeProperties());
+      // TODO drop: old stuff
+//      packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
+//      packAdjacentNodesWithEdgeProperties(packer, node.getAdjacentNodesWithEdgeProperties());
+      packEdges(packer, node);
 
       if (statsEnabled) recordStatistics(startTimeNanos);
       return packer.toByteArray();
@@ -46,20 +51,80 @@ public class NodeSerializer extends BookKeeper {
     }
   }
 
-  private void packEdgeOffsets(MessageBufferPacker packer, PackedIntArray edgeOffsets) throws IOException {
-    packer.packArrayHeader(edgeOffsets.length());
-    for (int i = 0; i < edgeOffsets.length(); i++) {
-      packer.packInt(edgeOffsets.get(i));
+  private void packEdges(MessageBufferPacker packer, NodeDb node) throws IOException {
+    NodeLayoutInformation layoutInformation = node.layoutInformation();
+
+    packer.packArrayHeader(layoutInformation.allowedOutEdgeLabels().length);
+    for (String edgeLabel : layoutInformation.allowedOutEdgeLabels()) {
+      int offsetPos = layoutInformation.outEdgeToOffsetPosition(edgeLabel);
+      packEdges0(packer, node, edgeLabel, offsetPos);
+    }
+
+    packer.packArrayHeader(layoutInformation.allowedInEdgeLabels().length);
+    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
+      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
+      packEdges0(packer, node, edgeLabel, offsetPos);
+    }
+    // TODO move this logic to NodeDb.java to keep it all in one place? only handle the writing to bytes here..
+  }
+
+  // TODO rename
+  private void packEdges0(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
+    NodeLayoutInformation layoutInformation = node.layoutInformation();
+    Object[] adjacentNodesWithEdgeProperties = node.getAdjacentNodesWithEdgeProperties();
+    final Set<String> edgePropertyNames = layoutInformation.edgePropertyNames(edgeLabel);
+
+    // pointers into adjacentNodesWithEdgeProperties
+    int start = node.startIndex(offsetPos);
+    int edgeCount = node.blockLength(offsetPos);
+    int strideSize = node.getStrideSize(edgeLabel);
+
+    packer.packString(edgeLabel);
+    packer.packArrayHeader(edgeCount);
+
+    for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
+      int nodeRefIdx = start + edgeIdx * strideSize;
+      Node adjacentNode = (Node) adjacentNodesWithEdgeProperties[nodeRefIdx];
+
+      ArrayList<Object> edgePropertyNameAndValueTuples = new ArrayList<>(edgePropertyNames.size() * 2);
+      int propertyCount = 0;
+
+      for (String edgePropertyName : edgePropertyNames) {
+        int edgePropertyOffset = layoutInformation.getEdgePropertyOffsetRelativeToAdjacentNodeRef(edgeLabel, edgePropertyName);
+        Object property = adjacentNodesWithEdgeProperties[nodeRefIdx + edgePropertyOffset];
+        if (property != null) {
+          edgePropertyNameAndValueTuples.add(edgePropertyName);
+          edgePropertyNameAndValueTuples.add(property);
+          propertyCount++;
+        }
+      }
+
+      packer.packLong(adjacentNode.id());
+      packer.packArrayHeader(propertyCount);
+      for (int i = 0; i < propertyCount; i++) {
+        String propertyName = (String) edgePropertyNameAndValueTuples.get(i * 2);
+        packer.packString(propertyName);
+        packTypedValue(packer, edgePropertyNameAndValueTuples.get(i * 2 + 1));
+      }
     }
   }
 
-  private void packAdjacentNodesWithEdgeProperties(MessageBufferPacker packer, Object[] adjacentNodesWithEdgeProperties) throws IOException {
-    packer.packArrayHeader(adjacentNodesWithEdgeProperties.length);
-    for (int i = 0; i < adjacentNodesWithEdgeProperties.length; i++) {
-      packTypedValue(packer, adjacentNodesWithEdgeProperties[i]);
-    }
-  }
-
+//  // TODO drop
+//  private void packEdgeOffsets(MessageBufferPacker packer, PackedIntArray edgeOffsets) throws IOException {
+//    packer.packArrayHeader(edgeOffsets.length());
+//    for (int i = 0; i < edgeOffsets.length(); i++) {
+//      packer.packInt(edgeOffsets.get(i));
+//    }
+//  }
+//
+//  // TODO drop
+//  private void packAdjacentNodesWithEdgeProperties(MessageBufferPacker packer, Object[] adjacentNodesWithEdgeProperties) throws IOException {
+//    packer.packArrayHeader(adjacentNodesWithEdgeProperties.length);
+//    for (int i = 0; i < adjacentNodesWithEdgeProperties.length; i++) {
+//      packTypedValue(packer, adjacentNodesWithEdgeProperties[i]);
+//    }
+//  }
+//
   /**
    * format: `[ValueType.id, value]`
    */
@@ -68,9 +133,9 @@ public class NodeSerializer extends BookKeeper {
     if (value == null) {
       packer.packByte(ValueTypes.UNKNOWN.id);
       packer.packNil();
-    } else if (value instanceof NodeRef) {
-      packer.packByte(ValueTypes.NODE_REF.id);
-      packer.packLong(((NodeRef) value).id());
+//    } else if (value instanceof NodeRef) {
+//      packer.packByte(ValueTypes.NODE_REF.id);
+//      packer.packLong(((NodeRef) value).id());
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);

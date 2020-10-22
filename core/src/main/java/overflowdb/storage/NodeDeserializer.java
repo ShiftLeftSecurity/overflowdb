@@ -44,10 +44,26 @@ public class NodeDeserializer extends BookKeeper {
     final long id = unpacker.unpackLong();
     final int labelId = unpacker.unpackInt();
     final Map<String, Object> properties = unpackProperties(unpacker);
-    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
+//  // TODO drop
+//    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
+//    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
+//    NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
 
-    NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    // TODO refactor/extract / move to NodeDb to keep internals in one place?
+    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
+    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
+    int outEdgeTypesCount = unpacker.unpackArrayHeader();
+    for (int outEdgeTypeIdx = 0; outEdgeTypeIdx < outEdgeTypesCount; outEdgeTypeIdx++) {
+      String edgeLabel = unpacker.unpackString();
+      int edgeCount = unpacker.unpackArrayHeader();
+      for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
+        long adjancentNodeId = unpacker.unpackLong();
+
+      }
+//    node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
+    }
+    // TODO same for IN edges
+    node.markAsClean();
 
     if (statsEnabled) recordStatistics(startTimeNanos);
     return node;
@@ -76,23 +92,25 @@ public class NodeDeserializer extends BookKeeper {
     return res;
   }
 
-  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
-    int size = unpacker.unpackArrayHeader();
-    int[] edgeOffsets = new int[size];
-    for (int i = 0; i < size; i++) {
-      edgeOffsets[i] = unpacker.unpackInt();
-    }
-    return edgeOffsets;
-  }
-
-  protected final Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
-    int size = unpacker.unpackArrayHeader();
-    Object[] adjacentNodesWithProperties = new Object[size];
-    for (int i = 0; i < size; i++) {
-      adjacentNodesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
-    }
-    return adjacentNodesWithProperties;
-  }
+//  // TODO drop
+//  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
+//    int size = unpacker.unpackArrayHeader();
+//    int[] edgeOffsets = new int[size];
+//    for (int i = 0; i < size; i++) {
+//      edgeOffsets[i] = unpacker.unpackInt();
+//    }
+//    return edgeOffsets;
+//  }
+//
+//  // TODO drop
+//  protected final Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
+//    int size = unpacker.unpackArrayHeader();
+//    Object[] adjacentNodesWithProperties = new Object[size];
+//    for (int i = 0; i < size; i++) {
+//      adjacentNodesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
+//    }
+//    return adjacentNodesWithProperties;
+//  }
 
   private final Object unpackValue(final ArrayValue packedValueAndType) {
     final Iterator<Value> iter = packedValueAndType.iterator();

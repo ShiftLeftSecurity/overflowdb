@@ -77,7 +77,6 @@ public abstract class NodeDb implements Node {
     return edgeOffsets;
   }
 
-
   public void setEdgeOffsets(int[] edgeOffsets) {
     this.edgeOffsets = PackedIntArray.of(edgeOffsets);
   }
@@ -196,7 +195,7 @@ public abstract class NodeDb implements Node {
         result.add(edgeProperty(direction, edge, blockOffset, key));
       }
     } else {
-      for (String propertyKey : layoutInformation().edgePropertyKeys(edge.label())) {
+      for (String propertyKey : layoutInformation().edgePropertyNames(edge.label())) {
         result.add(edgeProperty(direction, edge, blockOffset, propertyKey));
       }
     }
@@ -205,7 +204,7 @@ public abstract class NodeDb implements Node {
   }
 
   public Map<String, Object> edgePropertyMap(Direction direction, Edge edge, int blockOffset) {
-    final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
+    final Set<String> edgePropertyKeys = layoutInformation().edgePropertyNames(edge.label());
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
 
     for (String propertyKey : edgePropertyKeys) {
@@ -283,7 +282,7 @@ public abstract class NodeDb implements Node {
       return -1;
     }
 
-    int propertyOffset = layoutInformation().getOffsetRelativeToAdjacentNodeRef(label, key);
+    int propertyOffset = layoutInformation().getEdgePropertyOffsetRelativeToAdjacentNodeRef(label, key);
     if (propertyOffset == -1) {
       return -1;
     }
@@ -421,25 +420,35 @@ public abstract class NodeDb implements Node {
     return multiIterator;
   }
 
-  protected int outEdgeCount() {
-    int outEdgeCount = 0;
+  public int outEdgeCount() {
+    int count = 0;
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
       if (offsetPos != -1) {
-        int start = startIndex(offsetPos);
-        int length = blockLength(offsetPos);
-        int strideSize = getStrideSize(label);
-        int exclusiveEnd = start + length;
-        for (int i = start;
-             i < adjacentNodesWithEdgeProperties.length && i < exclusiveEnd;
-             i += strideSize) {
-           if (adjacentNodesWithEdgeProperties[i] != null) {
-             outEdgeCount++;
-           }
-        }
+        count += edgeOffsets.get(offsetPos + 1);
       }
     }
-    return outEdgeCount;
+    return count;
+  }
+
+  public int inEdgeCount() {
+    int count = 0;
+    for (String label : layoutInformation().allowedInEdgeLabels()) {
+      int offsetPos = getPositionInEdgeOffsets(Direction.IN, label);
+      if (offsetPos != -1) {
+        count += edgeOffsets.get(offsetPos + 1);
+      }
+    }
+    return count;
+  }
+
+  public int adjacentNodesCount() {
+    int total = 0;
+    for (int i = 0; i < edgeOffsets.length(); i += 2) {
+      // edgeOffsets contains index into adjancentNodes array (not relevant here) and the count for that specific edge
+      total += edgeOffsets.get(i + 1);
+    }
+    return total;
   }
 
   /**
@@ -596,11 +605,11 @@ public abstract class NodeDb implements Node {
     else throw new UnsupportedOperationException(direction.toString());
   }
 
-  private int storeAdjacentNode(Direction direction,
+  public int storeAdjacentNode(Direction direction,
                                 String edgeLabel,
-                                NodeRef nodeRef,
+                                NodeRef adjacentNode,
                                 Object... edgeKeyValues) {
-    int blockOffset = storeAdjacentNode(direction, edgeLabel, nodeRef);
+    int blockOffset = storeAdjacentNode(direction, edgeLabel, adjacentNode);
 
     /* set edge properties */
     for (int i = 0; i < edgeKeyValues.length; i = i + 2) {
@@ -639,7 +648,7 @@ public abstract class NodeDb implements Node {
     return blockOffset;
   }
 
-  private int startIndex(int offsetPosition) {
+  public int startIndex(int offsetPosition) {
     return edgeOffsets.get(2 * offsetPosition);
   }
 
@@ -647,9 +656,9 @@ public abstract class NodeDb implements Node {
    * @return number of elements reserved in `adjacentNodesWithProperties` for a given edge label
    * includes space for the node ref and all properties
    */
-  private final int getStrideSize(String edgeLabel) {
+  public final int getStrideSize(String edgeLabel) {
     int sizeForNodeRef = 1;
-    Set<String> allowedPropertyKeys = layoutInformation().edgePropertyKeys(edgeLabel);
+    Set<String> allowedPropertyKeys = layoutInformation().edgePropertyNames(edgeLabel);
     return sizeForNodeRef + allowedPropertyKeys.size();
   }
 
@@ -674,7 +683,7 @@ public abstract class NodeDb implements Node {
    * Returns the length of an edge type block in the adjacentNodesWithProperties array.
    * Length means number of index positions.
    */
-  private final int blockLength(int offsetPosition) {
+  public final int blockLength(int offsetPosition) {
     return edgeOffsets.get(2 * offsetPosition + 1);
   }
 
