@@ -425,7 +425,17 @@ public abstract class NodeDb implements Node {
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
       if (offsetPos != -1) {
-        count += edgeOffsets.get(offsetPos * 2 + 1);
+        int start = startIndex(offsetPos);
+        int length = blockLength(offsetPos);
+        int strideSize = getStrideSize(label);
+        int exclusiveEnd = start + length;
+        for (int i = start;
+             i < adjacentNodesWithEdgeProperties.length && i < exclusiveEnd;
+             i += strideSize) {
+          if (adjacentNodesWithEdgeProperties[i] != null) {
+            count++;
+          }
+        }
       }
     }
     return count;
@@ -436,7 +446,17 @@ public abstract class NodeDb implements Node {
     for (String label : layoutInformation().allowedInEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.IN, label);
       if (offsetPos != -1) {
-        count += edgeOffsets.get(offsetPos * 2 + 1);
+        int start = startIndex(offsetPos);
+        int length = blockLength(offsetPos);
+        int strideSize = getStrideSize(label);
+        int exclusiveEnd = start + length;
+        for (int i = start;
+             i < adjacentNodesWithEdgeProperties.length && i < exclusiveEnd;
+             i += strideSize) {
+          if (adjacentNodesWithEdgeProperties[i] != null) {
+            count++;
+          }
+        }
       }
     }
     return count;

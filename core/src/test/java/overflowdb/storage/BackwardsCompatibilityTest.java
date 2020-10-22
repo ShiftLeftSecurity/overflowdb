@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +52,7 @@ public class BackwardsCompatibilityTest {
       Node thing1 = graph.node(thing1Id);
       SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
       SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
+      assertEquals(0, connection.propertyMap().size());
       Node thing2 = connection.inNode();
       SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
 
@@ -157,7 +159,10 @@ class SchemaV1 {
 
   static class Connection1 extends Edge {
     public static final String LABEL = "Connection1";
-    public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, Collections.EMPTY_SET);
+    public static final String NAME = "name";
+    private static final Set<String> propertyKeys = new HashSet<>(Arrays.asList(NAME));
+
+    public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, propertyKeys);
 
     public static EdgeFactory<Connection1> factory = new EdgeFactory<Connection1>() {
       @Override
@@ -167,12 +172,12 @@ class SchemaV1 {
 
       @Override
       public Connection1 createEdge(Graph graph, NodeRef<NodeDb> outNode, NodeRef<NodeDb> inNode) {
-        return new Connection1(graph, outNode, inNode, Collections.EMPTY_SET);
+        return new Connection1(graph, outNode, inNode);
       }
     };
 
-    public Connection1(Graph graph, NodeRef outNode, NodeRef inVertex, Set<String> specificKeys) {
-      super(graph, LABEL, outNode, inVertex, specificKeys);
+    public Connection1(Graph graph, NodeRef outNode, NodeRef inVertex) {
+      super(graph, LABEL, outNode, inVertex, propertyKeys);
     }
   }
 }
