@@ -53,18 +53,51 @@ public class NodeSerializer extends BookKeeper {
 
   private void packEdges(MessageBufferPacker packer, NodeDb node) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
+    int[] edgeOffsets = node.getEdgeOffsets();
 
-    packer.packArrayHeader(layoutInformation.allowedOutEdgeLabels().length);
+    ArrayList<Object> outEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedOutEdgeLabels().length * 2);
+    int outEdgeCount = 0;
     for (String edgeLabel : layoutInformation.allowedOutEdgeLabels()) {
       int offsetPos = layoutInformation.outEdgeToOffsetPosition(edgeLabel);
+      int count = edgeOffsets[offsetPos + 1];
+      if (count > 0) {
+        outEdgeCount += count;
+        outEdgeLabelAndOffsetPos.add(edgeLabel);
+        outEdgeLabelAndOffsetPos.add(offsetPos);
+      }
+    }
+    packer.packArrayHeader(outEdgeCount);
+    for (int i = 0; i < outEdgeLabelAndOffsetPos.size(); i += 2) {
+      String edgeLabel = (String) outEdgeLabelAndOffsetPos.get(i);
+      int offsetPos = (int) outEdgeLabelAndOffsetPos.get(i + 1);
       packEdges0(packer, node, edgeLabel, offsetPos);
     }
 
-    packer.packArrayHeader(layoutInformation.allowedInEdgeLabels().length);
+    // TODO refactor: extract duplication.
+    // same for IN edges
+    ArrayList<Object> inEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedInEdgeLabels().length * 2);
+    int inEdgeCount = 0;
     for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
       int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
+      int count = edgeOffsets[offsetPos + 1];
+      if (count > 0) {
+        inEdgeCount += count;
+        inEdgeLabelAndOffsetPos.add(edgeLabel);
+        inEdgeLabelAndOffsetPos.add(offsetPos);
+      }
+    }
+    packer.packArrayHeader(inEdgeCount);
+    for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
+      String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
+      int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
       packEdges0(packer, node, edgeLabel, offsetPos);
     }
+
+//    packer.packArrayHeader(layoutInformation.allowedInEdgeLabels().length);
+//    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
+//      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
+//      packEdges0(packer, node, edgeLabel, offsetPos);
+//    }
     // TODO move this logic to NodeDb.java to keep it all in one place? only handle the writing to bytes here..
   }
 
