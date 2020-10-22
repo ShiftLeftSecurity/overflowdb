@@ -425,7 +425,7 @@ public abstract class NodeDb implements Node {
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
       if (offsetPos != -1) {
-        count += edgeOffsets.get(offsetPos + 1);
+        count += edgeOffsets.get(offsetPos * 2 + 1);
       }
     }
     return count;
@@ -436,7 +436,7 @@ public abstract class NodeDb implements Node {
     for (String label : layoutInformation().allowedInEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.IN, label);
       if (offsetPos != -1) {
-        count += edgeOffsets.get(offsetPos + 1);
+        count += edgeOffsets.get(offsetPos * 2 + 1);
       }
     }
     return count;

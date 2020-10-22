@@ -54,8 +54,8 @@ public class BackwardsCompatibilityTest {
       Node thing2 = connection.inNode();
       SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
 
-//      assertEquals(2, graph.nodeCount());
-//      assertEquals(1, graph.edgeCount());
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
 
       graph.close();
     }
