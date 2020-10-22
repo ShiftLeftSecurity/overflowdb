@@ -58,7 +58,12 @@ public class NodeDeserializer extends BookKeeper {
       int edgeCount = unpacker.unpackArrayHeader();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
-
+        // TODO reuse pack/unpackProperties?
+        int propertyCount = unpacker.unpackArrayHeader();
+        for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
+          String propertyName = unpacker.unpackString();
+          Object property = unpackValue(unpacker.unpackValue().asArrayValue());
+        }
       }
 //    node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
     }

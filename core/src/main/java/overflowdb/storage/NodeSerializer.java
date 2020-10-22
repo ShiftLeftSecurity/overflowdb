@@ -8,6 +8,7 @@ import org.msgpack.core.MessagePack;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -56,17 +57,17 @@ public class NodeSerializer extends BookKeeper {
     int[] edgeOffsets = node.getEdgeOffsets();
 
     ArrayList<Object> outEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedOutEdgeLabels().length * 2);
-    int outEdgeCount = 0;
+    int outEdgeTypeCount = 0;
     for (String edgeLabel : layoutInformation.allowedOutEdgeLabels()) {
       int offsetPos = layoutInformation.outEdgeToOffsetPosition(edgeLabel);
       int count = edgeOffsets[offsetPos + 1];
       if (count > 0) {
-        outEdgeCount += count;
+        outEdgeTypeCount++;
         outEdgeLabelAndOffsetPos.add(edgeLabel);
         outEdgeLabelAndOffsetPos.add(offsetPos);
       }
     }
-    packer.packArrayHeader(outEdgeCount);
+    packer.packArrayHeader(outEdgeTypeCount);
     for (int i = 0; i < outEdgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) outEdgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) outEdgeLabelAndOffsetPos.get(i + 1);
@@ -75,23 +76,23 @@ public class NodeSerializer extends BookKeeper {
 
     // TODO refactor: extract duplication.
     // same for IN edges
-    ArrayList<Object> inEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedInEdgeLabels().length * 2);
-    int inEdgeCount = 0;
-    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
-      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
-      int count = edgeOffsets[offsetPos + 1];
-      if (count > 0) {
-        inEdgeCount += count;
-        inEdgeLabelAndOffsetPos.add(edgeLabel);
-        inEdgeLabelAndOffsetPos.add(offsetPos);
-      }
-    }
-    packer.packArrayHeader(inEdgeCount);
-    for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
-      String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
-      int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
-      packEdges0(packer, node, edgeLabel, offsetPos);
-    }
+//    ArrayList<Object> inEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedInEdgeLabels().length * 2);
+//    int inEdgeCount = 0;
+//    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
+//      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
+//      int count = edgeOffsets[offsetPos + 1];
+//      if (count > 0) {
+//        inEdgeCount += count;
+//        inEdgeLabelAndOffsetPos.add(edgeLabel);
+//        inEdgeLabelAndOffsetPos.add(offsetPos);
+//      }
+//    }
+//    packer.packArrayHeader(inEdgeCount);
+//    for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
+//      String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
+//      int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
+//      packEdges0(packer, node, edgeLabel, offsetPos);
+//    }
 
 //    packer.packArrayHeader(layoutInformation.allowedInEdgeLabels().length);
 //    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
@@ -118,27 +119,17 @@ public class NodeSerializer extends BookKeeper {
     for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
       int nodeRefIdx = start + edgeIdx * strideSize;
       Node adjacentNode = (Node) adjacentNodesWithEdgeProperties[nodeRefIdx];
+      packer.packLong(adjacentNode.id());
 
-      ArrayList<Object> edgePropertyNameAndValueTuples = new ArrayList<>(edgePropertyNames.size() * 2);
-      int propertyCount = 0;
-
-      for (String edgePropertyName : edgePropertyNames) {
-        int edgePropertyOffset = layoutInformation.getEdgePropertyOffsetRelativeToAdjacentNodeRef(edgeLabel, edgePropertyName);
+      Map<String, Object> edgeProperties = new HashMap<>();
+      for (String propertyName : edgePropertyNames) {
+        int edgePropertyOffset = layoutInformation.getEdgePropertyOffsetRelativeToAdjacentNodeRef(edgeLabel, propertyName);
         Object property = adjacentNodesWithEdgeProperties[nodeRefIdx + edgePropertyOffset];
         if (property != null) {
-          edgePropertyNameAndValueTuples.add(edgePropertyName);
-          edgePropertyNameAndValueTuples.add(property);
-          propertyCount++;
+          edgeProperties.put(propertyName, property);
         }
       }
-
-      packer.packLong(adjacentNode.id());
-      packer.packArrayHeader(propertyCount);
-      for (int i = 0; i < propertyCount; i++) {
-        String propertyName = (String) edgePropertyNameAndValueTuples.get(i * 2);
-        packer.packString(propertyName);
-        packTypedValue(packer, edgePropertyNameAndValueTuples.get(i * 2 + 1));
-      }
+      packProperties(packer, edgeProperties);
     }
   }
 
