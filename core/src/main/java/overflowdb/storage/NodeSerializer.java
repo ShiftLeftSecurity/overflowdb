@@ -106,7 +106,7 @@ public class NodeSerializer extends BookKeeper {
   private void packEdges0(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
     Object[] adjacentNodesWithEdgeProperties = node.getAdjacentNodesWithEdgeProperties();
-    final Set<String> edgePropertyNames = layoutInformation.edgePropertyNames(edgeLabel);
+    final Set<String> edgePropertyNames = layoutInformation.edgePropertyKeys(edgeLabel);
 
     // pointers into adjacentNodesWithEdgeProperties
     int start = node.startIndex(offsetPos);

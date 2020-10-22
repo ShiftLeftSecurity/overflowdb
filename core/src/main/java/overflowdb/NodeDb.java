@@ -195,7 +195,7 @@ public abstract class NodeDb implements Node {
         result.add(edgeProperty(direction, edge, blockOffset, key));
       }
     } else {
-      for (String propertyKey : layoutInformation().edgePropertyNames(edge.label())) {
+      for (String propertyKey : layoutInformation().edgePropertyKeys(edge.label())) {
         result.add(edgeProperty(direction, edge, blockOffset, propertyKey));
       }
     }
@@ -204,7 +204,7 @@ public abstract class NodeDb implements Node {
   }
 
   public Map<String, Object> edgePropertyMap(Direction direction, Edge edge, int blockOffset) {
-    final Set<String> edgePropertyKeys = layoutInformation().edgePropertyNames(edge.label());
+    final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
 
     for (String propertyKey : edgePropertyKeys) {
@@ -658,7 +658,7 @@ public abstract class NodeDb implements Node {
    */
   public final int getStrideSize(String edgeLabel) {
     int sizeForNodeRef = 1;
-    Set<String> allowedPropertyKeys = layoutInformation().edgePropertyNames(edgeLabel);
+    Set<String> allowedPropertyKeys = layoutInformation().edgePropertyKeys(edgeLabel);
     return sizeForNodeRef + allowedPropertyKeys.size();
   }
 

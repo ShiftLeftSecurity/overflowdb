@@ -22,7 +22,7 @@ public class NodeLayoutInformation {
    *  */
   public final int labelId;
 
-  private final Set<String> propertyNames;
+  private final Set<String> propertyKeys;
   private final String[] allowedOutEdgeLabels;
   private final String[] allowedInEdgeLabels;
 
@@ -32,29 +32,29 @@ public class NodeLayoutInformation {
   /* position for given IN edge label in edgeOffsets */
   private final Map<String, Integer> inEdgeToOffsetPosition;
 
-  /* possible edge property names, grouped by edge label.
-   * n.b. property names are of type `HashSet` (rather than just `Set`) to ensure `.size` has constant time */
-  private final Map<String, HashSet<String>> edgePropertyNamesByLabel;
+  /* possible edge property keys, grouped by edge label.
+   * n.b. property keys are of type `HashSet` (rather than just `Set`) to ensure `.size` has constant time */
+  private final Map<String, HashSet<String>> edgePropertyKeysByLabel;
 
   /* maps offsetPos -> number of edge properties*/
   private final int[] edgePropertyCountByOffsetPosition;
 
-  /* position in stride (entry within `adjacentNodesWithEdgeProperties`) for a given edge label and edge property name
+  /* position in stride (entry within `adjacentNodesWithEdgeProperties`) for a given edge label and edge property key
    * 1-based, because index `0` is the adjacent node ref */
   private final Map<LabelAndKey, Integer> edgeLabelAndKeyToStrideIndex;
 
   public NodeLayoutInformation(int labelId,
-                               Set<String> propertyNames,
+                               Set<String> propertyKeys,
                                List<EdgeLayoutInformation> outEdgeLayouts,
                                List<EdgeLayoutInformation> inEdgeLayouts) {
     this.labelId = labelId;
-    this.propertyNames = propertyNames;
+    this.propertyKeys = propertyKeys;
 
     Set<EdgeLayoutInformation> allEdgeLayouts = new HashSet<>();
     allEdgeLayouts.addAll(outEdgeLayouts);
     allEdgeLayouts.addAll(inEdgeLayouts);
 
-    edgePropertyNamesByLabel = createEdgePropertyKeysByLabel(allEdgeLayouts);
+    edgePropertyKeysByLabel = createEdgePropertyKeysByLabel(allEdgeLayouts);
     edgeLabelAndKeyToStrideIndex = createEdgeLabelAndKeyToStrideIndex(allEdgeLayouts);
 
     /* create unique offsets for each edge type and direction
@@ -70,14 +70,14 @@ public class NodeLayoutInformation {
     int i = 0;
     outEdgeToOffsetPosition = new HashMap<>(outEdgeLayouts.size());
     for (EdgeLayoutInformation edgeLayout : outEdgeLayouts) {
-      edgePropertyCountByOffsetPosition[offsetPosition] = edgePropertyNamesByLabel.get(edgeLayout.label).size();
+      edgePropertyCountByOffsetPosition[offsetPosition] = edgePropertyKeysByLabel.get(edgeLayout.label).size();
       outEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
       allowedOutEdgeLabels[i++] = edgeLayout.label;
     }
     i = 0;
     inEdgeToOffsetPosition = new HashMap<>(inEdgeLayouts.size());
     for (EdgeLayoutInformation edgeLayout : inEdgeLayouts) {
-      edgePropertyCountByOffsetPosition[offsetPosition] = edgePropertyNamesByLabel.get(edgeLayout.label).size();
+      edgePropertyCountByOffsetPosition[offsetPosition] = edgePropertyKeysByLabel.get(edgeLayout.label).size();
       inEdgeToOffsetPosition.put(edgeLayout.label, offsetPosition++);
       allowedInEdgeLabels[i++] = edgeLayout.label;
     }
@@ -97,7 +97,7 @@ public class NodeLayoutInformation {
       /* 1-based, because index `0` is the adjacent node ref */
       int strideIndex = 1;
 
-      /* sort property names to ensure we get the same offsets between restarts
+      /* sort property keys to ensure we get the same offsets between restarts
        * n.b. this doesn't support schema changes */
       for (String propertyKey : sorted(edgeLayout.propertyKeys)) {
         edgeLabelAndKeyToStrideIndex.put(new LabelAndKey(edgeLayout.label, propertyKey), strideIndex++);
@@ -119,7 +119,7 @@ public class NodeLayoutInformation {
   }
 
   public Set<String> propertyKeys() {
-    return propertyNames;
+    return propertyKeys;
   }
 
   public String[] allowedOutEdgeLabels() {
@@ -130,8 +130,8 @@ public class NodeLayoutInformation {
     return allowedInEdgeLabels;
   }
 
-  public Set<String> edgePropertyNames(String edgeLabel) {
-    return edgePropertyNamesByLabel.get(edgeLabel);
+  public Set<String> edgePropertyKeys(String edgeLabel) {
+    return edgePropertyKeysByLabel.get(edgeLabel);
   }
 
   /* The number of different IN|OUT edge relations. E.g. a node has AST edges in and out, then we would have 2.
@@ -152,10 +152,10 @@ public class NodeLayoutInformation {
 
   /**
    * @return The offset relative to the adjacent node in the adjacentNodesWithEdgeProperties array starting from 1.
-   * Return -1 if property name does not exist for given edgeLabel.
+   * Return -1 if property key does not exist for given edgeLabel.
    */
-  public int getEdgePropertyOffsetRelativeToAdjacentNodeRef(String edgeLabel, String propertyName) {
-    return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, propertyName), -1);
+  public int getEdgePropertyOffsetRelativeToAdjacentNodeRef(String edgeLabel, String propertyKey) {
+    return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, propertyKey), -1);
   }
 
   /* gets edge property count by offsetPos*/
