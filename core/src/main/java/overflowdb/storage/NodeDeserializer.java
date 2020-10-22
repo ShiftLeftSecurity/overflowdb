@@ -5,6 +5,7 @@ import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
+import overflowdb.Direction;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.Graph;
@@ -43,7 +44,7 @@ public class NodeDeserializer extends BookKeeper {
     MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
     final long id = unpacker.unpackLong();
     final int labelId = unpacker.unpackInt();
-    final Map<String, Object> properties = unpackProperties(unpacker);
+    final Map<String, Object> properties = unpackPropertiesAsMap(unpacker);
 //  // TODO drop
 //    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
 //    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
@@ -52,22 +53,32 @@ public class NodeDeserializer extends BookKeeper {
     // TODO refactor/extract / move to NodeDb to keep internals in one place?
     NodeDb node = getNodeFactory(labelId).createNode(graph, id);
     PropertyHelper.attachProperties(node, toKeyValueArray(properties));
+
     int outEdgeTypesCount = unpacker.unpackArrayHeader();
     for (int outEdgeTypeIdx = 0; outEdgeTypeIdx < outEdgeTypesCount; outEdgeTypeIdx++) {
       String edgeLabel = unpacker.unpackString();
       int edgeCount = unpacker.unpackArrayHeader();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
-        final Map<String, Object> edgeProperties = unpackProperties(unpacker);
-//        int propertyCount = unpacker.unpackArrayHeader();
-//        for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
-//          String propertyName = unpacker.unpackString();
-//          Object property = unpackValue(unpacker.unpackValue().asArrayValue());
-//        }
+        NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
+        Object[] edgeProperties = unpackProperties(unpacker);
+        node.storeAdjacentNode(Direction.OUT, edgeLabel, adjacentNode, edgeProperties);
       }
-//    node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
     }
-    // TODO same for IN edges
+
+    // same for IN edges // TODO remove duplication
+    int inEdgeTypesCount = unpacker.unpackArrayHeader();
+    for (int inEdgeTypeIdx = 0; inEdgeTypeIdx < inEdgeTypesCount; inEdgeTypeIdx++) {
+      String edgeLabel = unpacker.unpackString();
+      int edgeCount = unpacker.unpackArrayHeader();
+      for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
+        long adjancentNodeId = unpacker.unpackLong();
+        NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
+        final Object[] edgeProperties = unpackProperties(unpacker);
+        node.storeAdjacentNode(Direction.IN, edgeLabel, adjacentNode, edgeProperties);
+      }
+    }
+
     node.markAsClean();
 
     if (statsEnabled) recordStatistics(startTimeNanos);
@@ -86,13 +97,27 @@ public class NodeDeserializer extends BookKeeper {
     }
   }
 
-  private final Map<String, Object> unpackProperties(MessageUnpacker unpacker) throws IOException {
+  // TODO remove this - use `unpackProperties` everywhere
+  private final Map<String, Object> unpackPropertiesAsMap(MessageUnpacker unpacker) throws IOException {
     int propertyCount = unpacker.unpackMapHeader();
     Map<String, Object> res = new THashMap<>(propertyCount);
     for (int i = 0; i < propertyCount; i++) {
       final String key = intern(unpacker.unpackString());
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
       res.put(key, unpackedProperty);
+    }
+    return res;
+  }
+
+  private final Object[] unpackProperties(MessageUnpacker unpacker) throws IOException {
+    int propertyCount = unpacker.unpackMapHeader();
+    Object[] res = new Object[propertyCount];
+    int resIdx = 0;
+    for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
+      final String key = intern(unpacker.unpackString());
+      final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
+      res[resIdx++] = key;
+      res[resIdx++] = unpackedProperty;
     }
     return res;
   }
@@ -178,15 +203,16 @@ public class NodeDeserializer extends BookKeeper {
     return getNodeFactory(labelId).createNodeRef(graph, id);
   }
 
-  protected final NodeDb createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
-    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
-    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
-    node.setEdgeOffsets(edgeOffsets);
-    node.setAdjacentNodesWithEdgeProperties(adjacentNodesWithProperties);
-    node.markAsClean();
-
-    return node;
-  }
+//  // TODO drop
+//  protected final NodeDb createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
+//    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
+//    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
+//    node.setEdgeOffsets(edgeOffsets);
+//    node.setAdjacentNodesWithEdgeProperties(adjacentNodesWithProperties);
+//    node.markAsClean();
+//
+//    return node;
+//  }
 
   private final NodeFactory getNodeFactory(int labelId) {
     if (!nodeFactoryByLabelId.containsKey(labelId))

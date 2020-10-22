@@ -76,30 +76,24 @@ public class NodeSerializer extends BookKeeper {
 
     // TODO refactor: extract duplication.
     // same for IN edges
-//    ArrayList<Object> inEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedInEdgeLabels().length * 2);
-//    int inEdgeCount = 0;
-//    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
-//      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
-//      int count = edgeOffsets[offsetPos + 1];
-//      if (count > 0) {
-//        inEdgeCount += count;
-//        inEdgeLabelAndOffsetPos.add(edgeLabel);
-//        inEdgeLabelAndOffsetPos.add(offsetPos);
-//      }
-//    }
-//    packer.packArrayHeader(inEdgeCount);
-//    for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
-//      String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
-//      int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
-//      packEdges0(packer, node, edgeLabel, offsetPos);
-//    }
+    ArrayList<Object> inEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedInEdgeLabels().length * 2);
+    int inEdgeTypeCount = 0;
+    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
+      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
+      int count = edgeOffsets[offsetPos + 1];
+      if (count > 0) {
+        inEdgeTypeCount++;
+        inEdgeLabelAndOffsetPos.add(edgeLabel);
+        inEdgeLabelAndOffsetPos.add(offsetPos);
+      }
+    }
+    packer.packArrayHeader(inEdgeTypeCount);
+    for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
+      String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
+      int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
+      packEdges0(packer, node, edgeLabel, offsetPos);
+    }
 
-//    packer.packArrayHeader(layoutInformation.allowedInEdgeLabels().length);
-//    for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
-//      int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
-//      packEdges0(packer, node, edgeLabel, offsetPos);
-//    }
-    // TODO move this logic to NodeDb.java to keep it all in one place? only handle the writing to bytes here..
   }
 
   // TODO rename

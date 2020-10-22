@@ -44,21 +44,21 @@ public class BackwardsCompatibilityTest {
       graph.close();
     }
 
-//    {
-//      Graph graph = Graph.open(config,
-//          Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
-//          Arrays.asList(SchemaV1.Connection1.factory, SchemaV2.Connection2.factory));
-//      Node thing1 = graph.node(thing1Id);
-//      SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
-//      SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
-//      Node thing2 = connection.inNode();
-//      SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
-//
+    {
+      Graph graph = Graph.open(config,
+          Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
+          Arrays.asList(SchemaV1.Connection1.factory, SchemaV2.Connection2.factory));
+      Node thing1 = graph.node(thing1Id);
+      SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
+      SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
+      Node thing2 = connection.inNode();
+      SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
+
 //      assertEquals(2, graph.nodeCount());
 //      assertEquals(1, graph.edgeCount());
-//
-//      graph.close();
-//    }
+
+      graph.close();
+    }
 
     storageFile.delete(); //cleanup after test
   }
