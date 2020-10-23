@@ -38,7 +38,7 @@ public class BackwardsCompatibilityTest {
           Arrays.asList(SchemaV1.Connection1.factory));
       Node thing1 = graph.addNode(SchemaV1.Thing1.LABEL);
       Node thing2 = graph.addNode(SchemaV1.Thing2.LABEL);
-      thing1.addEdge(SchemaV1.Connection1.LABEL, thing2);
+      thing1.addEdge(SchemaV1.Connection1.LABEL, thing2, SchemaV1.Connection1.NAME, "thing 1");
       assertEquals(2, graph.nodeCount());
       assertEquals(1, graph.edgeCount());
       thing1Id = thing1.id();
@@ -52,7 +52,7 @@ public class BackwardsCompatibilityTest {
       Node thing1 = graph.node(thing1Id);
       SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
       SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
-      assertEquals(0, connection.propertyMap().size());
+      assertEquals(1, connection.propertyMap().size());
       Node thing2 = connection.inNode();
       SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();
 
@@ -191,7 +191,7 @@ class SchemaV2 {
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
         LABEL_ID,
         Collections.emptySet(),
-        Arrays.asList(Connection2.layoutInformation, SchemaV1.Connection1.layoutInformation),
+        Arrays.asList(Connection2.layoutInformation, Connection1.layoutInformation),
         Arrays.asList()
     );
 
@@ -237,7 +237,7 @@ class SchemaV2 {
         LABEL_ID,
         Collections.emptySet(),
         Arrays.asList(),
-        Arrays.asList(Connection2.layoutInformation, SchemaV1.Connection1.layoutInformation)
+        Arrays.asList(Connection2.layoutInformation, Connection1.layoutInformation)
     );
 
     static NodeFactory<Thing2> nodeFactory = new NodeFactory<Thing2>() {
@@ -274,9 +274,37 @@ class SchemaV2 {
     }
   }
 
+  // just like SchemaV1.Connection1, but one more property
+  static class Connection1 extends Edge {
+    public static final String LABEL = "Connection1";
+    public static final String NAME = "name";
+    public static final String FOO = "foo";
+    private static final Set<String> propertyKeys = new HashSet<>(Arrays.asList(NAME, FOO));
+
+    public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, propertyKeys);
+
+    public static EdgeFactory<Connection1> factory = new EdgeFactory<Connection1>() {
+      @Override
+      public String forLabel() {
+        return LABEL;
+      }
+
+      @Override
+      public Connection1 createEdge(Graph graph, NodeRef<NodeDb> outNode, NodeRef<NodeDb> inNode) {
+        return new Connection1(graph, outNode, inNode);
+      }
+    };
+
+    public Connection1(Graph graph, NodeRef outNode, NodeRef inVertex) {
+      super(graph, LABEL, outNode, inVertex, propertyKeys);
+    }
+  }
+
   static class Connection2 extends Edge {
     public static final String LABEL = "Connection2";
-    public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, Collections.EMPTY_SET);
+    public static final String BAR = "bar";
+    private static final Set<String> propertyKeys = new HashSet<>(Arrays.asList(BAR));
+    public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, propertyKeys);
 
     public static EdgeFactory<Connection2> factory = new EdgeFactory<Connection2>() {
       @Override
@@ -286,12 +314,12 @@ class SchemaV2 {
 
       @Override
       public Connection2 createEdge(Graph graph, NodeRef<NodeDb> outNode, NodeRef<NodeDb> inNode) {
-        return new Connection2(graph, outNode, inNode, Collections.EMPTY_SET);
+        return new Connection2(graph, outNode, inNode);
       }
     };
 
-    public Connection2(Graph graph, NodeRef outNode, NodeRef inVertex, Set<String> specificKeys) {
-      super(graph, LABEL, outNode, inVertex, specificKeys);
+    public Connection2(Graph graph, NodeRef outNode, NodeRef inVertex) {
+      super(graph, LABEL, outNode, inVertex, propertyKeys);
     }
   }
 }

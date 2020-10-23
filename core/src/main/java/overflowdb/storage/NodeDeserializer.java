@@ -111,7 +111,7 @@ public class NodeDeserializer extends BookKeeper {
 
   private final Object[] unpackProperties(MessageUnpacker unpacker) throws IOException {
     int propertyCount = unpacker.unpackMapHeader();
-    Object[] res = new Object[propertyCount];
+    Object[] res = new Object[propertyCount * 2];
     int resIdx = 0;
     for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
       final String key = intern(unpacker.unpackString());
@@ -121,26 +121,6 @@ public class NodeDeserializer extends BookKeeper {
     }
     return res;
   }
-
-//  // TODO drop
-//  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
-//    int size = unpacker.unpackArrayHeader();
-//    int[] edgeOffsets = new int[size];
-//    for (int i = 0; i < size; i++) {
-//      edgeOffsets[i] = unpacker.unpackInt();
-//    }
-//    return edgeOffsets;
-//  }
-//
-//  // TODO drop
-//  protected final Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
-//    int size = unpacker.unpackArrayHeader();
-//    Object[] adjacentNodesWithProperties = new Object[size];
-//    for (int i = 0; i < size; i++) {
-//      adjacentNodesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
-//    }
-//    return adjacentNodesWithProperties;
-//  }
 
   private final Object unpackValue(final ArrayValue packedValueAndType) {
     final Iterator<Value> iter = packedValueAndType.iterator();
