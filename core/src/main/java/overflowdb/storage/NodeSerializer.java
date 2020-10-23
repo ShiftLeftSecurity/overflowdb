@@ -60,7 +60,7 @@ public class NodeSerializer extends BookKeeper {
     int outEdgeTypeCount = 0;
     for (String edgeLabel : layoutInformation.allowedOutEdgeLabels()) {
       int offsetPos = layoutInformation.outEdgeToOffsetPosition(edgeLabel);
-      int count = edgeOffsets[offsetPos + 1];
+      int count = edgeOffsets[offsetPos * 2 + 1];
       if (count > 0) {
         outEdgeTypeCount++;
         outEdgeLabelAndOffsetPos.add(edgeLabel);
@@ -80,7 +80,7 @@ public class NodeSerializer extends BookKeeper {
     int inEdgeTypeCount = 0;
     for (String edgeLabel : layoutInformation.allowedInEdgeLabels()) {
       int offsetPos = layoutInformation.inEdgeToOffsetPosition(edgeLabel);
-      int count = edgeOffsets[offsetPos + 1];
+      int count = edgeOffsets[offsetPos * 2 + 1];
       if (count > 0) {
         inEdgeTypeCount++;
         inEdgeLabelAndOffsetPos.add(edgeLabel);
