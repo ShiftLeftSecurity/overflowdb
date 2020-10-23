@@ -1,15 +1,14 @@
 package overflowdb.storage;
 
-import gnu.trove.map.hash.THashMap;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
 import overflowdb.Direction;
-import overflowdb.NodeFactory;
-import overflowdb.NodeRef;
 import overflowdb.Graph;
 import overflowdb.NodeDb;
+import overflowdb.NodeFactory;
+import overflowdb.NodeRef;
 import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
@@ -44,15 +43,11 @@ public class NodeDeserializer extends BookKeeper {
     MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
     final long id = unpacker.unpackLong();
     final int labelId = unpacker.unpackInt();
-    final Map<String, Object> properties = unpackPropertiesAsMap(unpacker);
-//  // TODO drop
-//    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-//    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
-//    NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    final Object[] properties = unpackProperties(unpacker);
 
     // TODO refactor/extract / move to NodeDb to keep internals in one place?
     NodeDb node = getNodeFactory(labelId).createNode(graph, id);
-    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
+    PropertyHelper.attachProperties(node, properties);
 
     int outEdgeTypesCount = unpacker.unpackInt();
     for (int outEdgeTypeIdx = 0; outEdgeTypeIdx < outEdgeTypesCount; outEdgeTypeIdx++) {
@@ -95,18 +90,6 @@ public class NodeDeserializer extends BookKeeper {
 
       return createNodeRef(id, labelId);
     }
-  }
-
-  // TODO remove this - use `unpackProperties` everywhere
-  private final Map<String, Object> unpackPropertiesAsMap(MessageUnpacker unpacker) throws IOException {
-    int propertyCount = unpacker.unpackMapHeader();
-    Map<String, Object> res = new THashMap<>(propertyCount);
-    for (int i = 0; i < propertyCount; i++) {
-      final String key = intern(unpacker.unpackString());
-      final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
-      res.put(key, unpackedProperty);
-    }
-    return res;
   }
 
   private final Object[] unpackProperties(MessageUnpacker unpacker) throws IOException {

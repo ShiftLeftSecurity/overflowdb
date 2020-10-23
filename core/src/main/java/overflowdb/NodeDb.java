@@ -420,31 +420,10 @@ public abstract class NodeDb implements Node {
     return multiIterator;
   }
 
-  public int outEdgeCount() {
+  protected int outEdgeCount() {
     int count = 0;
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
-      if (offsetPos != -1) {
-        int start = startIndex(offsetPos);
-        int length = blockLength(offsetPos);
-        int strideSize = getStrideSize(label);
-        int exclusiveEnd = start + length;
-        for (int i = start;
-             i < adjacentNodesWithEdgeProperties.length && i < exclusiveEnd;
-             i += strideSize) {
-          if (adjacentNodesWithEdgeProperties[i] != null) {
-            count++;
-          }
-        }
-      }
-    }
-    return count;
-  }
-
-  public int inEdgeCount() {
-    int count = 0;
-    for (String label : layoutInformation().allowedInEdgeLabels()) {
-      int offsetPos = getPositionInEdgeOffsets(Direction.IN, label);
       if (offsetPos != -1) {
         int start = startIndex(offsetPos);
         int length = blockLength(offsetPos);
