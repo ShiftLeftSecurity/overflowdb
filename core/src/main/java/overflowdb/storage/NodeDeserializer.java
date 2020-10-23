@@ -1,14 +1,14 @@
 package overflowdb.storage;
 
-import gnu.trove.map.hash.THashMap;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
 import org.msgpack.value.Value;
-import overflowdb.NodeFactory;
-import overflowdb.NodeRef;
+import overflowdb.Direction;
 import overflowdb.Graph;
 import overflowdb.NodeDb;
+import overflowdb.NodeFactory;
+import overflowdb.NodeRef;
 import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
@@ -43,14 +43,32 @@ public class NodeDeserializer extends BookKeeper {
     MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
     final long id = unpacker.unpackLong();
     final int labelId = unpacker.unpackInt();
-    final Map<String, Object> properties = unpackProperties(unpacker);
-    final int[] edgeOffsets = unpackEdgeOffsets(unpacker);
-    final Object[] adjacentNodesWithProperties = unpackAdjacentNodesWithProperties(unpacker);
+    final Object[] properties = unpackProperties(unpacker);
 
-    NodeDb node = createNode(id, labelId, properties, edgeOffsets, adjacentNodesWithProperties);
+    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
+    PropertyHelper.attachProperties(node, properties);
+
+    deserializeEdges(unpacker, node, Direction.OUT);
+    deserializeEdges(unpacker, node, Direction.IN);
+
+    node.markAsClean();
 
     if (statsEnabled) recordStatistics(startTimeNanos);
     return node;
+  }
+
+  private void deserializeEdges(MessageUnpacker unpacker, NodeDb node, Direction direction) throws IOException {
+    int edgeTypesCount = unpacker.unpackInt();
+    for (int edgeTypeIdx = 0; edgeTypeIdx < edgeTypesCount; edgeTypeIdx++) {
+      String edgeLabel = unpacker.unpackString();
+      int edgeCount = unpacker.unpackInt();
+      for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
+        long adjancentNodeId = unpacker.unpackLong();
+        NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
+        Object[] edgeProperties = unpackProperties(unpacker);
+        node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
+      }
+    }
   }
 
   /**
@@ -65,33 +83,17 @@ public class NodeDeserializer extends BookKeeper {
     }
   }
 
-  private final Map<String, Object> unpackProperties(MessageUnpacker unpacker) throws IOException {
+  private final Object[] unpackProperties(MessageUnpacker unpacker) throws IOException {
     int propertyCount = unpacker.unpackMapHeader();
-    Map<String, Object> res = new THashMap<>(propertyCount);
-    for (int i = 0; i < propertyCount; i++) {
+    Object[] res = new Object[propertyCount * 2];
+    int resIdx = 0;
+    for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
       final String key = intern(unpacker.unpackString());
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
-      res.put(key, unpackedProperty);
+      res[resIdx++] = key;
+      res[resIdx++] = unpackedProperty;
     }
     return res;
-  }
-
-  private final int[] unpackEdgeOffsets(MessageUnpacker unpacker) throws IOException {
-    int size = unpacker.unpackArrayHeader();
-    int[] edgeOffsets = new int[size];
-    for (int i = 0; i < size; i++) {
-      edgeOffsets[i] = unpacker.unpackInt();
-    }
-    return edgeOffsets;
-  }
-
-  protected final Object[] unpackAdjacentNodesWithProperties(MessageUnpacker unpacker) throws IOException {
-    int size = unpacker.unpackArrayHeader();
-    Object[] adjacentNodesWithProperties = new Object[size];
-    for (int i = 0; i < size; i++) {
-      adjacentNodesWithProperties[i] = unpackValue(unpacker.unpackValue().asArrayValue());
-    }
-    return adjacentNodesWithProperties;
   }
 
   private final Object unpackValue(final ArrayValue packedValueAndType) {
@@ -102,9 +104,6 @@ public class NodeDeserializer extends BookKeeper {
     switch (ValueTypes.lookup(valueTypeId)) {
       case UNKNOWN:
         return null;
-      case NODE_REF:
-        long id = value.asIntegerValue().asLong();
-        return graph.node(id);
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
@@ -153,16 +152,6 @@ public class NodeDeserializer extends BookKeeper {
 
   protected final NodeRef createNodeRef(long id, int labelId) {
     return getNodeFactory(labelId).createNodeRef(graph, id);
-  }
-
-  protected final NodeDb createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
-    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
-    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
-    node.setEdgeOffsets(edgeOffsets);
-    node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
-    node.markAsClean();
-
-    return node;
   }
 
   private final NodeFactory getNodeFactory(int labelId) {

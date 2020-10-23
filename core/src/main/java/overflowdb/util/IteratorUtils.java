@@ -1,6 +1,8 @@
 package overflowdb.util;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -8,6 +10,14 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class IteratorUtils {
+
+  public static <A> ArrayList<A> toArrayList(Iterator<A> iterator) {
+    ArrayList<A> list = new ArrayList<>();
+    while (iterator.hasNext()) {
+      list.add(iterator.next());
+    }
+    return list;
+  }
 
   public static <A> Iterator<A> fromSingle(A a) {
     return new SingleIterator<>(a);

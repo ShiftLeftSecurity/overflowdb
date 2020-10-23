@@ -134,7 +134,7 @@ public class NodeLayoutInformation {
     return edgePropertyKeysByLabel.get(edgeLabel);
   }
 
-  /* The number fo different IN|OUT edge relations. E.g. a node has AST edges in and out, then we would have 2.
+  /* The number of different IN|OUT edge relations. E.g. a node has AST edges in and out, then we would have 2.
    * If in addition it has incoming ref edges it would have 3. */
   public int numberOfDifferentAdjacentTypes() {
     return outEdgeToOffsetPosition.size() + inEdgeToOffsetPosition.size();
@@ -151,11 +151,11 @@ public class NodeLayoutInformation {
   }
 
   /**
-   * @return The offset relative to the adjacent node in the  adjacentNodesWithProperties array starting from 1.
-   * Return -1 if key does not exist for given edgeLabel.
+   * @return The offset relative to the adjacent node in the adjacentNodesWithProperties array starting from 1.
+   * Return -1 if property key does not exist for given edgeLabel.
    */
-  public int getOffsetRelativeToAdjacentNodeRef(String edgeLabel, String key) {
-    return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, key), -1);
+  public int getEdgePropertyOffsetRelativeToAdjacentNodeRef(String edgeLabel, String propertyKey) {
+    return edgeLabelAndKeyToStrideIndex.getOrDefault(new LabelAndKey(edgeLabel, propertyKey), -1);
   }
 
   /* gets edge property count by offsetPos*/
