@@ -67,7 +67,7 @@ public class NodeSerializer extends BookKeeper {
         outEdgeLabelAndOffsetPos.add(offsetPos);
       }
     }
-    packer.packArrayHeader(outEdgeTypeCount);
+    packer.packInt(outEdgeTypeCount);
     for (int i = 0; i < outEdgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) outEdgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) outEdgeLabelAndOffsetPos.get(i + 1);
@@ -87,7 +87,7 @@ public class NodeSerializer extends BookKeeper {
         inEdgeLabelAndOffsetPos.add(offsetPos);
       }
     }
-    packer.packArrayHeader(inEdgeTypeCount);
+    packer.packInt(inEdgeTypeCount);
     for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
@@ -132,7 +132,7 @@ public class NodeSerializer extends BookKeeper {
     }
 
     packer.packString(edgeLabel);
-    packer.packArrayHeader(edgeCount);
+    packer.packInt(edgeCount);
 
     for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
       long adjacentNodeId = (long) adjacentNodeIdsAndProperties.get(edgeIdx * 2);
@@ -150,9 +150,6 @@ public class NodeSerializer extends BookKeeper {
     if (value == null) {
       packer.packByte(ValueTypes.UNKNOWN.id);
       packer.packNil();
-//    } else if (value instanceof NodeRef) {
-//      packer.packByte(ValueTypes.NODE_REF.id);
-//      packer.packLong(((NodeRef) value).id());
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);

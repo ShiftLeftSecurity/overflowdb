@@ -54,10 +54,10 @@ public class NodeDeserializer extends BookKeeper {
     NodeDb node = getNodeFactory(labelId).createNode(graph, id);
     PropertyHelper.attachProperties(node, toKeyValueArray(properties));
 
-    int outEdgeTypesCount = unpacker.unpackArrayHeader();
+    int outEdgeTypesCount = unpacker.unpackInt();
     for (int outEdgeTypeIdx = 0; outEdgeTypeIdx < outEdgeTypesCount; outEdgeTypeIdx++) {
       String edgeLabel = unpacker.unpackString();
-      int edgeCount = unpacker.unpackArrayHeader();
+      int edgeCount = unpacker.unpackInt();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
         NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
@@ -67,10 +67,10 @@ public class NodeDeserializer extends BookKeeper {
     }
 
     // same for IN edges // TODO remove duplication
-    int inEdgeTypesCount = unpacker.unpackArrayHeader();
+    int inEdgeTypesCount = unpacker.unpackInt();
     for (int inEdgeTypeIdx = 0; inEdgeTypeIdx < inEdgeTypesCount; inEdgeTypeIdx++) {
       String edgeLabel = unpacker.unpackString();
-      int edgeCount = unpacker.unpackArrayHeader();
+      int edgeCount = unpacker.unpackInt();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
         NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
@@ -130,9 +130,6 @@ public class NodeDeserializer extends BookKeeper {
     switch (ValueTypes.lookup(valueTypeId)) {
       case UNKNOWN:
         return null;
-      case NODE_REF:
-        long id = value.asIntegerValue().asLong();
-        return graph.node(id);
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
