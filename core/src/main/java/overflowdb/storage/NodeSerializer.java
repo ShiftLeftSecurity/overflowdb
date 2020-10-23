@@ -32,7 +32,7 @@ public class NodeSerializer extends BookKeeper {
       packProperties(packer, node.valueMap());
       // TODO drop: old stuff
 //      packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
-//      packAdjacentNodesWithEdgeProperties(packer, node.getAdjacentNodesWithEdgeProperties());
+//      packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
       packEdges(packer, node);
 
       if (statsEnabled) recordStatistics(startTimeNanos);
@@ -99,10 +99,10 @@ public class NodeSerializer extends BookKeeper {
   // TODO rename
   private void packEdges0(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
-    Object[] adjacentNodesWithEdgeProperties = node.getAdjacentNodesWithEdgeProperties();
+    Object[] adjacentNodesWithProperties = node.getAdjacentNodesWithProperties();
     final Set<String> edgePropertyNames = layoutInformation.edgePropertyKeys(edgeLabel);
 
-    // pointers into adjacentNodesWithEdgeProperties
+    // pointers into adjacentNodesWithProperties
     int start = node.startIndex(offsetPos);
     int blockLength = node.blockLength(offsetPos);
     int strideSize = node.getStrideSize(edgeLabel);
@@ -113,7 +113,7 @@ public class NodeSerializer extends BookKeeper {
     int currIdx = start;
     int endIdx = start + blockLength;
     while (currIdx < endIdx) {
-      Node adjacentNode = (Node) adjacentNodesWithEdgeProperties[currIdx];
+      Node adjacentNode = (Node) adjacentNodesWithProperties[currIdx];
       if (adjacentNode != null) {
         edgeCount++;
         adjacentNodeIdsAndProperties.add(adjacentNode.id());
@@ -121,7 +121,7 @@ public class NodeSerializer extends BookKeeper {
         Map<String, Object> edgeProperties = new HashMap<>();
         for (String propertyName : edgePropertyNames) {
           int edgePropertyOffset = layoutInformation.getEdgePropertyOffsetRelativeToAdjacentNodeRef(edgeLabel, propertyName);
-          Object property = adjacentNodesWithEdgeProperties[currIdx + edgePropertyOffset];
+          Object property = adjacentNodesWithProperties[currIdx + edgePropertyOffset];
           if (property != null) {
             edgeProperties.put(propertyName, property);
           }

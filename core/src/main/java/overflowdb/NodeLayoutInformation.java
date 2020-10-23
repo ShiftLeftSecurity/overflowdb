@@ -39,7 +39,7 @@ public class NodeLayoutInformation {
   /* maps offsetPos -> number of edge properties*/
   private final int[] edgePropertyCountByOffsetPosition;
 
-  /* position in stride (entry within `adjacentNodesWithEdgeProperties`) for a given edge label and edge property key
+  /* position in stride (entry within `adjacentNodesWithProperties`) for a given edge label and edge property key
    * 1-based, because index `0` is the adjacent node ref */
   private final Map<LabelAndKey, Integer> edgeLabelAndKeyToStrideIndex;
 
@@ -151,7 +151,7 @@ public class NodeLayoutInformation {
   }
 
   /**
-   * @return The offset relative to the adjacent node in the adjacentNodesWithEdgeProperties array starting from 1.
+   * @return The offset relative to the adjacent node in the adjacentNodesWithProperties array starting from 1.
    * Return -1 if property key does not exist for given edgeLabel.
    */
   public int getEdgePropertyOffsetRelativeToAdjacentNodeRef(String edgeLabel, String propertyKey) {

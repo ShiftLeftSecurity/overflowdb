@@ -32,7 +32,7 @@ public abstract class NodeDb implements Node {
   /**
    * holds refs to all adjacent nodes (a.k.a. dummy edges) and the edge properties
    */
-  private Object[] adjacentNodesWithEdgeProperties = new Object[0];
+  private Object[] adjacentNodesWithProperties = new Object[0];
 
   /* store the start offset and length into the above `adjacentNodesWithProperties` array in an interleaved manner,
    * i.e. each adjacent edge type has two entries in this array. */
@@ -61,12 +61,12 @@ public abstract class NodeDb implements Node {
 
   public abstract NodeLayoutInformation layoutInformation();
 
-  public Object[] getAdjacentNodesWithEdgeProperties() {
-    return adjacentNodesWithEdgeProperties;
+  public Object[] getAdjacentNodesWithProperties() {
+    return adjacentNodesWithProperties;
   }
 
-  public void setAdjacentNodesWithEdgeProperties(Object[] adjacentNodesWithEdgeProperties) {
-    this.adjacentNodesWithEdgeProperties = adjacentNodesWithEdgeProperties;
+  public void setAdjacentNodesWithProperties(Object[] adjacentNodesWithProperties) {
+    this.adjacentNodesWithProperties = adjacentNodesWithProperties;
   }
 
   public int[] getEdgeOffsets() {
@@ -231,7 +231,7 @@ public abstract class NodeDb implements Node {
     if (propertyPosition == -1) {
       return null;
     }
-    return (P) adjacentNodesWithEdgeProperties[propertyPosition];
+    return (P) adjacentNodesWithProperties[propertyPosition];
   }
 
   public <V> void setEdgeProperty(Direction direction,
@@ -243,7 +243,7 @@ public abstract class NodeDb implements Node {
     if (propertyPosition == -1) {
       throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
     }
-    adjacentNodesWithEdgeProperties[propertyPosition] = value;
+    adjacentNodesWithProperties[propertyPosition] = value;
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
   }
@@ -253,7 +253,7 @@ public abstract class NodeDb implements Node {
     if (propertyPosition == -1) {
       throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
     }
-    adjacentNodesWithEdgeProperties[propertyPosition] = null;
+    adjacentNodesWithProperties[propertyPosition] = null;
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
     this.markAsDirty();
   }
@@ -430,9 +430,9 @@ public abstract class NodeDb implements Node {
         int strideSize = getStrideSize(label);
         int exclusiveEnd = start + length;
         for (int i = start;
-             i < adjacentNodesWithEdgeProperties.length && i < exclusiveEnd;
+             i < adjacentNodesWithProperties.length && i < exclusiveEnd;
              i += strideSize) {
-          if (adjacentNodesWithEdgeProperties[i] != null) {
+          if (adjacentNodesWithProperties[i] != null) {
             count++;
           }
         }
@@ -468,7 +468,7 @@ public abstract class NodeDb implements Node {
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
-      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithEdgeProperties[i];
+      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
           adjacentNodeWithProperty.id() == otherNode.id()) {
         occurrenceCount++;
@@ -501,7 +501,7 @@ public abstract class NodeDb implements Node {
     int currentOccurrence = 0;
     int exclusiveEnd = start + length;
     for (int i = start; i < exclusiveEnd; i += strideSize) {
-      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithEdgeProperties[i];
+      final NodeRef adjacentNodeWithProperty = (NodeRef) adjacentNodesWithProperties[i];
       if (adjacentNodeWithProperty != null &&
           adjacentNodeWithProperty.id() == adjacentNode.id()) {
         if (currentOccurrence == occurrence) {
@@ -530,7 +530,7 @@ public abstract class NodeDb implements Node {
     int strideSize = getStrideSize(label);
 
     for (int i = start; i < start + strideSize; i++) {
-      adjacentNodesWithEdgeProperties[i] = null;
+      adjacentNodesWithProperties[i] = null;
     }
 
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
@@ -560,7 +560,7 @@ public abstract class NodeDb implements Node {
       int length = blockLength(offsetPos);
       int strideSize = getStrideSize(label);
 
-      return new DummyEdgeIterator(adjacentNodesWithEdgeProperties, start, start + length, strideSize,
+      return new DummyEdgeIterator(adjacentNodesWithProperties, start, start + length, strideSize,
           direction, label, ref);
     } else {
       return Collections.emptyIterator();
@@ -590,7 +590,7 @@ public abstract class NodeDb implements Node {
       int start = startIndex(offsetPos);
       int length = blockLength(offsetPos);
       int strideSize = layoutInformation().getEdgePropertyCountByOffsetPos(offsetPos) + 1;
-      return new ArrayOffsetIterator<>(adjacentNodesWithEdgeProperties, start, start + length, strideSize);
+      return new ArrayOffsetIterator<>(adjacentNodesWithProperties, start, start + length, strideSize);
     } else {
       return Collections.emptyIterator();
     }
@@ -634,12 +634,12 @@ public abstract class NodeDb implements Node {
     int strideSize = getStrideSize(edgeLabel);
 
     int insertAt = start + length;
-    if (adjacentNodesWithEdgeProperties.length <= insertAt || adjacentNodesWithEdgeProperties[insertAt] != null) {
+    if (adjacentNodesWithProperties.length <= insertAt || adjacentNodesWithProperties[insertAt] != null) {
       // space already occupied - grow adjacentNodesWithProperties array, leaving some room for more elements
-      adjacentNodesWithEdgeProperties = growAdjacentNodesWithProperties(offsetPos, strideSize, insertAt, length);
+      adjacentNodesWithProperties = growAdjacentNodesWithProperties(offsetPos, strideSize, insertAt, length);
     }
 
-    adjacentNodesWithEdgeProperties[insertAt] = nodeRef;
+    adjacentNodesWithProperties[insertAt] = nodeRef;
     // update edgeOffset length to include the newly inserted element
     edgeOffsets.set(2 * offsetPos + 1, length + strideSize);
 
@@ -704,10 +704,10 @@ public abstract class NodeDb implements Node {
 //    int additionalEntriesCount = additionalCapacityInt * strideSize;
     int growthEmptyFactor = 2;
     int additionalEntriesCount = (currentLength + strideSize) * growthEmptyFactor;
-    int newSize = adjacentNodesWithEdgeProperties.length + additionalEntriesCount;
+    int newSize = adjacentNodesWithProperties.length + additionalEntriesCount;
     Object[] newArray = new Object[newSize];
-    System.arraycopy(adjacentNodesWithEdgeProperties, 0, newArray, 0, insertAt);
-    System.arraycopy(adjacentNodesWithEdgeProperties, insertAt, newArray, insertAt + additionalEntriesCount, adjacentNodesWithEdgeProperties.length - insertAt);
+    System.arraycopy(adjacentNodesWithProperties, 0, newArray, 0, insertAt);
+    System.arraycopy(adjacentNodesWithProperties, insertAt, newArray, insertAt + additionalEntriesCount, adjacentNodesWithProperties.length - insertAt);
 
     // Increment all following start offsets by `additionalEntriesCount`.
     for (int i = offsetPos + 1; 2 * i < edgeOffsets.length(); i++) {
@@ -741,12 +741,12 @@ public abstract class NodeDb implements Node {
     for(int offsetPos = 0; 2*offsetPos < edgeOffsets.length(); offsetPos++){
       int start = startIndex(offsetPos);
       int length = blockLength(offsetPos);
-      System.arraycopy(adjacentNodesWithEdgeProperties, start, newArray, off, length);
+      System.arraycopy(adjacentNodesWithProperties, start, newArray, off, length);
       edgeOffsets.set(2 * offsetPos, off);
       off += length;
     }
-    int oldsize = adjacentNodesWithEdgeProperties.length;
-    adjacentNodesWithEdgeProperties = newArray;
+    int oldsize = adjacentNodesWithProperties.length;
+    adjacentNodesWithProperties = newArray;
     return (long)newSize + ( ((long)oldsize) << 32);
   }
 

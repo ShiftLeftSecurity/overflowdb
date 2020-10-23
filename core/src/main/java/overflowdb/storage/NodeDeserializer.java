@@ -168,7 +168,7 @@ public class NodeDeserializer extends BookKeeper {
 //    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
 //    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
 //    node.setEdgeOffsets(edgeOffsets);
-//    node.setAdjacentNodesWithEdgeProperties(adjacentNodesWithProperties);
+//    node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
 //    node.markAsClean();
 //
 //    return node;
