@@ -30,9 +30,6 @@ public class NodeSerializer extends BookKeeper {
       packer.packInt(layoutInformation.labelId);
 
       packProperties(packer, node.valueMap());
-      // TODO drop: old stuff
-//      packEdgeOffsets(packer, node.getEdgeOffsetsPackedArray());
-//      packAdjacentNodesWithProperties(packer, node.getAdjacentNodesWithProperties());
       packEdges(packer, node);
 
       if (statsEnabled) recordStatistics(startTimeNanos);
@@ -56,6 +53,7 @@ public class NodeSerializer extends BookKeeper {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
     int[] edgeOffsets = node.getEdgeOffsets();
 
+
     ArrayList<Object> outEdgeLabelAndOffsetPos = new ArrayList<>(layoutInformation.allowedOutEdgeLabels().length * 2);
     int outEdgeTypeCount = 0;
     for (String edgeLabel : layoutInformation.allowedOutEdgeLabels()) {
@@ -71,7 +69,7 @@ public class NodeSerializer extends BookKeeper {
     for (int i = 0; i < outEdgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) outEdgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) outEdgeLabelAndOffsetPos.get(i + 1);
-      packEdges0(packer, node, edgeLabel, offsetPos);
+      packEdges1(packer, node, edgeLabel, offsetPos);
     }
 
     // TODO refactor: extract duplication.
@@ -91,13 +89,13 @@ public class NodeSerializer extends BookKeeper {
     for (int i = 0; i < inEdgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) inEdgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) inEdgeLabelAndOffsetPos.get(i + 1);
-      packEdges0(packer, node, edgeLabel, offsetPos);
+      packEdges1(packer, node, edgeLabel, offsetPos);
     }
 
   }
 
   // TODO rename
-  private void packEdges0(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
+  private void packEdges1(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
     Object[] adjacentNodesWithProperties = node.getAdjacentNodesWithProperties();
     final Set<String> edgePropertyNames = layoutInformation.edgePropertyKeys(edgeLabel);

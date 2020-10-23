@@ -45,39 +45,30 @@ public class NodeDeserializer extends BookKeeper {
     final int labelId = unpacker.unpackInt();
     final Object[] properties = unpackProperties(unpacker);
 
-    // TODO refactor/extract / move to NodeDb to keep internals in one place?
     NodeDb node = getNodeFactory(labelId).createNode(graph, id);
     PropertyHelper.attachProperties(node, properties);
 
-    int outEdgeTypesCount = unpacker.unpackInt();
-    for (int outEdgeTypeIdx = 0; outEdgeTypeIdx < outEdgeTypesCount; outEdgeTypeIdx++) {
+    deserializeEdges(unpacker, node, Direction.OUT);
+    deserializeEdges(unpacker, node, Direction.IN);
+
+    node.markAsClean();
+
+    if (statsEnabled) recordStatistics(startTimeNanos);
+    return node;
+  }
+
+  private void deserializeEdges(MessageUnpacker unpacker, NodeDb node, Direction direction) throws IOException {
+    int edgeTypesCount = unpacker.unpackInt();
+    for (int edgeTypeIdx = 0; edgeTypeIdx < edgeTypesCount; edgeTypeIdx++) {
       String edgeLabel = unpacker.unpackString();
       int edgeCount = unpacker.unpackInt();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
         NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
         Object[] edgeProperties = unpackProperties(unpacker);
-        node.storeAdjacentNode(Direction.OUT, edgeLabel, adjacentNode, edgeProperties);
+        node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
       }
     }
-
-    // same for IN edges // TODO remove duplication
-    int inEdgeTypesCount = unpacker.unpackInt();
-    for (int inEdgeTypeIdx = 0; inEdgeTypeIdx < inEdgeTypesCount; inEdgeTypeIdx++) {
-      String edgeLabel = unpacker.unpackString();
-      int edgeCount = unpacker.unpackInt();
-      for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
-        long adjancentNodeId = unpacker.unpackLong();
-        NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
-        final Object[] edgeProperties = unpackProperties(unpacker);
-        node.storeAdjacentNode(Direction.IN, edgeLabel, adjacentNode, edgeProperties);
-      }
-    }
-
-    node.markAsClean();
-
-    if (statsEnabled) recordStatistics(startTimeNanos);
-    return node;
   }
 
   /**
@@ -162,17 +153,6 @@ public class NodeDeserializer extends BookKeeper {
   protected final NodeRef createNodeRef(long id, int labelId) {
     return getNodeFactory(labelId).createNodeRef(graph, id);
   }
-
-//  // TODO drop
-//  protected final NodeDb createNode(long id, int labelId, Map<String, Object> properties, int[] edgeOffsets, Object[] adjacentNodesWithProperties) {
-//    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
-//    PropertyHelper.attachProperties(node, toKeyValueArray(properties));
-//    node.setEdgeOffsets(edgeOffsets);
-//    node.setAdjacentNodesWithProperties(adjacentNodesWithProperties);
-//    node.markAsClean();
-//
-//    return node;
-//  }
 
   private final NodeFactory getNodeFactory(int labelId) {
     if (!nodeFactoryByLabelId.containsKey(labelId))

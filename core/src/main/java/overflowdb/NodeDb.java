@@ -441,15 +441,6 @@ public abstract class NodeDb implements Node {
     return count;
   }
 
-  public int adjacentNodesCount() {
-    int total = 0;
-    for (int i = 0; i < edgeOffsets.length(); i += 2) {
-      // edgeOffsets contains index into adjancentNodes array (not relevant here) and the count for that specific edge
-      total += edgeOffsets.get(i + 1);
-    }
-    return total;
-  }
-
   /**
    * If there are multiple edges between the same two nodes with the same label, we use the
    * `occurrence` to differentiate between those edges. Both nodes use the same occurrence
