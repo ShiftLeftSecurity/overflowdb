@@ -25,6 +25,14 @@ import static org.junit.Assert.assertEquals;
 
 public class BackwardsCompatibilityTest {
 
+  /** With a domain (SchemaV1) with two node types (Thing1/2) and one edge type (Connection1, which has one property),
+   * create a sample graph and persist it.
+   *
+   * Then, reopen the file after some additions have been made to the schema (SchemaV2):
+   * now there's another edge type (Connection2), and Connection1 has one additional property.
+   *
+   * Verify that we're still able to load the graph, since there's only additions to the schema.
+   *  */
   @Test
   public void shouldLoadOldStorageFormatWhenAddingEdgeType() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
@@ -33,9 +41,7 @@ public class BackwardsCompatibilityTest {
 
     final long thing1Id;
     {
-      Graph graph = Graph.open(config,
-          Arrays.asList(SchemaV1.Thing1.nodeFactory, SchemaV1.Thing2.nodeFactory),
-          Arrays.asList(SchemaV1.Connection1.factory));
+      Graph graph = SchemaV1.newEmptyGraph(config);
       Node thing1 = graph.addNode(SchemaV1.Thing1.LABEL);
       Node thing2 = graph.addNode(SchemaV1.Thing2.LABEL);
       thing1.addEdge(SchemaV1.Connection1.LABEL, thing2, SchemaV1.Connection1.NAME, "thing 1");
@@ -46,9 +52,7 @@ public class BackwardsCompatibilityTest {
     }
 
     {
-      Graph graph = Graph.open(config,
-          Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
-          Arrays.asList(SchemaV2.Connection1.factory, SchemaV2.Connection2.factory));
+      Graph graph = SchemaV2.newEmptyGraph(config);
       Node thing1 = graph.node(thing1Id);
       SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
       SchemaV2.Connection1 connection = (SchemaV2.Connection1) thing1.outE().next();
@@ -66,9 +70,76 @@ public class BackwardsCompatibilityTest {
 
     storageFile.delete(); //cleanup after test
   }
+
+  @Test(expected = RuntimeException.class)
+  /** Same as above, but this time we persist a graph based on SchemaV2, and try to open it from SchemaV1.
+   * Since SchemaV1 doesn't know about Connection2 and the additional Connection1 property, this should fail.
+   *  */
+  public void shouldThrowExceptionForUnsupportedProperty() throws IOException {
+    final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+    storageFile.delete();
+    Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
+
+    {
+      Graph graph = SchemaV2.newEmptyGraph(config);
+      Node thing1 = graph.addNode(SchemaV1.Thing1.LABEL);
+      Node thing2 = graph.addNode(SchemaV1.Thing2.LABEL);
+      thing1.addEdge(SchemaV2.Connection1.LABEL, thing2, SchemaV2.Connection1.ADDITIONAL_PROP, "additional property");
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
+      graph.close();
+    }
+
+    {
+      Graph graph = SchemaV1.newEmptyGraph(config);
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
+
+      graph.close();
+    }
+
+    storageFile.delete(); //cleanup after test
+  }
+
+  @Test(expected = RuntimeException.class)
+  /** Same as above, but this time we persist a graph based on SchemaV2, and try to open it from SchemaV1.
+   * Since SchemaV1 doesn't know about Connection2 and the additional Connection1 property, this should fail.
+   *  */
+  public void shouldThrowExceptionForUnsupportedEdge() throws IOException {
+    final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+    storageFile.delete();
+    Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
+
+    {
+      Graph graph = SchemaV2.newEmptyGraph(config);
+      Node thing1 = graph.addNode(SchemaV1.Thing1.LABEL);
+      Node thing2 = graph.addNode(SchemaV1.Thing2.LABEL);
+      thing1.addEdge(SchemaV2.Connection2.LABEL, thing2); // TODO additional test
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
+      graph.close();
+    }
+
+    {
+      Graph graph = SchemaV1.newEmptyGraph(config);
+      assertEquals(2, graph.nodeCount());
+      assertEquals(1, graph.edgeCount());
+
+      graph.close();
+    }
+
+    storageFile.delete(); //cleanup after test
+  }
 }
 
 class SchemaV1 {
+
+  public static Graph newEmptyGraph(Config config) {
+    return Graph.open(config,
+        Arrays.asList(SchemaV1.Thing1.nodeFactory, SchemaV1.Thing2.nodeFactory),
+        Arrays.asList(SchemaV1.Connection1.factory));
+  }
+
   static class Thing1 extends DummyNodeDb {
     static final int LABEL_ID = 1;
     static final String LABEL = "Thing1";
@@ -186,6 +257,13 @@ class SchemaV1 {
 
 /* additions compared to SchemaV1: there's an additional edge 'Connection2' between Thing1 and Thing2 */
 class SchemaV2 {
+
+  public static Graph newEmptyGraph(Config config) {
+    return Graph.open(config,
+        Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
+        Arrays.asList(SchemaV2.Connection1.factory, SchemaV2.Connection2.factory));
+  }
+
   static class Thing1 extends DummyNodeDb {
     static final int LABEL_ID = 1;
     static final String LABEL = "Thing1";
@@ -280,8 +358,8 @@ class SchemaV2 {
   static class Connection1 extends Edge {
     public static final String LABEL = "Connection1";
     public static final String NAME = "name";
-    public static final String FOO = "foo";
-    private static final Set<String> propertyKeys = new HashSet<>(Arrays.asList(NAME, FOO));
+    public static final String ADDITIONAL_PROP = "foo";
+    private static final Set<String> propertyKeys = new HashSet<>(Arrays.asList(NAME, ADDITIONAL_PROP));
 
     public static EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, propertyKeys);
 
