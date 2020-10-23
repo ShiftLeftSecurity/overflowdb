@@ -48,10 +48,10 @@ public class BackwardsCompatibilityTest {
     {
       Graph graph = Graph.open(config,
           Arrays.asList(SchemaV2.Thing1.nodeFactory, SchemaV2.Thing2.nodeFactory),
-          Arrays.asList(SchemaV1.Connection1.factory, SchemaV2.Connection2.factory));
+          Arrays.asList(SchemaV2.Connection1.factory, SchemaV2.Connection2.factory));
       Node thing1 = graph.node(thing1Id);
       SchemaV2.Thing1 thing1Typed = ((NodeRef<SchemaV2.Thing1>) thing1).get();
-      SchemaV1.Connection1 connection = (SchemaV1.Connection1) thing1.outE().next();
+      SchemaV2.Connection1 connection = (SchemaV2.Connection1) thing1.outE().next();
       assertEquals(1, connection.propertyMap().size());
       Node thing2 = connection.inNode();
       SchemaV2.Thing2 thing2Typed = ((NodeRef<SchemaV2.Thing2>) thing2).get();

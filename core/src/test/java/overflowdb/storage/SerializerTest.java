@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 public class SerializerTest {
 
   @Test
-  public void serializeVertex() throws IOException {
+  public void serializeNode() throws IOException {
     try (Graph graph = SimpleDomain.newGraph()) {
       NodeSerializer serializer = new NodeSerializer(false);
       NodeDeserializer deserializer = newDeserializer(graph);
