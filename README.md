@@ -22,7 +22,7 @@ https://github.com/jonschlinkert/markdown-toc
 
 ### Core concepts
 **Memory layout**: edges only exist *virtually*, i.e. they *normally* don't exist as edge instances on your heap, 
-and they do not have an ID. Instead, edges are helt in the `OdbNode.adjacentNodesWithProperties`, which is an `Object[]`, 
+and they do not have an ID. Instead, edges are helt in the `OdbNode.adjacentNodesWithEdgeProperties`, which is an `Object[]`, 
 containing direct pointers to the adjacent nodes, as well as potential edge properties. Those edges are grouped by edge label, 
 and there's a _helper_ array `OdbNode.edgeOffsets` to keep track of those group sizes.  
 This model has been chosen in order to be memory efficient, and is based on the assumption that most graphs have orders of magnitude more edges than nodes.   
