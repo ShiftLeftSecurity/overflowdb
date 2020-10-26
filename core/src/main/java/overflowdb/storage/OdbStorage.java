@@ -21,7 +21,7 @@ public class OdbStorage implements AutoCloseable {
   public static final int STORAGE_FORMAT_VERSION = 2;
 
   public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
-  public static final String METADATA_KEY_MAX_GLOSSARY_INDEX = "MAX_GLOSSARY_INDEX";
+  public static final String METADATA_KEY_STRING_TO_INT_MAX_ID = "STRING_TO_INT_MAX_ID";
   private static final String INDEX_PREFIX = "index_";
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -33,9 +33,9 @@ public class OdbStorage implements AutoCloseable {
   protected MVStore mvstore;
   private MVMap<Long, byte[]> nodesMVMap;
   private MVMap<String, String> metadataMVMap;
-  private MVMap<String, Integer> stringGlossary;
+  private MVMap<String, Integer> stringToIntMappings;
   private boolean closed;
-  private final AtomicInteger stringGlossaryMaxIndex = new AtomicInteger(0);
+  private final AtomicInteger stringToIntMappingsMaxId = new AtomicInteger(0);
 
   public static OdbStorage createWithTempFile(
       final NodeDeserializer nodeDeserializer, final boolean enableSerializationStats) {
@@ -71,7 +71,7 @@ public class OdbStorage implements AutoCloseable {
       mvstoreFile = mvstoreFileMaybe.get();
       if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
         verifyStorageVersion();
-        initializeStringGlossaryMaxIndex();
+        initializeStringToIntMaxId();
       }
     } else {
       try {
@@ -85,11 +85,11 @@ public class OdbStorage implements AutoCloseable {
     logger.trace("storage file: " + mvstoreFile);
   }
 
-  private void initializeStringGlossaryMaxIndex() {
+  private void initializeStringToIntMaxId() {
     MVMap<String, String> metadata = getMetaDataMVMap();
-    if (metadata.containsKey(METADATA_KEY_MAX_GLOSSARY_INDEX)) {
-      int maxIndexFromStorage = Integer.parseInt(metadata.get(METADATA_KEY_MAX_GLOSSARY_INDEX));
-      stringGlossaryMaxIndex.set(maxIndexFromStorage);
+    if (metadata.containsKey(METADATA_KEY_STRING_TO_INT_MAX_ID)) {
+      int maxIndexFromStorage = Integer.parseInt(metadata.get(METADATA_KEY_STRING_TO_INT_MAX_ID));
+      stringToIntMappingsMaxId.set(maxIndexFromStorage);
     }
   }
 
@@ -138,7 +138,7 @@ public class OdbStorage implements AutoCloseable {
     if (mvstore != null) {
       logger.trace("flushing to disk");
       getMetaDataMVMap().put(METADATA_KEY_STORAGE_FORMAT_VERSION, String.format("%s", STORAGE_FORMAT_VERSION));
-      getMetaDataMVMap().put(METADATA_KEY_MAX_GLOSSARY_INDEX, String.format("%s", stringGlossaryMaxIndex.get()));
+      getMetaDataMVMap().put(METADATA_KEY_STRING_TO_INT_MAX_ID, String.format("%s", stringToIntMappingsMaxId.get()));
       mvstore.commit();
     }
   }
@@ -182,25 +182,25 @@ public class OdbStorage implements AutoCloseable {
     return metadataMVMap;
   }
 
-  public MVMap<String, Integer> getStringGlossary() {
+  public MVMap<String, Integer> getStringToIntMappings() {
     ensureMVStoreAvailable();
-    if (stringGlossary == null)
-      stringGlossary = mvstore.openMap("stringGlossary");
-    return stringGlossary ;
+    if (stringToIntMappings == null)
+      stringToIntMappings = mvstore.openMap("stringToIntMappings");
+    return stringToIntMappings;
   }
 
-  public Integer lookupOrCreateGlossaryEntry(String s) {
-    final MVMap<String, Integer> glossary = getStringGlossary();
-    if (glossary.containsKey(s)) {
-      return glossary.get(s);
+  public int lookupOrCreateStringToIntMapping(String s) {
+    final MVMap<String, Integer> mappings = getStringToIntMappings();
+    if (mappings.containsKey(s)) {
+      return mappings.get(s);
     } else {
-      return createGlossaryEntry(s);
+      return createStringToIntMapping(s);
     }
   }
 
-  private Integer createGlossaryEntry(String s) {
-    int index = stringGlossaryMaxIndex.incrementAndGet();
-    getStringGlossary().put(s, index);
+  private int createStringToIntMapping(String s) {
+    int index = stringToIntMappingsMaxId.incrementAndGet();
+    getStringToIntMappings().put(s, index);
     return index;
   }
 
