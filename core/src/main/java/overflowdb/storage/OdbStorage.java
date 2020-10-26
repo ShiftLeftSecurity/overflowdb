@@ -12,24 +12,30 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
-  /** when persistence format changes, increase this number - this protects us from attempting to open outdated formats */
-  public static final int STORAGE_FORMAT_VERSION = 1;
-  public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
+  /** increase this number when persistence format changes (usually driven by changes in the NodeSerializer)
+   * this protects us from attempting to open outdated formats */
+  public static final int STORAGE_FORMAT_VERSION = 2;
 
+  public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
+  public static final String METADATA_KEY_MAX_GLOSSARY_INDEX = "MAX_GLOSSARY_INDEX";
   private static final String INDEX_PREFIX = "index_";
+
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer;
   protected final Optional<NodeDeserializer> nodeDeserializer;
 
   private final File mvstoreFile;
   private final boolean doPersist;
-  private MVStore mvstore; // initialized in `getNodesMVMap`
+  protected MVStore mvstore;
   private MVMap<Long, byte[]> nodesMVMap;
   private MVMap<String, String> metadataMVMap;
+  private MVMap<String, Integer> stringGlossary;
   private boolean closed;
+  private final AtomicInteger stringGlossaryMaxIndex = new AtomicInteger(0);
 
   public static OdbStorage createWithTempFile(
       final NodeDeserializer nodeDeserializer, final boolean enableSerializationStats) {
@@ -65,6 +71,7 @@ public class OdbStorage implements AutoCloseable {
       mvstoreFile = mvstoreFileMaybe.get();
       if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
         verifyStorageVersion();
+        initializeStringGlossaryMaxIndex();
       }
     } else {
       try {
@@ -76,6 +83,14 @@ public class OdbStorage implements AutoCloseable {
       }
     }
     logger.trace("storage file: " + mvstoreFile);
+  }
+
+  private void initializeStringGlossaryMaxIndex() {
+    MVMap<String, String> metadata = getMetaDataMVMap();
+    if (metadata.containsKey(METADATA_KEY_MAX_GLOSSARY_INDEX)) {
+      int maxIndexFromStorage = Integer.parseInt(metadata.get(METADATA_KEY_MAX_GLOSSARY_INDEX));
+      stringGlossaryMaxIndex.set(maxIndexFromStorage);
+    }
   }
 
   /** storage version must be exactly the same */
@@ -122,6 +137,8 @@ public class OdbStorage implements AutoCloseable {
   public void flush() {
     if (mvstore != null) {
       logger.trace("flushing to disk");
+      getMetaDataMVMap().put(METADATA_KEY_STORAGE_FORMAT_VERSION, String.format("%s", STORAGE_FORMAT_VERSION));
+      getMetaDataMVMap().put(METADATA_KEY_MAX_GLOSSARY_INDEX, String.format("%s", stringGlossaryMaxIndex.get()));
       mvstore.commit();
     }
   }
@@ -130,7 +147,6 @@ public class OdbStorage implements AutoCloseable {
   public void close() {
     closed = true;
     logger.debug("closing " + getClass().getSimpleName());
-    getMetaDataMVMap().put(METADATA_KEY_STORAGE_FORMAT_VERSION, String.format("%s", STORAGE_FORMAT_VERSION));
     flush();
     if (mvstore != null) mvstore.close();
     if (!doPersist) mvstoreFile.delete();
@@ -164,6 +180,28 @@ public class OdbStorage implements AutoCloseable {
     if (metadataMVMap == null)
       metadataMVMap = mvstore.openMap("metadata");
     return metadataMVMap;
+  }
+
+  public MVMap<String, Integer> getStringGlossary() {
+    ensureMVStoreAvailable();
+    if (stringGlossary == null)
+      stringGlossary = mvstore.openMap("stringGlossary");
+    return stringGlossary ;
+  }
+
+  public Integer lookupOrCreateGlossaryEntry(String s) {
+    final MVMap<String, Integer> glossary = getStringGlossary();
+    if (glossary.containsKey(s)) {
+      return glossary.get(s);
+    } else {
+      return createGlossaryEntry(s);
+    }
+  }
+
+  private Integer createGlossaryEntry(String s) {
+    int index = stringGlossaryMaxIndex.incrementAndGet();
+    getStringGlossary().put(s, index);
+    return index;
   }
 
   private void ensureMVStoreAvailable() {
@@ -219,4 +257,5 @@ public class OdbStorage implements AutoCloseable {
   public void clearIndex(String indexName) {
     openIndex(indexName).clear();
   }
+
 }
