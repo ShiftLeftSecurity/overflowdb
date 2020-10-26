@@ -140,21 +140,22 @@ public class OdbStorageTest {
 
     String a = "a";
     String b = "b";
-    Integer stringIdA = storage.lookupOrCreateGlossaryEntry(a);
-    Integer stringIdB = storage.lookupOrCreateGlossaryEntry(b);
+    String c = "c";
+    int stringIdA = storage.lookupOrCreateStringToIntMapping(a);
+    int stringIdB = storage.lookupOrCreateStringToIntMapping(b);
 
     // should be idempotent
-    assertEquals(stringIdA, storage.lookupOrCreateGlossaryEntry(a));
-    assertEquals(stringIdB, storage.lookupOrCreateGlossaryEntry(b));
+    assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
+    assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
 
     // should survive restarts
     storage.close();
     storage = OdbStorage.createWithSpecificLocation(storageFile, false);
-    assertEquals(stringIdA, storage.lookupOrCreateGlossaryEntry(a));
-    assertEquals(stringIdB, storage.lookupOrCreateGlossaryEntry(b));
+    assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
+    assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
 
-    Integer stringIdC = storage.lookupOrCreateGlossaryEntry("c");
-    assertEquals(3, storage.getStringGlossary().size());
+    int stringIdC = storage.lookupOrCreateStringToIntMapping(c);
+    assertEquals(3, storage.getStringToIntMappings().size());
   }
 
 
