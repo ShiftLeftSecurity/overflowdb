@@ -81,10 +81,10 @@ public class NodeSerializer extends BookKeeper {
 
   private void packEdgesForOneLabel(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
-    Object[] adjacentNodesWithProperties = node.getAdjacentNodesWithProperties();
+    Object[] adjacentNodesWithEdgeProperties = node.getAdjacentNodesWithEdgeProperties();
     final Set<String> edgePropertyNames = layoutInformation.edgePropertyKeys(edgeLabel);
 
-    // pointers into adjacentNodesWithProperties
+    // pointers into adjacentNodesWithEdgeProperties
     int start = node.startIndex(offsetPos);
     int blockLength = node.blockLength(offsetPos);
     int strideSize = node.getStrideSize(edgeLabel);
@@ -95,7 +95,7 @@ public class NodeSerializer extends BookKeeper {
     int currIdx = start;
     int endIdx = start + blockLength;
     while (currIdx < endIdx) {
-      Node adjacentNode = (Node) adjacentNodesWithProperties[currIdx];
+      Node adjacentNode = (Node) adjacentNodesWithEdgeProperties[currIdx];
       if (adjacentNode != null) {
         edgeCount++;
         adjacentNodeIdsAndProperties.add(adjacentNode.id());
@@ -103,7 +103,7 @@ public class NodeSerializer extends BookKeeper {
         Map<String, Object> edgeProperties = new HashMap<>();
         for (String propertyName : edgePropertyNames) {
           int edgePropertyOffset = layoutInformation.getEdgePropertyOffsetRelativeToAdjacentNodeRef(edgeLabel, propertyName);
-          Object property = adjacentNodesWithProperties[currIdx + edgePropertyOffset];
+          Object property = adjacentNodesWithEdgeProperties[currIdx + edgePropertyOffset];
           if (property != null) {
             edgeProperties.put(propertyName, property);
           }

@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Lightweight (w.r.t. memory usage) reference to for an OdbNode, which is stored in the `node` member.
+ * Lightweight (w.r.t. memory usage) reference to for an NodeDb, which is stored in the `node` member.
  * When running low on memory (as detected by {{@link HeapUsageMonitor}}), the {{@link ReferenceManager}} may set
  * that member to `null`, so that the garbage collector can free up some heap, thus avoiding @{@link OutOfMemoryError}.
  * Note that this model only works if nothing else holds references to the {@link NodeDb} - which is therefor strongly
