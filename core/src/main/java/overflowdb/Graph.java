@@ -3,6 +3,7 @@ package overflowdb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
+import overflowdb.storage.NodeSerializer;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
 import overflowdb.util.MultiIterator;
@@ -14,16 +15,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
-import java.util.stream.StreamSupport;
 
 public final class Graph implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(Graph.class);
@@ -38,6 +36,8 @@ public final class Graph implements AutoCloseable {
   protected final Map<String, EdgeFactory> edgeFactoryByLabel;
 
   protected final OdbStorage storage;
+  public final NodeSerializer nodeSerializer;
+  protected final NodeDeserializer nodeDeserializer;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
@@ -61,18 +61,14 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    NodeDeserializer nodeDeserializer = new NodeDeserializer(
-        this, nodeFactoryByLabelId, config.isSerializationStatsEnabled());
     if (config.getStorageLocation().isPresent()) {
-      storage = OdbStorage.createWithSpecificLocation(
-          nodeDeserializer,
-          new File(config.getStorageLocation().get()),
-          config.isSerializationStatsEnabled()
-      );
+      storage = OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()));
       initElementCollections(storage);
     } else {
-      storage = OdbStorage.createWithTempFile(nodeDeserializer, config.isSerializationStatsEnabled());
+      storage = OdbStorage.createWithTempFile();
     }
+    this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId, config.isSerializationStatsEnabled(), storage);
+    this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
     referenceManager = new ReferenceManager(storage);
     heapUsageMonitor = config.isOverflowEnabled() ?
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
@@ -90,7 +86,7 @@ public final class Graph implements AutoCloseable {
     while (serializedVertexIter.hasNext()) {
       final Map.Entry<Long, byte[]> entry = serializedVertexIter.next();
       try {
-        final NodeRef nodeRef = storage.getNodeDeserializer().get().deserializeRef(entry.getValue());
+        final NodeRef nodeRef = nodeDeserializer.deserializeRef(entry.getValue());
         nodes.add(nodeRef);
         importCount++;
         if (importCount % 131072 == 0) { // some random magic number that allows for quick division

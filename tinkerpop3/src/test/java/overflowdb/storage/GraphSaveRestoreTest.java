@@ -177,7 +177,7 @@ public class GraphSaveRestoreTest {
     Graph graph = openGratefulDeadGraph(storageFile, false);
     int expectedSerializationCount = graphModifications.apply(graph);
     graph.close();
-    assertEquals(expectedSerializationCount, graph.getStorage().nodeSerializer.getSerializedCount());
+    assertEquals(expectedSerializationCount, graph.nodeSerializer.getSerializedCount());
   }
 
   private Graph openGratefulDeadGraph(File overflowDb, boolean enableOverflow) {

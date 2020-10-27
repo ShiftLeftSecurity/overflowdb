@@ -1,7 +1,5 @@
 package overflowdb.storage;
 
-import overflowdb.Node;
-import overflowdb.NodeDb;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -10,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,8 +24,6 @@ public class OdbStorage implements AutoCloseable {
   private static final String INDEX_PREFIX = "index_";
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  protected final NodeSerializer nodeSerializer;
-  protected final Optional<NodeDeserializer> nodeDeserializer;
 
   private final File mvstoreFile;
   private final boolean doPersist;
@@ -40,35 +35,19 @@ public class OdbStorage implements AutoCloseable {
   private final AtomicInteger stringToIntMappingsMaxId = new AtomicInteger(0);
   private ArrayList<String> stringToIntReverseMappings;
 
-  public static OdbStorage createWithTempFile(
-      final NodeDeserializer nodeDeserializer, final boolean enableSerializationStats) {
-    return new OdbStorage(Optional.empty(), Optional.ofNullable(nodeDeserializer), enableSerializationStats);
+  public static OdbStorage createWithTempFile() {
+    return new OdbStorage(Optional.empty());
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OdbStorage createWithSpecificLocation(
-      final NodeDeserializer nodeDeserializer, final File mvstoreFile, final boolean enableSerializationStats) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.ofNullable(nodeDeserializer), enableSerializationStats);
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile));
   }
 
-  /**
-   * create with specific mvstore file - which may or may not yet exist.
-   * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
-   */
-  public static OdbStorage createWithSpecificLocation(final File mvstoreFile, final boolean enableSerializationStats) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile), Optional.empty(), enableSerializationStats);
-  }
-
-  private OdbStorage(
-      final Optional<File> mvstoreFileMaybe,
-      final Optional<NodeDeserializer> nodeDeserializer,
-      final boolean enableSerializationStats) {
-    this.nodeSerializer = new NodeSerializer(enableSerializationStats);
-    this.nodeDeserializer = nodeDeserializer;
-
+  private OdbStorage(final Optional<File> mvstoreFileMaybe) {
     if (mvstoreFileMaybe.isPresent()) {
       this.doPersist = true;
       mvstoreFile = mvstoreFileMaybe.get();
@@ -113,27 +92,10 @@ public class OdbStorage implements AutoCloseable {
     }
   }
 
-  public void persist(final NodeDb node) {
-    final long id = node.ref.id();
-    persist(id, serialize(node));
-  }
-
-  public byte[] serialize(NodeDb node) {
-    try {
-      return nodeSerializer.serialize(node);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public void persist(long id, byte[] node) {
     if (!closed) {
       getNodesMVMap().put(id, node);
     }
-  }
-
-  public <A extends Node> A readNode(final long id) throws IOException {
-    return (A) nodeDeserializer.get().deserialize(getNodesMVMap().get(id));
   }
 
   /** flush any remaining changes in underlying storage to disk */
@@ -165,10 +127,6 @@ public class OdbStorage implements AutoCloseable {
 
   public Set<Map.Entry<Long, byte[]>> allNodes() {
     return getNodesMVMap().entrySet();
-  }
-
-  public NodeSerializer getNodeSerializer() {
-    return nodeSerializer;
   }
 
   public synchronized MVMap<Long, byte[]> getNodesMVMap() {
@@ -242,10 +200,6 @@ public class OdbStorage implements AutoCloseable {
     return store;
   }
 
-  public Optional<NodeDeserializer> getNodeDeserializer() {
-    return nodeDeserializer;
-  }
-
   private Map<String, String> getIndexNameMap(MVStore store) {
     return store
         .getMapNames()
@@ -278,5 +232,9 @@ public class OdbStorage implements AutoCloseable {
 
   public void clearIndex(String indexName) {
     openIndex(indexName).clear();
+  }
+
+  public byte[] getSerializedNode(long nodeId) {
+    return getNodesMVMap().get(nodeId);
   }
 }
