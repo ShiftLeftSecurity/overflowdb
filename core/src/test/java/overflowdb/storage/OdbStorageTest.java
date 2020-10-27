@@ -141,10 +141,13 @@ public class OdbStorageTest {
     String a = "a";
     String b = "b";
     String c = "c";
+
     int stringIdA = storage.lookupOrCreateStringToIntMapping(a);
     int stringIdB = storage.lookupOrCreateStringToIntMapping(b);
+    assertEquals(a, storage.reverseLookupStringToIntMapping(stringIdA));
+    assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
 
-    // should be idempotent
+    // should be idempotent - i.e. should not create additional entries
     assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
     assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
 
@@ -156,6 +159,10 @@ public class OdbStorageTest {
 
     int stringIdC = storage.lookupOrCreateStringToIntMapping(c);
     assertEquals(3, storage.getStringToIntMappings().size());
+
+    assertEquals(a, storage.reverseLookupStringToIntMapping(stringIdA));
+    assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
+    assertEquals(c, storage.reverseLookupStringToIntMapping(stringIdC));
   }
 
 
