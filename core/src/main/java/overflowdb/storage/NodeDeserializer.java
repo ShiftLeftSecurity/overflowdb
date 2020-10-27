@@ -139,21 +139,6 @@ public class NodeDeserializer extends BookKeeper {
     }
   }
 
-  protected final Object[] toKeyValueArray(Map<String, Object> properties) {
-    List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
-    for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      //todo: We fail to properly intern strings contained in a List.
-      final String key = intern(entry.getKey());
-      final Object property = entry.getValue();
-      keyValues.add(key);
-      if(property instanceof String)
-        keyValues.add(intern((String)property));
-      else
-        keyValues.add(property);
-    }
-    return keyValues.toArray();
-  }
-
   protected final NodeRef createNodeRef(long id, int labelId) {
     return getNodeFactory(labelId).createNodeRef(graph, id);
   }

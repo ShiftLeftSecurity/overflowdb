@@ -61,14 +61,12 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    if (config.getStorageLocation().isPresent()) {
-      storage = OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()));
-      initElementCollections(storage);
-    } else {
-      storage = OdbStorage.createWithTempFile();
-    }
+    storage = config.getStorageLocation().isPresent()
+        ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
+        : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
+    config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
     referenceManager = new ReferenceManager(storage);
     heapUsageMonitor = config.isOverflowEnabled() ?
         Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
