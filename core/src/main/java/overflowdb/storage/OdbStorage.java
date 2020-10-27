@@ -4,6 +4,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.util.StringInterner;
 
 import java.io.File;
 import java.io.IOException;
@@ -181,7 +182,8 @@ public class OdbStorage implements AutoCloseable {
 
   public String reverseLookupStringToIntMapping(int stringId) {
     getStringToIntMappings(); //ensure everything is initialized
-    return stringToIntReverseMappings.get(stringId);
+    String string = stringToIntReverseMappings.get(stringId);
+    return StringInterner.intern(string);
   }
 
   private void ensureMVStoreAvailable() {
