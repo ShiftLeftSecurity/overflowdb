@@ -136,7 +136,7 @@ public class OdbStorageTest {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.delete();
     storageFile.deleteOnExit();
-    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, false);
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
 
     String a = "a";
     String b = "b";
@@ -153,7 +153,7 @@ public class OdbStorageTest {
 
     // should survive restarts
     storage.close();
-    storage = OdbStorage.createWithSpecificLocation(storageFile, false);
+    storage = OdbStorage.createWithSpecificLocation(storageFile);
     assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
     assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
 
