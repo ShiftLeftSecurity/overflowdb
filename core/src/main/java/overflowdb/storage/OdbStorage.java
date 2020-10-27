@@ -63,7 +63,7 @@ public class OdbStorage implements AutoCloseable {
     if (mvstoreFileMaybe.isPresent()) {
       this.doPersist = true;
       mvstoreFile = mvstoreFileMaybe.get();
-      if (mvstoreFile.exists()) {
+      if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
         verifyStorageVersion();
       }
     } else {

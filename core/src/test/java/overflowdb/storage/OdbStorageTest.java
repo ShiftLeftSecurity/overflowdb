@@ -66,7 +66,6 @@ public class OdbStorageTest {
   @Test(expected = BackwardsCompatibilityError.class)
   public void shouldErrorWhenTryingToOpenWithoutStorageFormatVersion() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     storageFile.deleteOnExit();
     OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, false);
     storage.close();
@@ -84,7 +83,6 @@ public class OdbStorageTest {
   @Test(expected = BackwardsCompatibilityError.class)
   public void shouldErrorWhenTryingToOpenDifferentStorageFormatVersion() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     storageFile.deleteOnExit();
     OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, false);
     storage.close();
