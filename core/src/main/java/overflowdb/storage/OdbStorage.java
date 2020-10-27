@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -36,6 +38,7 @@ public class OdbStorage implements AutoCloseable {
   private MVMap<String, Integer> stringToIntMappings;
   private boolean closed;
   private final AtomicInteger stringToIntMappingsMaxId = new AtomicInteger(0);
+  private ArrayList<String> stringToIntReverseMappings;
 
   public static OdbStorage createWithTempFile(
       final NodeDeserializer nodeDeserializer, final boolean enableSerializationStats) {
@@ -168,24 +171,35 @@ public class OdbStorage implements AutoCloseable {
     return nodeSerializer;
   }
 
-  public MVMap<Long, byte[]> getNodesMVMap() {
+  public synchronized MVMap<Long, byte[]> getNodesMVMap() {
     ensureMVStoreAvailable();
     if (nodesMVMap == null)
       nodesMVMap = mvstore.openMap("nodes");
     return nodesMVMap;
   }
 
-  public MVMap<String, String> getMetaDataMVMap() {
+  public synchronized MVMap<String, String> getMetaDataMVMap() {
     ensureMVStoreAvailable();
     if (metadataMVMap == null)
       metadataMVMap = mvstore.openMap("metadata");
     return metadataMVMap;
   }
 
-  public MVMap<String, Integer> getStringToIntMappings() {
+  public synchronized MVMap<String, Integer> getStringToIntMappings() {
     ensureMVStoreAvailable();
     if (stringToIntMappings == null)
       stringToIntMappings = mvstore.openMap("stringToIntMappings");
+
+    if (stringToIntReverseMappings == null) {
+      int mappingsCount = stringToIntMappings.size();
+      stringToIntReverseMappings = new ArrayList<>(mappingsCount);
+      // initialize list with correct size - we want to use it as an reverse index, and ArrayList.ensureCapacity doesn't actually grow the list...
+      for (int i = 0; i <= mappingsCount; i++) {
+        stringToIntReverseMappings.add(null);
+      }
+      stringToIntMappings.forEach((string, id) -> stringToIntReverseMappings.set(id, string));
+    }
+
     return stringToIntMappings;
   }
 
@@ -201,7 +215,15 @@ public class OdbStorage implements AutoCloseable {
   private int createStringToIntMapping(String s) {
     int index = stringToIntMappingsMaxId.incrementAndGet();
     getStringToIntMappings().put(s, index);
+
+    stringToIntReverseMappings.add(null); // ensure there's enough space
+    stringToIntReverseMappings.set(index, s);
     return index;
+  }
+
+  public String reverseLookupStringToIntMapping(int stringId) {
+    getStringToIntMappings(); //ensure everything is initialized
+    return stringToIntReverseMappings.get(stringId);
   }
 
   private void ensureMVStoreAvailable() {
@@ -257,5 +279,4 @@ public class OdbStorage implements AutoCloseable {
   public void clearIndex(String indexName) {
     openIndex(indexName).clear();
   }
-
 }
