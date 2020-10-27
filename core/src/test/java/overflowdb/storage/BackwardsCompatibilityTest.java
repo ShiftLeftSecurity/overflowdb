@@ -36,7 +36,6 @@ public class BackwardsCompatibilityTest {
   @Test
   public void shouldLoadOldStorageFormatWhenAddingEdgeType() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     final long thing1Id;
@@ -77,7 +76,6 @@ public class BackwardsCompatibilityTest {
    *  */
   public void shouldThrowExceptionForUnsupportedProperty() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     {
@@ -107,7 +105,6 @@ public class BackwardsCompatibilityTest {
    *  */
   public void shouldThrowExceptionForUnsupportedEdge() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     {

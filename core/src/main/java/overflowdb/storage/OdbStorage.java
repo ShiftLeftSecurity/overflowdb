@@ -15,6 +15,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
+  /** when persistence format changes, increase this number - this protects us from attempting to open outdated formats */
+  public static final int STORAGE_FORMAT_VERSION = 1;
+  public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
+
   private static final String INDEX_PREFIX = "index_";
   private final Logger logger = LoggerFactory.getLogger(getClass());
   protected final NodeSerializer nodeSerializer;
@@ -24,6 +28,7 @@ public class OdbStorage implements AutoCloseable {
   private final boolean doPersist;
   private MVStore mvstore; // initialized in `getNodesMVMap`
   private MVMap<Long, byte[]> nodesMVMap;
+  private MVMap<String, String> metadataMVMap;
   private boolean closed;
 
   public static OdbStorage createWithTempFile(
@@ -58,6 +63,9 @@ public class OdbStorage implements AutoCloseable {
     if (mvstoreFileMaybe.isPresent()) {
       this.doPersist = true;
       mvstoreFile = mvstoreFileMaybe.get();
+      if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
+        verifyStorageVersion();
+      }
     } else {
       try {
         this.doPersist = false;
@@ -68,6 +76,23 @@ public class OdbStorage implements AutoCloseable {
       }
     }
     logger.trace("storage file: " + mvstoreFile);
+  }
+
+  /** storage version must be exactly the same */
+  private void verifyStorageVersion() {
+    ensureMVStoreAvailable();
+    MVMap<String, String> metaData = getMetaDataMVMap();
+    if (!metaData.containsKey(METADATA_KEY_STORAGE_FORMAT_VERSION)) {
+      throw new BackwardsCompatibilityError("storage metadata does not contain version number, this must be an old format.");
+    }
+
+    String storageFormatVersionString = metaData.get(METADATA_KEY_STORAGE_FORMAT_VERSION);
+    int storageFormatVersion = Integer.parseInt(storageFormatVersionString);
+    if (storageFormatVersion != STORAGE_FORMAT_VERSION) {
+      throw new BackwardsCompatibilityError(String.format(
+          "attempting to open storage with different version: %s; this version of overflowdb requires the version to be exactly %s",
+          storageFormatVersion, STORAGE_FORMAT_VERSION));
+    }
   }
 
   public void persist(final NodeDb node) {
@@ -105,6 +130,7 @@ public class OdbStorage implements AutoCloseable {
   public void close() {
     closed = true;
     logger.debug("closing " + getClass().getSimpleName());
+    getMetaDataMVMap().put(METADATA_KEY_STORAGE_FORMAT_VERSION, String.format("%s", STORAGE_FORMAT_VERSION));
     flush();
     if (mvstore != null) mvstore.close();
     if (!doPersist) mvstoreFile.delete();
@@ -127,12 +153,23 @@ public class OdbStorage implements AutoCloseable {
   }
 
   public MVMap<Long, byte[]> getNodesMVMap() {
-    if (mvstore == null) {
-      mvstore = initializeMVStore();
-    }
+    ensureMVStoreAvailable();
     if (nodesMVMap == null)
       nodesMVMap = mvstore.openMap("nodes");
     return nodesMVMap;
+  }
+
+  public MVMap<String, String> getMetaDataMVMap() {
+    ensureMVStoreAvailable();
+    if (metadataMVMap == null)
+      metadataMVMap = mvstore.openMap("metadata");
+    return metadataMVMap;
+  }
+
+  private void ensureMVStoreAvailable() {
+    if (mvstore == null) {
+      mvstore = initializeMVStore();
+    }
   }
 
   private MVStore initializeMVStore() {
@@ -141,6 +178,7 @@ public class OdbStorage implements AutoCloseable {
         .autoCommitBufferSize(1024 * 8)
         .compress()
         .open();
+
     return store;
   }
 

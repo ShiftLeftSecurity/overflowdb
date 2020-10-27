@@ -1,5 +1,7 @@
 package overflowdb.storage;
 
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.Config;
@@ -60,5 +62,40 @@ public class OdbStorageTest {
 
     assertFalse("temp storage file should be deleted on close", tmpStorageFile.exists());
   }
+
+  @Test(expected = BackwardsCompatibilityError.class)
+  public void shouldErrorWhenTryingToOpenWithoutStorageFormatVersion() throws IOException {
+    File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+    storageFile.deleteOnExit();
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, false);
+    storage.close();
+
+    // modify storage: drop storage version
+    MVStore store = new MVStore.Builder().fileName(storageFile.getAbsolutePath()).open();
+    final MVMap<String, String> metadata = store.openMap("metadata");
+    metadata.remove(OdbStorage.METADATA_KEY_STORAGE_FORMAT_VERSION);
+    store.close();
+
+    // should throw a BackwardsCompatibilityError
+    OdbStorage.createWithSpecificLocation(storageFile, false);
+  }
+
+  @Test(expected = BackwardsCompatibilityError.class)
+  public void shouldErrorWhenTryingToOpenDifferentStorageFormatVersion() throws IOException {
+    File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+    storageFile.deleteOnExit();
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, false);
+    storage.close();
+
+    // modify storage: change storage version
+    MVStore store = new MVStore.Builder().fileName(storageFile.getAbsolutePath()).open();
+    final MVMap<String, String> metadata = store.openMap("metadata");
+    metadata.put(OdbStorage.METADATA_KEY_STORAGE_FORMAT_VERSION, "-1");
+    store.close();
+
+    // should throw a BackwardsCompatibilityError
+    OdbStorage.createWithSpecificLocation(storageFile, false);
+  }
+
 
 }
