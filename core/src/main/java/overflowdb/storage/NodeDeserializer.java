@@ -20,14 +20,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
-  private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
+  private final Map<String, NodeFactory> nodeFactoryByLabel;
   private ConcurrentHashMap<String, String> interner;
   private final OdbStorage storage;
 
-  public NodeDeserializer(Graph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled, OdbStorage storage) {
+  public NodeDeserializer(Graph graph, Map<String, NodeFactory> nodeFactoryByLabel, boolean statsEnabled, OdbStorage storage) {
     super(statsEnabled);
     this.graph = graph;
-    this.nodeFactoryByLabelId = nodeFactoryByLabelId;
+    this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.storage = storage;
     this.interner = new ConcurrentHashMap<>();
   }
@@ -44,10 +44,11 @@ public class NodeDeserializer extends BookKeeper {
 
     MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes);
     final long id = unpacker.unpackLong();
-    final int labelId = unpacker.unpackInt();
+    final int labelStringId = unpacker.unpackInt();
     final Object[] properties = unpackProperties(unpacker);
 
-    NodeDb node = getNodeFactory(labelId).createNode(graph, id);
+    final String label = storage.reverseLookupStringToIntMapping(labelStringId);
+    NodeDb node = getNodeFactory(label).createNode(graph, id);
     PropertyHelper.attachProperties(node, properties);
 
     deserializeEdges(unpacker, node, Direction.OUT);
@@ -80,9 +81,10 @@ public class NodeDeserializer extends BookKeeper {
   public final NodeRef deserializeRef(byte[] bytes) throws IOException {
     try (MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(bytes)) {
       long id = unpacker.unpackLong();
-      int labelId = unpacker.unpackInt();
+      int labelStringId = unpacker.unpackInt();
+      String label = storage.reverseLookupStringToIntMapping(labelStringId);
 
-      return createNodeRef(id, labelId);
+      return createNodeRef(id, label);
     }
   }
 
@@ -139,15 +141,15 @@ public class NodeDeserializer extends BookKeeper {
     }
   }
 
-  protected final NodeRef createNodeRef(long id, int labelId) {
-    return getNodeFactory(labelId).createNodeRef(graph, id);
+  protected final NodeRef createNodeRef(long id, String label) {
+    return getNodeFactory(label).createNodeRef(graph, id);
   }
 
-  private final NodeFactory getNodeFactory(int labelId) {
-    if (!nodeFactoryByLabelId.containsKey(labelId))
-      throw new AssertionError("nodeFactory not found for labelId=" + labelId);
+  private final NodeFactory getNodeFactory(String label) {
+    if (!nodeFactoryByLabel.containsKey(label))
+      throw new AssertionError(String.format("nodeFactory not found for label=%s", label));
 
-    return nodeFactoryByLabelId.get(labelId);
+    return nodeFactoryByLabel.get(label);
   }
 
 }

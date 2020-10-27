@@ -47,11 +47,6 @@ public class TestNode extends NodeRef<TestNodeDb> {
     }
 
     @Override
-    public int forLabelId() {
-      return TestNodeDb.layoutInformation.labelId;
-    }
-
-    @Override
     public TestNodeDb createNode(NodeRef<TestNodeDb> ref) {
       return new TestNodeDb(ref);
     }

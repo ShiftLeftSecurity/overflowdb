@@ -15,7 +15,6 @@ class Elephant(graph: Graph, id: Long) extends NodeRef[ElephantDb](graph, id) wi
 
 object Elephant {
   val Label = "elephant"
-  val LabelId = 7
 
   object Properties {
     val Name = new PropertyKey[String](PropertyNames.Name)
@@ -28,14 +27,13 @@ object Elephant {
 
   val factory: NodeFactory[ElephantDb] = new NodeFactory[ElephantDb]() {
     override def forLabel: String = Label
-    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ElephantDb]) = new ElephantDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Elephant(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      LabelId,
+      Label,
       PropertyNames.all.asJava,
       List().asJava,
       List().asJava

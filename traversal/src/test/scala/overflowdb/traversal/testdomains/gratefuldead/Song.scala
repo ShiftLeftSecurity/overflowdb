@@ -24,7 +24,6 @@ class Song(graph: Graph, id: Long) extends NodeRef[SongDb](graph, id) {
 
 object Song {
   val Label = "song"
-  val LabelId = 5
 
   object Properties {
     val Name = new PropertyKey[String](PropertyNames.Name)
@@ -41,14 +40,13 @@ object Song {
 
   val factory: NodeFactory[SongDb] = new NodeFactory[SongDb]() {
     override def forLabel: String = Label
-    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[SongDb]) = new SongDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Song(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      LabelId,
+      Label,
       PropertyNames.all.asJava,
       List(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation).asJava,
       List(FollowedBy.layoutInformation).asJava

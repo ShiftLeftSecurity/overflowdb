@@ -78,8 +78,8 @@ public class SerializerTest {
   }
 
   private NodeDeserializer newDeserializer(Graph graph) {
-    Map<Integer, NodeFactory> nodeFactories = new HashMap();
-    nodeFactories.put(TestNodeDb.layoutInformation.labelId, TestNode.factory);
+    Map<String, NodeFactory> nodeFactories = new HashMap();
+    nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
     return new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
   }
 

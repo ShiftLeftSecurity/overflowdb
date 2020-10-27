@@ -138,11 +138,10 @@ class SchemaV1 {
   }
 
   static class Thing1 extends DummyNodeDb {
-    static final int LABEL_ID = 1;
     static final String LABEL = "Thing1";
 
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-        LABEL_ID,
+        LABEL,
         Collections.emptySet(),
         Arrays.asList(Connection1.layoutInformation),
         Arrays.asList()
@@ -151,10 +150,6 @@ class SchemaV1 {
     static NodeFactory<Thing1> nodeFactory = new NodeFactory<Thing1>() {
       public String forLabel() {
         return LABEL;
-      }
-
-      public int forLabelId() {
-        return LABEL_ID;
       }
 
       public Thing1 createNode(NodeRef<Thing1> ref) {
@@ -183,11 +178,10 @@ class SchemaV1 {
   }
 
   static class Thing2 extends DummyNodeDb {
-    static final int LABEL_ID = 2;
     static final String LABEL = "Thing2";
 
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-        LABEL_ID,
+        LABEL,
         Collections.emptySet(),
         Arrays.asList(),
         Arrays.asList(Connection1.layoutInformation)
@@ -196,10 +190,6 @@ class SchemaV1 {
     static NodeFactory<Thing2> nodeFactory = new NodeFactory<Thing2>() {
       public String forLabel() {
         return LABEL;
-      }
-
-      public int forLabelId() {
-        return LABEL_ID;
       }
 
       public Thing2 createNode(NodeRef<Thing2> ref) {
@@ -262,11 +252,10 @@ class SchemaV2 {
   }
 
   static class Thing1 extends DummyNodeDb {
-    static final int LABEL_ID = 1;
     static final String LABEL = "Thing1";
 
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-        LABEL_ID,
+        LABEL,
         Collections.emptySet(),
         Arrays.asList(Connection2.layoutInformation, Connection1.layoutInformation),
         Arrays.asList()
@@ -275,10 +264,6 @@ class SchemaV2 {
     static NodeFactory<Thing1> nodeFactory = new NodeFactory<Thing1>() {
       public String forLabel() {
         return LABEL;
-      }
-
-      public int forLabelId() {
-        return LABEL_ID;
       }
 
       public Thing1 createNode(NodeRef<Thing1> ref) {
@@ -307,11 +292,10 @@ class SchemaV2 {
   }
 
   static class Thing2 extends DummyNodeDb {
-    static final int LABEL_ID = 2;
     static final String LABEL = "Thing2";
 
     static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-        LABEL_ID,
+        LABEL,
         Collections.emptySet(),
         Arrays.asList(),
         Arrays.asList(Connection2.layoutInformation, Connection1.layoutInformation)
@@ -320,10 +304,6 @@ class SchemaV2 {
     static NodeFactory<Thing2> nodeFactory = new NodeFactory<Thing2>() {
       public String forLabel() {
         return LABEL;
-      }
-
-      public int forLabelId() {
-        return LABEL_ID;
       }
 
       public Thing2 createNode(NodeRef<Thing2> ref) {

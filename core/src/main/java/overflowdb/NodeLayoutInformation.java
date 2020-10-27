@@ -16,11 +16,7 @@ import java.util.TreeSet;
  * Please make sure to instantiate only one instance per node type to not waste memory.
  */
 public class NodeLayoutInformation {
-  /** unique id for this node's label
-   *  This is mostly an optimization for storage - we could as well serialize labels as string, but numbers are more efficient.
-   *  Since we know our schema at compile time, we can assign unique ids for each label.
-   *  */
-  public final int labelId;
+  public final String label;
 
   private final Set<String> propertyKeys;
   private final String[] allowedOutEdgeLabels;
@@ -43,11 +39,11 @@ public class NodeLayoutInformation {
    * 1-based, because index `0` is the adjacent node ref */
   private final Map<LabelAndKey, Integer> edgeLabelAndKeyToStrideIndex;
 
-  public NodeLayoutInformation(int labelId,
+  public NodeLayoutInformation(String label,
                                Set<String> propertyKeys,
                                List<EdgeLayoutInformation> outEdgeLayouts,
                                List<EdgeLayoutInformation> inEdgeLayouts) {
-    this.labelId = labelId;
+    this.label = label;
     this.propertyKeys = propertyKeys;
 
     Set<EdgeLayoutInformation> allEdgeLayouts = new HashSet<>();

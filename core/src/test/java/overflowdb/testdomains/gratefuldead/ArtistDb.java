@@ -60,7 +60,7 @@ public class ArtistDb extends NodeDb {
   }
 
   public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-      3,
+      Artist.label,
       new HashSet<>(Arrays.asList(Artist.NAME)),
       Arrays.asList(),
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation));
