@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class OdbStorage implements AutoCloseable {
   /** when persistence format changes, increase this number - this protects us from attempting to open outdated formats */
-  public static final int STORAGE_FORMAT_VERSION = 1;
+  public static final Version STORAGE_FORMAT_VERSION = Version.newBuilder.major(1).minor(0).build();
   public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
 
   private static final String INDEX_PREFIX = "index_";
@@ -87,8 +87,8 @@ public class OdbStorage implements AutoCloseable {
     }
 
     String storageFormatVersionString = metaData.get(METADATA_KEY_STORAGE_FORMAT_VERSION);
-    int storageFormatVersion = Integer.parseInt(storageFormatVersionString);
-    if (storageFormatVersion != STORAGE_FORMAT_VERSION) {
+    Version storageFormatVersion = Version.fromString(storageFormatVersionString);
+    if (!storageFormatVersion.equals(STORAGE_FORMAT_VERSION)) {
       throw new BackwardsCompatibilityError(String.format(
           "attempting to open storage with different version: %s; this version of overflowdb requires the version to be exactly %s",
           storageFormatVersion, STORAGE_FORMAT_VERSION));
