@@ -100,7 +100,6 @@ public class OdbStorageTest {
   @Test
   public void shouldProvideStringToIntGlossary() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     storageFile.deleteOnExit();
     OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
 
@@ -130,40 +129,5 @@ public class OdbStorageTest {
     assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
     assertEquals(c, storage.reverseLookupStringToIntMapping(stringIdC));
   }
-
-  @Test
-  public void shouldProvideStringToIntGlossary() throws IOException {
-    File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
-    storageFile.deleteOnExit();
-    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
-
-    String a = "a";
-    String b = "b";
-    String c = "c";
-
-    int stringIdA = storage.lookupOrCreateStringToIntMapping(a);
-    int stringIdB = storage.lookupOrCreateStringToIntMapping(b);
-    assertEquals(a, storage.reverseLookupStringToIntMapping(stringIdA));
-    assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
-
-    // should be idempotent - i.e. should not create additional entries
-    assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
-    assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
-
-    // should survive restarts
-    storage.close();
-    storage = OdbStorage.createWithSpecificLocation(storageFile);
-    assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
-    assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
-
-    int stringIdC = storage.lookupOrCreateStringToIntMapping(c);
-    assertEquals(3, storage.getStringToIntMappings().size());
-
-    assertEquals(a, storage.reverseLookupStringToIntMapping(stringIdA));
-    assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
-    assertEquals(c, storage.reverseLookupStringToIntMapping(stringIdC));
-  }
-
 
 }
