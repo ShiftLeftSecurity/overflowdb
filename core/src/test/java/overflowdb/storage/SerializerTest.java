@@ -23,7 +23,7 @@ public class SerializerTest {
   @Test
   public void serializeNode() throws IOException {
     try (Graph graph = SimpleDomain.newGraph()) {
-      NodeSerializer serializer = new NodeSerializer(false);
+      NodeSerializer serializer = new NodeSerializer(false, graph.getStorage());
       NodeDeserializer deserializer = newDeserializer(graph);
       TestNode testNode = (TestNode) graph.addNode(
           TestNode.LABEL,
@@ -50,7 +50,7 @@ public class SerializerTest {
   @Test
   public void serializeWithEdge() throws IOException {
     try (Graph graph = SimpleDomain.newGraph()) {
-      NodeSerializer serializer = new NodeSerializer(true);
+      NodeSerializer serializer = new NodeSerializer(true, graph.getStorage());
       NodeDeserializer deserializer = newDeserializer(graph);
 
       TestNode testNode1 = (TestNode) graph.addNode(TestNode.LABEL);
@@ -80,7 +80,7 @@ public class SerializerTest {
   private NodeDeserializer newDeserializer(Graph graph) {
     Map<Integer, NodeFactory> nodeFactories = new HashMap();
     nodeFactories.put(TestNodeDb.layoutInformation.labelId, TestNode.factory);
-    return new NodeDeserializer(graph, nodeFactories, true);
+    return new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
   }
 
 }

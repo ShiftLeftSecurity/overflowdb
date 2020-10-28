@@ -63,7 +63,11 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
   protected byte[] serializeWhenDirty() {
     NodeDb node = this.node;
     if (node != null && node.isDirty()) {
-      return graph.storage.serialize(node);
+      try {
+        return graph.nodeSerializer.serialize(node);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
     return null;
   }
@@ -111,7 +115,8 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
   }
 
   private final N readFromDisk(long nodeId) throws IOException {
-    return graph.storage.readNode(nodeId);
+    byte[] bytes = graph.storage.getSerializedNode(nodeId);
+    return (N) graph.nodeDeserializer.deserialize(bytes);
   }
 
   public long id() {

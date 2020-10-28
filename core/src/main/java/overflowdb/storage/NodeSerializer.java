@@ -16,8 +16,11 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class NodeSerializer extends BookKeeper {
-  public NodeSerializer(boolean statsEnabled) {
+  private final OdbStorage storage;
+
+  public NodeSerializer(boolean statsEnabled, OdbStorage storage) {
     super(statsEnabled);
+    this.storage = storage;
   }
 
   public byte[] serialize(NodeDb node) throws IOException {
@@ -45,7 +48,8 @@ public class NodeSerializer extends BookKeeper {
   private void packProperties(MessageBufferPacker packer, Map<String, Object> properties) throws IOException {
     packer.packMapHeader(properties.size());
     for (Map.Entry<String, Object> property : properties.entrySet()) {
-      packer.packString(property.getKey());
+      int propertyKeyId = storage.lookupOrCreateStringToIntMapping(property.getKey());
+      packer.packInt(propertyKeyId);
       packTypedValue(packer, property.getValue());
     }
   }
@@ -113,7 +117,8 @@ public class NodeSerializer extends BookKeeper {
       currIdx += strideSize;
     }
 
-    packer.packString(edgeLabel);
+    int labelId = storage.lookupOrCreateStringToIntMapping(edgeLabel);
+    packer.packInt(labelId);
     packer.packInt(edgeCount);
 
     for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {

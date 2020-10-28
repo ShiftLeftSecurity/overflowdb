@@ -22,11 +22,13 @@ public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<Integer, NodeFactory> nodeFactoryByLabelId;
   private ConcurrentHashMap<String, String> interner;
+  private final OdbStorage storage;
 
-  public NodeDeserializer(Graph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled) {
+  public NodeDeserializer(Graph graph, Map<Integer, NodeFactory> nodeFactoryByLabelId, boolean statsEnabled, OdbStorage storage) {
     super(statsEnabled);
     this.graph = graph;
     this.nodeFactoryByLabelId = nodeFactoryByLabelId;
+    this.storage = storage;
     this.interner = new ConcurrentHashMap<>();
   }
 
@@ -60,7 +62,8 @@ public class NodeDeserializer extends BookKeeper {
   private void deserializeEdges(MessageUnpacker unpacker, NodeDb node, Direction direction) throws IOException {
     int edgeTypesCount = unpacker.unpackInt();
     for (int edgeTypeIdx = 0; edgeTypeIdx < edgeTypesCount; edgeTypeIdx++) {
-      String edgeLabel = unpacker.unpackString();
+      int edgeLabelId = unpacker.unpackInt();
+      String edgeLabel = storage.reverseLookupStringToIntMapping(edgeLabelId);
       int edgeCount = unpacker.unpackInt();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjancentNodeId = unpacker.unpackLong();
@@ -88,7 +91,8 @@ public class NodeDeserializer extends BookKeeper {
     Object[] res = new Object[propertyCount * 2];
     int resIdx = 0;
     for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
-      final String key = intern(unpacker.unpackString());
+      int keyId = unpacker.unpackInt();
+      final String key = intern(storage.reverseLookupStringToIntMapping(keyId));
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
       res[resIdx++] = key;
       res[resIdx++] = unpackedProperty;
@@ -133,21 +137,6 @@ public class NodeDeserializer extends BookKeeper {
       default:
         throw new UnsupportedOperationException("unknown valueTypeId=`" + valueTypeId);
     }
-  }
-
-  protected final Object[] toKeyValueArray(Map<String, Object> properties) {
-    List keyValues = new ArrayList(properties.size() * 2); // may grow bigger if there's list entries
-    for (Map.Entry<String, Object> entry : properties.entrySet()) {
-      //todo: We fail to properly intern strings contained in a List.
-      final String key = intern(entry.getKey());
-      final Object property = entry.getValue();
-      keyValues.add(key);
-      if(property instanceof String)
-        keyValues.add(intern((String)property));
-      else
-        keyValues.add(property);
-    }
-    return keyValues.toArray();
   }
 
   protected final NodeRef createNodeRef(long id, int labelId) {
