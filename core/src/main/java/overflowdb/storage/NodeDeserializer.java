@@ -10,18 +10,17 @@ import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.util.PropertyHelper;
+import overflowdb.util.StringInterner;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<String, NodeFactory> nodeFactoryByLabel;
-  private ConcurrentHashMap<String, String> interner;
   private final OdbStorage storage;
 
   public NodeDeserializer(Graph graph, Map<String, NodeFactory> nodeFactoryByLabel, boolean statsEnabled, OdbStorage storage) {
@@ -29,12 +28,6 @@ public class NodeDeserializer extends BookKeeper {
     this.graph = graph;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.storage = storage;
-    this.interner = new ConcurrentHashMap<>();
-  }
-
-  private final String intern(String s){
-    String interned = interner.putIfAbsent(s, s);
-    return interned == null ? s : interned;
   }
 
   public final NodeDb deserialize(byte[] bytes) throws IOException {
@@ -94,7 +87,7 @@ public class NodeDeserializer extends BookKeeper {
     int resIdx = 0;
     for (int propertyIdx = 0; propertyIdx < propertyCount; propertyIdx++) {
       int keyId = unpacker.unpackInt();
-      final String key = intern(storage.reverseLookupStringToIntMapping(keyId));
+      final String key = storage.reverseLookupStringToIntMapping(keyId);
       final Object unpackedProperty = unpackValue(unpacker.unpackValue().asArrayValue());
       res[resIdx++] = key;
       res[resIdx++] = unpackedProperty;
@@ -113,7 +106,7 @@ public class NodeDeserializer extends BookKeeper {
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
-        return intern(value.asStringValue().asString());
+        return StringInterner.intern(value.asStringValue().asString());
       case BYTE:
         return value.asIntegerValue().asByte();
       case SHORT:
