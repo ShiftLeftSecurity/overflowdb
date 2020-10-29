@@ -12,7 +12,6 @@ class Car(graph: Graph, id: Long) extends NodeRef[CarDb](graph, id) {
 
 object Car {
   val Label = "car"
-  val LabelId = 7
 
   object Properties {
     val Name = new PropertyKey[String](PropertyNames.Name)
@@ -25,14 +24,13 @@ object Car {
 
   val factory: NodeFactory[CarDb] = new NodeFactory[CarDb]() {
     override def forLabel: String = Label
-    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[CarDb]) = new CarDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Car(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      LabelId,
+      Label,
       PropertyNames.all.asJava,
       List().asJava,
       List().asJava

@@ -20,7 +20,6 @@ class Thing(graph: Graph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
 
 object Thing {
   val Label = "thing"
-  val LabelId = 6
 
   object Properties {
     val Name = new PropertyKey[String](PropertyNames.Name)
@@ -35,14 +34,13 @@ object Thing {
 
   val factory: NodeFactory[ThingDb] = new NodeFactory[ThingDb]() {
     override def forLabel: String = Label
-    override def forLabelId() = LabelId
     override def createNode(ref: NodeRef[ThingDb]) = new ThingDb(ref)
     override def createNodeRef(graph: Graph, id: Long) = new Thing(graph, id)
   }
 
   val layoutInformation: NodeLayoutInformation =
     new NodeLayoutInformation(
-      LabelId,
+      Label,
       PropertyNames.all.asJava,
       List(Connection.layoutInformation).asJava,
       List(Connection.layoutInformation).asJava

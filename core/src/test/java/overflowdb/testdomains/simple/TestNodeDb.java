@@ -109,7 +109,7 @@ public class TestNodeDb extends NodeDb {
   }
 
   public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-      2,
+      TestNode.LABEL,
       new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY)),
       Arrays.asList(TestEdge.layoutInformation),
       Arrays.asList(TestEdge.layoutInformation));

@@ -45,17 +45,14 @@ public final class Graph implements AutoCloseable {
                            List<NodeFactory<?>> nodeFactories,
                            List<EdgeFactory<?>> edgeFactories) {
     Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
-    Map<Integer, NodeFactory> nodeFactoryByLabelId = new HashMap<>(nodeFactories.size());
     Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
-    nodeFactories.forEach(factory -> nodeFactoryByLabelId.put(factory.forLabelId(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new Graph(configuration, nodeFactoryByLabel, nodeFactoryByLabelId, edgeFactoryByLabel);
+    return new Graph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
   }
 
   private Graph(Config config,
                 Map<String, NodeFactory> nodeFactoryByLabel,
-                Map<Integer, NodeFactory> nodeFactoryByLabelId,
                 Map<String, EdgeFactory> edgeFactoryByLabel) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
@@ -64,7 +61,7 @@ public final class Graph implements AutoCloseable {
     storage = config.getStorageLocation().isPresent()
         ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
         : OdbStorage.createWithTempFile();
-    this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabelId, config.isSerializationStatsEnabled(), storage);
+    this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
     referenceManager = new ReferenceManager(storage);

@@ -85,7 +85,7 @@ public class SongDb extends NodeDb {
   }
 
   public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
-      1,
+      Song.label,
       new HashSet<>(Arrays.asList(Song.NAME, Song.SONG_TYPE, Song.PERFORMANCES)),
       Arrays.asList(SungBy.layoutInformation, WrittenBy.layoutInformation, FollowedBy.layoutInformation),
       Arrays.asList(FollowedBy.layoutInformation));

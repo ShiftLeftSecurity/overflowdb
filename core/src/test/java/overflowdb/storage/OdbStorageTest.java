@@ -100,7 +100,6 @@ public class OdbStorageTest {
   @Test
   public void shouldProvideStringToIntGlossary() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
-    storageFile.delete();
     storageFile.deleteOnExit();
     OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
 
@@ -130,6 +129,5 @@ public class OdbStorageTest {
     assertEquals(b, storage.reverseLookupStringToIntMapping(stringIdB));
     assertEquals(c, storage.reverseLookupStringToIntMapping(stringIdC));
   }
-
 
 }
