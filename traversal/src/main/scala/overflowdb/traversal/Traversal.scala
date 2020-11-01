@@ -237,29 +237,29 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** sort elements by their natural order */
   @Doc("sort elements by their natural order")
-  def sorted(implicit ord: Ordering[A]): Traversal[A] =
-    Traversal(elements.to(Seq).sorted)
+  def sorted(implicit ord: Ordering[A]): Seq[A] =
+    elements.to(Seq).sorted
 
   /** sort elements by the value of the given transformation function */
   @Doc("sort elements by the value of the given transformation function")
-  def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Traversal[A] =
-    Traversal(elements.to(Seq).sortBy(f))
+  def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Seq[A] =
+    elements.to(Seq).sortBy(f)
 
   /** group elements and count how often they appear */
   @Doc("group elements and count how often they appear")
-  def groupCount: Traversal[Map[A, Int]] =
+  def groupCount: Map[A, Int] =
     groupCount(identity)
 
   /** group elements by a given transformation function and count how often the results appear */
   @Doc("group elements by a given transformation function and count how often the results appear")
-  def groupCount[B](by: A => B): Traversal[Map[B, Int]] = {
+  def groupCount[B](by: A => B): Map[B, Int] = {
     val counts = mutable.Map.empty[B, Int].withDefaultValue(0)
     this.foreach { a =>
       val b = by(a)
       val newValue = counts(b) + 1
       counts.update(b, newValue)
     }
-    Traversal.fromSingle(counts.to(Map))
+    counts.to(Map)
   }
 
   @Doc("enable path tracking - prerequisite for path/simplePath steps")
