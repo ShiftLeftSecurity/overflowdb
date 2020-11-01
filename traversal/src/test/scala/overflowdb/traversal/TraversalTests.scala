@@ -132,10 +132,10 @@ class TraversalTests extends WordSpec with Matchers {
   }
 
   ".groupCount step" in {
-    Traversal("b", "a", "b").groupCount.head shouldBe
+    Traversal("b", "a", "b").groupCount shouldBe
       Map("a" -> 1, "b" -> 2)
 
-    Traversal("aaa", "bbb", "cc").groupCount(_.length).head shouldBe
+    Traversal("aaa", "bbb", "cc").groupCount(_.length) shouldBe
       Map(2 -> 1, 3 -> 2)
   }
 
