@@ -169,6 +169,12 @@ class TraversalTests extends WordSpec with Matchers {
     oneToFour.outside(2, 3).l shouldBe Seq(1, 4)
   }
 
+  "within/without filter steps" in {
+    def oneToFour = Traversal(1, 2, 3, 4)
+    oneToFour.within(Set(2, 4)).l shouldBe Seq(2, 4)
+    oneToFour.without(Set(2, 4)).l shouldBe Seq(1, 3)
+  }
+
   ".help step" should {
     "give a domain overview" in {
       simpleDomain.help should include(".things")
