@@ -1,7 +1,7 @@
 package overflowdb.traversal.testdomains
 
 import overflowdb.traversal.Traversal
-import overflowdb.traversal.filter.{NumberPropertyFilter, PropertyFilter, StringPropertyFilter}
+import overflowdb.traversal.filter.{PropertyFilter, StringPropertyFilter}
 
 package object gratefuldead {
 
@@ -54,9 +54,5 @@ package object gratefuldead {
 
     def performances: Traversal[Int] = trav.map(_.performances)
     def performances(value: Int): Traversal[Song] = PropertyFilter.exact(trav)(_.performances, value)
-    def performancesGt(value: Int): Traversal[Song] = NumberPropertyFilter.Int.gt(trav)(_.performances, value)
-    def performancesGte(value: Int): Traversal[Song] = NumberPropertyFilter.Int.gte(trav)(_.performances, value)
-    def performancesLt(value: Int): Traversal[Song] = NumberPropertyFilter.Int.lt(trav)(_.performances, value)
-    def performancesLte(value: Int): Traversal[Song] = NumberPropertyFilter.Int.lte(trav)(_.performances, value)
   }
 }

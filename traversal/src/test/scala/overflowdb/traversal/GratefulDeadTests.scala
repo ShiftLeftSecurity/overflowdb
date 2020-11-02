@@ -50,10 +50,10 @@ class GratefulDeadTests extends WordSpec with Matchers {
       gratefulDead.artists.nameContainsNot("M").size shouldBe 194
 
       gratefulDead.songs.performances(1).size shouldBe 142
-      gratefulDead.songs.performancesGt(1).size shouldBe 341
-      gratefulDead.songs.performancesGte(1).size shouldBe 483
-      gratefulDead.songs.performancesLt(1).size shouldBe 101
-      gratefulDead.songs.performancesLte(1).size shouldBe 243
+      gratefulDead.songs.performances.greaterThan(1).size shouldBe 341
+      gratefulDead.songs.performances.greaterThanEqual(1).size shouldBe 483
+      gratefulDead.songs.performances.lessThan(1).size shouldBe 101
+      gratefulDead.songs.performances.lessThanEqual(1).size shouldBe 243
     }
 
     "throw useful exception when passing invalid regexp" in {
