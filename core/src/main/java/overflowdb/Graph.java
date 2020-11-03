@@ -13,6 +13,7 @@ import overflowdb.util.PropertyHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,6 +62,7 @@ public final class Graph implements AutoCloseable {
     storage = config.getStorageLocation().isPresent()
         ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
         : OdbStorage.createWithTempFile();
+    persistLibraryVersion(getClass());
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
@@ -307,4 +309,15 @@ public final class Graph implements AutoCloseable {
       return ((NodeRef) node).get();
   }
 
+  public void persistLibraryVersion(Class clazz) {
+    storage.persistLibraryVersion(clazz);
+  }
+
+  public void persistLibraryVersion(String name, String version) {
+    storage.persistLibraryVersion(name, version);
+  }
+
+  public Collection<Map<String, String>> getAllLibraryVersions() {
+    return storage.getAllLibraryVersions();
+  }
 }
