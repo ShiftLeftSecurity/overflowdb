@@ -34,6 +34,9 @@ package object traversal {
   implicit def toElementTraversalViaAdditionalImplicit[A <: Element, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](toTraversal(traversable))
 
+  implicit def toNumericTraversal[A : Numeric](traversal: Traversal[A]): NumericTraversal[A] =
+    new NumericTraversal[A](traversal)
+
   implicit class NodeOps[N <: Node](val node: N) extends AnyVal {
     /** start a new Traversal with this Node, i.e. lift it into a Traversal */
     def start: Traversal[N] =

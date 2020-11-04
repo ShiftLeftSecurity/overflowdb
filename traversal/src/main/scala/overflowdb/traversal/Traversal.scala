@@ -59,6 +59,16 @@ class Traversal[A](elements: IterableOnce[A])
   def collectAll[B: ClassTag]: Traversal[B] =
     collect { case b: B => b}
 
+  /** filters out all elements that are _not_ in the provided set */
+  @Doc("filters out all elements that are _not_ in the provided set")
+  def within(values: Set[A]): Traversal[A] =
+    filter(values.contains)
+
+  /** filters out all elements that _are_ in the provided set */
+  @Doc("filters out all elements that _are_ in the provided set")
+  def without(values: Set[A]): Traversal[A] =
+    filterNot(values.contains)
+
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
   @Doc("deduplicate elements of this traversal - a.k.a. distinct, unique, ...")
   def dedup: Traversal[A] =
