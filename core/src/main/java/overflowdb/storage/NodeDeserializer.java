@@ -103,6 +103,9 @@ public class NodeDeserializer extends BookKeeper {
     switch (ValueTypes.lookup(valueTypeId)) {
       case UNKNOWN:
         return null;
+      case NODE_REF:
+        long id = value.asIntegerValue().asLong();
+        return graph.node(id);
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
