@@ -3,6 +3,7 @@ package overflowdb.storage;
 import overflowdb.Node;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeDb;
+import overflowdb.NodeRef;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
@@ -139,6 +140,9 @@ public class NodeSerializer extends BookKeeper {
     if (value == null) {
       packer.packByte(ValueTypes.UNKNOWN.id);
       packer.packNil();
+    } else if (value instanceof NodeRef) {
+      packer.packByte(ValueTypes.NODE_REF.id);
+      packer.packLong(((NodeRef) value).id());
     } else if (value instanceof Boolean) {
       packer.packByte(ValueTypes.BOOLEAN.id);
       packer.packBoolean((Boolean) value);
