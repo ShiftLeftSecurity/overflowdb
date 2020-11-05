@@ -12,8 +12,8 @@ import overflowdb.util.PropertyHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -317,7 +317,7 @@ public final class Graph implements AutoCloseable {
     storage.persistLibraryVersion(name, version);
   }
 
-  public Collection<Map<String, String>> getAllLibraryVersions() {
+  public ArrayList<Map<String, String>> getAllLibraryVersions() {
     return storage.getAllLibraryVersions();
   }
 }

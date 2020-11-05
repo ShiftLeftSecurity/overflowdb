@@ -9,7 +9,6 @@ import overflowdb.util.StringInterner;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -269,7 +268,7 @@ public class OdbStorage implements AutoCloseable {
     getMetaDataMVMap().put(key, version);
   }
 
-  public Collection<Map<String, String>> getAllLibraryVersions() {
+  public ArrayList<Map<String, String>> getAllLibraryVersions() {
     Map<Integer, Map<String, String>> libraryVersionsByRunId = new HashMap<>();
     getMetaDataMVMap().forEach((key, version) -> {
       if (key.startsWith(METADATA_PREFIX_LIBRARY_VERSIONS)) {
@@ -282,6 +281,6 @@ public class OdbStorage implements AutoCloseable {
       }
     });
 
-    return libraryVersionsByRunId.values();
+    return new ArrayList<>(libraryVersionsByRunId.values());
   }
 }
