@@ -9,6 +9,7 @@ import overflowdb.util.StringInterner;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +23,8 @@ public class OdbStorage implements AutoCloseable {
 
   public static final String METADATA_KEY_STORAGE_FORMAT_VERSION = "STORAGE_FORMAT_VERSION";
   public static final String METADATA_KEY_STRING_TO_INT_MAX_ID = "STRING_TO_INT_MAX_ID";
+  public static final String METADATA_KEY_LIBRARY_VERSIONS_MAX_ID = "LIBRARY_VERSIONS_MAX_ID";
+  public static final String METADATA_PREFIX_LIBRARY_VERSIONS = "LIBRARY_VERSIONS_ENTRY_";
   private static final String INDEX_PREFIX = "index_";
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -35,6 +38,7 @@ public class OdbStorage implements AutoCloseable {
   private boolean closed;
   private final AtomicInteger stringToIntMappingsMaxId = new AtomicInteger(0);
   private ArrayList<String> stringToIntReverseMappings;
+  private final int libraryVersionsIdCurrentRun;
 
   public static OdbStorage createWithTempFile() {
     return new OdbStorage(Optional.empty());
@@ -65,7 +69,21 @@ public class OdbStorage implements AutoCloseable {
         throw new RuntimeException("cannot create tmp file for mvstore", e);
       }
     }
+    this.libraryVersionsIdCurrentRun = initializeLibraryVersionsIdCurrentRun();
     logger.trace("storage file: " + mvstoreFile);
+  }
+
+  private int initializeLibraryVersionsIdCurrentRun() {
+    MVMap<String, String> metaData = getMetaDataMVMap();
+    final int res;
+    if (metaData.containsKey(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) {
+      res = Integer.parseInt(metaData.get(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) + 1;
+    } else {
+      res = 0;
+    }
+
+    metaData.put(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID, "" + res);
+    return res;
   }
 
   private void initializeStringToIntMaxId() {
@@ -238,5 +256,31 @@ public class OdbStorage implements AutoCloseable {
 
   public byte[] getSerializedNode(long nodeId) {
     return getNodesMVMap().get(nodeId);
+  }
+
+  public void persistLibraryVersion(Class clazz) {
+    String version = clazz.getPackage().getImplementationVersion();
+    if (version != null) persistLibraryVersion(clazz.getCanonicalName(), version);
+  }
+
+  public void persistLibraryVersion(String name, String version) {
+    String key = String.format("%s%d_%s", METADATA_PREFIX_LIBRARY_VERSIONS, libraryVersionsIdCurrentRun, name);
+    getMetaDataMVMap().put(key, version);
+  }
+
+  public ArrayList<Map<String, String>> getAllLibraryVersions() {
+    Map<Integer, Map<String, String>> libraryVersionsByRunId = new HashMap<>();
+    getMetaDataMVMap().forEach((key, version) -> {
+      if (key.startsWith(METADATA_PREFIX_LIBRARY_VERSIONS)) {
+        String withoutPrefix = key.substring(METADATA_PREFIX_LIBRARY_VERSIONS.length());
+        int firstDividerIndex = withoutPrefix.indexOf('_');
+        int runId = Integer.parseInt(withoutPrefix.substring(0, firstDividerIndex));
+        String library = withoutPrefix.substring(firstDividerIndex + 1);
+        Map<String, String> versionInfos = libraryVersionsByRunId.computeIfAbsent(runId, i -> new HashMap<>());
+        versionInfos.put(library, version);
+      }
+    });
+
+    return new ArrayList<>(libraryVersionsByRunId.values());
   }
 }
