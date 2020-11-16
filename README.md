@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/ShiftLeftSecurity/overflowdb/workflows/release/badge.svg)](https://github.com/ShiftLeftSecurity/overflowdb/actions?query=workflow%3Arelease)
 [![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
@@ -156,7 +157,7 @@ Regular caches require you have to specify a fixed size. OverflowDB is designed 
 most applications have varying memory needs over time, it would be hard/impossible to achieve our goal *use your entire heap and prevent OutOfMemoryError* 
 with a regular cache. Besides that, it's very compute-intensive to calculate the size of the cache in megabytes on the heap. 
 1. **When is the next release coming out?**  
-Releases happen automatically. Every PR merged to master is automatically released by travis.ci and tagged in git, using [sbt-ci-release-early](https://github.com/ShiftLeftSecurity/sbt-ci-release-early)
+Releases happen automatically. Every PR merged to master is automatically released by github actions and tagged in git, using [sbt-ci-release-early](https://github.com/ShiftLeftSecurity/sbt-ci-release-early)
 1. **What repositories are the artifacts deployed to?**   
 https://oss.sonatype.org/content/repositories/public/io/shiftleft/overflowdb-tinkerpop3/
 https://repo1.maven.org/maven2/io/shiftleft/overflowdb-tinkerpop3/
