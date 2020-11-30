@@ -12,15 +12,7 @@ import overflowdb.util.PropertyHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
@@ -260,7 +252,7 @@ public final class Graph implements AutoCloseable {
   }
 
   private final void addNodesToMultiIterator(final MultiIterator<Node> multiIterator, final String label) {
-    final Set<Node> ret = nodes.nodesByLabel(label);
+    final Collection<Node> ret = nodes.nodesByLabel(label);
     if (ret != null) {
       multiIterator.addIterator(ret.iterator());
     }

@@ -23,7 +23,7 @@ public class NodesList {
 
   //index into `nodes` array by node id
   private TLongIntMap nodeIndexByNodeId;
-  private TMap<String, Set<Node>> nodesByLabel;
+  private TMap<String, ArrayList<Node>> nodesByLabel;
 
   /** list of available slots in `nodes` array. slots become available after nodes have been removed */
   private final BitSet emptySlots;
@@ -53,7 +53,9 @@ public class NodesList {
 
     nodes[index] = node;
     nodeIndexByNodeId.put(node.id(), index);
-    nodesByLabel(node.label()).add(node);
+    if(nodesByLabel != null) {
+      nodesByLabel(node.label()).add(node);
+    }
     size++;
   }
 
@@ -93,7 +95,7 @@ public class NodesList {
     NodeRef ref = node instanceof NodeDb
         ? ((NodeDb) node).ref
         : (NodeRef) node;
-    nodesByLabel.get(node.label()).remove(ref);
+    this.nodesByLabel = null;
 
     size--;
     compactMaybe();
@@ -103,11 +105,30 @@ public class NodesList {
     return size;
   }
 
-  public Set<Node> nodesByLabel(String label) {
-    if (!nodesByLabel.containsKey(label))
-      nodesByLabel.put(label, new THashSet<>(10));
 
-    return nodesByLabel.get(label);
+  synchronized private void refreshNodesByLabel(){
+    TMap<String, ArrayList<Node>> tmp = new THashMap<>();
+    for(Node node: nodes){
+      if(node != null){
+        ArrayList<Node> nodelist = tmp.get(node.label());
+        if(nodelist == null){
+          nodelist = new ArrayList<>();
+          tmp.put(node.label(), nodelist);
+        }
+        nodelist.add(node);
+      }
+    }
+    this.nodesByLabel = tmp;
+  }
+
+  public ArrayList<Node> nodesByLabel(String label) {
+    if(nodesByLabel == null) refreshNodesByLabel();
+    ArrayList<Node> nodelist = nodesByLabel.get(label);
+    if(nodelist == null){
+      nodelist = new ArrayList<>();
+      nodesByLabel.put(label, nodelist);
+    }
+    return nodelist;
   }
 
   public Set<String> nodeLabels() {
@@ -150,13 +171,11 @@ public class NodesList {
     //reindex helper collections
     emptySlots.clear();
     nodeIndexByNodeId = new TLongIntHashMap(this.nodes.length);
-    nodesByLabel = new THashMap<>(10);
 
     int idx = 0;
     while (idx < this.nodes.length) {
       Node node = this.nodes[idx];
       nodeIndexByNodeId.put(node.id(), idx);
-      nodesByLabel(node.label()).add(node);
       idx++;
     }
   }

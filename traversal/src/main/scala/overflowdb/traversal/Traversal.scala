@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
+import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
@@ -52,7 +53,7 @@ class Traversal[A](elements: IterableOnce[A])
     * @see {{{collectAll}}} as a safe alternative */
   @Doc("casts all elements to given type")
   def cast[B]: Traversal[B] =
-    mapElements(_.asInstanceOf[B])
+    this.asInstanceOf[Traversal[B]]
 
   /** collects and all elements of the given type */
   @Doc("collects and all elements of the provided type")
@@ -248,12 +249,12 @@ class Traversal[A](elements: IterableOnce[A])
   /** sort elements by their natural order */
   @Doc("sort elements by their natural order")
   def sorted(implicit ord: Ordering[A]): Seq[A] =
-    elements.to(Seq).sorted
+    elements.to(ArraySeq.untagged).sorted
 
   /** sort elements by the value of the given transformation function */
   @Doc("sort elements by the value of the given transformation function")
   def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Seq[A] =
-    elements.to(Seq).sortBy(f)
+    elements.to(ArraySeq.untagged).sortBy(f)
 
   /** group elements and count how often they appear */
   @Doc("group elements and count how often they appear")
