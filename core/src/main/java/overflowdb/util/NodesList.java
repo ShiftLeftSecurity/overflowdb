@@ -53,8 +53,9 @@ public class NodesList {
 
     nodes[index] = node;
     nodeIndexByNodeId.put(node.id(), index);
-    if(nodesByLabel != null)
+    if(nodesByLabel != null) {
       nodesByLabel(node.label()).add(node);
+    }
     size++;
   }
 
@@ -109,11 +110,12 @@ public class NodesList {
     TMap<String, ArrayList<Node>> tmp = new THashMap<>();
     for(Node node: nodes){
       if(node != null){
-        tmp.compute(node.label(), (k,v)->{
-          ArrayList<Node> nodelist = (v==null? new ArrayList<Node>(): v);
-          nodelist.add(node);
-          return nodelist;
-        });
+        ArrayList<Node> nodelist = tmp.get(node.label());
+        if(nodelist == null){
+          nodelist = new ArrayList<>();
+          tmp.put(node.label(), nodelist);
+        }
+        nodelist.add(node);
       }
     }
     this.nodesByLabel = tmp;
@@ -121,7 +123,12 @@ public class NodesList {
 
   public ArrayList<Node> nodesByLabel(String label) {
     if(nodesByLabel == null) refreshNodesByLabel();
-    return nodesByLabel.compute(label, (k, v) -> (v == null ? new ArrayList<>() : v));
+    ArrayList<Node> nodelist = nodesByLabel.get(label);
+    if(nodelist == null){
+      nodelist = new ArrayList<>();
+      nodesByLabel.put(label, nodelist);
+    }
+    return nodelist;
   }
 
   public Set<String> nodeLabels() {
