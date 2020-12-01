@@ -625,7 +625,9 @@ public abstract class NodeDb implements Node {
     int strideSize = getStrideSize(edgeLabel);
 
     int insertAt = start + length;
-    if (adjacentNodesWithEdgeProperties.length <= insertAt || adjacentNodesWithEdgeProperties[insertAt] != null) {
+    if (adjacentNodesWithEdgeProperties.length <= insertAt
+            || adjacentNodesWithEdgeProperties[insertAt] != null
+            || (offsetPos + 1 < (edgeOffsets.length()>>1) && insertAt >= startIndex(offsetPos + 1))) {
       // space already occupied - grow adjacentNodesWithEdgeProperties array, leaving some room for more elements
       adjacentNodesWithEdgeProperties = growAdjacentNodesWithEdgeProperties(offsetPos, strideSize, insertAt, length);
     }
