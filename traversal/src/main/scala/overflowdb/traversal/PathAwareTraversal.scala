@@ -68,7 +68,7 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
       val lookingIn  = seq.tail.iterator
       var foundDuplicate = false
       while (lookingIn.hasNext && !foundDuplicate) {
-        if (lookingIn.next == lookingFor) {
+        if (lookingIn.next() == lookingFor) {
           foundDuplicate = true
         }
       }

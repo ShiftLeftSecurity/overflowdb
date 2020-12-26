@@ -20,8 +20,8 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableFactoryDefaults[A, Traversal] {
 
   def hasNext: Boolean = iterator.hasNext
-  def next: A = iterator.next
-  def nextOption: Option[A] = iterator.nextOption
+  def next: A = iterator.next()
+  def nextOption: Option[A] = iterator.nextOption()
 
   /** Execute the traversal and convert the result to a list - shorthand for `toList` */
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
@@ -39,10 +39,10 @@ class Traversal[A](elements: IterableOnce[A])
    * all documented steps in the classpath
    * */
   @Doc("print help/documentation based on the current elementType `A`.")
-  def help()(implicit elementType: ClassTag[A]): String =
+  def help(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
-  def helpVerbose()(implicit elementType: ClassTag[A]): String =
+  def helpVerbose(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =

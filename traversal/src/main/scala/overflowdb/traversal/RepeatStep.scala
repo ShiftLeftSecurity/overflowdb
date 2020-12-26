@@ -65,7 +65,7 @@ object RepeatStep {
       override def next: A = {
         val result = {
           if (emitSack.hasNext)
-            emitSack.dequeue
+            emitSack.dequeue()
           else if (worklistTopHasNext)
             worklist.head.traversal.next
           else throw new NoSuchElementException("next on empty iterator")
@@ -91,7 +91,7 @@ object RepeatStep {
     override def addItem(item: WorklistItem[A]) = stack.push(item)
     override def nonEmpty = stack.nonEmpty
     override def head = stack.top
-    override def removeHead = stack.pop
+    override def removeHead = stack.pop()
   }
 
   /** queue based worklist for [[RepeatBehaviour.SearchAlgorithm.BreadthFirst]] */
@@ -100,7 +100,7 @@ object RepeatStep {
     override def addItem(item: WorklistItem[A]) = queue.enqueue(item)
     override def nonEmpty = queue.nonEmpty
     override def head = queue.head
-    override def removeHead = queue.dequeue
+    override def removeHead = queue.dequeue()
   }
 
   case class WorklistItem[A](traversal: Traversal[A], depth: Int)
