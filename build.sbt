@@ -1,6 +1,6 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.13.2"
+ThisBuild/scalaVersion := "2.13.4"
 publish/skip := true
 enablePlugins(GitVersioning)
 

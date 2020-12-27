@@ -190,7 +190,7 @@ class RepeatTraversalTests extends WordSpec with Matchers {
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Any]
     def test(traverse: => Iterable[_]) = {
-      traversedNodes.clear
+      traversedNodes.clear()
       val results = traverse
       traversedNodes.size shouldBe 9
       results.size shouldBe 0

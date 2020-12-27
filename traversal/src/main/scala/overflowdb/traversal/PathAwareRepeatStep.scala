@@ -70,9 +70,9 @@ object PathAwareRepeatStep {
       private def worklistTopHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
-      override def next: (A, Vector[Any]) = {
+      override def next(): (A, Vector[Any]) = {
         val result = {
-          if (emitSack.hasNext) emitSack.dequeue
+          if (emitSack.hasNext) emitSack.dequeue()
           else if (worklistTopHasNext) {
             val entirePath = worklist.head.traversal.path.next
             val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)

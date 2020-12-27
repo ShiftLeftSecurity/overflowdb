@@ -33,7 +33,7 @@ class GraphSugar(val graph: Graph) extends AnyVal {
       builder += kv.key.name
       builder += kv.value
     }
-    builder.result
+    builder.result()
   }
 }
 
