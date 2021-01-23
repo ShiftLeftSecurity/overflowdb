@@ -70,7 +70,7 @@ class TraversalTests extends WordSpec with Matchers {
       /** using dedup by hash comparison, we can traverse over these elements - already consumed elements are garbage collected */
       val traversal = infiniteTraversalWithLargeElements.dedupBy(_.hashCode)
       0.to(128).foreach { i =>
-        traversal.next
+        traversal.next()
       }
 
       /** This is a copy of the above, but using the default dedup comparison style (hashAndEquals). To be able to
@@ -122,7 +122,7 @@ class TraversalTests extends WordSpec with Matchers {
 
   ".aggregate step stores all objects at this point into a given collection" in {
      val buffer = mutable.ArrayBuffer.empty[Thing]
-     center.start.followedBy.aggregate(buffer).followedBy.iterate
+     center.start.followedBy.aggregate(buffer).followedBy.iterate()
      buffer.toSet shouldBe Set(l1, r1)
   }
 

@@ -219,14 +219,14 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "uses DFS (depth first search) by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
-    centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).iterate
+    centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy).iterate()
 
     traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "L2", "L3", "R1", "R2", "R3", "R4", "R5")
   }
 
   "uses BFS (breadth first search) if configured" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
-    centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).iterate
+    centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.breadthFirstSearch).iterate()
 
     traversedNodes.map(_.name).toList shouldBe List("Center", "L1", "R1", "L2", "R2", "L3", "R3", "R4", "R5")
   }

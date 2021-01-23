@@ -30,7 +30,7 @@ class Traversal[A](elements: IterableOnce[A])
   /** Execute the traversal without returning anything */
   @Doc("Execute the traversal without returning anything")
   def iterate(): Unit =
-    while (hasNext) next
+    while (hasNext) next()
 
   /**
    * Print help/documentation based on the current elementType `A`.

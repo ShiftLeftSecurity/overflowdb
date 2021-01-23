@@ -35,10 +35,10 @@ object RepeatStep {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav, depth) = worklist.head
-          if (trav.isEmpty) worklist.removeHead
+          if (trav.isEmpty) worklist.removeHead()
           else if (behaviour.timesReached(depth)) stop = true
           else {
-            val element = trav.next
+            val element = trav.next()
             if (behaviour.dedupEnabled) visited.addOne(element)
             if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
               && behaviour.untilConditionReached(element)) {
@@ -67,7 +67,7 @@ object RepeatStep {
           if (emitSack.hasNext)
             emitSack.dequeue()
           else if (worklistTopHasNext)
-            worklist.head.traversal.next
+            worklist.head.traversal.next()
           else throw new NoSuchElementException("next on empty iterator")
         }
         if (behaviour.dedupEnabled) visited.addOne(result)
@@ -82,7 +82,7 @@ object RepeatStep {
     def addItem(item: WorklistItem[A]): Unit
     def nonEmpty: Boolean
     def head: WorklistItem[A]
-    def removeHead: Unit
+    def removeHead(): Unit
   }
 
   /** stack based worklist for [[RepeatBehaviour.SearchAlgorithm.DepthFirst]] */
@@ -91,7 +91,7 @@ object RepeatStep {
     override def addItem(item: WorklistItem[A]) = stack.push(item)
     override def nonEmpty = stack.nonEmpty
     override def head = stack.top
-    override def removeHead = stack.pop()
+    override def removeHead() = stack.pop()
   }
 
   /** queue based worklist for [[RepeatBehaviour.SearchAlgorithm.BreadthFirst]] */
@@ -100,7 +100,7 @@ object RepeatStep {
     override def addItem(item: WorklistItem[A]) = queue.enqueue(item)
     override def nonEmpty = queue.nonEmpty
     override def head = queue.head
-    override def removeHead = queue.dequeue()
+    override def removeHead() = queue.dequeue()
   }
 
   case class WorklistItem[A](traversal: Traversal[A], depth: Int)
