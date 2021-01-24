@@ -37,10 +37,10 @@ object PathAwareRepeatStep {
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav0, depth) = worklist.head
           val trav = trav0.path
-          if (trav.isEmpty) worklist.removeHead
+          if (trav.isEmpty) worklist.removeHead()
           else if (behaviour.timesReached(depth)) stop = true
           else {
-            val path0 = trav.next
+            val path0 = trav.next()
             val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
             val element = elementInSeq.head.asInstanceOf[A]
             if (behaviour.dedupEnabled) visited.addOne(element)
@@ -74,7 +74,7 @@ object PathAwareRepeatStep {
         val result = {
           if (emitSack.hasNext) emitSack.dequeue()
           else if (worklistTopHasNext) {
-            val entirePath = worklist.head.traversal.path.next
+            val entirePath = worklist.head.traversal.path.next()
             val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
             (lastElement.head.asInstanceOf[A], path)
           }

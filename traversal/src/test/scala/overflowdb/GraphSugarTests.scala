@@ -80,8 +80,8 @@ class GraphSugarTests extends WordSpec with Matchers {
       node1 --- (Connection.Label, Distance -> 10) --> node2
 
       node1.out(Connection.Label).next shouldBe node2
-      node1.outE(Connection.Label).property(Connection.Properties.Distance).next shouldBe 10
-      node1.outE(Connection.Label).property(Connection.PropertyNames.Distance).next shouldBe 10
+      node1.outE(Connection.Label).property(Connection.Properties.Distance).next() shouldBe 10
+      node1.outE(Connection.Label).property[Int](Connection.PropertyNames.Distance).next() shouldBe 10
     }
 
     "add an edge with multiple properties" in {
