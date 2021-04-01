@@ -13,7 +13,6 @@ lazy val traversal = project.in(file("traversal"))
 
 ThisBuild/resolvers ++= Seq(
   Resolver.mavenLocal,
-  Resolver.bintrayRepo("shiftleft", "maven"),
   "Sonatype OSS" at "https://oss.sonatype.org/content/repositories/public")
 
 
