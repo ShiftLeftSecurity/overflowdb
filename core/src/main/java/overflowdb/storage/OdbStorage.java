@@ -38,7 +38,7 @@ public class OdbStorage implements AutoCloseable {
   private boolean closed;
   private final AtomicInteger stringToIntMappingsMaxId = new AtomicInteger(0);
   private ArrayList<String> stringToIntReverseMappings;
-  private final int libraryVersionsIdCurrentRun;
+  private int libraryVersionsIdCurrentRun;
 
   public static OdbStorage createWithTempFile() {
     return new OdbStorage(Optional.empty());
@@ -69,21 +69,7 @@ public class OdbStorage implements AutoCloseable {
         throw new RuntimeException("cannot create tmp file for mvstore", e);
       }
     }
-    this.libraryVersionsIdCurrentRun = initializeLibraryVersionsIdCurrentRun();
     logger.trace("storage file: " + mvstoreFile);
-  }
-
-  private int initializeLibraryVersionsIdCurrentRun() {
-    MVMap<String, String> metaData = getMetaDataMVMap();
-    final int res;
-    if (metaData.containsKey(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) {
-      res = Integer.parseInt(metaData.get(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) + 1;
-    } else {
-      res = 0;
-    }
-
-    metaData.put(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID, "" + res);
-    return res;
   }
 
   private void initializeStringToIntMaxId() {
@@ -207,6 +193,7 @@ public class OdbStorage implements AutoCloseable {
   private void ensureMVStoreAvailable() {
     if (mvstore == null) {
       mvstore = initializeMVStore();
+      this.libraryVersionsIdCurrentRun = initializeLibraryVersionsIdCurrentRun();
     }
   }
 
@@ -218,6 +205,19 @@ public class OdbStorage implements AutoCloseable {
         .open();
 
     return store;
+  }
+
+  private int initializeLibraryVersionsIdCurrentRun() {
+    MVMap<String, String> metaData = getMetaDataMVMap();
+    final int res;
+    if (metaData.containsKey(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) {
+      res = Integer.parseInt(metaData.get(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID)) + 1;
+    } else {
+      res = 0;
+    }
+
+    metaData.put(METADATA_KEY_LIBRARY_VERSIONS_MAX_ID, "" + res);
+    return res;
   }
 
   private Map<String, String> getIndexNameMap(MVStore store) {
