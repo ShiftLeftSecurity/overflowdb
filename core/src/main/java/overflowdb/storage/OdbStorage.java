@@ -202,6 +202,7 @@ public class OdbStorage implements AutoCloseable {
         .fileName(mvstoreFile.getAbsolutePath())
         .autoCommitBufferSize(1024 * 8)
         .compress()
+        .autoCommitDisabled()
         .open();
 
     return store;
