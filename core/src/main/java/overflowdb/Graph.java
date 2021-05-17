@@ -54,7 +54,6 @@ public final class Graph implements AutoCloseable {
     storage = config.getStorageLocation().isPresent()
         ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
         : OdbStorage.createWithTempFile();
-    persistLibraryVersion(getClass());
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
@@ -299,10 +298,6 @@ public final class Graph implements AutoCloseable {
       return (NodeDb) node;
     else
       return ((NodeRef) node).get();
-  }
-
-  public void persistLibraryVersion(Class clazz) {
-    storage.persistLibraryVersion(clazz);
   }
 
   public void persistLibraryVersion(String name, String version) {
