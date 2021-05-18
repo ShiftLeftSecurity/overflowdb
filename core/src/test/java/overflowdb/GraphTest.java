@@ -10,9 +10,17 @@ import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 
+import java.util.ArrayList;
+
 import static org.junit.Assert.assertEquals;
 
 public class GraphTest {
+
+  public static void main(String[] args) throws InterruptedException {
+    Graph.open(Config.withoutOverflow(), new ArrayList<>(), new ArrayList<>());
+
+    Thread.sleep(1000000);
+  }
 
   @Test
   public void elementCounts() {

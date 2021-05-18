@@ -193,6 +193,7 @@ public class OdbStorage implements AutoCloseable {
   private void ensureMVStoreAvailable() {
     if (mvstore == null) {
       mvstore = initializeMVStore();
+      persistOdbLibraryVersion();
       this.libraryVersionsIdCurrentRun = initializeLibraryVersionsIdCurrentRun();
     }
   }
@@ -259,7 +260,8 @@ public class OdbStorage implements AutoCloseable {
     return getNodesMVMap().get(nodeId);
   }
 
-  public void persistLibraryVersion(Class clazz) {
+  private void persistOdbLibraryVersion() {
+    Class clazz = getClass();
     String version = clazz.getPackage().getImplementationVersion();
     if (version != null) persistLibraryVersion(clazz.getCanonicalName(), version);
   }
