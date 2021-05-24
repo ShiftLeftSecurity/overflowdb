@@ -558,7 +558,7 @@ public abstract class NodeDb implements Node {
     }
   }
 
-  private final Iterator<Node> createAdjacentNodeIterator(Direction direction, String... labels) {
+  private final <A extends Node> Iterator<A> createAdjacentNodeIterator(Direction direction, String... labels) {
     if (labels.length == 1) {
       return createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, labels[0]));
     } else {
@@ -566,7 +566,7 @@ public abstract class NodeDb implements Node {
           labels.length == 0
               ? allowedLabelsByDirection(direction)
               : labels;
-      final MultiIterator<Node> multiIterator = new MultiIterator<>();
+      final MultiIterator<A> multiIterator = new MultiIterator<>();
       for (String label : labelsToFollow) {
         multiIterator.addIterator(createAdjacentNodeIteratorByOffSet(getPositionInEdgeOffsets(direction, label)));
       }
@@ -576,7 +576,7 @@ public abstract class NodeDb implements Node {
 
   /* Simplify hoisting of string lookups.
    * n.b. `final` so that the JIT compiler can inline it */
-  public final Iterator<Node> createAdjacentNodeIteratorByOffSet(int offsetPos){
+  public final <A extends Node> Iterator<A> createAdjacentNodeIteratorByOffSet(int offsetPos) {
     if (offsetPos != -1) {
       int start = startIndex(offsetPos);
       int length = blockLength(offsetPos);
