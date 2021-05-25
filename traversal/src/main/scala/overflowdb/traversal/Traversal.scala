@@ -19,6 +19,7 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
+  def elem0 = elements
   def hasNext: Boolean = iterator.hasNext
   def next(): A = iterator.next()
   def nextOption(): Option[A] = iterator.nextOption()
