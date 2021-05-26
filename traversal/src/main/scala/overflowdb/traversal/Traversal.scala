@@ -19,10 +19,20 @@ class Traversal[A](elements: IterableOnce[A])
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
 
-  def elem0 = elements
   def hasNext: Boolean = iterator.hasNext
   def next(): A = iterator.next()
   def nextOption(): Option[A] = iterator.nextOption()
+
+  /** TODO remove this - it is a quick fix to provide a 'nextOption' that doesn't
+   * fail even if the underlying iterator has different element types than expected */
+  def nextOption2(): Option[A] =
+    try {
+      elements.nextOption()
+    } catch {
+      case cpe: ClassCastException =>
+        // ignore this error case - we're missing out on some results, but don't crash hard for this eror
+        nextOption2()
+    }
 
   /** Execute the traversal and convert the result to a list - shorthand for `toList` */
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
