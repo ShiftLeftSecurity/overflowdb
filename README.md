@@ -1,5 +1,4 @@
-[![Build Status](https://github.com/ShiftLeftSecurity/overflowdb/workflows/release/badge.svg)](https://github.com/ShiftLeftSecurity/overflowdb/actions?query=workflow%3Arelease)
-[![Build Status](https://travis-ci.org/ShiftLeftSecurity/overflowdb.svg?branch=master)](https://travis-ci.org/ShiftLeftSecurity/overflowdb)
+[![Release](https://github.com/ShiftLeftSecurity/overflowdb/actions/workflows/release.yml/badge.svg)](https://github.com/ShiftLeftSecurity/overflowdb/actions/workflows/release.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
 
 ## ShiftLeft OverflowDB
