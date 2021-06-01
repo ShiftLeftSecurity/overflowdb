@@ -138,7 +138,8 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id());
+    long tmp = (id ^ (id >>> 33)) * 0x1ca213a8d7b7d9b1L;
+    return ((int) tmp) ^ ((int) (tmp >>> 32));
   }
 
   @Override
