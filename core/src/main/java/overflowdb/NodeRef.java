@@ -138,13 +138,18 @@ public abstract class NodeRef<N extends NodeDb> implements Node {
 
   @Override
   public int hashCode() {
-    long tmp = (id ^ (id >>> 33)) * 0x1ca213a8d7b7d9b1L;
+    /* NodeRef compares by id. We need the hash computation to be fast and allocation-free; but we don't need it
+    * very strong. Plain java would use id ^ (id>>>32) ; we do a little bit of mixing.
+    * The style (shift-xor 33 and multiply) is similar to murmur3; the multiply constant is randomly chosen odd number.
+    * Feel free to change this.
+    * */
+    long tmp = (id() ^ (id() >>> 33)) * 0x1ca213a8d7b7d9b1L;
     return ((int) tmp) ^ ((int) (tmp >>> 32));
   }
 
   @Override
   public boolean equals(final Object obj) {
-    return (obj instanceof Node) && id() == ((Node) obj).id();
+    return (this == obj) || ( (obj instanceof Node) && id() == ((Node) obj).id() );
   }
 
   @Override
