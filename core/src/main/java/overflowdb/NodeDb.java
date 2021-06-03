@@ -754,12 +754,12 @@ public abstract class NodeDb implements Node {
      * The style (shift-xor 33 and multiply) is similar to murmur3; the multiply constant is randomly chosen odd number.
      * Feel free to change this.
      * */
-    long tmp = (id() ^ (id() >>> 33)) * 0x1ca213a8d7b7d9b1L;
+    long tmp = (id() ^ (id() >>> 33) ^ 0xc89f69faaa76b9b7L) * 0xa3ceded266465a8dL;
     return ((int) tmp) ^ ((int) (tmp >>> 32));
   }
 
   @Override
   public boolean equals(final Object obj) {
-    return (this == obj) || ( (obj instanceof Node) && id() == ((Node) obj).id() );
+    return (this == obj) || ( (obj instanceof NodeDb) && id() == ((Node) obj).id() );
   }
 }
