@@ -749,11 +749,17 @@ public abstract class NodeDb implements Node {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id());
+    /* NodeRef compares by id. We need the hash computation to be fast and allocation-free; but we don't need it
+     * very strong. Plain java would use id ^ (id>>>32) ; we do a little bit of mixing.
+     * The style (shift-xor 33 and multiply) is similar to murmur3; the multiply constant is randomly chosen odd number.
+     * Feel free to change this.
+     * */
+    long tmp = (id() ^ (id() >>> 33) ^ 0xc89f69faaa76b9b7L) * 0xa3ceded266465a8dL;
+    return ((int) tmp) ^ ((int) (tmp >>> 32));
   }
 
   @Override
   public boolean equals(final Object obj) {
-    return (obj instanceof NodeDb) && id() == ((NodeDb) obj).id();
+    return (this == obj) || ( (obj instanceof NodeDb) && id() == ((Node) obj).id() );
   }
 }
