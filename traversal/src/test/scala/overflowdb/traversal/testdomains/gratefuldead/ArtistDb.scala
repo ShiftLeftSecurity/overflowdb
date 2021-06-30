@@ -43,5 +43,5 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends NodeDb(ref) {
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
-  override protected def layoutInformation = Artist.layoutInformation
+  override def layoutInformation = Artist.layoutInformation
 }
