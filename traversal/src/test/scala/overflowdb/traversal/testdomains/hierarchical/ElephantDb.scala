@@ -35,7 +35,7 @@ class ElephantDb(ref: NodeRef[ElephantDb]) extends NodeDb(ref) with Animal {
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
-  override protected def layoutInformation = Elephant.layoutInformation
+  override def layoutInformation = Elephant.layoutInformation
 
   override def toString = s"ElephantDb(id=${ref.id}, name=$name)"
 }

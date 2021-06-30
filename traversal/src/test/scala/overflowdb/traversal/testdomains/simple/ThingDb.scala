@@ -45,7 +45,7 @@ class ThingDb(ref: NodeRef[ThingDb]) extends NodeDb(ref) {
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
-  override protected def layoutInformation = Thing.layoutInformation
+  override def layoutInformation = Thing.layoutInformation
 
   override def toString = s"ThingDb(id=${ref.id}, name=$name, size=$size)"
 }

@@ -34,7 +34,7 @@ class CarDb(ref: NodeRef[CarDb]) extends NodeDb(ref) {
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
-  override protected def layoutInformation = Car.layoutInformation
+  override def layoutInformation = Car.layoutInformation
 
   override def toString = s"CarDb(id=${ref.id}, name=$name)"
 }
