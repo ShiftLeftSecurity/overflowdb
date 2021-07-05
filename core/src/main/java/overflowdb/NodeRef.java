@@ -19,7 +19,7 @@ import java.util.Set;
  * When OdbGraph is started from an existing storage location, only {@link NodeRef} instances are created - the nodes
  * are lazily on demand as described above.
  */
-public abstract class NodeRef<N extends NodeDb> implements Node {
+public abstract class NodeRef<N extends NodeDb> extends Node {
   protected final long id;
   protected final Graph graph;
   private N node;

@@ -5,6 +5,7 @@ import overflowdb.EdgeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Graph;
 import overflowdb.Edge;
+import overflowdb.PropertyKey;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.HashSet;
 public class FollowedBy extends Edge {
   public static final String LABEL = "followedBy";
   public static final String WEIGHT = "weight";
+  public static final PropertyKey<Integer> WEIGHT_KEY = new PropertyKey<>(WEIGHT);
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(WEIGHT));
 
   public Integer weight() {

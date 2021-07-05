@@ -26,7 +26,7 @@ import java.util.Set;
  * Edges only exist virtually and are created on request. This allows for a small memory footprint, especially given
  * that most graph domains have magnitudes more edges than nodes.
  */
-public abstract class NodeDb implements Node {
+public abstract class NodeDb extends Node {
   public final NodeRef ref;
 
   /**

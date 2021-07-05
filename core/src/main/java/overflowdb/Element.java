@@ -4,31 +4,36 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public interface Element {
-  String label();
+public abstract class Element {
+  public abstract String label();
 
-  Graph graph();
+  public abstract Graph graph();
 
-  Set<String> propertyKeys();
+  public abstract Set<String> propertyKeys();
 
-  Object property(String key);
+  public abstract Object property(String key);
 
-  <A> A property(PropertyKey<A> key);
+  public <A> A property(String key, A defaultValue) {
+    Object value = property(key);
+    return value != null ? (A) value : defaultValue;
+  }
 
-  <A> Optional<A> propertyOption(PropertyKey<A> key);
+  public abstract <A> A property(PropertyKey<A> key);
 
-  Optional<Object> propertyOption(String key);
+  public abstract <A> Optional<A> propertyOption(PropertyKey<A> key);
+
+  public abstract Optional<Object> propertyOption(String key);
 
   /** Map with all properties */
-  Map<String, Object> propertyMap();
+  public abstract Map<String, Object> propertyMap();
 
-  void setProperty(String key, Object value);
+  public abstract void setProperty(String key, Object value);
 
-  <A> void setProperty(PropertyKey<A> key, A value);
+  public abstract <A> void setProperty(PropertyKey<A> key, A value);
 
-  void setProperty(Property<?> property);
+  public abstract void setProperty(Property<?> property);
 
-  void removeProperty(String key);
+  public abstract void removeProperty(String key);
 
-  void remove();
+  public abstract void remove();
 }
