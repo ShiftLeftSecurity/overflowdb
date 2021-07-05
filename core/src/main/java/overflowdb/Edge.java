@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import overflowdb.util.IteratorUtils;
 
-public abstract class Edge implements Element {
+public abstract class Edge extends Element {
   private final Graph graph;
   private final String label;
   private final NodeRef outNode;
