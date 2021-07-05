@@ -551,6 +551,18 @@ public class ElementTest {
     }
   }
 
+  @Test
+  public void defaultPropertyValue() {
+    try (Graph graph = GratefulDead.newGraph()) {
+      Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
+      Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
+      Edge e4 = n0.addEdge(FollowedBy.LABEL, n2, FollowedBy.WEIGHT, 3);
+
+      String prop0 = n0.property(Song.NAME_KEY);
+//      String prop1 = n0.property(Song.NAME);
+    }
+  }
+
   private void assertNodeCount(int expected, Graph graph) {
     assertEquals("node count different to expected", expected, graph.nodeCount());
   }

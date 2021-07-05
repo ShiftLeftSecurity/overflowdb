@@ -3,10 +3,12 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.Graph;
+import overflowdb.PropertyKey;
 
 public class Song extends NodeRef<SongDb> {
   public static final String label = "song";
   public static final String NAME = "name";
+  public static final PropertyKey<String> NAME_KEY = new PropertyKey(NAME);
   public static final String SONG_TYPE = "songType";
   public static final String PERFORMANCES = "performances";
 
