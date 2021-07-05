@@ -13,6 +13,11 @@ public abstract class Element {
 
   public abstract Object property(String key);
 
+  public <A> A property(String key, A defaultValue) {
+    Object value = property(key);
+    return value != null ? (A) value : defaultValue;
+  }
+
   public abstract <A> A property(PropertyKey<A> key);
 
   public abstract <A> Optional<A> propertyOption(PropertyKey<A> key);

@@ -559,7 +559,14 @@ public class ElementTest {
       Edge e4 = n0.addEdge(FollowedBy.LABEL, n2, FollowedBy.WEIGHT, 3);
 
       String prop0 = n0.property(Song.NAME_KEY);
-//      String prop1 = n0.property(Song.NAME);
+      String prop1 = (String) n0.property(Song.NAME);
+      String prop2 = n0.property("doesnt exist", "default value 1");
+      assertEquals("default value 1", prop2);
+
+      Integer prop3 = e4.property(FollowedBy.WEIGHT_KEY);
+      Integer prop4 = (Integer) e4.property(FollowedBy.WEIGHT);
+      Integer prop5 = n0.property("doesnt exist", 99);
+      assertEquals(new Integer(99), prop5);
     }
   }
 
