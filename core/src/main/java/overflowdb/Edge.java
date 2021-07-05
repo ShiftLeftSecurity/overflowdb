@@ -130,13 +130,16 @@ public abstract class Edge extends Element {
   }
 
   public Object property(String propertyKey) {
+    final Object value;
     if (inBlockOffset != -1) {
-      return inNode.get().edgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
+      value = inNode.get().edgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
-      return outNode.get().edgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
+      value = outNode.get().edgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
+    
+    return value != null ? value : propertyDefaultValue(propertyKey);
   }
 
   @Override

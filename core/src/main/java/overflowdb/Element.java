@@ -25,6 +25,11 @@ public abstract class Element {
     return value != null ? (A) value : defaultValue;
   }
 
+  /** override this in specific element class, to define a default value */
+  protected Object propertyDefaultValue(String propertyKey) {
+    return null;
+  }
+
   public abstract <A> Optional<A> propertyOption(PropertyKey<A> key);
 
   public abstract Optional<Object> propertyOption(String key);
