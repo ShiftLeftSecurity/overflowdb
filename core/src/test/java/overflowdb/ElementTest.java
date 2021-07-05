@@ -552,21 +552,29 @@ public class ElementTest {
   }
 
   @Test
-  public void defaultPropertyValue() {
+  public void defaultPropertyValues() {
     try (Graph graph = GratefulDead.newGraph()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
       Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
       Edge e4 = n0.addEdge(FollowedBy.LABEL, n2, FollowedBy.WEIGHT, 3);
 
-      String prop0 = n0.property(Song.NAME_KEY);
-      String prop1 = (String) n0.property(Song.NAME);
-      String prop2 = n0.property("doesnt exist", "default value 1");
-      assertEquals("default value 1", prop2);
+      {
+        String prop0 = n0.property(Song.NAME_KEY);
+        String prop1 = (String) n0.property(Song.NAME);
+        String prop2 = n0.property(new PropertyKey("doesnt exist"), "default value 1");
+        String prop3 = n0.property("doesnt exist", "default value 1");
+        assertEquals("default value 1", prop2);
+        assertEquals("default value 1", prop3);
+      }
 
-      Integer prop3 = e4.property(FollowedBy.WEIGHT_KEY);
-      Integer prop4 = (Integer) e4.property(FollowedBy.WEIGHT);
-      Integer prop5 = n0.property("doesnt exist", 99);
-      assertEquals(new Integer(99), prop5);
+      {
+        Integer prop0 = e4.property(FollowedBy.WEIGHT_KEY);
+        Integer prop1 = (Integer) e4.property(FollowedBy.WEIGHT);
+        Integer prop2 = n0.property(new PropertyKey<>("doesnt exist"), 99);
+        Integer prop3 = n0.property("doesnt exist", 99);
+        assertEquals(new Integer(99), prop2);
+        assertEquals(new Integer(99), prop3);
+      }
     }
   }
 

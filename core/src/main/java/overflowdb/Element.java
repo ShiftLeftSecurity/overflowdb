@@ -20,6 +20,11 @@ public abstract class Element {
 
   public abstract <A> A property(PropertyKey<A> key);
 
+  public <A> A property(PropertyKey<A> key, A defaultValue) {
+    Object value = property(key);
+    return value != null ? (A) value : defaultValue;
+  }
+
   public abstract <A> Optional<A> propertyOption(PropertyKey<A> key);
 
   public abstract Optional<Object> propertyOption(String key);
