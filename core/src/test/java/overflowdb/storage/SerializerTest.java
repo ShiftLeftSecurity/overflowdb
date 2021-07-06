@@ -1,9 +1,12 @@
 package overflowdb.storage;
 
 import org.junit.Test;
+import overflowdb.Config;
+import overflowdb.EdgeFactory;
 import overflowdb.Node;
 import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
+import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
 import overflowdb.Graph;
@@ -15,6 +18,7 @@ import overflowdb.testdomains.simple.TestNodeDb;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -96,9 +100,10 @@ public class SerializerTest {
       // serialize the nodes, which implicitly also serializes the edge
       TestNodeDb testNode1Db = testNode1.get();
       final byte[] n1Serialized = serializer.serialize(testNode1Db);
+      graph.close();
 
       // to verify that default property values are not serialized, we're changing the implementation of Node/Edge to use different defaults
-      NodeDeserializer deserializer = newDeserializerWithAlternateDefaults(graph);
+      NodeDeserializer deserializer = newDeserializerWithAlternateDefaults();
       TestNodeDb n1Deserialized = (TestNodeDb) deserializer.deserialize(n1Serialized);
       TestEdge edge1Deserialized = (TestEdge) n1Deserialized.outE(TestEdge.LABEL).next();
       assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
@@ -116,8 +121,8 @@ public class SerializerTest {
         graph.getStorage());
   }
 
-  private NodeDeserializer newDeserializerWithAlternateDefaults(Graph graph) {
-    NodeFactory<TestNodeDb> alternateFactory = new NodeFactory() {
+  private NodeDeserializer newDeserializerWithAlternateDefaults() {
+    NodeFactory<TestNodeDb> alternateNodeFactory = new NodeFactory() {
       public String forLabel() { return TestNode.factory.forLabel(); }
       public NodeRef createNodeRef(Graph graph, long id) { return TestNode.factory.createNodeRef(graph, id); }
       public TestNodeDb createNode(NodeRef ref) {
@@ -129,15 +134,57 @@ public class SerializerTest {
             else
               return super.propertyDefaultValue(propertyKey);
           }
+
+//          @Override
+//          public NodeLayoutInformation layoutInformation() {
+//            // override edge: use TestEdgeAlternateDefault
+//            return new NodeLayoutInformation(
+//                TestNode.LABEL,
+//                new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY)),
+//                Arrays.asList(TestEdgeAlternateDefault.layoutInformation),
+//                Arrays.asList(TestEdgeAlternateDefault.layoutInformation));
+//          }
         };
       }
     };
+
+    EdgeFactory<TestEdge> alternateEdgeFactory = new EdgeFactory() {
+      @Override
+      public String forLabel() {
+        return TestEdge.LABEL;
+      }
+
+      @Override
+      public TestEdge createEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
+        return new TestEdgeAlternateDefault(graph, outVertex, inVertex);
+      }
+    };
+
+    Graph graph = Graph.open(
+        Config.withoutOverflow(),
+        Arrays.asList(alternateNodeFactory),
+        Arrays.asList(alternateEdgeFactory));
+
     return new NodeDeserializer(
         graph,
         new HashMap() {{
-          put(TestNodeDb.layoutInformation.label, alternateFactory); }},
+          put(TestNodeDb.layoutInformation.label, alternateNodeFactory); }},
         true,
         graph.getStorage());
+  }
+
+  private class TestEdgeAlternateDefault extends TestEdge {
+    public TestEdgeAlternateDefault(Graph graph, NodeRef outVertex, NodeRef inVertex) {
+      super(graph, outVertex, inVertex);
+    }
+
+    @Override
+    public Object propertyDefaultValue(String propertyKey) {
+      if (LONG_PROPERTY.equals(propertyKey))
+        return -49l;
+      else
+        return super.propertyDefaultValue(propertyKey);
+    }
   }
 
 }
