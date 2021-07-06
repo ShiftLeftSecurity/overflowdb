@@ -487,16 +487,23 @@ public class ElementTest {
   @Test
   public void removeNodeProperty() {
     Graph graph = SimpleDomain.newGraph();
-    final String testValue = "a string value";
+    final int intValue = 99;
+    final String stringValue = "a string value";
 
-    Node node = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, testValue);
-    assertEquals(testValue, node.property(TestNode.STRING_PROPERTY));
-    assertEquals(testValue, ((TestNode)node).stringProperty());
+    Node node = graph.addNode(TestNode.LABEL,
+        TestNode.INT_PROPERTY, intValue,
+        TestNode.STRING_PROPERTY, stringValue);
+    assertEquals(intValue, node.property(TestNode.INT_PROPERTY));
+    assertEquals(new Integer(intValue), ((TestNode)node).intProperty());
+    assertEquals(stringValue, node.property(TestNode.STRING_PROPERTY));
+    assertEquals(stringValue, ((TestNode)node).stringProperty());
 
     node.removeProperty(TestNode.STRING_PROPERTY);
-    assertEquals(Optional.empty(), node.propertyOption(TestNode.STRING_PROPERTY));
-    assertNull(node.property(TestNode.STRING_PROPERTY));
-    assertNull(((TestNode)node).stringProperty());
+    node.removeProperty(TestNode.INT_PROPERTY);
+    assertEquals(Optional.empty(), node.propertyOption(TestNode.INT_PROPERTY));
+    assertNull(node.property(TestNode.INT_PROPERTY));
+    assertNull(((TestNode)node).intProperty());
+    assertEquals(Optional.of("DEFAULT_STRING_VALUE"), node.propertyOption(TestNode.STRING_PROPERTY));
   }
 
   @Test
@@ -522,9 +529,10 @@ public class ElementTest {
       Edge e0FromOut = n0.outE().next();
       Edge e0FromIn = n1.inE().next();
 
-      assertNull(e0.property(TestEdge.LONG_PROPERTY));
-      assertNull(e0FromOut.property(TestEdge.LONG_PROPERTY));
-      assertNull(e0FromIn.property(TestEdge.LONG_PROPERTY));
+      long defaultLongPropertyValue = -99l;
+      assertEquals(defaultLongPropertyValue, e0.property(TestEdge.LONG_PROPERTY));
+      assertEquals(defaultLongPropertyValue, e0FromOut.property(TestEdge.LONG_PROPERTY));
+      assertEquals(defaultLongPropertyValue, e0FromIn.property(TestEdge.LONG_PROPERTY));
     }
   }
 
