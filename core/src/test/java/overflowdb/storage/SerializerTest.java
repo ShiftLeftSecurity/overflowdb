@@ -15,6 +15,7 @@ import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 import overflowdb.testdomains.simple.TestNodeDb;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,33 +85,43 @@ public class SerializerTest {
 
   @Test
   public void serializeWithDefaultPropertyValues() throws IOException {
-    try (Graph graph = SimpleDomain.newGraph()) {
-      NodeSerializer serializer = new NodeSerializer(true, graph.getStorage());
+    File storageLocation = File.createTempFile("overflowdb-test", "bin");
+    storageLocation.deleteOnExit();
 
-      TestNode testNode1 = (TestNode) graph.addNode(TestNode.LABEL);
-      TestNode testNode2 = (TestNode) graph.addNode(TestNode.LABEL);
-      TestEdge testEdge = (TestEdge) testNode1.addEdge(TestEdge.LABEL, testNode2);
+    Graph graph = Graph.open(
+        Config.withoutOverflow().withStorageLocation(storageLocation.getPath()),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestNode.factory("DEFAULT_STRING_VALUE")),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestEdge.factory(-99))
+    );
 
-      // properties are set to default values
-      assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
-      assertEquals("DEFAULT_STRING_VALUE", testNode1.property(TestNode.STRING_PROPERTY));
-      assertEquals(new Long(-99l), testEdge.longProperty());
-      assertEquals(new Long(-99l), testEdge.property(TestEdge.LONG_PROPERTY));
+    overflowdb.testdomains.configurabledefaults.TestNode testNode1 =
+        (overflowdb.testdomains.configurabledefaults.TestNode) graph.addNode(overflowdb.testdomains.configurabledefaults.TestNode.LABEL);
+    overflowdb.testdomains.configurabledefaults.TestNode testNode2 =
+        (overflowdb.testdomains.configurabledefaults.TestNode) graph.addNode(overflowdb.testdomains.configurabledefaults.TestNode.LABEL);
+    overflowdb.testdomains.configurabledefaults.TestEdge testEdge =
+        (overflowdb.testdomains.configurabledefaults.TestEdge) testNode1.addEdge(TestEdge.LABEL, testNode2);
 
-      // serialize the nodes, which implicitly also serializes the edge
-      TestNodeDb testNode1Db = testNode1.get();
-      final byte[] n1Serialized = serializer.serialize(testNode1Db);
-      graph.close();
+    // properties are set to default values
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.property(overflowdb.testdomains.configurabledefaults.TestNode.STRING_PROPERTY));
+    assertEquals(new Long(-99l), testEdge.longProperty());
+    assertEquals(new Long(-99l), testEdge.property(TestEdge.LONG_PROPERTY));
+    graph.close();
 
-      // to verify that default property values are not serialized, we're changing the implementation of Node/Edge to use different defaults
-      NodeDeserializer deserializer = newDeserializerWithAlternateDefaults();
-      TestNodeDb n1Deserialized = (TestNodeDb) deserializer.deserialize(n1Serialized);
-      TestEdge edge1Deserialized = (TestEdge) n1Deserialized.outE(TestEdge.LABEL).next();
+    // to verify that default property values are not serialized, we're reopening the graph with different `default value` settings
+    graph = Graph.open(
+        Config.withoutOverflow().withStorageLocation(storageLocation.getPath()),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestNode.factory("NEW_DEFAULT_STRING_VALUE")),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestEdge.factory(-49))
+    );
+      overflowdb.testdomains.configurabledefaults.TestNode n1Deserialized =
+          (overflowdb.testdomains.configurabledefaults.TestNode) graph.nodes().next();
+      overflowdb.testdomains.configurabledefaults.TestEdge edge1Deserialized =
+          (overflowdb.testdomains.configurabledefaults.TestEdge) n1Deserialized.bothE(TestEdge.LABEL).next();
       assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
-      assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(TestNode.STRING_PROPERTY));
+      assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(overflowdb.testdomains.configurabledefaults.TestNode.STRING_PROPERTY));
       assertEquals(new Long(-49l), edge1Deserialized.longProperty());
       assertEquals(new Long(-49l), edge1Deserialized.property(TestEdge.LONG_PROPERTY));
-    }
   }
 
   private NodeDeserializer newDeserializer(Graph graph) {
@@ -119,72 +130,6 @@ public class SerializerTest {
         new HashMap() {{ put(TestNodeDb.layoutInformation.label, TestNode.factory); }},
         true,
         graph.getStorage());
-  }
-
-  private NodeDeserializer newDeserializerWithAlternateDefaults() {
-    NodeFactory<TestNodeDb> alternateNodeFactory = new NodeFactory() {
-      public String forLabel() { return TestNode.factory.forLabel(); }
-      public NodeRef createNodeRef(Graph graph, long id) { return TestNode.factory.createNodeRef(graph, id); }
-      public TestNodeDb createNode(NodeRef ref) {
-        return new TestNodeDb(ref) {
-          @Override
-          public Object propertyDefaultValue(String propertyKey) {
-            if (TestNode.STRING_PROPERTY.equals(propertyKey))
-              return "NEW_DEFAULT_STRING_VALUE";
-            else
-              return super.propertyDefaultValue(propertyKey);
-          }
-
-//          @Override
-//          public NodeLayoutInformation layoutInformation() {
-//            // override edge: use TestEdgeAlternateDefault
-//            return new NodeLayoutInformation(
-//                TestNode.LABEL,
-//                new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY)),
-//                Arrays.asList(TestEdgeAlternateDefault.layoutInformation),
-//                Arrays.asList(TestEdgeAlternateDefault.layoutInformation));
-//          }
-        };
-      }
-    };
-
-    EdgeFactory<TestEdge> alternateEdgeFactory = new EdgeFactory() {
-      @Override
-      public String forLabel() {
-        return TestEdge.LABEL;
-      }
-
-      @Override
-      public TestEdge createEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
-        return new TestEdgeAlternateDefault(graph, outVertex, inVertex);
-      }
-    };
-
-    Graph graph = Graph.open(
-        Config.withoutOverflow(),
-        Arrays.asList(alternateNodeFactory),
-        Arrays.asList(alternateEdgeFactory));
-
-    return new NodeDeserializer(
-        graph,
-        new HashMap() {{
-          put(TestNodeDb.layoutInformation.label, alternateNodeFactory); }},
-        true,
-        graph.getStorage());
-  }
-
-  private class TestEdgeAlternateDefault extends TestEdge {
-    public TestEdgeAlternateDefault(Graph graph, NodeRef outVertex, NodeRef inVertex) {
-      super(graph, outVertex, inVertex);
-    }
-
-    @Override
-    public Object propertyDefaultValue(String propertyKey) {
-      if (LONG_PROPERTY.equals(propertyKey))
-        return -49l;
-      else
-        return super.propertyDefaultValue(propertyKey);
-    }
   }
 
 }
