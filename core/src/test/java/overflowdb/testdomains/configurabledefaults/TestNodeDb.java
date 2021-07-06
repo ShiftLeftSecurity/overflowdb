@@ -43,7 +43,7 @@ public class TestNodeDb extends NodeDb {
   @Override
   public Map<String, Object> valueMap() {
     Map<String, Object> properties = new HashMap<>();
-    if (_stringProperty != null) properties.put(TestNode.STRING_PROPERTY, _stringProperty);
+    if (stringProperty() != null) properties.put(TestNode.STRING_PROPERTY, stringProperty());
     return properties;
   }
 
