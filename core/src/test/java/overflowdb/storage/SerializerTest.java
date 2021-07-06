@@ -2,6 +2,7 @@ package overflowdb.storage;
 
 import org.junit.Test;
 import overflowdb.Node;
+import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
@@ -94,14 +95,10 @@ public class SerializerTest {
 
       // serialize the nodes, which implicitly also serializes the edge
       TestNodeDb testNode1Db = testNode1.get();
-      TestNodeDb testNode2Db = testNode2.get();
       final byte[] n1Serialized = serializer.serialize(testNode1Db);
-      final byte[] n2Serialized = serializer.serialize(testNode2Db);
 
       // to verify that default property values are not serialized, we're changing the implementation of Node/Edge to use different defaults
-      Map<String, NodeFactory> nodeFactories = new HashMap();
-      nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
-      NodeDeserializer deserializer = new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
+      NodeDeserializer deserializer = newDeserializerWithAlternateDefaults(graph);
       TestNodeDb n1Deserialized = (TestNodeDb) deserializer.deserialize(n1Serialized);
       TestEdge edge1Deserialized = (TestEdge) n1Deserialized.outE(TestEdge.LABEL).next();
       assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
@@ -112,9 +109,35 @@ public class SerializerTest {
   }
 
   private NodeDeserializer newDeserializer(Graph graph) {
-    Map<String, NodeFactory> nodeFactories = new HashMap();
-    nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
-    return new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
+    return new NodeDeserializer(
+        graph,
+        new HashMap() {{ put(TestNodeDb.layoutInformation.label, TestNode.factory); }},
+        true,
+        graph.getStorage());
+  }
+
+  private NodeDeserializer newDeserializerWithAlternateDefaults(Graph graph) {
+    NodeFactory<TestNodeDb> alternateFactory = new NodeFactory() {
+      public String forLabel() { return TestNode.factory.forLabel(); }
+      public NodeRef createNodeRef(Graph graph, long id) { return TestNode.factory.createNodeRef(graph, id); }
+      public TestNodeDb createNode(NodeRef ref) {
+        return new TestNodeDb(ref) {
+          @Override
+          public Object propertyDefaultValue(String propertyKey) {
+            if (TestNode.STRING_PROPERTY.equals(propertyKey))
+              return "NEW_DEFAULT_STRING_VALUE";
+            else
+              return super.propertyDefaultValue(propertyKey);
+          }
+        };
+      }
+    };
+    return new NodeDeserializer(
+        graph,
+        new HashMap() {{
+          put(TestNodeDb.layoutInformation.label, alternateFactory); }},
+        true,
+        graph.getStorage());
   }
 
 }
