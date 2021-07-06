@@ -203,6 +203,8 @@ public abstract class NodeDb extends Node {
     return result.iterator();
   }
 
+  /** returns a Map of all explicitly set properties of an edge,
+   * i.e. does not contain the properties which have the default value */
   public Map<String, Object> edgePropertyMap(Direction direction, Edge edge, int blockOffset) {
     final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());
