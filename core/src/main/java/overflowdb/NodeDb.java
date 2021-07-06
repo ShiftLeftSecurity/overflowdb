@@ -38,6 +38,11 @@ public abstract class NodeDb extends Node {
    * i.e. each adjacent edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
 
+  @Override
+  public Object propertyDefaultValue(String propertyKey) {
+    return ref.propertyDefaultValue(propertyKey);
+  }
+
   /**
    * Flag that helps us save time when serializing, both when overflowing to disk and when storing
    * the graph on close.

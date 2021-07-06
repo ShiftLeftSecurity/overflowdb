@@ -22,6 +22,14 @@ public class TestEdge extends Edge {
     return (Long) property(LONG_PROPERTY);
   }
 
+  @Override
+  public Object propertyDefaultValue(String propertyKey) {
+    if (LONG_PROPERTY.equals(propertyKey))
+      return -99l;
+    else
+      return super.propertyDefaultValue(propertyKey);
+  }
+
   public static final EdgeLayoutInformation layoutInformation = new EdgeLayoutInformation(LABEL, PROPERTY_KEYS);
 
   public static EdgeFactory<TestEdge> factory = new EdgeFactory<TestEdge>() {

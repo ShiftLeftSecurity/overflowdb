@@ -22,7 +22,10 @@ public class TestNodeDb extends NodeDb {
   private List<Integer> _intListProperty;
 
   public String stringProperty() {
-    return _stringProperty;
+    if (_stringProperty != null)
+      return _stringProperty;
+    else
+      return (String) propertyDefaultValue(TestNode.STRING_PROPERTY);
   }
 
   public Integer intProperty() {
@@ -46,15 +49,15 @@ public class TestNodeDb extends NodeDb {
   @Override
   public Object property(String key) {
     if (TestNode.STRING_PROPERTY.equals(key)) {
-      return _stringProperty;
+      return stringProperty();
     } else if (key == TestNode.STRING_LIST_PROPERTY) {
-      return _stringListProperty;
+      return stringListProperty();
     } else if (key == TestNode.INT_PROPERTY) {
-      return _intProperty;
+      return intProperty();
     } else if (key == TestNode.INT_LIST_PROPERTY) {
-      return _intListProperty;
+      return intListProperty();
     } else {
-      return null;
+      return propertyDefaultValue(key);
     }
   }
 

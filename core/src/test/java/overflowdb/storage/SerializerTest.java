@@ -77,6 +77,40 @@ public class SerializerTest {
     }
   }
 
+  @Test
+  public void serializeWithDefaultPropertyValues() throws IOException {
+    try (Graph graph = SimpleDomain.newGraph()) {
+      NodeSerializer serializer = new NodeSerializer(true, graph.getStorage());
+
+      TestNode testNode1 = (TestNode) graph.addNode(TestNode.LABEL);
+      TestNode testNode2 = (TestNode) graph.addNode(TestNode.LABEL);
+      TestEdge testEdge = (TestEdge) testNode1.addEdge(TestEdge.LABEL, testNode2);
+
+      // properties are set to default values
+      assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
+      assertEquals("DEFAULT_STRING_VALUE", testNode1.property(TestNode.STRING_PROPERTY));
+      assertEquals(new Long(-99l), testEdge.longProperty());
+      assertEquals(new Long(-99l), testEdge.property(TestEdge.LONG_PROPERTY));
+
+      // serialize the nodes, which implicitly also serializes the edge
+      TestNodeDb testNode1Db = testNode1.get();
+      TestNodeDb testNode2Db = testNode2.get();
+      final byte[] n1Serialized = serializer.serialize(testNode1Db);
+      final byte[] n2Serialized = serializer.serialize(testNode2Db);
+
+      // to verify that default property values are not serialized, we're changing the implementation of Node/Edge to use different defaults
+      Map<String, NodeFactory> nodeFactories = new HashMap();
+      nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
+      NodeDeserializer deserializer = new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
+      TestNodeDb n1Deserialized = (TestNodeDb) deserializer.deserialize(n1Serialized);
+      TestEdge edge1Deserialized = (TestEdge) n1Deserialized.outE(TestEdge.LABEL).next();
+      assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
+      assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(TestNode.STRING_PROPERTY));
+      assertEquals(new Long(-49l), edge1Deserialized.longProperty());
+      assertEquals(new Long(-49l), edge1Deserialized.property(TestEdge.LONG_PROPERTY));
+    }
+  }
+
   private NodeDeserializer newDeserializer(Graph graph) {
     Map<String, NodeFactory> nodeFactories = new HashMap();
     nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
