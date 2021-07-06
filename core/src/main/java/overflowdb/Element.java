@@ -13,12 +13,12 @@ public abstract class Element {
 
   public abstract Object property(String key);
 
+  public abstract <A> A property(PropertyKey<A> key);
+
   public <A> A property(String key, A defaultValue) {
     Object value = property(key);
     return value != null ? (A) value : defaultValue;
   }
-
-  public abstract <A> A property(PropertyKey<A> key);
 
   public <A> A property(PropertyKey<A> key, A defaultValue) {
     Object value = property(key);
@@ -26,7 +26,7 @@ public abstract class Element {
   }
 
   /** override this in specific element class, to define a default value */
-  protected Object propertyDefaultValue(String propertyKey) {
+  public Object propertyDefaultValue(String propertyKey) {
     return null;
   }
 
