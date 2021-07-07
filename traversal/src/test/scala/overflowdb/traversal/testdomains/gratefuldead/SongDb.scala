@@ -21,14 +21,6 @@ class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
   /* Artist <-- writtenBy --- Song */
   def writtenBy: Traversal[Artist] = out(WrittenBy.Label).toScalaAs[Artist]
 
-  override def valueMap = {
-    val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Song.PropertyNames.Name, _name)
-    if (_songType != null) properties.put(Song.PropertyNames.SongType, _songType)
-    if (_performances != null) properties.put(Song.PropertyNames.Performances, _performances)
-    properties
-  }
-
   override def property(key: String) =
     key match {
       case Song.PropertyNames.Name => _name

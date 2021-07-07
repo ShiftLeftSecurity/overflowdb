@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SerializerTest {
@@ -108,7 +109,7 @@ public class SerializerTest {
     assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
     assertEquals("DEFAULT_STRING_VALUE", testNode1.property(stringPropertyKey));
     assertEquals("DEFAULT_STRING_VALUE", testNode1.propertyMap().get(stringPropertyKey));
-    assertEquals("DEFAULT_STRING_VALUE", testNode1.get().valueMap().get(stringPropertyKey));
+    assertFalse(testNode1.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
     assertEquals(new Long(-99l), testEdge.longProperty());
     assertEquals(new Long(-99l), testEdge.property(longPropertyKey));
     assertEquals(new Long(-99l), testEdge.propertyMap().get(longPropertyKey));
@@ -127,7 +128,7 @@ public class SerializerTest {
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(stringPropertyKey));
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertyMap().get(stringPropertyKey));
-    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.get().valueMap().get(stringPropertyKey));
+    assertFalse(n1Deserialized.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.longProperty());
     assertEquals(new Long(-49l), edge1Deserialized.property(longPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.propertyMap().get(longPropertyKey));

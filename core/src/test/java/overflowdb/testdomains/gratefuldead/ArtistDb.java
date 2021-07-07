@@ -35,13 +35,6 @@ public class ArtistDb extends NodeDb {
   }
 
   @Override
-  public Map<String, Object> valueMap() {
-    Map<String, Object> properties = new HashMap<>();
-    if (_name != null) properties.put(Artist.NAME, _name);
-    return properties;
-  }
-
-  @Override
   protected void updateSpecificProperty(String key, Object value) {
     if (Artist.NAME.equals(key)) {
       this._name = (String) value;

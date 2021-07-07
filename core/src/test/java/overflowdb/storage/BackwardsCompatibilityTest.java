@@ -386,10 +386,6 @@ abstract class DummyNodeDb extends NodeDb {
     super(ref);
   }
 
-  public Map<String, Object> valueMap() {
-    return Collections.EMPTY_MAP;
-  }
-
   protected void updateSpecificProperty(String key, Object value) {}
 
   protected void removeSpecificProperty(String key) {}

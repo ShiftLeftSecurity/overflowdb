@@ -36,7 +36,7 @@ public class NodeSerializer extends BookKeeper {
       final int labelId = storage.lookupOrCreateStringToIntMapping(layoutInformation.label);
       packer.packInt(labelId);
 
-      packProperties(packer, node.valueMap());
+      packProperties(packer, node.propertiesMapWithoutDefaults());
       packEdges(packer, node);
 
       if (statsEnabled) recordStatistics(startTimeNanos);

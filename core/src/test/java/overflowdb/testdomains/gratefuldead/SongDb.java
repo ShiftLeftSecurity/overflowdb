@@ -49,15 +49,6 @@ public class SongDb extends NodeDb {
   }
 
   @Override
-  public Map<String, Object> valueMap() {
-    Map<String, Object> properties = new HashMap<>();
-    if (_name != null) properties.put(Song.NAME, _name);
-    if (_songType != null) properties.put(Song.SONG_TYPE, _songType);
-    if (_performances != null) properties.put(Song.PERFORMANCES, _performances);
-    return properties;
-  }
-
-  @Override
   protected void updateSpecificProperty(String key, Object value) {
     if (Song.NAME.equals(key)) {
       this._name = (String) value;

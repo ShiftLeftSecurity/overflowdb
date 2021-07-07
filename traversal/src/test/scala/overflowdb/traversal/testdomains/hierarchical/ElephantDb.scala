@@ -8,12 +8,6 @@ class ElephantDb(ref: NodeRef[ElephantDb]) extends NodeDb(ref) with Animal {
   private var _name: String = null
   def name: String = _name
 
-  override def valueMap = {
-    val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Elephant.PropertyNames.Name, _name)
-    properties
-  }
-
   override def property(key: String) =
     key match {
       case Elephant.PropertyNames.Name => _name

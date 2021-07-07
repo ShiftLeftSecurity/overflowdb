@@ -41,13 +41,6 @@ public class TestNodeDb extends NodeDb {
   }
 
   @Override
-  public Map<String, Object> valueMap() {
-    Map<String, Object> properties = new HashMap<>();
-    if (stringProperty() != null) properties.put(TestNode.STRING_PROPERTY, stringProperty());
-    return properties;
-  }
-
-  @Override
   protected void updateSpecificProperty(String key, Object value) {
     if (TestNode.STRING_PROPERTY.equals(key)) {
       this._stringProperty = (String) value;

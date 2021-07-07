@@ -86,8 +86,6 @@ public abstract class NodeDb extends Node {
     this.edgeOffsets = PackedIntArray.of(edgeOffsets);
   }
 
-  public abstract Map<String, Object> valueMap();
-
   @Override
   public Graph graph() {
     return ref.graph;
@@ -124,6 +122,20 @@ public abstract class NodeDb extends Node {
     for (String propertyKey : propertyKeys()) {
       final Object value = property(propertyKey);
       if (value != null) results.put(propertyKey, value);
+    }
+
+    return results;
+  }
+
+  /** all properties *but* the default values, to ensure we don't serialize those
+   * Providing a default implementation here, but it'll make sense to override this for efficiency.
+   *  */
+  public Map<String, Object> propertiesMapWithoutDefaults() {
+    final Map<String, Object> results = new HashMap<>(propertyKeys().size());
+
+    for (String propertyKey : propertyKeys()) {
+      final Object value = property(propertyKey);
+      if (value != null && !value.equals(propertyDefaultValue(propertyKey))) results.put(propertyKey, value);
     }
 
     return results;
