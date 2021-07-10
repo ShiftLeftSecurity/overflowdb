@@ -47,7 +47,7 @@ public class SerializerTest {
 
       assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.label(), deserialized.label());
-      assertEquals(testNodeDb.propertyMap(), deserialized.propertyMap());
+      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(testNode.id(), deserializedRef.id());
@@ -108,11 +108,11 @@ public class SerializerTest {
     final String longPropertyKey = overflowdb.testdomains.configurabledefaults.TestEdge.LONG_PROPERTY;
     assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
     assertEquals("DEFAULT_STRING_VALUE", testNode1.property(stringPropertyKey));
-    assertEquals("DEFAULT_STRING_VALUE", testNode1.propertyMap().get(stringPropertyKey));
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.propertiesMap().get(stringPropertyKey));
     assertFalse(testNode1.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
     assertEquals(new Long(-99l), testEdge.longProperty());
     assertEquals(new Long(-99l), testEdge.property(longPropertyKey));
-    assertEquals(new Long(-99l), testEdge.propertyMap().get(longPropertyKey));
+    assertEquals(new Long(-99l), testEdge.propertiesMap().get(longPropertyKey));
     graph.close();
 
     // to verify that default property values are not serialized, we're reopening the graph with different `default value` settings
@@ -127,11 +127,11 @@ public class SerializerTest {
         (overflowdb.testdomains.configurabledefaults.TestEdge) n1Deserialized.bothE(TestEdge.LABEL).next();
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(stringPropertyKey));
-    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertyMap().get(stringPropertyKey));
+    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertiesMap().get(stringPropertyKey));
     assertFalse(n1Deserialized.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.longProperty());
     assertEquals(new Long(-49l), edge1Deserialized.property(longPropertyKey));
-    assertEquals(new Long(-49l), edge1Deserialized.propertyMap().get(longPropertyKey));
+    assertEquals(new Long(-49l), edge1Deserialized.propertiesMap().get(longPropertyKey));
   }
 
   private NodeDeserializer newDeserializer(Graph graph) {

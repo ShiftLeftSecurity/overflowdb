@@ -269,13 +269,13 @@ public final class Graph implements AutoCloseable {
   public void copyTo(Graph destination) {
     if (destination.nodeCount() > 0) throw new AssertionError("destination graph must be empty, but isn't");
     nodes().forEachRemaining(node -> {
-      destination.addNode(node.id(), node.label(), PropertyHelper.toKeyValueArray(node.propertyMap()));
+      destination.addNode(node.id(), node.label(), PropertyHelper.toKeyValueArray(node.propertiesMap()));
     });
 
     edges().forEachRemaining(edge -> {
       final Node inNode = destination.node(edge.inNode().id());
       final Node outNode = destination.node(edge.outNode().id());
-      outNode.addEdge(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertyMap()));
+      outNode.addEdge(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertiesMap()));
     });
   }
 

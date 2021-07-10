@@ -123,7 +123,7 @@ class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal
   def propertyOption[A](key: String): Traversal[Option[A]] =
     traversal.map(element => Option(element.property(key).asInstanceOf[A]))
 
-  def propertyMap: Traversal[Map[String, Object]] =
-    traversal.map(_.propertyMap.asScala.toMap)
+  def propertiesMap: Traversal[Map[String, Object]] =
+    traversal.map(_.propertiesMap.asScala.toMap)
 
 }

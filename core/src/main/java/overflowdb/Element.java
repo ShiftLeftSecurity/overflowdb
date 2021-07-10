@@ -35,7 +35,7 @@ public abstract class Element {
   public abstract Optional<Object> propertyOption(String key);
 
   /** Map with all properties, including the default property values which haven't been explicitly set */
-  public abstract Map<String, Object> propertyMap();
+  public abstract Map<String, Object> propertiesMap();
 
   public abstract void setProperty(String key, Object value);
 

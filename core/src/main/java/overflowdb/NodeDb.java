@@ -116,7 +116,7 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public Map<String, Object> propertyMap() {
+  public Map<String, Object> propertiesMap() {
     final Map<String, Object> results = new HashMap<>(propertyKeys().size());
 
     for (String propertyKey : propertyKeys()) {

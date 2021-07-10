@@ -92,7 +92,7 @@ public class ElementTest {
       assertEquals(Long.valueOf(99l), e.property(TestEdge.LONG_PROPERTY));
       assertEquals(99l, (long) n1.outE().next().property(TestEdge.LONG_PROPERTY));
       assertEquals(99l, (long) n2.inE().next().property(TestEdge.LONG_PROPERTY));
-      assertEquals(new HashMap<String, Object>() {{ put(TestEdge.LONG_PROPERTY, 99l); }}, n2.inE().next().propertyMap());
+      assertEquals(new HashMap<String, Object>() {{ put(TestEdge.LONG_PROPERTY, 99l); }}, n2.inE().next().propertiesMap());
     }
   }
 

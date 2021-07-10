@@ -119,7 +119,7 @@ public abstract class Edge extends Element {
   }
 
   @Override
-  public Map<String, Object> propertyMap() {
+  public Map<String, Object> propertiesMap() {
     final Map<String, Object> properties;
     if (inBlockOffset != -1) {
       properties = inNode.get().edgePropertyMap(Direction.IN, this, getInBlockOffset());
