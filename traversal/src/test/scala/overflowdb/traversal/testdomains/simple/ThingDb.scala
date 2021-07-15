@@ -13,13 +13,6 @@ class ThingDb(ref: NodeRef[ThingDb]) extends NodeDb(ref) {
   /* Thing --- followedBy --- Thing */
   def followedBy: Traversal[Thing] = out(Connection.Label).toScalaAs[Thing]
 
-  override def valueMap = {
-    val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Thing.PropertyNames.Name, _name)
-    if (_size != null) properties.put(Thing.PropertyNames.Size, _size)
-    properties
-  }
-
   override def property(key: String) =
     key match {
       case Thing.PropertyNames.Name => _name

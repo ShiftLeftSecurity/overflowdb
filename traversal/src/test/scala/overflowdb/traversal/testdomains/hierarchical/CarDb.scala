@@ -7,12 +7,6 @@ class CarDb(ref: NodeRef[CarDb]) extends NodeDb(ref) {
 
   def name: String = _name
 
-  override def valueMap = {
-    val properties = new java.util.HashMap[String, Any]
-    if (_name != null) properties.put(Car.PropertyNames.Name, _name)
-    properties
-  }
-
   override def property(key: String) =
     key match {
       case Car.PropertyNames.Name => _name

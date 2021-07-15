@@ -173,8 +173,8 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
   }
 
   @Override
-  public Map<String, Object> propertyMap() {
-    return this.get().propertyMap();
+  public Map<String, Object> propertiesMap() {
+    return this.get().propertiesMap();
   }
 
   @Override

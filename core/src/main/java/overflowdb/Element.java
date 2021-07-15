@@ -13,24 +13,29 @@ public abstract class Element {
 
   public abstract Object property(String key);
 
+  public abstract <A> A property(PropertyKey<A> key);
+
   public <A> A property(String key, A defaultValue) {
     Object value = property(key);
     return value != null ? (A) value : defaultValue;
   }
-
-  public abstract <A> A property(PropertyKey<A> key);
 
   public <A> A property(PropertyKey<A> key, A defaultValue) {
     Object value = property(key);
     return value != null ? (A) value : defaultValue;
   }
 
+  /** override this in specific element class, to define a default value */
+  public Object propertyDefaultValue(String propertyKey) {
+    return null;
+  }
+
   public abstract <A> Optional<A> propertyOption(PropertyKey<A> key);
 
   public abstract Optional<Object> propertyOption(String key);
 
-  /** Map with all properties */
-  public abstract Map<String, Object> propertyMap();
+  /** Map with all properties, including the default property values which haven't been explicitly set */
+  public abstract Map<String, Object> propertiesMap();
 
   public abstract void setProperty(String key, Object value);
 

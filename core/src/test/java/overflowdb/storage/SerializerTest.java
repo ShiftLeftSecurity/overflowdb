@@ -1,8 +1,12 @@
 package overflowdb.storage;
 
 import org.junit.Test;
+import overflowdb.Config;
+import overflowdb.EdgeFactory;
 import overflowdb.Node;
+import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
+import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
 import overflowdb.Graph;
@@ -11,12 +15,16 @@ import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 import overflowdb.testdomains.simple.TestNodeDb;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class SerializerTest {
 
@@ -39,7 +47,7 @@ public class SerializerTest {
 
       assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.label(), deserialized.label());
-      assertEquals(testNodeDb.propertyMap(), deserialized.propertyMap());
+      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(testNode.id(), deserializedRef.id());
@@ -77,10 +85,61 @@ public class SerializerTest {
     }
   }
 
+  @Test
+  public void serializeWithDefaultPropertyValues() throws IOException {
+    File storageLocation = File.createTempFile("overflowdb-test", "bin");
+    storageLocation.deleteOnExit();
+
+    Graph graph = Graph.open(
+        Config.withoutOverflow().withStorageLocation(storageLocation.getPath()),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestNode.factory("DEFAULT_STRING_VALUE")),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestEdge.factory(-99))
+    );
+
+    overflowdb.testdomains.configurabledefaults.TestNode testNode1 =
+        (overflowdb.testdomains.configurabledefaults.TestNode) graph.addNode(overflowdb.testdomains.configurabledefaults.TestNode.LABEL);
+    overflowdb.testdomains.configurabledefaults.TestNode testNode2 =
+        (overflowdb.testdomains.configurabledefaults.TestNode) graph.addNode(overflowdb.testdomains.configurabledefaults.TestNode.LABEL);
+    overflowdb.testdomains.configurabledefaults.TestEdge testEdge =
+        (overflowdb.testdomains.configurabledefaults.TestEdge) testNode1.addEdge(TestEdge.LABEL, testNode2);
+
+    // properties are set to default values
+    final String stringPropertyKey = overflowdb.testdomains.configurabledefaults.TestNode.STRING_PROPERTY;
+    final String longPropertyKey = overflowdb.testdomains.configurabledefaults.TestEdge.LONG_PROPERTY;
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.property(stringPropertyKey));
+    assertEquals("DEFAULT_STRING_VALUE", testNode1.propertiesMap().get(stringPropertyKey));
+    assertFalse(testNode1.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertEquals(new Long(-99l), testEdge.longProperty());
+    assertEquals(new Long(-99l), testEdge.property(longPropertyKey));
+    assertEquals(new Long(-99l), testEdge.propertiesMap().get(longPropertyKey));
+    graph.close();
+
+    // to verify that default property values are not serialized, we're reopening the graph with different `default value` settings
+    graph = Graph.open(
+        Config.withoutOverflow().withStorageLocation(storageLocation.getPath()),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestNode.factory("NEW_DEFAULT_STRING_VALUE")),
+        Arrays.asList(overflowdb.testdomains.configurabledefaults.TestEdge.factory(-49))
+    );
+    overflowdb.testdomains.configurabledefaults.TestNode n1Deserialized =
+        (overflowdb.testdomains.configurabledefaults.TestNode) graph.nodes().next();
+    overflowdb.testdomains.configurabledefaults.TestEdge edge1Deserialized =
+        (overflowdb.testdomains.configurabledefaults.TestEdge) n1Deserialized.bothE(TestEdge.LABEL).next();
+    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
+    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(stringPropertyKey));
+    assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertiesMap().get(stringPropertyKey));
+    assertFalse(n1Deserialized.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertEquals(new Long(-49l), edge1Deserialized.longProperty());
+    assertEquals(new Long(-49l), edge1Deserialized.property(longPropertyKey));
+    assertEquals(new Long(-49l), edge1Deserialized.propertiesMap().get(longPropertyKey));
+  }
+
   private NodeDeserializer newDeserializer(Graph graph) {
-    Map<String, NodeFactory> nodeFactories = new HashMap();
-    nodeFactories.put(TestNodeDb.layoutInformation.label, TestNode.factory);
-    return new NodeDeserializer(graph, nodeFactories, true, graph.getStorage());
+    return new NodeDeserializer(
+        graph,
+        new HashMap() {{ put(TestNodeDb.layoutInformation.label, TestNode.factory); }},
+        true,
+        graph.getStorage());
   }
 
 }

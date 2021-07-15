@@ -38,6 +38,11 @@ public abstract class NodeDb extends Node {
    * i.e. each adjacent edge type has two entries in this array. */
   private PackedIntArray edgeOffsets;
 
+  @Override
+  public Object propertyDefaultValue(String propertyKey) {
+    return ref.propertyDefaultValue(propertyKey);
+  }
+
   /**
    * Flag that helps us save time when serializing, both when overflowing to disk and when storing
    * the graph on close.
@@ -81,8 +86,6 @@ public abstract class NodeDb extends Node {
     this.edgeOffsets = PackedIntArray.of(edgeOffsets);
   }
 
-  public abstract Map<String, Object> valueMap();
-
   @Override
   public Graph graph() {
     return ref.graph;
@@ -113,12 +116,26 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public Map<String, Object> propertyMap() {
+  public Map<String, Object> propertiesMap() {
     final Map<String, Object> results = new HashMap<>(propertyKeys().size());
 
     for (String propertyKey : propertyKeys()) {
       final Object value = property(propertyKey);
       if (value != null) results.put(propertyKey, value);
+    }
+
+    return results;
+  }
+
+  /** all properties *but* the default values, to ensure we don't serialize those
+   * Providing a default implementation here, but it'll make sense to override this for efficiency.
+   *  */
+  public Map<String, Object> propertiesMapWithoutDefaults() {
+    final Map<String, Object> results = new HashMap<>(propertyKeys().size());
+
+    for (String propertyKey : propertyKeys()) {
+      final Object value = property(propertyKey);
+      if (value != null && !value.equals(propertyDefaultValue(propertyKey))) results.put(propertyKey, value);
     }
 
     return results;
@@ -203,6 +220,8 @@ public abstract class NodeDb extends Node {
     return result.iterator();
   }
 
+  /** returns a Map of all explicitly set properties of an edge,
+   * i.e. does not contain the properties which have the default value */
   public Map<String, Object> edgePropertyMap(Direction direction, Edge edge, int blockOffset) {
     final Set<String> edgePropertyKeys = layoutInformation().edgePropertyKeys(edge.label());
     final Map<String, Object> results = new HashMap<>(edgePropertyKeys.size());

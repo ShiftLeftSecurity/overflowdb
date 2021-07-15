@@ -39,6 +39,14 @@ public class TestNode extends NodeRef<TestNodeDb> {
     return get().intListProperty();
   }
 
+  @Override
+  public Object propertyDefaultValue(String propertyKey) {
+    if (STRING_PROPERTY.equals(propertyKey))
+      return "DEFAULT_STRING_VALUE";
+    else
+      return super.propertyDefaultValue(propertyKey);
+  }
+
   public static NodeFactory<TestNodeDb> factory = new NodeFactory<TestNodeDb>() {
 
     @Override

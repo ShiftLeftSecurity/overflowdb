@@ -119,24 +119,38 @@ public abstract class Edge extends Element {
   }
 
   @Override
-  public Map<String, Object> propertyMap() {
+  public Map<String, Object> propertiesMap() {
+    final Map<String, Object> properties;
     if (inBlockOffset != -1) {
-      return inNode.get().edgePropertyMap(Direction.IN, this, getInBlockOffset());
+      properties = inNode.get().edgePropertyMap(Direction.IN, this, getInBlockOffset());
     } else if (outBlockOffset != -1) {
-      return outNode.get().edgePropertyMap(Direction.OUT, this, getOutBlockOffset());
+      properties = outNode.get().edgePropertyMap(Direction.OUT, this, getOutBlockOffset());
     } else {
       throw new RuntimeException("Cannot get properties. In and out block offset uninitialized.");
     }
+
+    for (String key : propertyKeys()) {
+      if (!properties.containsKey(key)) {
+        final Object defaultValue = propertyDefaultValue(key);
+        if (defaultValue != null) {
+          properties.put(key, propertyDefaultValue(key));
+        }
+      }
+    }
+    return properties;
   }
 
   public Object property(String propertyKey) {
+    final Object value;
     if (inBlockOffset != -1) {
-      return inNode.get().edgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
+      value = inNode.get().edgeProperty(Direction.IN, this, inBlockOffset, propertyKey);
     } else if (outBlockOffset != -1) {
-      return outNode.get().edgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
+      value = outNode.get().edgeProperty(Direction.OUT, this, outBlockOffset, propertyKey);
     } else {
       throw new RuntimeException("Cannot get property. In and out block offset unitialized.");
     }
+    
+    return value != null ? value : propertyDefaultValue(propertyKey);
   }
 
   @Override
