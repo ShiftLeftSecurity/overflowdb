@@ -27,8 +27,11 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc("Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iterator.toList
 
-  /** Execute the traversal and convert the result to a scala.collection.Set - runtime type is a mutable.Set (due to better performance) */
-  def toSet: collection.Set[A] = mutable.Set.from(this)
+  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
+  def toSet: mutable.Set[A] = mutable.Set.from(this)
+
+  /** Execute the traversal and convert the result to an immutable Set */
+  def toSetImmutable: Set[A] = iterator.toSet
 
   /** Execute the traversal without returning anything */
   @Doc("Execute the traversal without returning anything")
