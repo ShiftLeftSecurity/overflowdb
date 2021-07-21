@@ -164,9 +164,10 @@ public class NodeSerializer extends BookKeeper {
     } else if (value instanceof Float) {
       packer.packByte(ValueTypes.FLOAT.id);
       packer.packFloat((float) value);
-    } else if (value instanceof Double) {
-      packer.packByte(ValueTypes.DOUBLE.id);
-      packer.packFloat((float) value); //msgpack doesn't support double, but we still want to deserialize it as a double later
+//    } else if (value instanceof Double) {
+//  msgpack doesn't support double, so we won't offer that option for now...
+//      packer.packByte(ValueTypes.DOUBLE.id);
+//      packer.packFloat(((Double) value).floatValue());
     } else if (value instanceof List) {
       packer.packByte(ValueTypes.LIST.id);
       List listValue = (List) value;

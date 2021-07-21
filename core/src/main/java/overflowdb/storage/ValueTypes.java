@@ -12,7 +12,7 @@ public enum ValueTypes {
   INTEGER((byte) 4),
   LONG((byte) 5),
   FLOAT((byte) 6),
-  DOUBLE((byte) 7),
+//  DOUBLE((byte) 7), // msgpack doesn't support double, so we won't offer that option for now...
   LIST((byte) 8),
   NODE_REF((byte) 9),
   UNKNOWN((byte) 10),
@@ -40,8 +40,8 @@ public enum ValueTypes {
         return LONG;
       case 6:
         return FLOAT;
-      case 7:
-        return DOUBLE;
+//      case 7:
+//        return DOUBLE;
       case 8:
         return LIST;
       case 9:
