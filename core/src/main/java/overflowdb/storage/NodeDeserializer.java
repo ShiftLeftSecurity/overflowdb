@@ -121,7 +121,7 @@ public class NodeDeserializer extends BookKeeper {
       case FLOAT:
         return value.asFloatValue().toFloat();
       case DOUBLE:
-        return Double.valueOf(value.asFloatValue().toFloat());
+        return value.asFloatValue().toDouble();
       case LIST:
         final ArrayValue arrayValue = value.asArrayValue();
         List deserializedArray = new ArrayList(arrayValue.size());
