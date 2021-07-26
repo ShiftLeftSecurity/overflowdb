@@ -36,7 +36,7 @@ public class NodeSerializer extends BookKeeper {
       final int labelId = storage.lookupOrCreateStringToIntMapping(layoutInformation.label);
       packer.packInt(labelId);
 
-      packProperties(packer, node.propertiesMapWithoutDefaults());
+      packProperties(packer, node.propertiesMapWithoutDefaults(), node::convertPropertyForStorage);
       packEdges(packer, node);
 
       if (statsEnabled) recordStatistics(startTimeNanos);
@@ -48,12 +48,14 @@ public class NodeSerializer extends BookKeeper {
    * when deserializing, msgpack can't differentiate between e.g. int and long, so we need to encode the type as well - doing that with an array
    * i.e. format is: Map[PropertyName, Array(TypeId, PropertyValue)]
    */
-  private void packProperties(MessageBufferPacker packer, Map<String, Object> properties) throws IOException {
+  private void packProperties(MessageBufferPacker packer, Map<String, Object> properties,
+                              Function<Object, Object> convertPropertyForStorage) throws IOException {
     packer.packMapHeader(properties.size());
     for (Map.Entry<String, Object> property : properties.entrySet()) {
       int propertyKeyId = storage.lookupOrCreateStringToIntMapping(property.getKey());
       packer.packInt(propertyKeyId);
-      packTypedValue(packer, property.getValue());
+      Object valueForStorage = convertPropertyForStorage.apply(property.getValue());
+      packTypedValue(packer, valueForStorage);
     }
   }
 
@@ -128,7 +130,7 @@ public class NodeSerializer extends BookKeeper {
       long adjacentNodeId = (long) adjacentNodeIdsAndProperties.get(edgeIdx * 2);
       packer.packLong(adjacentNodeId);
       Map<String, Object> edgeProperties = (Map<String, Object>) adjacentNodeIdsAndProperties.get(edgeIdx * 2 + 1);
-      packProperties(packer, edgeProperties);
+      packProperties(packer, edgeProperties, node::convertPropertyForStorage);
     }
   }
 

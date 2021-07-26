@@ -141,6 +141,16 @@ public abstract class NodeDb extends Node {
     return results;
   }
 
+  /** Allow extending classes to define custom transformation of runtime property value,
+   * so we can decouple runtime types and overflowdb serializer/deserializer
+   * called by NodeSerializer before serializing a property
+   * Doesn't do anything by default, but overridden e.g. in overflowdb-codegen to
+   * convert scala seq/set to runtime types that overflowdb can serialize
+   */
+  public Object convertPropertyForStorage(Object property) {
+    return property;
+  }
+
   @Override
   public Set<String> propertyKeys() {
     return layoutInformation().propertyKeys();
