@@ -150,6 +150,9 @@ that doesn't work is starting a traversal with an edge, e.g. by `g.E(0).toList` 
 so they don't have IDs and can't be indexed. There's no inherent reason this can't be done, but the need didn't yet arise. 
 Same goes for an OLAP (GraphComputer) implementation, which is not yet available.
 
+### DiffTool util
+`overflowdb.util.DiffTool.compare(graph1, graph2)` allows you to do some very basic comparison of two graphs. It identifies nodes by their ids, and compares their existence, properties, adjacent edges and properties of those edges. 
+
 ### FAQ
 1. **Why not just use a simple cache instead of the overflow mechanism?**  
 Regular caches require you have to specify a fixed size. OverflowDB is designed to run in the same JVM as your main application, and since 
