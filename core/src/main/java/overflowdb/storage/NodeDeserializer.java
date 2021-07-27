@@ -60,8 +60,8 @@ public class NodeDeserializer extends BookKeeper {
       String edgeLabel = storage.reverseLookupStringToIntMapping(edgeLabelId);
       int edgeCount = unpacker.unpackInt();
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
-        long adjancentNodeId = unpacker.unpackLong();
-        NodeRef adjacentNode = (NodeRef) graph.node(adjancentNodeId);
+        long adjacentNodeId = unpacker.unpackLong();
+        NodeRef adjacentNode = (NodeRef) graph.node(adjacentNodeId);
         Object[] edgeProperties = unpackProperties(unpacker);
         node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
       }
