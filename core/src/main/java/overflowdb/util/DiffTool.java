@@ -57,7 +57,7 @@ public class DiffTool {
 
     propertyKeys.forEach(key -> {
       final Object value1 = properties1.get(key);
-      final Object value2 = properties1.get(key);
+      final Object value2 = properties2.get(key);
       if (!value1.equals(value2)) diff.add(String.format("%s; property '%s' has different values: graph1='%s', graph2='%s'", context, key, value1, value2));
       else if (value1 == null) diff.add(String.format("%s; property '%s' -> '%s' only exists in graph2", context, key, value2));
       else if (value2 == null) diff.add(String.format("%s; property '%s' -> '%s' only exists in graph1", context, key, value1));
