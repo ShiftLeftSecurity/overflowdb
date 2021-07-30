@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class Graph implements AutoCloseable {
@@ -34,19 +35,32 @@ public final class Graph implements AutoCloseable {
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final ReferenceManager referenceManager;
 
+  /**
+   * @param convertPropertyForPersistence applied to all element property values by @{@link NodeSerializer} prior
+   *                                      to persisting nodes/edges. That's useful if your runtime types are not
+   *                                      supported by plain java, e.g. because you're using Scala Seq etc.
+   */
   public static Graph open(Config configuration,
                            List<NodeFactory<?>> nodeFactories,
-                           List<EdgeFactory<?>> edgeFactories) {
+                           List<EdgeFactory<?>> edgeFactories,
+                           Function<Object, Object> convertPropertyForPersistence) {
     Map<String, NodeFactory> nodeFactoryByLabel = new HashMap<>(nodeFactories.size());
     Map<String, EdgeFactory> edgeFactoryByLabel = new HashMap<>(edgeFactories.size());
     nodeFactories.forEach(factory -> nodeFactoryByLabel.put(factory.forLabel(), factory));
     edgeFactories.forEach(factory -> edgeFactoryByLabel.put(factory.forLabel(), factory));
-    return new Graph(configuration, nodeFactoryByLabel, edgeFactoryByLabel);
+    return new Graph(configuration, nodeFactoryByLabel, edgeFactoryByLabel, convertPropertyForPersistence);
+  }
+
+  public static Graph open(Config configuration,
+                           List<NodeFactory<?>> nodeFactories,
+                           List<EdgeFactory<?>> edgeFactories) {
+    return open(configuration, nodeFactories, edgeFactories, Function.identity());
   }
 
   private Graph(Config config,
                 Map<String, NodeFactory> nodeFactoryByLabel,
-                Map<String, EdgeFactory> edgeFactoryByLabel) {
+                Map<String, EdgeFactory> edgeFactoryByLabel,
+                Function<Object, Object> convertPropertyForPersistence) {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
@@ -55,7 +69,7 @@ public final class Graph implements AutoCloseable {
         ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
         : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
-    this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage);
+    this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
     referenceManager = new ReferenceManager(storage);
     heapUsageMonitor = config.isOverflowEnabled() ?

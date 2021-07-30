@@ -18,10 +18,16 @@ import java.util.function.Function;
 
 public class NodeSerializer extends BookKeeper {
   private final OdbStorage storage;
+  private final Function<Object, Object> convertPropertyForPersistence;
 
-  public NodeSerializer(boolean statsEnabled, OdbStorage storage) {
+  public NodeSerializer(boolean statsEnabled, OdbStorage storage, Function<Object, Object> convertPropertyForPersistence) {
     super(statsEnabled);
     this.storage = storage;
+    this.convertPropertyForPersistence = convertPropertyForPersistence;
+  }
+
+  public NodeSerializer(boolean statsEnabled, OdbStorage storage) {
+    this(statsEnabled, storage, Function.identity());
   }
 
   public byte[] serialize(NodeDb node) throws IOException {
@@ -53,7 +59,8 @@ public class NodeSerializer extends BookKeeper {
     for (Map.Entry<String, Object> property : properties.entrySet()) {
       int propertyKeyId = storage.lookupOrCreateStringToIntMapping(property.getKey());
       packer.packInt(propertyKeyId);
-      packTypedValue(packer, property.getValue());
+      Object valueMaybeConverted = convertPropertyForPersistence.apply(property.getValue());
+      packTypedValue(packer, valueMaybeConverted);
     }
   }
 

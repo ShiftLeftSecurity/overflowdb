@@ -2,11 +2,7 @@ package overflowdb.storage;
 
 import org.junit.Test;
 import overflowdb.Config;
-import overflowdb.EdgeFactory;
 import overflowdb.Node;
-import overflowdb.NodeDb;
-import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
 import overflowdb.Graph;
@@ -19,8 +15,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
