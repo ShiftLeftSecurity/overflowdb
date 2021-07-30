@@ -3,6 +3,7 @@ package overflowdb.testdomains.simple;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -28,6 +29,19 @@ public class FunkyList {
 
   public List<String> getEntries() {
     return new ArrayList<>(entries);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    FunkyList funkyList = (FunkyList) o;
+    return entries.equals(funkyList.entries);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(entries);
   }
 
   public static Function<FunkyList, String[]> toStorageType =

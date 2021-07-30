@@ -185,14 +185,13 @@ public class NodeSerializer extends BookKeeper {
       while (listIter.hasNext()) {
         packTypedValue(packer, listIter.next());
       }
-    } else if (value instanceof String[]) {
-      packer.packByte(ValueTypes.LIST.id);
-      String[] array = (String[]) value;
+    } else if (value instanceof Object[]) {
+      packer.packByte(ValueTypes.ARRAY_OBJECT.id);
+      Object[] array = (Object[]) value;
       packer.packArrayHeader(array.length);
-      for (String s : array) { packTypedValue(packer, s); }
+      for (Object s : array) packTypedValue(packer, s);
     } else {
       throw new UnsupportedOperationException("id type `" + value.getClass());
     }
   }
-
 }

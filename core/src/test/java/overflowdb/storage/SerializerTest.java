@@ -72,7 +72,7 @@ public class SerializerTest {
       assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
       TestNodeDb deserializedTestNode = (TestNodeDb) deserialized;
-      assertEquals(deserializedTestNode.funkyList().getEntries(), Arrays.asList("foo"));
+      assertEquals(deserializedTestNode.funkyList().getEntries(), Arrays.asList("anthropomorphic", "boondoggle"));
     }
   }
 

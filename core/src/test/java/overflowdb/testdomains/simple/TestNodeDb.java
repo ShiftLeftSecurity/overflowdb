@@ -89,11 +89,11 @@ public class TestNodeDb extends NodeDb {
         this._intListProperty.add((Integer) value);
       }
     } else if (TestNode.FUNKY_LIST_PROPERTY.equals(key)) {
-      if (value instanceof String[]) {
-        String[] valueAsStrings = (String[]) value;
+      if (value instanceof Object[]) {
+        Object[] values = (Object[]) value;
         this._funkyList = new FunkyList();
-        for (String entry : valueAsStrings) {
-          _funkyList.add(entry);
+        for (Object entry : values) {
+          _funkyList.add((String) entry);
         }
       } else {
         this._funkyList = (FunkyList) value;

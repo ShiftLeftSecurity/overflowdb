@@ -123,15 +123,13 @@ public class NodeDeserializer extends BookKeeper {
       case DOUBLE:
         return value.asFloatValue().toDouble();
       case LIST:
-        final ArrayValue arrayValue = value.asArrayValue();
-        List deserializedList = new ArrayList(arrayValue.size());
-        final Iterator<Value> valueIterator = arrayValue.iterator();
-        while (valueIterator.hasNext()) {
-          deserializedList.add(unpackValue(valueIterator.next().asArrayValue()));
-        }
-        return deserializedList;
+        return deserializeList(value.asArrayValue());
       case CHARACTER:
         return (char) value.asIntegerValue().asInt();
+      case ARRAY_BYTE:
+        return deserializeArrayByte(value.asArrayValue());
+      case ARRAY_OBJECT:
+        return deserializeArrayObject(value.asArrayValue());
       default:
         throw new UnsupportedOperationException("unknown valueTypeId=`" + valueTypeId);
     }
@@ -148,4 +146,33 @@ public class NodeDeserializer extends BookKeeper {
     return nodeFactoryByLabel.get(label);
   }
 
+  /** only keeping for legacy reasons, going forward, all lists are stored as arrays */
+  private Object deserializeList(ArrayValue arrayValue) {
+    final List deserializedList = new ArrayList(arrayValue.size());
+    final Iterator<Value> valueIterator = arrayValue.iterator();
+    while (valueIterator.hasNext()) {
+      deserializedList.add(unpackValue(valueIterator.next().asArrayValue()));
+    }
+    return deserializedList;
+  }
+
+  private byte[] deserializeArrayByte(ArrayValue arrayValue) {
+    byte[] deserializedArray = new byte[arrayValue.size()];
+    int idx = 0;
+    final Iterator<Value> valueIterator = arrayValue.iterator();
+    while (valueIterator.hasNext()) {
+      deserializedArray[idx++] = valueIterator.next().asIntegerValue().asByte();
+    }
+    return deserializedArray;
+  }
+
+  private Object[] deserializeArrayObject(ArrayValue arrayValue) {
+    Object[] deserializedArray = new Object[arrayValue.size()];
+    int idx = 0;
+    final Iterator<Value> valueIterator = arrayValue.iterator();
+    while (valueIterator.hasNext()) {
+      deserializedArray[idx++] = unpackValue(valueIterator.next().asArrayValue());
+    }
+    return deserializedArray;
+  }
 }
