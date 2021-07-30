@@ -20,6 +20,7 @@ public class TestNodeDb extends NodeDb {
   private Integer _intProperty;
   private List<String> _stringListProperty;
   private List<Integer> _intListProperty;
+  private FunkyList _funkyList;
 
   public String stringProperty() {
     if (_stringProperty != null)
@@ -40,6 +41,10 @@ public class TestNodeDb extends NodeDb {
     return _intListProperty;
   }
 
+  public FunkyList funkyList() {
+    return _funkyList;
+  }
+
   @Override
   public NodeLayoutInformation layoutInformation() {
     return layoutInformation;
@@ -56,6 +61,8 @@ public class TestNodeDb extends NodeDb {
       return intProperty();
     } else if (key == TestNode.INT_LIST_PROPERTY) {
       return intListProperty();
+    } else if (key == TestNode.FUNKY_LIST_PROPERTY) {
+      return funkyList();
     } else {
       return propertyDefaultValue(key);
     }
@@ -81,6 +88,16 @@ public class TestNodeDb extends NodeDb {
         if (this._intListProperty == null) this._intListProperty = new ArrayList<>();
         this._intListProperty.add((Integer) value);
       }
+    } else if (TestNode.FUNKY_LIST_PROPERTY.equals(key)) {
+      if (value instanceof String[]) {
+        String[] valueAsStrings = (String[]) value;
+        this._funkyList = new FunkyList();
+        for (String entry : valueAsStrings) {
+          _funkyList.add(entry);
+        }
+      } else {
+        this._funkyList = (FunkyList) value;
+      }
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
@@ -96,6 +113,8 @@ public class TestNodeDb extends NodeDb {
       this._intProperty = null;
     } else if (TestNode.INT_LIST_PROPERTY.equals(key)) {
       this._intListProperty = null;
+    } else if (TestNode.FUNKY_LIST_PROPERTY.equals(key)) {
+      this._funkyList = null;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
@@ -103,7 +122,8 @@ public class TestNodeDb extends NodeDb {
 
   public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
       TestNode.LABEL,
-      new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY)),
+      new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY, TestNode.FUNKY_LIST_PROPERTY)),
       Arrays.asList(TestEdge.layoutInformation),
       Arrays.asList(TestEdge.layoutInformation));
+
 }

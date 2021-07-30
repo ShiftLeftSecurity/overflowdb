@@ -174,6 +174,9 @@ public class NodeSerializer extends BookKeeper {
     } else if (value instanceof Double) {
       packer.packByte(ValueTypes.DOUBLE.id);
       packer.packDouble((double) value);
+    } else if (value instanceof Character) {
+      packer.packByte(ValueTypes.CHARACTER.id);
+      packer.packInt((Character) value);
     } else if (value instanceof List) {
       packer.packByte(ValueTypes.LIST.id);
       List listValue = (List) value;
@@ -182,9 +185,11 @@ public class NodeSerializer extends BookKeeper {
       while (listIter.hasNext()) {
         packTypedValue(packer, listIter.next());
       }
-    } else if (value instanceof Character) {
-      packer.packByte(ValueTypes.CHARACTER.id);
-      packer.packInt((Character) value);
+    } else if (value instanceof String[]) {
+      packer.packByte(ValueTypes.LIST.id);
+      String[] array = (String[]) value;
+      packer.packArrayHeader(array.length);
+      for (String s : array) { packTypedValue(packer, s); }
     } else {
       throw new UnsupportedOperationException("id type `" + value.getClass());
     }

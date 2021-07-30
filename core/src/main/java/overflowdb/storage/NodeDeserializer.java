@@ -124,12 +124,12 @@ public class NodeDeserializer extends BookKeeper {
         return value.asFloatValue().toDouble();
       case LIST:
         final ArrayValue arrayValue = value.asArrayValue();
-        List deserializedArray = new ArrayList(arrayValue.size());
+        List deserializedList = new ArrayList(arrayValue.size());
         final Iterator<Value> valueIterator = arrayValue.iterator();
         while (valueIterator.hasNext()) {
-          deserializedArray.add(unpackValue(valueIterator.next().asArrayValue()));
+          deserializedList.add(unpackValue(valueIterator.next().asArrayValue()));
         }
-        return deserializedArray;
+        return deserializedList;
       case CHARACTER:
         return (char) value.asIntegerValue().asInt();
       default:

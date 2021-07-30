@@ -6,6 +6,7 @@ import overflowdb.Node;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
 import overflowdb.Graph;
+import overflowdb.testdomains.simple.FunkyList;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -46,6 +48,31 @@ public class SerializerTest {
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(testNode.id(), deserializedRef.id());
       assertEquals(TestNode.LABEL, deserializedRef.label());
+    }
+  }
+
+  @Test
+  public void convertCustomTypes() throws IOException {
+    try (Graph graph = SimpleDomain.newGraph()) {
+      Function<Object, Object> convertPropertyForPersistence = value -> {
+       if (value instanceof FunkyList) return FunkyList.toStorageType.apply((FunkyList) value);
+       else return value;
+      };
+      NodeSerializer serializer = new NodeSerializer(false, graph.getStorage(), convertPropertyForPersistence);
+      NodeDeserializer deserializer = newDeserializer(graph);
+      TestNode testNode = (TestNode) graph.addNode(
+          TestNode.LABEL,
+          TestNode.FUNKY_LIST_PROPERTY, new FunkyList().add("anthropomorphic").add("boondoggle")
+      );
+
+      TestNodeDb testNodeDb = testNode.get();
+      byte[] bytes = serializer.serialize(testNodeDb);
+      Node deserialized = deserializer.deserialize(bytes);
+
+      assertEquals(testNodeDb.id(), deserialized.id());
+      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
+      TestNodeDb deserializedTestNode = (TestNodeDb) deserialized;
+      assertEquals(deserializedTestNode.funkyList().getEntries(), Arrays.asList("foo"));
     }
   }
 

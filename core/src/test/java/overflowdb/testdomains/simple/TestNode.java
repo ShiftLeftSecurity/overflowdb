@@ -13,6 +13,7 @@ public class TestNode extends NodeRef<TestNodeDb> {
   public static final String INT_PROPERTY = "IntProperty";
   public static final String STRING_LIST_PROPERTY = "StringListProperty";
   public static final String INT_LIST_PROPERTY = "IntListProperty";
+  public static final String FUNKY_LIST_PROPERTY = "FunkyListProperty";
 
   public TestNode(Graph graph, long id) {
     super(graph, id);
@@ -38,6 +39,8 @@ public class TestNode extends NodeRef<TestNodeDb> {
   public List<Integer> intListProperty() {
     return get().intListProperty();
   }
+
+  public FunkyList funkyList() { return get().funkyList(); }
 
   @Override
   public Object propertyDefaultValue(String propertyKey) {
