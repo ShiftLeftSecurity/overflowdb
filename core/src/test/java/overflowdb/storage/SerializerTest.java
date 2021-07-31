@@ -142,7 +142,7 @@ public class SerializerTest {
     assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
     assertEquals("DEFAULT_STRING_VALUE", testNode1.property(stringPropertyKey));
     assertEquals("DEFAULT_STRING_VALUE", testNode1.propertiesMap().get(stringPropertyKey));
-    assertFalse(testNode1.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertFalse(testNode1.get().propertiesMapForStorage().containsKey(stringPropertyKey));
     assertEquals(new Long(-99l), testEdge.longProperty());
     assertEquals(new Long(-99l), testEdge.property(longPropertyKey));
     assertEquals(new Long(-99l), testEdge.propertiesMap().get(longPropertyKey));
@@ -161,7 +161,7 @@ public class SerializerTest {
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(stringPropertyKey));
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertiesMap().get(stringPropertyKey));
-    assertFalse(n1Deserialized.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertFalse(n1Deserialized.get().propertiesMapForStorage().containsKey(stringPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.longProperty());
     assertEquals(new Long(-49l), edge1Deserialized.property(longPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.propertiesMap().get(longPropertyKey));

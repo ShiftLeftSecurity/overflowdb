@@ -127,10 +127,12 @@ public abstract class NodeDb extends Node {
     return results;
   }
 
-  /** all properties *but* the default values, to ensure we don't serialize those
-   * Providing a default implementation here, but it'll make sense to override this for efficiency.
+  /** All properties *but* the default values, to ensure we don't serialize those.
+   * Providing a default implementation here, but the codegen overrides this for efficiency.
+   * Properties may have different runtime types here than what they have in `properties()`, e.g. if the domain
+   * classes use primitive arrays for efficiency.
    *  */
-  public Map<String, Object> propertiesMapWithoutDefaults() {
+  public Map<String, Object> propertiesMapForStorage() {
     final Map<String, Object> results = new HashMap<>(propertyKeys().size());
 
     for (String propertyKey : propertyKeys()) {
