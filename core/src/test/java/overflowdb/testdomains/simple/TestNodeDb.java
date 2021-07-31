@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class TestNodeDb extends NodeDb {
   protected TestNodeDb(NodeRef ref) {
@@ -19,7 +20,7 @@ public class TestNodeDb extends NodeDb {
   private String _stringProperty;
   private Integer _intProperty;
   private List<String> _stringListProperty;
-  private List<Integer> _intListProperty;
+  private int[] _intListProperty; // to test primitive arrays serialization
   private FunkyList _funkyList;
 
   public String stringProperty() {
@@ -38,7 +39,7 @@ public class TestNodeDb extends NodeDb {
   }
 
   public List<Integer> intListProperty() {
-    return _intListProperty;
+    return Arrays.stream(_intListProperty).boxed().collect(Collectors.toList());
   }
 
   public FunkyList funkyList() {
@@ -60,7 +61,7 @@ public class TestNodeDb extends NodeDb {
     } else if (key == TestNode.INT_PROPERTY) {
       return intProperty();
     } else if (key == TestNode.INT_LIST_PROPERTY) {
-      return intListProperty();
+      return _intListProperty;
     } else if (key == TestNode.FUNKY_LIST_PROPERTY) {
       return funkyList();
     } else {
@@ -75,6 +76,8 @@ public class TestNodeDb extends NodeDb {
     } else if (TestNode.STRING_LIST_PROPERTY.equals(key)) {
       if (value instanceof List) {
         this._stringListProperty = (List) value;
+      } else if (value instanceof Object[]) {
+        this._stringListProperty = Arrays.stream((Object[]) value).map(s -> (String) s).collect(Collectors.toList());
       } else {
         if (this._stringListProperty == null) this._stringListProperty = new ArrayList<>();
         this._stringListProperty.add((String) value);
@@ -83,10 +86,14 @@ public class TestNodeDb extends NodeDb {
       this._intProperty = (Integer) value;
     } else if (TestNode.INT_LIST_PROPERTY.equals(key)) {
       if (value instanceof List) {
-        this._intListProperty = (List) value;
+        List valueAsList = (List) value;
+        this._intListProperty = new int[valueAsList.size()];
+        int idx = 0;
+        for (Integer i : _intListProperty) _intListProperty[idx++] = i;
+      } else if (value instanceof int[]) {
+        this._intListProperty = (int[]) value;
       } else {
-        if (this._intListProperty == null) this._intListProperty = new ArrayList<>();
-        this._intListProperty.add((Integer) value);
+        throw new RuntimeException("not implemented... " + value.getClass());
       }
     } else if (TestNode.FUNKY_LIST_PROPERTY.equals(key)) {
       if (value instanceof Object[]) {

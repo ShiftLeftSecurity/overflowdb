@@ -16,11 +16,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class SerializerTest {
 
@@ -39,11 +40,22 @@ public class SerializerTest {
 
       TestNodeDb testNodeDb = testNode.get();
       byte[] bytes = serializer.serialize(testNodeDb);
-      Node deserialized = deserializer.deserialize(bytes);
+      TestNodeDb deserialized = (TestNodeDb) deserializer.deserialize(bytes);
 
       assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.label(), deserialized.label());
-      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
+      assertEquals(testNodeDb.stringProperty(), deserialized.stringProperty());
+      assertEquals(testNodeDb.intProperty(), deserialized.intProperty());
+      assertEquals(testNodeDb.stringListProperty(), deserialized.stringListProperty());
+      assertEquals(testNodeDb.intListProperty(), deserialized.intListProperty());
+
+      final Map<String, Object> propertiesMap = testNodeDb.propertiesMap();
+      final Map<String, Object> propertiesMapDeserialized = deserialized.propertiesMap();
+      assertEquals(propertiesMap.get(TestNode.STRING_PROPERTY), propertiesMapDeserialized.get(TestNode.STRING_PROPERTY));
+      assertEquals(propertiesMap.get(TestNode.INT_PROPERTY), propertiesMapDeserialized.get(TestNode.INT_PROPERTY));
+      assertEquals(propertiesMap.get(TestNode.STRING_LIST_PROPERTY), propertiesMapDeserialized.get(TestNode.STRING_LIST_PROPERTY));
+      assertArrayEquals((int[]) propertiesMap.get(TestNode.INT_LIST_PROPERTY),
+                        (int[]) propertiesMapDeserialized.get(TestNode.INT_LIST_PROPERTY));
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(testNode.id(), deserializedRef.id());

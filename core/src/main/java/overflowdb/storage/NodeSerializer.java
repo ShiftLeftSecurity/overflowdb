@@ -10,7 +10,6 @@ import org.msgpack.core.MessagePack;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -178,18 +177,55 @@ public class NodeSerializer extends BookKeeper {
       packer.packByte(ValueTypes.CHARACTER.id);
       packer.packInt((Character) value);
     } else if (value instanceof List) {
-      packer.packByte(ValueTypes.LIST.id);
-      List listValue = (List) value;
-      packer.packArrayHeader(listValue.size());
-      final Iterator listIter = listValue.iterator();
-      while (listIter.hasNext()) {
-        packTypedValue(packer, listIter.next());
-      }
+      packer.packByte(ValueTypes.ARRAY_OBJECT.id);
+      List list = (List) value;
+      packer.packArrayHeader(list.size());
+      for (Object o : list) packTypedValue(packer, o);
     } else if (value instanceof Object[]) {
       packer.packByte(ValueTypes.ARRAY_OBJECT.id);
       Object[] array = (Object[]) value;
       packer.packArrayHeader(array.length);
-      for (Object s : array) packTypedValue(packer, s);
+      for (Object o : array) packTypedValue(packer, o);
+    } else if (value instanceof byte[]) {
+      packer.packByte(ValueTypes.ARRAY_BYTE.id);
+      byte[] array = (byte[]) value;
+      packer.packArrayHeader(array.length);
+      for (byte b : array) packer.packByte(b);
+    } else if (value instanceof short[]) {
+      packer.packByte(ValueTypes.ARRAY_SHORT.id);
+      short[] array = (short[]) value;
+      packer.packArrayHeader(array.length);
+      for (short s : array) packer.packShort(s);
+    } else if (value instanceof int[]) {
+      packer.packByte(ValueTypes.ARRAY_INT.id);
+      int[] array = (int[]) value;
+      packer.packArrayHeader(array.length);
+      for (int i : array) packer.packInt(i);
+    } else if (value instanceof long[]) {
+      packer.packByte(ValueTypes.ARRAY_LONG.id);
+      long[] array = (long[]) value;
+      packer.packArrayHeader(array.length);
+      for (long l : array) packer.packLong(l);
+    } else if (value instanceof float[]) {
+      packer.packByte(ValueTypes.ARRAY_FLOAT.id);
+      float[] array = (float[]) value;
+      packer.packArrayHeader(array.length);
+      for (float f : array) packer.packFloat(f);
+    } else if (value instanceof double[]) {
+      packer.packByte(ValueTypes.ARRAY_DOUBLE.id);
+      double[] array = (double[]) value;
+      packer.packArrayHeader(array.length);
+      for (double d : array) packer.packDouble(d);
+    } else if (value instanceof char[]) {
+      packer.packByte(ValueTypes.ARRAY_CHAR.id);
+      char[] array = (char[]) value;
+      packer.packArrayHeader(array.length);
+      for (char c : array) packer.packInt(c);
+    } else if (value instanceof boolean[]) {
+      packer.packByte(ValueTypes.ARRAY_BOOL.id);
+      boolean[] array = (boolean[]) value;
+      packer.packArrayHeader(array.length);
+      for (boolean b : array) packer.packBoolean(b);
     } else {
       throw new UnsupportedOperationException("id type `" + value.getClass());
     }
