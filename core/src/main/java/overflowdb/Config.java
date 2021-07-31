@@ -1,11 +1,13 @@
 package overflowdb;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class Config {
   private boolean overflowEnabled = true;
   private int heapPercentageThreshold = 80;
-  private Optional<String> storageLocation = Optional.empty();
+  private Optional<Path> storageLocation = Optional.empty();
   private boolean serializationStatsEnabled = false;
 
   public static Config withDefaults() {
@@ -33,9 +35,13 @@ public class Config {
 
   /* If specified, OdbGraph will be saved there on `close`.
    * To load from that location, just instantiate a new OdbGraph with the same location. */
-  public Config withStorageLocation(String path) {
+  public Config withStorageLocation(Path path) {
     this.storageLocation = Optional.ofNullable(path);
     return this;
+  }
+
+  public Config withStorageLocation(String path) {
+    return withStorageLocation(Paths.get(path));
   }
 
   /* If specified, OdbGraph will measure and report serialization / deserialization timing averages. */
@@ -52,7 +58,7 @@ public class Config {
     return heapPercentageThreshold;
   }
 
-  public Optional<String> getStorageLocation() {
+  public Optional<Path> getStorageLocation() {
     return storageLocation;
   }
 

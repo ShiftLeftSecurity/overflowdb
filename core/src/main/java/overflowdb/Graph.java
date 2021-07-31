@@ -66,7 +66,7 @@ public final class Graph implements AutoCloseable {
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
     storage = config.getStorageLocation().isPresent()
-        ? OdbStorage.createWithSpecificLocation(new File(config.getStorageLocation().get()))
+        ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile())
         : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
