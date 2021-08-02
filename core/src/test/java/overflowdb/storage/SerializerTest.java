@@ -2,14 +2,11 @@ package overflowdb.storage;
 
 import org.junit.Test;
 import overflowdb.Config;
-import overflowdb.EdgeFactory;
 import overflowdb.Node;
-import overflowdb.NodeDb;
-import overflowdb.NodeFactory;
-import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.Edge;
 import overflowdb.Graph;
+import overflowdb.testdomains.simple.FunkyList;
 import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
@@ -19,12 +16,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Function;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class SerializerTest {
 
@@ -43,15 +40,51 @@ public class SerializerTest {
 
       TestNodeDb testNodeDb = testNode.get();
       byte[] bytes = serializer.serialize(testNodeDb);
-      Node deserialized = deserializer.deserialize(bytes);
+      TestNodeDb deserialized = (TestNodeDb) deserializer.deserialize(bytes);
 
       assertEquals(testNodeDb.id(), deserialized.id());
       assertEquals(testNodeDb.label(), deserialized.label());
-      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
+      assertEquals(testNodeDb.stringProperty(), deserialized.stringProperty());
+      assertEquals(testNodeDb.intProperty(), deserialized.intProperty());
+      assertEquals(testNodeDb.stringListProperty(), deserialized.stringListProperty());
+      assertEquals(testNodeDb.intListProperty(), deserialized.intListProperty());
+
+      final Map<String, Object> propertiesMap = testNodeDb.propertiesMap();
+      final Map<String, Object> propertiesMapDeserialized = deserialized.propertiesMap();
+      assertEquals(propertiesMap.get(TestNode.STRING_PROPERTY), propertiesMapDeserialized.get(TestNode.STRING_PROPERTY));
+      assertEquals(propertiesMap.get(TestNode.INT_PROPERTY), propertiesMapDeserialized.get(TestNode.INT_PROPERTY));
+      assertEquals(propertiesMap.get(TestNode.STRING_LIST_PROPERTY), propertiesMapDeserialized.get(TestNode.STRING_LIST_PROPERTY));
+      assertArrayEquals((int[]) propertiesMap.get(TestNode.INT_LIST_PROPERTY),
+                        (int[]) propertiesMapDeserialized.get(TestNode.INT_LIST_PROPERTY));
 
       final NodeRef deserializedRef = deserializer.deserializeRef(bytes);
       assertEquals(testNode.id(), deserializedRef.id());
       assertEquals(TestNode.LABEL, deserializedRef.label());
+    }
+  }
+
+  @Test
+  public void convertCustomTypes() throws IOException {
+    try (Graph graph = SimpleDomain.newGraph()) {
+      Function<Object, Object> convertPropertyForPersistence = value -> {
+       if (value instanceof FunkyList) return FunkyList.toStorageType.apply((FunkyList) value);
+       else return value;
+      };
+      NodeSerializer serializer = new NodeSerializer(false, graph.getStorage(), convertPropertyForPersistence);
+      NodeDeserializer deserializer = newDeserializer(graph);
+      TestNode testNode = (TestNode) graph.addNode(
+          TestNode.LABEL,
+          TestNode.FUNKY_LIST_PROPERTY, new FunkyList().add("anthropomorphic").add("boondoggle")
+      );
+
+      TestNodeDb testNodeDb = testNode.get();
+      byte[] bytes = serializer.serialize(testNodeDb);
+      Node deserialized = deserializer.deserialize(bytes);
+
+      assertEquals(testNodeDb.id(), deserialized.id());
+      assertEquals(testNodeDb.propertiesMap(), deserialized.propertiesMap());
+      TestNodeDb deserializedTestNode = (TestNodeDb) deserialized;
+      assertEquals(deserializedTestNode.funkyList().getEntries(), Arrays.asList("anthropomorphic", "boondoggle"));
     }
   }
 
@@ -109,7 +142,7 @@ public class SerializerTest {
     assertEquals("DEFAULT_STRING_VALUE", testNode1.stringProperty());
     assertEquals("DEFAULT_STRING_VALUE", testNode1.property(stringPropertyKey));
     assertEquals("DEFAULT_STRING_VALUE", testNode1.propertiesMap().get(stringPropertyKey));
-    assertFalse(testNode1.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertFalse(testNode1.get().propertiesMapForStorage().containsKey(stringPropertyKey));
     assertEquals(new Long(-99l), testEdge.longProperty());
     assertEquals(new Long(-99l), testEdge.property(longPropertyKey));
     assertEquals(new Long(-99l), testEdge.propertiesMap().get(longPropertyKey));
@@ -128,7 +161,7 @@ public class SerializerTest {
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.stringProperty());
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.property(stringPropertyKey));
     assertEquals("NEW_DEFAULT_STRING_VALUE", n1Deserialized.propertiesMap().get(stringPropertyKey));
-    assertFalse(n1Deserialized.get().propertiesMapWithoutDefaults().containsKey(stringPropertyKey));
+    assertFalse(n1Deserialized.get().propertiesMapForStorage().containsKey(stringPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.longProperty());
     assertEquals(new Long(-49l), edge1Deserialized.property(longPropertyKey));
     assertEquals(new Long(-49l), edge1Deserialized.propertiesMap().get(longPropertyKey));
