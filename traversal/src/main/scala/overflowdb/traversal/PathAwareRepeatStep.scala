@@ -19,9 +19,9 @@ object PathAwareRepeatStep {
       case SearchAlgorithm.BreadthFirst => new FifoWorklist[A]
     }
 
-    element: A => new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
+    element: A => new PathAwareTraversal[A](new Iterator[(A, IndexedSeq[Any])] {
       val visited = mutable.Set.empty[A]
-      val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
+      val emitSack: mutable.Queue[(A, IndexedSeq[Any])] = mutable.Queue.empty
       worklist.addItem(WorklistItem(PathAwareTraversal.fromSingle(element), 0))
 
       def hasNext: Boolean = {
@@ -70,7 +70,7 @@ object PathAwareRepeatStep {
       private def worklistTopHasNext: Boolean =
         worklist.nonEmpty && worklist.head.traversal.hasNext
 
-      override def next(): (A, Vector[Any]) = {
+      override def next(): (A, IndexedSeq[Any]) = {
         val result = {
           if (emitSack.hasNext) emitSack.dequeue()
           else if (worklistTopHasNext) {

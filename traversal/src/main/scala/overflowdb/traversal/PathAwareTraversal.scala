@@ -3,10 +3,10 @@ package overflowdb.traversal
 import scala.annotation.tailrec
 import scala.collection.{IterableOnce, Iterator}
 
-class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])])
+class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, IndexedSeq[Any])])
   extends Traversal[A](elementsWithPath.map(_._1)) {
 
-  private val elementsWithPathIterator: Iterator[(A, Vector[Any])] = elementsWithPath.iterator
+  private val elementsWithPathIterator: Iterator[(A, IndexedSeq[Any])] = elementsWithPath.iterator
 
   override def map[B](f: A => B): Traversal[B] =
     new PathAwareTraversal(
@@ -47,7 +47,7 @@ class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])]
     new PathAwareTraversal(elementsWithPathIterator.distinctBy(x => fun(x._1)))
 
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
-  override def path: Traversal[Vector[Any]] =
+  override def path: Traversal[IndexedSeq[Any]] =
     new Traversal(elementsWithPathIterator.map {
       case (a, path) => path.appended(a)
     })
@@ -97,12 +97,12 @@ object PathAwareTraversal {
     new PathAwareTraversal(Iterator.empty)
 
   def fromSingle[A](a: A): PathAwareTraversal[A] =
-    new PathAwareTraversal(Iterator.single((a, Vector.empty)))
+    new PathAwareTraversal(Iterator.single((a, IndexedSeq.empty)))
 
   def from[A](iterable: IterableOnce[A]): PathAwareTraversal[A] =
     iterable match {
       case traversal: PathAwareTraversal[A] => traversal
       case traversal: Traversal[A] => traversal.enablePathTracking
-      case iterable => new PathAwareTraversal[A](iterable.iterator.map(a => (a, Vector.empty)))
+      case iterable => new PathAwareTraversal[A](iterable.iterator.map(a => (a, IndexedSeq.empty)))
     }
 }

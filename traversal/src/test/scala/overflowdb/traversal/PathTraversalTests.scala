@@ -71,15 +71,15 @@ class PathTraversalTests extends WordSpec with Matchers {
         verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
         verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
 
-        def verifyResults(paths: collection.Set[Vector[_]]) = {
-          paths should contain(Vector(center, l1, l2))
-          paths should contain(Vector(center, r1, r2))
+        def verifyResults(paths: collection.Set[IndexedSeq[_]]) = {
+          paths should contain(IndexedSeq(center, l1, l2))
+          paths should contain(IndexedSeq(center, r1, r2))
           //        paths.should(contain(oneOf(Seq(center, l1, center), Seq(center, r1, center))))
 
           // should container *either* `center, l1, center` *or* `center, r1, center`
           var matchCount = 0
-          if (paths.contains(Vector(center, l1, center))) matchCount += 1
-          if (paths.contains(Vector(center, r1, center))) matchCount += 1
+          if (paths.contains(IndexedSeq(center, l1, center))) matchCount += 1
+          if (paths.contains(IndexedSeq(center, r1, center))) matchCount += 1
           matchCount shouldBe 1
         }
       }

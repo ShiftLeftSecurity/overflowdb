@@ -291,7 +291,7 @@ class Traversal[A](elements: IterableOnce[A])
     * }}}
     */
   @Doc("retrieve entire path that has been traversed thus far")
-  def path: Traversal[Vector[Any]] =
+  def path: Traversal[IndexedSeq[Any]] =
     throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
 
   /** Removes all results whose traversal path has repeated objects.
