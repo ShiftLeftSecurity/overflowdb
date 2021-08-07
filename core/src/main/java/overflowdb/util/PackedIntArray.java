@@ -7,7 +7,7 @@ package overflowdb.util;
  * For the specific case with the NodeDb.edgeOffsets where the most
  * numbers fit into byte almost all the time it saves ~90Mb in a 1.3Gb heap.
  */
-public class PackedIntArray {
+public class PackedIntArray implements Cloneable {
   private static final byte BYTE_ARRAY = 0;
   private static final byte SHORT_ARRAY = 1;
   private static final byte INT_ARRAY = 2;
@@ -48,7 +48,7 @@ public class PackedIntArray {
       case BYTE_ARRAY: return ByteArrayAccessor.INSTANCE;
       case SHORT_ARRAY: return ShortArrayAccessor.INSTANCE;
       case INT_ARRAY: return IntArrayAccessor.INSTANCE;
-      default: throw new java.lang.IllegalStateException("PackedIntArray.kind has incorrect value.");
+      default: throw new java.lang.IllegalStateException("PackedIntArray.kind has incorrect value: " + kind);
     }
   }
 
@@ -178,4 +178,38 @@ public class PackedIntArray {
       return cast(o).length;
     }
   }
+
+  @Override
+  public PackedIntArray clone() {
+    try {
+      PackedIntArray copy = (PackedIntArray) super.clone();
+      final int length = length();
+      final Object newUnderlying;
+      switch (kind) {
+        case BYTE_ARRAY:
+          newUnderlying = new byte[length];
+          System.arraycopy(underlying, 0, newUnderlying, 0, length);
+          break;
+        case SHORT_ARRAY:
+          newUnderlying = new short[length];
+          System.arraycopy(underlying, 0, newUnderlying, 0, length);
+          break;
+        case INT_ARRAY:
+          newUnderlying = new int[length];
+          System.arraycopy(underlying, 0, newUnderlying, 0, length);
+          break;
+        default: throw new java.lang.IllegalStateException("PackedIntArray.kind has incorrect value: " + kind);
+      }
+      copy.underlying = newUnderlying;
+      return copy;
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void clear() {
+    this.kind = BYTE_ARRAY;
+    this.underlying = new byte[0];
+  }
+
 }
