@@ -560,6 +560,25 @@ public class ElementTest {
   }
 
   @Test
+  public void shouldMaintainIteratorGuaranteesOnGraphModifications() {
+    try (Graph graph = GratefulDead.newGraph()) {
+      Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
+      Node n2 = graph.addNode(Song.label, Song.NAME, "Song 2");
+      Edge e4 = n0.addEdge(FollowedBy.LABEL, n2);
+
+      Iterator<Edge> outE = n0.outE();
+      Iterator<Node> out = n0.out();
+      assertTrue(outE.hasNext());
+      assertTrue(out.hasNext());
+      n2.remove();
+      assertEquals(e4, outE.next());
+      assertEquals(n2, out.next());
+      assertFalse(outE.hasNext());
+      assertFalse(out.hasNext());
+    }
+  }
+
+  @Test
   public void defaultPropertyValues() {
     try (Graph graph = GratefulDead.newGraph()) {
       Node n0 = graph.addNode(Song.label, Song.NAME, "Song 1");
