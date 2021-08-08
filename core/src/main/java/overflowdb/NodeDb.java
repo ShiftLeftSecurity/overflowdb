@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Holds node properties and edges to adjacent nodes (including edge properties).
@@ -34,6 +35,12 @@ public abstract class NodeDb extends Node {
    * added/removed and traversed by other threads in parallel.
    */
   private volatile AdjacentNodes adjacentNodes;
+
+  /**
+   * Synchronize all write operations, in order to avoid race conditions when updating the adjacent nodes.
+   * Read operations are not locked, i.e. they are fast because they do not wait, but they may read outdated data.
+   */
+  private ReentrantLock writerMutex = new ReentrantLock();
 
   /**
    * Flag that helps us save time when serializing, both when overflowing to disk and when storing
@@ -242,27 +249,23 @@ public abstract class NodeDb extends Node {
                                   String key,
                                   V value,
                                   int blockOffset) {
-    // TODO fix race with growAdjacentNodesArray, e.g.  synchronize with grow/store adjacentnode
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
-    int propertyPosition = getEdgePropertyIndex(adjacentNodes, direction, edgeLabel, key, blockOffset);
-    if (propertyPosition == -1) {
-      throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
+    try {
+      writerMutex.lock();
+      AdjacentNodes adjacentNodes = this.adjacentNodes;
+      int propertyPosition = getEdgePropertyIndex(adjacentNodes, direction, edgeLabel, key, blockOffset);
+      if (propertyPosition == -1) {
+        throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
+      }
+      adjacentNodes.nodesWithEdgeProperties[propertyPosition] = value;
+      /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+      this.markAsDirty();
+    } finally {
+      writerMutex.unlock();
     }
-    adjacentNodes.nodesWithEdgeProperties[propertyPosition] = value;
-    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
-    this.markAsDirty();
   }
 
   public void removeEdgeProperty(Direction direction, String edgeLabel, String key, int blockOffset) {
-    // TODO fix race with growAdjacentNodesArray, e.g.  synchronize with grow/store adjacentnode
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
-    int propertyPosition = getEdgePropertyIndex(adjacentNodes, direction, edgeLabel, key, blockOffset);
-    if (propertyPosition == -1) {
-      throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
-    }
-    adjacentNodes.nodesWithEdgeProperties[propertyPosition] = null;
-    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
-    this.markAsDirty();
+    setEdgeProperty(direction, edgeLabel, key, null, blockOffset);
   }
 
   private int calcAdjacentNodeIndex(AdjacentNodes adjacentNodes,
@@ -529,20 +532,24 @@ public abstract class NodeDb extends Node {
    *
    * @param blockOffset must have been initialized
    */
-  protected final synchronized void removeEdge(Direction direction, String label, int blockOffset) {
-    // TODO fix race with growAdjacentNodesArray, e.g.  synchronize with grow/store adjacentnode
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
-    int offsetPos = getPositionInEdgeOffsets(direction, label);
-    int start = startIndex(adjacentNodes, offsetPos) + blockOffset;
-    int strideSize = getStrideSize(label);
-    Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
+  protected final void removeEdge(Direction direction, String label, int blockOffset) {
+    try {
+      writerMutex.lock();
+      AdjacentNodes adjacentNodes = this.adjacentNodes;
+      int offsetPos = getPositionInEdgeOffsets(direction, label);
+      int start = startIndex(adjacentNodes, offsetPos) + blockOffset;
+      int strideSize = getStrideSize(label);
+      Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
 
-    for (int i = start; i < start + strideSize; i++) {
-      adjacentNodesWithEdgeProperties[i] = null;
+      for (int i = start; i < start + strideSize; i++) {
+        adjacentNodesWithEdgeProperties[i] = null;
+      }
+
+      /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
+      this.markAsDirty();
+    } finally {
+      writerMutex.unlock();
     }
-
-    /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
-    this.markAsDirty();
   }
 
   private Iterator<Edge> createDummyEdgeIterator(Direction direction, String... labels) {
@@ -633,34 +640,38 @@ public abstract class NodeDb extends Node {
     return blockOffset;
   }
 
-  private final synchronized int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
-    // TODO add writer lock - no more need for synchronized?
-    int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
-    if (offsetPos == -1) {
-      throw new RuntimeException("Edge of type " + edgeLabel + " with direction " + direction +
-          " not supported by class " + getClass().getSimpleName());
+  private final int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
+    try {
+      writerMutex.lock();
+      int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
+      if (offsetPos == -1) {
+        throw new RuntimeException(
+            String.format("Edge with type='%s' with direction='%s' not supported by nodeType='%s'" , edgeLabel, direction, label()));
+      }
+      int start = startIndex(adjacentNodes, offsetPos);
+      int length = blockLength(adjacentNodes, offsetPos);
+      int strideSize = getStrideSize(edgeLabel);
+
+      Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
+      int edgeOffsetLengthB2 = adjacentNodes.edgeOffsets.length() >> 1;
+
+      int insertAt = start + length;
+      if (adjacentNodesWithEdgeProperties.length <= insertAt
+          || adjacentNodesWithEdgeProperties[insertAt] != null
+          || (offsetPos + 1 < edgeOffsetLengthB2 && insertAt >= startIndex(adjacentNodes, offsetPos + 1))) {
+        // space already occupied - grow adjacentNodesWithEdgeProperties array, leaving some room for more elements
+        this.adjacentNodes = growAdjacentNodesWithEdgeProperties(adjacentNodes, offsetPos, strideSize, insertAt, length);
+      }
+
+      adjacentNodes.nodesWithEdgeProperties[insertAt] = nodeRef;
+      // update edgeOffset length to include the newly inserted element
+      adjacentNodes.edgeOffsets.set(2 * offsetPos + 1, length + strideSize);
+
+      int blockOffset = length;
+      return blockOffset;
+    } finally {
+      writerMutex.unlock();
     }
-    int start = startIndex(adjacentNodes, offsetPos);
-    int length = blockLength(adjacentNodes, offsetPos);
-    int strideSize = getStrideSize(edgeLabel);
-
-    Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
-    int edgeOffsetLengthB2 = adjacentNodes.edgeOffsets.length() >> 1;
-
-    int insertAt = start + length;
-    if (adjacentNodesWithEdgeProperties.length <= insertAt
-            || adjacentNodesWithEdgeProperties[insertAt] != null
-            || (offsetPos + 1 < edgeOffsetLengthB2 && insertAt >= startIndex(adjacentNodes, offsetPos + 1))) {
-      // space already occupied - grow adjacentNodesWithEdgeProperties array, leaving some room for more elements
-      this.adjacentNodes = growAdjacentNodesWithEdgeProperties(adjacentNodes, offsetPos, strideSize, insertAt, length);
-    }
-
-    adjacentNodes.nodesWithEdgeProperties[insertAt] = nodeRef;
-    // update edgeOffset length to include the newly inserted element
-    adjacentNodes.edgeOffsets.set(2 * offsetPos + 1, length + strideSize);
-
-    int blockOffset = length;
-    return blockOffset;
   }
 
   public int startIndex(AdjacentNodes adjacentNodes, int offsetPosition) {
@@ -709,7 +720,7 @@ public abstract class NodeDb extends Node {
    * (tradeoff between performance and memory).
    * grows with the square root of the double of the current capacity.
    */
-  private final synchronized AdjacentNodes growAdjacentNodesWithEdgeProperties(
+  private final AdjacentNodes growAdjacentNodesWithEdgeProperties(
       AdjacentNodes adjacentNodesOld, int offsetPos, int strideSize, int insertAt, int currentLength) {
     int growthEmptyFactor = 2;
     int additionalEntriesCount = (currentLength + strideSize) * growthEmptyFactor;
@@ -740,29 +751,33 @@ public abstract class NodeDb extends Node {
   /**
    * Trims the node to save storage: shrinks overallocations
    * */
-  public synchronized long trim(){
-    // TODO use writer lock?
-    AdjacentNodes adjacentNodesOld = this.adjacentNodes;
-    int newSize = 0;
-    for (int offsetPos = 0; 2 * offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++) {
-      int length = blockLength(adjacentNodesOld, offsetPos);
-      newSize += length;
-    }
-    Object[] nodesWithEdgePropertiesNew = new Object[newSize];
-    PackedIntArray edgeOffsetsNew = adjacentNodesOld.edgeOffsets.clone();
+  public long trim() {
+    try {
+      writerMutex.lock();
+      AdjacentNodes adjacentNodesOld = this.adjacentNodes;
+      int newSize = 0;
+      for (int offsetPos = 0; 2 * offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++) {
+        int length = blockLength(adjacentNodesOld, offsetPos);
+        newSize += length;
+      }
+      Object[] nodesWithEdgePropertiesNew = new Object[newSize];
+      PackedIntArray edgeOffsetsNew = adjacentNodesOld.edgeOffsets.clone();
 
-    int off = 0;
-    for(int offsetPos = 0; 2*offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++){
-      int start = startIndex(adjacentNodesOld, offsetPos);
-      int length = blockLength(adjacentNodesOld, offsetPos);
-      System.arraycopy(adjacentNodesOld.nodesWithEdgeProperties, start, nodesWithEdgePropertiesNew, off, length);
-      edgeOffsetsNew.set(2 * offsetPos, off);
-      off += length;
-    }
-    int oldSize = adjacentNodesOld.nodesWithEdgeProperties.length;
-    this.adjacentNodes = new AdjacentNodes(nodesWithEdgePropertiesNew, edgeOffsetsNew);
+      int off = 0;
+      for(int offsetPos = 0; 2*offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++){
+        int start = startIndex(adjacentNodesOld, offsetPos);
+        int length = blockLength(adjacentNodesOld, offsetPos);
+        System.arraycopy(adjacentNodesOld.nodesWithEdgeProperties, start, nodesWithEdgePropertiesNew, off, length);
+        edgeOffsetsNew.set(2 * offsetPos, off);
+        off += length;
+      }
+      int oldSize = adjacentNodesOld.nodesWithEdgeProperties.length;
+      this.adjacentNodes = new AdjacentNodes(nodesWithEdgePropertiesNew, edgeOffsetsNew);
 
-    return (long) newSize + (((long) oldSize) << 32);
+      return (long) newSize + (((long) oldSize) << 32);
+    } finally {
+      writerMutex.unlock();
+    }
   }
 
   public final boolean isDirty() {
