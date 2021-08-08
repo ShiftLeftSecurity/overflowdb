@@ -1,5 +1,6 @@
 package overflowdb.storage;
 
+import overflowdb.AdjacentNodes;
 import overflowdb.Node;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeDb;
@@ -65,19 +66,19 @@ public class NodeSerializer extends BookKeeper {
 
   private void packEdges(MessageBufferPacker packer, NodeDb node) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
-    int[] edgeOffsets = node.getEdgeOffsets();
 
-    packEdgesForOneDirection(packer, node, layoutInformation.allowedOutEdgeLabels(), edgeOffsets, layoutInformation::outEdgeToOffsetPosition);
-    packEdgesForOneDirection(packer, node, layoutInformation.allowedInEdgeLabels(), edgeOffsets, layoutInformation::inEdgeToOffsetPosition);
+    packEdgesForOneDirection(packer, node, node.getAdjacentNodes(), layoutInformation.allowedOutEdgeLabels(), layoutInformation::outEdgeToOffsetPosition);
+    packEdgesForOneDirection(packer, node, node.getAdjacentNodes(), layoutInformation.allowedInEdgeLabels(), layoutInformation::inEdgeToOffsetPosition);
   }
 
-  private void packEdgesForOneDirection(MessageBufferPacker packer, NodeDb node, String[] allowedEdgeLabels, int[] edgeOffsets, Function<String, Integer> edgeToOffsetPosition) throws IOException {
+  private void packEdgesForOneDirection(MessageBufferPacker packer, NodeDb node, AdjacentNodes adjacentNodes,
+                                        String[] allowedEdgeLabels, Function<String, Integer> edgeToOffsetPosition) throws IOException {
     // first prepare everything we want to write, so that we can prepend it with the length - helps during deserialization
     ArrayList<Object> edgeLabelAndOffsetPos = new ArrayList<>(allowedEdgeLabels.length * 2);
     int edgeTypeCount = 0;
     for (String edgeLabel : allowedEdgeLabels) {
       int offsetPos = edgeToOffsetPosition.apply(edgeLabel);
-      int count = edgeOffsets[offsetPos * 2 + 1];
+      int count = adjacentNodes.edgeOffsets.get(offsetPos * 2 + 1);
       if (count > 0) {
         edgeTypeCount++;
         edgeLabelAndOffsetPos.add(edgeLabel);
@@ -88,18 +89,18 @@ public class NodeSerializer extends BookKeeper {
     for (int i = 0; i < edgeLabelAndOffsetPos.size(); i += 2) {
       String edgeLabel = (String) edgeLabelAndOffsetPos.get(i);
       int offsetPos = (int) edgeLabelAndOffsetPos.get(i + 1);
-      packEdgesForOneLabel(packer, node, edgeLabel, offsetPos);
+      packEdgesForOneLabel(packer, node, adjacentNodes, edgeLabel, offsetPos);
     }
   }
 
-  private void packEdgesForOneLabel(MessageBufferPacker packer, NodeDb node, String edgeLabel, int offsetPos) throws IOException {
+  private void packEdgesForOneLabel(MessageBufferPacker packer, NodeDb node, AdjacentNodes adjacentNodes, String edgeLabel, int offsetPos) throws IOException {
     NodeLayoutInformation layoutInformation = node.layoutInformation();
-    Object[] adjacentNodesWithEdgeProperties = node.getAdjacentNodesWithEdgeProperties();
+    Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
     final Set<String> edgePropertyNames = layoutInformation.edgePropertyKeys(edgeLabel);
 
     // pointers into adjacentNodesWithEdgeProperties
-    int start = node.startIndex(offsetPos);
-    int blockLength = node.blockLength(offsetPos);
+    int start = node.startIndex(adjacentNodes, offsetPos);
+    int blockLength = node.blockLength(adjacentNodes, offsetPos);
     int strideSize = node.getStrideSize(edgeLabel);
 
     // first prepare all edges to get total count, then first write the count and then the edges
