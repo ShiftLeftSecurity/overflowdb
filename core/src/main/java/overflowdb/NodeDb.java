@@ -236,12 +236,12 @@ public abstract class NodeDb extends Node {
                             Edge edge,
                             int blockOffset,
                             String key) {
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
-    int propertyPosition = getEdgePropertyIndex(adjacentNodes, direction, edge.label(), key, blockOffset);
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
+    int propertyPosition = getEdgePropertyIndex(adjacentNodesTmp, direction, edge.label(), key, blockOffset);
     if (propertyPosition == -1) {
       return null;
     }
-    return (P) adjacentNodes.nodesWithEdgeProperties[propertyPosition];
+    return (P) adjacentNodesTmp.nodesWithEdgeProperties[propertyPosition];
   }
 
   public <V> void setEdgeProperty(Direction direction,
@@ -251,12 +251,12 @@ public abstract class NodeDb extends Node {
                                   int blockOffset) {
     try {
       writerMutex.lock();
-      AdjacentNodes adjacentNodes = this.adjacentNodes;
-      int propertyPosition = getEdgePropertyIndex(adjacentNodes, direction, edgeLabel, key, blockOffset);
+      AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
+      int propertyPosition = getEdgePropertyIndex(adjacentNodesTmp, direction, edgeLabel, key, blockOffset);
       if (propertyPosition == -1) {
         throw new RuntimeException("Edge " + edgeLabel + " does not support property `" + key + "`.");
       }
-      adjacentNodes.nodesWithEdgeProperties[propertyPosition] = value;
+      adjacentNodesTmp.nodesWithEdgeProperties[propertyPosition] = value;
       /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
       this.markAsDirty();
     } finally {
@@ -268,7 +268,7 @@ public abstract class NodeDb extends Node {
     setEdgeProperty(direction, edgeLabel, key, null, blockOffset);
   }
 
-  private int calcAdjacentNodeIndex(AdjacentNodes adjacentNodes,
+  private int calcAdjacentNodeIndex(AdjacentNodes adjacentNodesTmp,
                                     Direction direction,
                                     String edgeLabel,
                                     int blockOffset) {
@@ -277,19 +277,19 @@ public abstract class NodeDb extends Node {
       return -1;
     }
 
-    int start = startIndex(adjacentNodes, offsetPos);
+    int start = startIndex(adjacentNodesTmp, offsetPos);
     return start + blockOffset;
   }
 
   /**
    * Return -1 if there exists no edge property for the provided argument combination.
    */
-  private int getEdgePropertyIndex(AdjacentNodes adjacentNodes,
+  private int getEdgePropertyIndex(AdjacentNodes adjacentNodesTmp,
                                    Direction direction,
                                    String label,
                                    String key,
                                    int blockOffset) {
-    int adjacentNodeIndex = calcAdjacentNodeIndex(adjacentNodes, direction, label, blockOffset);
+    int adjacentNodeIndex = calcAdjacentNodeIndex(adjacentNodesTmp, direction, label, blockOffset);
     if (adjacentNodeIndex == -1) {
       return -1;
     }
@@ -434,18 +434,18 @@ public abstract class NodeDb extends Node {
 
   protected int outEdgeCount() {
     int count = 0;
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
     for (String label : layoutInformation().allowedOutEdgeLabels()) {
       int offsetPos = getPositionInEdgeOffsets(Direction.OUT, label);
       if (offsetPos != -1) {
-        int start = startIndex(adjacentNodes, offsetPos);
-        int length = blockLength(adjacentNodes, offsetPos);
+        int start = startIndex(adjacentNodesTmp, offsetPos);
+        int length = blockLength(adjacentNodesTmp, offsetPos);
         int strideSize = getStrideSize(label);
         int exclusiveEnd = start + length;
         for (int i = start;
-             i < adjacentNodes.nodesWithEdgeProperties.length && i < exclusiveEnd;
+             i < adjacentNodesTmp.nodesWithEdgeProperties.length && i < exclusiveEnd;
              i += strideSize) {
-          if (adjacentNodes.nodesWithEdgeProperties[i] != null) {
+          if (adjacentNodesTmp.nodesWithEdgeProperties[i] != null) {
             count++;
           }
         }
@@ -466,11 +466,11 @@ public abstract class NodeDb extends Node {
                                               String label,
                                               NodeRef otherNode,
                                               int blockOffset) {
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
     int offsetPos = getPositionInEdgeOffsets(direction, label);
-    int start = startIndex(adjacentNodes, offsetPos);
+    int start = startIndex(adjacentNodesTmp, offsetPos);
     int strideSize = getStrideSize(label);
-    Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
+    Object[] adjacentNodesWithEdgeProperties = adjacentNodesTmp.nodesWithEdgeProperties;
 
     int occurrenceCount = -1;
     for (int i = start; i <= start + blockOffset; i += strideSize) {
@@ -499,13 +499,13 @@ public abstract class NodeDb extends Node {
                                               String label,
                                               NodeRef adjacentNode,
                                               int occurrence) {
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
     int offsetPos = getPositionInEdgeOffsets(direction, label);
-    int start = startIndex(adjacentNodes, offsetPos);
-    int length = blockLength(adjacentNodes, offsetPos);
+    int start = startIndex(adjacentNodesTmp, offsetPos);
+    int length = blockLength(adjacentNodesTmp, offsetPos);
     int strideSize = getStrideSize(label);
 
-    Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
+    Object[] adjacentNodesWithEdgeProperties = adjacentNodesTmp.nodesWithEdgeProperties;
     int currentOccurrence = 0;
     int exclusiveEnd = start + length;
     for (int i = start; i < exclusiveEnd; i += strideSize) {
@@ -535,11 +535,11 @@ public abstract class NodeDb extends Node {
   protected final void removeEdge(Direction direction, String label, int blockOffset) {
     try {
       writerMutex.lock();
-      AdjacentNodes adjacentNodes = this.adjacentNodes;
+      AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
       int offsetPos = getPositionInEdgeOffsets(direction, label);
-      int start = startIndex(adjacentNodes, offsetPos) + blockOffset;
+      int start = startIndex(adjacentNodesTmp, offsetPos) + blockOffset;
       int strideSize = getStrideSize(label);
-      Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
+      Object[] adjacentNodesWithEdgeProperties = adjacentNodesTmp.nodesWithEdgeProperties;
 
       for (int i = start; i < start + strideSize; i++) {
         adjacentNodesWithEdgeProperties[i] = null;
@@ -569,15 +569,15 @@ public abstract class NodeDb extends Node {
   }
 
   private Iterator<Edge> createDummyEdgeIteratorForSingleLabel(
-      AdjacentNodes adjacentNodes, Direction direction, String label) {
+      AdjacentNodes adjacentNodesTmp, Direction direction, String label) {
     int offsetPos = getPositionInEdgeOffsets(direction, label);
     if (offsetPos != -1) {
-      int start = startIndex(adjacentNodes, offsetPos);
-      int length = blockLength(adjacentNodes, offsetPos);
+      int start = startIndex(adjacentNodesTmp, offsetPos);
+      int length = blockLength(adjacentNodesTmp, offsetPos);
       int strideSize = getStrideSize(label);
 
       return new DummyEdgeIterator(
-          adjacentNodes.nodesWithEdgeProperties, start, start + length, strideSize, direction, label, ref);
+          adjacentNodesTmp.nodesWithEdgeProperties, start, start + length, strideSize, direction, label, ref);
     } else {
       return Collections.emptyIterator();
     }
@@ -602,12 +602,12 @@ public abstract class NodeDb extends Node {
   /* Simplify hoisting of string lookups.
    * n.b. `final` so that the JIT compiler can inline it */
   public final <A extends Node> Iterator<A> createAdjacentNodeIteratorByOffSet(int offsetPos) {
-    AdjacentNodes adjacentNodes = this.adjacentNodes;
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
     if (offsetPos != -1) {
-      int start = startIndex(adjacentNodes, offsetPos);
-      int length = blockLength(adjacentNodes, offsetPos);
+      int start = startIndex(adjacentNodesTmp, offsetPos);
+      int length = blockLength(adjacentNodesTmp, offsetPos);
       int strideSize = layoutInformation().getEdgePropertyCountByOffsetPos(offsetPos) + 1;
-      return new ArrayOffsetIterator<>(adjacentNodes.nodesWithEdgeProperties, start, start + length, strideSize);
+      return new ArrayOffsetIterator<>(adjacentNodesTmp.nodesWithEdgeProperties, start, start + length, strideSize);
     } else {
       return Collections.emptyIterator();
     }
@@ -674,8 +674,8 @@ public abstract class NodeDb extends Node {
     }
   }
 
-  public int startIndex(AdjacentNodes adjacentNodes, int offsetPosition) {
-    return adjacentNodes.edgeOffsets.get(2 * offsetPosition);
+  public int startIndex(AdjacentNodes adjacentNodesTmp, int offsetPosition) {
+    return adjacentNodesTmp.edgeOffsets.get(2 * offsetPosition);
   }
 
   /**
@@ -709,8 +709,8 @@ public abstract class NodeDb extends Node {
    * Returns the length of an edge type block in the adjacentNodesWithEdgeProperties array.
    * Length means number of index positions.
    */
-  public final int blockLength(AdjacentNodes adjacentNodes, int offsetPosition) {
-    return adjacentNodes.edgeOffsets.get(2 * offsetPosition + 1);
+  public final int blockLength(AdjacentNodes adjacentNodesTmp, int offsetPosition) {
+    return adjacentNodesTmp.edgeOffsets.get(2 * offsetPosition + 1);
   }
 
   /**
