@@ -17,7 +17,12 @@ public class DummyEdgeIterator implements Iterator<Edge> {
   private final String label;
   private final NodeRef thisRef;
 
-  /** used for peeking */
+  /**
+   * Used for peeking forward, and also handle a benign race condition: the given `array` can be modified from the
+   * outside, e.g. if an adjacent node or edge is removed after this Iterator was created. That's ok, but we want to at
+   * least guarantee correct Iterator semantics, i.e. if `.hasNext` returned `true`, then `.next()` should never be null
+   * or throw an exception.
+   * */
   private Edge nextCached;
 
   public DummyEdgeIterator(Object[] array, int begin, int exclusiveEnd, int strideSize,
