@@ -17,6 +17,14 @@ public class DummyEdgeIterator implements Iterator<Edge> {
   private final String label;
   private final NodeRef thisRef;
 
+  /**
+   * Used for peeking forward, and also handle a benign race condition: the given `array` can be modified from the
+   * outside, e.g. if an adjacent node or edge is removed after this Iterator was created. That's ok, but we want to at
+   * least guarantee correct Iterator semantics, i.e. if `.hasNext` returned `true`, then `.next()` should never be null
+   * or throw an exception.
+   * */
+  private Edge nextCached;
+
   public DummyEdgeIterator(Object[] array, int begin, int exclusiveEnd, int strideSize,
                            Direction direction, String label, NodeRef thisRef) {
     this.array = array;
@@ -30,18 +38,30 @@ public class DummyEdgeIterator implements Iterator<Edge> {
   }
 
   @Override
-  public boolean hasNext() {
+  public final boolean hasNext() {
+    return peekNext() != null;
+  }
+
+  private Edge peekNext() {
+    if (nextCached != null)
+      return nextCached;
+
     /* there may be holes, e.g. if an edge was removed */
     while (current < exclusiveEnd && array[current] == null) {
       current += strideSize;
     }
-    return current < exclusiveEnd;
+
+    if (current < exclusiveEnd) {
+      nextCached = readNext();
+      current += strideSize;
+      return peekNext();
+    }
+
+    // we've reached the end
+    return null;
   }
 
-  @Override
-  public Edge next() {
-    if (!hasNext()) throw new NoSuchElementException();
-
+  private Edge readNext() {
     NodeRef otherRef = (NodeRef) array[current];
     Edge dummyEdge;
     if (direction == Direction.OUT) {
@@ -51,7 +71,17 @@ public class DummyEdgeIterator implements Iterator<Edge> {
       dummyEdge = thisRef.get().instantiateDummyEdge(label, otherRef, thisRef);
       dummyEdge.setInBlockOffset(current - begin);
     }
-    current += strideSize;
     return dummyEdge;
+  }
+
+  @Override
+  public Edge next() {
+    if (hasNext()) {
+      Edge ret = peekNext();
+      nextCached = null;
+      return ret;
+    } else {
+      throw new NoSuchElementException();
+    }
   }
 }
