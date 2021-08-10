@@ -85,7 +85,7 @@ public class AdjacentNodes {
       ((int[]) offsets)[pos] = val;
       return this;
     } else {
-      throw new RuntimeException();
+      throw new RuntimeException("corrupt state: offsets of type " + offsets.getClass);
     }
   }
 
