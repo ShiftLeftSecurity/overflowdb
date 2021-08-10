@@ -41,7 +41,7 @@ public class AdjacentNodes {
       return ((short[]) offsets)[pos];
     } else if (offsets instanceof int[]){
       return ((int[]) offsets)[pos];
-    } else throw new RuntimeException("corrupt state: offsets of type " + offsets.getClass);
+    } else throw new RuntimeException("corrupt state: offsets of type " + offsets.getClass().getName());
   }
 
   /** Attempts to update AdjacentNodes in-place and return this; otherwise, create a new AdjacentNodes and return that.
@@ -85,7 +85,7 @@ public class AdjacentNodes {
       ((int[]) offsets)[pos] = val;
       return this;
     } else {
-      throw new RuntimeException("corrupt state: offsets of type " + offsets.getClass);
+      throw new RuntimeException("corrupt state: offsets of type " + offsets.getClass().getName());
     }
   }
 
