@@ -44,12 +44,13 @@ public class AdjacentNodes {
     } else throw new RuntimeException();
   }
 
-  //returns null if the insertion was in-place; returns a new AdjacentNodes if we need to update
+  /** Attempts to update AdjacentNodes in-place and return this; otherwise, create a new AdjacentNodes and return that.
+   * */
   AdjacentNodes setOffset(int pos, int val){
     if(offsets instanceof byte[]) {
       if(val == (byte) val){
         ((byte[]) offsets)[pos] = (byte) val;
-        return null;
+        return this;
       } else if (val == (short) val){
         byte[] oldOffsets = (byte[]) offsets;
         short[] newOffsets = new short[oldOffsets.length];
@@ -70,7 +71,7 @@ public class AdjacentNodes {
     } else if (offsets instanceof short[]){
       if(val == (short) val){
         ((short[]) offsets)[pos] = (short) val;
-        return null;
+        return this;
       } else {
         short[] oldOffsets = (short[]) offsets;
         int[] newOffsets = new int[oldOffsets.length];
@@ -82,7 +83,7 @@ public class AdjacentNodes {
       }
     } else if (offsets instanceof int[]){
       ((int[]) offsets)[pos] = val;
-      return null;
+      return this;
     } else {
       throw new RuntimeException();
     }
