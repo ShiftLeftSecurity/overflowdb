@@ -2,6 +2,7 @@ package overflowdb;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class Node extends Element {
 
@@ -68,4 +69,14 @@ public abstract class Node extends Element {
 
   /* adjacent OUT/IN edges for given labels */
   public abstract Iterator<Edge> bothE(String... edgeLabels);
+
+  /*Allows fast initialization from detached node data*/
+  protected void _initializeFromDetached(DetachedNodeData data, Function<DetachedNodeData, Node> mapper){
+    throw new RuntimeException("Detached initialization is not supported by node type " + label() + " of class " + getClass().getName() );
+  }
+  /*Allows fast initialization from detached node data; available as static instead of instance method, because we need to keep the REPL clean*/
+  public static void initializeFromDetached(Node node, DetachedNodeData data, Function<DetachedNodeData, Node> refMapper){
+    if(data.hasData())
+      node._initializeFromDetached(data, refMapper);
+  }
 }

@@ -3,9 +3,9 @@ package overflowdb;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Lightweight (w.r.t. memory usage) reference to for an NodeDb, which is stored in the `node` member.
@@ -38,12 +38,9 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     this.id = id;
 
     // this new NodeRef may refer to an already existing node. if so: assign the underlying node
-    final Node maybeAlreadyExistent = graph.node(id);
+    final NodeRef<N> maybeAlreadyExistent = (NodeRef<N>) graph.node(id);
     if (maybeAlreadyExistent != null) {
-      final Optional<N> nodeOption = ((NodeRef) maybeAlreadyExistent).getOption();
-      if (nodeOption.isPresent()) {
-        this.node = nodeOption.get();
-      }
+        this.node = maybeAlreadyExistent.node;
     }
   }
 
@@ -294,6 +291,11 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     return this.get().bothE(edgeLabels);
   }
 
+  /*Allows fast initialization from detached node data*/
+  @Override
+  protected void _initializeFromDetached(DetachedNodeData data, Function<DetachedNodeData, Node> mapper){
+    get()._initializeFromDetached(data, mapper);
+  }
   // delegate methods end
 
   @Override
