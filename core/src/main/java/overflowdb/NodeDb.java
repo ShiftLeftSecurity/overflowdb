@@ -59,7 +59,10 @@ public abstract class NodeDb extends Node {
   }
 
   public abstract NodeLayoutInformation layoutInformation();
-
+  /**
+   * Gets the adjacent nodes with properties, in internal packed format.
+   * This function is really package-private, and only formally public to simplify internal organization of overflowdb.
+   * */
   public AdjacentNodes getAdjacentNodes() {
     return adjacentNodes;
   }
@@ -637,7 +640,7 @@ public abstract class NodeDb extends Node {
     int strideSize = getStrideSize(edgeLabel);
 
     Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
-    int edgeOffsetLengthB2 = adjacentNodes.getIntOffsetLen() >> 1;
+    int edgeOffsetLengthB2 = adjacentNodes.offsetLengths() >> 1;
 
     int insertAt = start + length;
     if (adjacentNodesWithEdgeProperties.length <= insertAt
@@ -715,7 +718,7 @@ public abstract class NodeDb extends Node {
     System.arraycopy(nodesWithEdgePropertiesOld, insertAt, nodesWithEdgePropertiesNew, insertAt + additionalEntriesCount, nodesWithEdgePropertiesOld.length - insertAt);
     AdjacentNodes res = new AdjacentNodes(nodesWithEdgePropertiesNew, adjacentNodesOld.offsets);
     // Increment all following start offsets by `additionalEntriesCount`.
-    int until = res.getIntOffsetLen();
+    int until = res.offsetLengths();
     for (int i = offsetPos + 1; 2 * i < until; i++) {
       AdjacentNodes updated = res.setOffset(2 * i, res.getOffset(2 * i) + additionalEntriesCount);
       if(updated != null){
@@ -741,7 +744,7 @@ public abstract class NodeDb extends Node {
   public synchronized long trim() {
     AdjacentNodes adjacentNodesOld = this.adjacentNodes;
     int newSize = 0;
-    int until = adjacentNodesOld.getIntOffsetLen();
+    int until = adjacentNodesOld.offsetLengths();
     for (int offsetPos = 0; 2 * offsetPos < until; offsetPos++) {
       int length = blockLength(adjacentNodesOld, offsetPos);
       newSize += length;
