@@ -111,6 +111,7 @@ public class BatchedUpdate {
         public abstract void onAfterInitNewNode(Node node);
         public abstract void onAfterAddNewEdge(Edge edge);
         public abstract void onBeforePropertyChange(Node node, String key);
+        public abstract void onAfterPropertyChange(Node node, String key, Object value);
         public abstract void onBeforeRemoveNode(Node node);
         public abstract void onBeforeRemoveEdge(Edge edge);
         public abstract void finish();
@@ -308,6 +309,8 @@ public class BatchedUpdate {
                 if(listener != null)
                     listener.onBeforePropertyChange(setProp.node, setProp.label);
                 setProp.node.setProperty(setProp.label, setProp.value);
+                if(listener != null)
+                    listener.onAfterPropertyChange(setProp.node, setProp.label, setProp.value);
                 drainDeferred();
             }
         }
