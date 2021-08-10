@@ -2,7 +2,7 @@ package overflowdb;
 
 public class DetachedNodeNoData implements DetachedNodeData {
     private final String label;
-    private Node ref;
+    private Object ref;
 
     public DetachedNodeNoData(String label) {
         this.label = label;
@@ -16,16 +16,16 @@ public class DetachedNodeNoData implements DetachedNodeData {
         return label;
     }
 
-    public Node getRef(){
+    public Object getRefOrId(){
         return ref;
     }
 
-    public void setRef(Node ref){
+    public void setRefOrId(Object ref){
         this.ref = ref;
     }
 
     @Override
-    public void setProperties(Object... properties) {
+    public void setProperty(String key, Object value) {
         throw new RuntimeException("No support for generic SetProperty!");
     }
 }

@@ -244,23 +244,27 @@ public class BatchedUpdate {
 
 
         Node mapDetached(DetachedNodeData detachedNode) {
-            Node storedNode = detachedNode.getRef();
-            if(storedNode == null){
-                if(keyPool == null)
-                    storedNode = graph.addNode(detachedNode.label());
-                else
-                    storedNode = graph.addNode(keyPool.next(), detachedNode.label());
-                detachedNode.setRef(storedNode);
+            Object linkedNode = detachedNode.getRefOrId();
+            if(linkedNode == null || linkedNode instanceof Long){
+                if(linkedNode == null) {
+                    if (keyPool == null) {
+                        linkedNode = graph.addNode(detachedNode.label());
+                    } else {
+                        linkedNode = graph.addNode(keyPool.next(), detachedNode.label());
+                    }
+                } else if (linkedNode instanceof Long) {
+                    linkedNode = graph.addNode(((Long) linkedNode).longValue(), detachedNode.label());
+                }
+                detachedNode.setRefOrId(linkedNode);
                 deferredInitializers.addLast(detachedNode);
-
             }
-            return storedNode;
+            return (Node) linkedNode;
         }
 
         void drainDeferred(){
             while(!deferredInitializers.isEmpty()){
                 DetachedNodeData detachedNode = deferredInitializers.removeFirst();
-                Node actualNode = detachedNode.getRef();
+                Node actualNode = (Node) detachedNode.getRefOrId();
                 Node.initializeFromDetached(actualNode, detachedNode, this::mapDetached);
                 nChanges += 1;
                 if(listener != null){
