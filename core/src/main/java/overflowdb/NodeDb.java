@@ -3,7 +3,6 @@ package overflowdb;
 import overflowdb.util.ArrayOffsetIterator;
 import overflowdb.util.DummyEdgeIterator;
 import overflowdb.util.MultiIterator;
-import overflowdb.util.PackedIntArray;
 import overflowdb.util.PropertyHelper;
 
 import java.util.ArrayList;
@@ -607,7 +606,7 @@ public abstract class NodeDb extends Node {
     else throw new UnsupportedOperationException(direction.toString());
   }
 
-  public int storeAdjacentNode(Direction direction,
+  public synchronized int storeAdjacentNode(Direction direction,
                                 String edgeLabel,
                                 NodeRef adjacentNode,
                                 Object... edgeKeyValues) {
@@ -626,7 +625,8 @@ public abstract class NodeDb extends Node {
     return blockOffset;
   }
 
-  private final synchronized int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
+  //implicitly synchronized -- caller already holds monitor
+  private final int storeAdjacentNode(Direction direction, String edgeLabel, NodeRef nodeRef) {
     int offsetPos = getPositionInEdgeOffsets(direction, edgeLabel);
     if (offsetPos == -1) {
       throw new RuntimeException(
@@ -637,7 +637,7 @@ public abstract class NodeDb extends Node {
     int strideSize = getStrideSize(edgeLabel);
 
     Object[] adjacentNodesWithEdgeProperties = adjacentNodes.nodesWithEdgeProperties;
-    int edgeOffsetLengthB2 = adjacentNodes.edgeOffsets.length() >> 1;
+    int edgeOffsetLengthB2 = adjacentNodes.getIntOffsetLen() >> 1;
 
     int insertAt = start + length;
     if (adjacentNodesWithEdgeProperties.length <= insertAt
@@ -649,14 +649,17 @@ public abstract class NodeDb extends Node {
 
     adjacentNodes.nodesWithEdgeProperties[insertAt] = nodeRef;
     // update edgeOffset length to include the newly inserted element
-    adjacentNodes.edgeOffsets.set(2 * offsetPos + 1, length + strideSize);
+    AdjacentNodes updated = adjacentNodes.setOffset(2 * offsetPos + 1, length + strideSize);
+    if(updated != null){
+      this.adjacentNodes = updated;
+    }
 
     int blockOffset = length;
     return blockOffset;
   }
 
   public int startIndex(AdjacentNodes adjacentNodesTmp, int offsetPosition) {
-    return adjacentNodesTmp.edgeOffsets.get(2 * offsetPosition);
+    return adjacentNodesTmp.getOffset(2 * offsetPosition);
   }
 
   /**
@@ -691,7 +694,7 @@ public abstract class NodeDb extends Node {
    * Length means number of index positions.
    */
   public final int blockLength(AdjacentNodes adjacentNodesTmp, int offsetPosition) {
-    return adjacentNodesTmp.edgeOffsets.get(2 * offsetPosition + 1);
+    return adjacentNodesTmp.getOffset(2 * offsetPosition + 1);
   }
 
   /**
@@ -710,13 +713,16 @@ public abstract class NodeDb extends Node {
     Object[] nodesWithEdgePropertiesNew = new Object[newSize];
     System.arraycopy(nodesWithEdgePropertiesOld, 0, nodesWithEdgePropertiesNew, 0, insertAt);
     System.arraycopy(nodesWithEdgePropertiesOld, insertAt, nodesWithEdgePropertiesNew, insertAt + additionalEntriesCount, nodesWithEdgePropertiesOld.length - insertAt);
-
-    PackedIntArray edgeOffsetsNew = adjacentNodesOld.edgeOffsets.clone();
+    AdjacentNodes res = new AdjacentNodes(nodesWithEdgePropertiesNew, adjacentNodesOld.offsets);
     // Increment all following start offsets by `additionalEntriesCount`.
-    for (int i = offsetPos + 1; 2 * i < edgeOffsetsNew.length(); i++) {
-      edgeOffsetsNew.set(2 * i, edgeOffsetsNew.get(2 * i) + additionalEntriesCount);
+    int until = res.getIntOffsetLen();
+    for (int i = offsetPos + 1; 2 * i < until; i++) {
+      AdjacentNodes updated = res.setOffset(2 * i, res.getOffset(2 * i) + additionalEntriesCount);
+      if(updated != null){
+        res = updated;
+      }
     }
-    return new AdjacentNodes(nodesWithEdgePropertiesNew, edgeOffsetsNew);
+    return res;
   }
 
   /**
@@ -735,23 +741,28 @@ public abstract class NodeDb extends Node {
   public synchronized long trim() {
     AdjacentNodes adjacentNodesOld = this.adjacentNodes;
     int newSize = 0;
-    for (int offsetPos = 0; 2 * offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++) {
+    int until = adjacentNodesOld.getIntOffsetLen();
+    for (int offsetPos = 0; 2 * offsetPos < until; offsetPos++) {
       int length = blockLength(adjacentNodesOld, offsetPos);
       newSize += length;
     }
     Object[] nodesWithEdgePropertiesNew = new Object[newSize];
-    PackedIntArray edgeOffsetsNew = adjacentNodesOld.edgeOffsets.clone();
+    AdjacentNodes res = new AdjacentNodes(nodesWithEdgePropertiesNew, new byte[until]);
 
     int off = 0;
-    for(int offsetPos = 0; 2*offsetPos < adjacentNodesOld.edgeOffsets.length(); offsetPos++){
+    for(int offsetPos = 0; 2*offsetPos < until; offsetPos++){
       int start = startIndex(adjacentNodesOld, offsetPos);
       int length = blockLength(adjacentNodesOld, offsetPos);
       System.arraycopy(adjacentNodesOld.nodesWithEdgeProperties, start, nodesWithEdgePropertiesNew, off, length);
-      edgeOffsetsNew.set(2 * offsetPos, off);
+      AdjacentNodes updated = res.setOffset(2 * offsetPos, off);
+      if(updated != null) res = updated;
+      updated = res.setOffset(2 * offsetPos+1, length);
+      if(updated != null) res = updated;
       off += length;
+
     }
     int oldSize = adjacentNodesOld.nodesWithEdgeProperties.length;
-    this.adjacentNodes = new AdjacentNodes(nodesWithEdgePropertiesNew, edgeOffsetsNew);
+    this.adjacentNodes = res;
 
     return (long) newSize + (((long) oldSize) << 32);
   }
