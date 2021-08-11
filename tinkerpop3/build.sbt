@@ -12,9 +12,3 @@ libraryDependencies ++= Seq(
 /* it's a java-only build */
 autoScalaLibrary := false
 crossPaths := false
-
-Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
-Test/compile/javacOptions ++= Seq("-g", "-target", "1.8")
-Test/fork := true
-scalacOptions ++= Seq("-deprecation", "-feature", "-target:jvm-1.8")
-javacOptions ++= Seq("-source", "1.8")
