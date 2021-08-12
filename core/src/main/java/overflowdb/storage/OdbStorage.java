@@ -1,5 +1,6 @@
 package overflowdb.storage;
 
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class OdbStorage implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final File mvstoreFile;
-  private final boolean doPersist;
+  private FileStore mvstoreFileStore;
   protected MVStore mvstore;
   private MVMap<Long, byte[]> nodesMVMap;
   private MVMap<String, String> metadataMVMap;
@@ -54,7 +55,6 @@ public class OdbStorage implements AutoCloseable {
 
   private OdbStorage(final Optional<File> mvstoreFileMaybe) {
     if (mvstoreFileMaybe.isPresent()) {
-      this.doPersist = true;
       mvstoreFile = mvstoreFileMaybe.get();
       if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
         verifyStorageVersion();
@@ -62,9 +62,14 @@ public class OdbStorage implements AutoCloseable {
       }
     } else {
       try {
-        this.doPersist = false;
         mvstoreFile = File.createTempFile("mvstore", ".bin");
-        mvstoreFile.deleteOnExit(); // `.close` will also delete it, this is just in case users forget to call it
+        if (!System.getProperty("os.name").toLowerCase().contains("win")) {
+          mvstoreFileStore = new FileStore();
+          mvstoreFileStore.open(mvstoreFile.getAbsolutePath(), false, null);
+          mvstoreFile.delete();
+        } else {
+          mvstoreFile.deleteOnExit();
+        }
       } catch (IOException e) {
         throw new RuntimeException("cannot create tmp file for mvstore", e);
       }
@@ -119,7 +124,6 @@ public class OdbStorage implements AutoCloseable {
     logger.debug("closing " + getClass().getSimpleName());
     flush();
     if (mvstore != null) mvstore.close();
-    if (!doPersist) mvstoreFile.delete();
   }
 
   public File getStorageFile() {
@@ -199,14 +203,18 @@ public class OdbStorage implements AutoCloseable {
   }
 
   private MVStore initializeMVStore() {
-    final MVStore store = new MVStore.Builder()
-        .fileName(mvstoreFile.getAbsolutePath())
+    MVStore.Builder builder = new MVStore.Builder()
         .autoCommitBufferSize(1024 * 8)
         .compress()
-        .autoCommitDisabled()
-        .open();
+        .autoCommitDisabled();
 
-    return store;
+    if (mvstoreFileStore != null) {
+      builder.fileStore(mvstoreFileStore);
+    } else {
+      builder.fileName(mvstoreFile.getAbsolutePath());
+    }
+
+    return builder.open();
   }
 
   private int initializeLibraryVersionsIdCurrentRun() {
@@ -227,7 +235,7 @@ public class OdbStorage implements AutoCloseable {
         .getMapNames()
         .stream()
         .filter(s -> s.startsWith(INDEX_PREFIX))
-        .collect(Collectors.toConcurrentMap(s -> removeIndexPrefix(s), s -> s));
+        .collect(Collectors.toConcurrentMap(this::removeIndexPrefix, s -> s));
   }
 
   public Set<String> getIndexNames() {

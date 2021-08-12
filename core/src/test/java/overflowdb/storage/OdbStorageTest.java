@@ -21,6 +21,7 @@ public class OdbStorageTest {
   @Test
   public void persistToFileIfStorageConfigured() throws IOException {
     final File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
+    storageFile.deleteOnExit();
     Config config = Config.withDefaults().withStorageLocation(storageFile.getAbsolutePath());
 
     // open empty graph, add one node, close graph
@@ -47,8 +48,6 @@ public class OdbStorageTest {
     try (Graph graph = GratefulDead.newGraph(config)) {
       assertEquals(0, graph.nodeCount());
     }
-
-    storageFile.delete(); //cleanup after test
   }
 
   @Test
