@@ -65,7 +65,12 @@ public class OdbStorage implements AutoCloseable {
         mvstoreFile = File.createTempFile("mvstore", ".bin");
         if (!System.getProperty("os.name").toLowerCase().contains("win")) {
           mvstoreFileStore = new FileStore();
-          mvstoreFileStore.open(mvstoreFile.getAbsolutePath(), false, null);
+          boolean readOnly = false;
+          char[] encryptionKey = null;
+          mvstoreFileStore.open(mvstoreFile.getAbsolutePath(), readOnly, encryptionKey);
+          /** Note: we're deleting the temporary storage file as early as possible on *nix systems, i.e. while it's still running
+            * This is so we don't fill up `/tmp` if the JVM gets killed.
+            **/
           mvstoreFile.delete();
         } else {
           mvstoreFile.deleteOnExit();
