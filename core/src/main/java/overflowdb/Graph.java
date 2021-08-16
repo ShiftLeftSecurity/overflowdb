@@ -10,7 +10,6 @@ import overflowdb.util.MultiIterator;
 import overflowdb.util.NodesList;
 import overflowdb.util.PropertyHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -109,19 +108,36 @@ public final class Graph implements AutoCloseable {
 
   ////////////// STRUCTURE API METHODS //////////////////
 
+  /**
+   * Add a node with given label and properties
+   * Will automatically assign an ID - this is the safest option to avoid ID clashes.
+   */
   public Node addNode(final String label, final Object... keyValues) {
-    return addNode(currentId.incrementAndGet(), label, keyValues);
+    return addNodeInternal(currentId.incrementAndGet(), label, keyValues);
   }
 
+  /**
+   * Add a node with given id, label and properties.
+   * Throws an {@link IllegalArgumentException} if a node with the given ID already exists
+   */
   public Node addNode(final long id, final String label, final Object... keyValues) {
+    if (nodes.contains(id)) {
+      throw new IllegalArgumentException(String.format("Node with id already exists: %s", id));
+    }
+
+    long currentIdBefore = currentId.get();
+    long currentIdAfter = Long.max(id, currentId.get());
+    if (!currentId.compareAndSet(currentIdBefore, currentIdAfter)) {
+      // concurrent thread must have changed `currentId` - try again
+      return addNode(id, label, keyValues);
+    }
+    return addNodeInternal(id, label, keyValues);
+  }
+
+  private Node addNodeInternal(long id, String label, Object... keyValues) {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
-    if (nodes.contains(id)) {
-      throw new IllegalArgumentException(String.format("Vertex with id already exists: %s", id));
-    }
-
-    currentId.set(Long.max(id, currentId.get()));
     final NodeRef node = createNode(id, label, keyValues);
     nodes.add(node);
     return node;
@@ -215,13 +231,13 @@ public final class Graph implements AutoCloseable {
     return nodes(ids);
   }
 
-  public final Node node(long id) {
+  public Node node(long id) {
     return nodes.nodeById(id);
   }
 
   /** Iterator over nodes with provided ids
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public final Iterator<Node> nodes(long... ids) {
+  public Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
       return Collections.emptyIterator();
     } else if (ids.length == 1) {
