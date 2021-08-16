@@ -87,14 +87,11 @@ public class NodesList {
     }
   }
 
-  public void remove(Node node) {
+  public synchronized void remove(Node node) {
     int index = nodeIndexByNodeId.remove(node.id());
     nodes[index] = null;
     emptySlots.set(index);
 
-    NodeRef ref = node instanceof NodeDb
-        ? ((NodeDb) node).ref
-        : (NodeRef) node;
     this.nodesByLabel = null;
 
     size--;
@@ -105,8 +102,7 @@ public class NodesList {
     return size;
   }
 
-
-  synchronized private void refreshNodesByLabel(){
+  private void refreshNodesByLabel(){
     TMap<String, ArrayList<Node>> tmp = new THashMap<>();
     for(Node node: nodes){
       if(node != null){
@@ -160,7 +156,7 @@ public class NodesList {
 
   /** trims down internal collections to just about the necessary size, in order to allow the remainder to be
    * garbage collected */
-  public void compact() {
+  synchronized void compact() {
     final ArrayList<Node> newNodes = new ArrayList<>(size);
     Iterator<Node> iter = iterator();
     while (iter.hasNext()) {
@@ -191,7 +187,7 @@ public class NodesList {
   /** Increases the capacity to ensure that it can hold at least the
    * number of elements specified by the minimum capacity argument.
    * @see java.util.ArrayList (copied from there) */
-  private void grow(int minCapacity) {
+  private synchronized void grow(int minCapacity) {
     // overflow-conscious code
     int oldCapacity = nodes.length;
     int newCapacity = oldCapacity + (oldCapacity >> 1);
