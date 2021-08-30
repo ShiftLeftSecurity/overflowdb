@@ -32,6 +32,7 @@ public final class Graph implements AutoCloseable {
   public final NodeSerializer nodeSerializer;
   protected final NodeDeserializer nodeDeserializer;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
+  protected final boolean overflowEnabled;
   protected final ReferenceManager referenceManager;
 
   /**
@@ -64,16 +65,21 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    storage = config.getStorageLocation().isPresent()
+    this.storage = config.getStorageLocation().isPresent()
         ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile())
         : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
-    referenceManager = new ReferenceManager(storage);
-    heapUsageMonitor = config.isOverflowEnabled() ?
-        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
-        Optional.empty();
+
+    this.overflowEnabled = config.isOverflowEnabled();
+    if (this.overflowEnabled) {
+      this.referenceManager = new ReferenceManager(storage);
+      this.heapUsageMonitor = Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), this.referenceManager));
+    } else {
+      this.referenceManager = null; // not using Optional only due to performance reasons - it's invoked *a lot*
+      this.heapUsageMonitor = Optional.empty();
+    }
   }
 
   private void initElementCollections(OdbStorage storage) {
@@ -150,9 +156,28 @@ public final class Graph implements AutoCloseable {
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final NodeDb node = factory.createNode(this, idValue);
     PropertyHelper.attachProperties(node, keyValues);
-    this.referenceManager.registerRef(node.ref);
+    if (this.referenceManager != null) {
+      this.referenceManager.registerRef(node.ref);
+    }
 
     return node.ref;
+  }
+
+  /**
+   * When we're running low on heap memory we'll serialize some elements to disk. To ensure we're not creating new ones
+   * faster than old ones are serialized away, we're applying some backpressure to those newly created ones.
+   */
+  public void applyBackpressureMaybe() {
+    if (referenceManager != null) {
+      referenceManager.applyBackpressureMaybe();
+    }
+  }
+
+  /* Register NodeRef at ReferenceManager, so it can be cleared on low memory */
+  public void registerNodeRef(NodeRef ref) {
+    if (referenceManager != null) {
+      referenceManager.registerRef(ref);
+    }
   }
 
   @Override
@@ -171,10 +196,14 @@ public final class Graph implements AutoCloseable {
       if (config.getStorageLocation().isPresent()) {
         /* persist to disk */
         indexManager.storeIndexes(storage);
-        referenceManager.clearAllReferences();
+        if (referenceManager != null) {
+          referenceManager.clearAllReferences();
+        }
       }
     } finally {
-      referenceManager.close();
+      if (referenceManager != null) {
+        referenceManager.close();
+      }
       storage.close();
     }
   }

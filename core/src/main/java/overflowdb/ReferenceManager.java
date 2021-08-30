@@ -39,13 +39,14 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     this.storage = storage;
   }
 
+  /* Register NodeRef, so it can be cleared on low memory */
   public void registerRef(NodeRef ref) {
     clearableRefs.add(ref);
   }
 
   /**
-   * when we're running low on heap memory we'll serialize some elements to disk. to ensure we're not creating new ones
-   * faster than old ones are serialized away, we're applying some backpressure in those situation
+   * When we're running low on heap memory we'll serialize some elements to disk. To ensure we're not creating new ones
+   * faster than old ones are serialized away, we're applying some backpressure to those newly created ones.
    */
   public void applyBackpressureMaybe() {
     synchronized (backPressureSyncObject) {

@@ -283,7 +283,6 @@ public class ElementTest {
       n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
 
       // round trip serialization, delete edge with longProperty=0;
-      graph.referenceManager.clearAllReferences();
       graph.node(n0.id()).outE().forEachRemaining(edge -> {
         if (0L == (long) edge.property(TestEdge.LONG_PROPERTY)) {
           edge.remove();
