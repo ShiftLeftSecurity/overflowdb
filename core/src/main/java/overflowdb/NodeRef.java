@@ -55,8 +55,8 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     return node == null;
   }
 
-  /* only called by @ReferenceManager */
-  protected void clear() {
+  /* only supposed to be called by @NodesWriter */
+  public void clear() {
     this.node = null;
   }
 

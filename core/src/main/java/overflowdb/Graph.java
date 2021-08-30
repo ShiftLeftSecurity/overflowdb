@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.NodeSerializer;
+import overflowdb.storage.NodesWriter;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
 import overflowdb.util.MultiIterator;
@@ -34,6 +35,7 @@ public final class Graph implements AutoCloseable {
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final boolean overflowEnabled;
   protected final ReferenceManager referenceManager;
+  protected final NodesWriter nodesWriter;
 
   /**
    * @param convertPropertyForPersistence applied to all element property values by @{@link NodeSerializer} prior
@@ -70,11 +72,12 @@ public final class Graph implements AutoCloseable {
         : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
+    this.nodesWriter = new NodesWriter(nodeSerializer, storage);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
 
     this.overflowEnabled = config.isOverflowEnabled();
     if (this.overflowEnabled) {
-      this.referenceManager = new ReferenceManager(storage);
+      this.referenceManager = new ReferenceManager(storage, nodesWriter);
       this.heapUsageMonitor = Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), this.referenceManager));
     } else {
       this.referenceManager = null; // not using Optional only due to performance reasons - it's invoked *a lot*
@@ -194,10 +197,14 @@ public final class Graph implements AutoCloseable {
     try {
       heapUsageMonitor.ifPresent(monitor -> monitor.close());
       if (config.getStorageLocation().isPresent()) {
-        /* persist to disk */
+
+        /* persist to disk: if overflow is enabled, ReferenceManager takes care of that
+        * otherwise: persist all nodes here */
         indexManager.storeIndexes(storage);
         if (referenceManager != null) {
           referenceManager.clearAllReferences();
+        } else {
+          // TODO write all to disk - just like in referencemanager - ideally factor out some logic
         }
       }
     } finally {

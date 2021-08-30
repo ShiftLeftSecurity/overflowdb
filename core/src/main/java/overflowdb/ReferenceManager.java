@@ -2,6 +2,7 @@ package overflowdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import overflowdb.storage.NodesWriter;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.NamedThreadFactory;
 
@@ -26,17 +27,18 @@ import java.util.stream.Stream;
 public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNotificationListener {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  public final int releaseCount = 100000; //TODO make configurable
+  public final int releaseCount = 100000;
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
   private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
   private final OdbStorage storage;
-
+  private final NodesWriter nodesWriter;
   private final List<NodeRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
 
-  public ReferenceManager(OdbStorage storage) {
+  public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter) {
     this.storage = storage;
+    this.nodesWriter = nodesWriter;
   }
 
   /* Register NodeRef, so it can be cleared on low memory */
@@ -128,40 +130,6 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     }
   }
 
-  private void clearReferences(final List<NodeRef> refsToClear) {
-    serializeReferences(refsToClear.parallelStream().filter(NodeRef::isSet))
-        .sequential()
-        .forEach(serializedNode -> {
-          serializedNode.ref.persist(serializedNode.data);
-          serializedNode.ref.clear();
-          totalReleaseCount.incrementAndGet();
-        });
-  }
-
-  private static class SerializedNode {
-    public final NodeRef ref;
-    public final byte[] data;
-
-    public SerializedNode(NodeRef ref, byte[] data) {
-      this.ref = ref;
-      this.data = data;
-    }
-  }
-
-  private Stream<SerializedNode> serializeReferences(Stream<NodeRef> refs) {
-    return refs
-        .map(ReferenceManager::serializeReference)
-        .filter(Objects::nonNull);
-  }
-
-  private static SerializedNode serializeReference(NodeRef ref) {
-    final byte[] data = ref.serializeWhenDirty();
-    if (data != null)
-      return new SerializedNode(ref, data);
-    else
-      return null;
-  }
-
   /**
    * writes all references to disk overflow, blocks until complete.
    * useful when saving the graph
@@ -187,6 +155,42 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       }
     }
     logger.info("cleared all clearable references");
+  }
+
+  /** persists and clears given references */
+  private void clearReferences(final List<NodeRef> refsToClear) {
+    AtomicInteger releaseCount = new AtomicInteger(0);
+    serializeReferences(refsToClear.parallelStream().filter(NodeRef::isSet))
+            .sequential()
+            .forEach(serializedNode -> {
+              serializedNode.ref.persist(serializedNode.data);
+              serializedNode.ref.clear();
+              releaseCount.incrementAndGet();
+            });
+  }
+
+  private static class SerializedNode {
+    public final NodeRef ref;
+    public final byte[] data;
+
+    public SerializedNode(NodeRef ref, byte[] data) {
+      this.ref = ref;
+      this.data = data;
+    }
+  }
+
+  private Stream<SerializedNode> serializeReferences(Stream<NodeRef> refs) {
+    return refs
+            .map(ReferenceManager::serializeReference)
+            .filter(Objects::nonNull);
+  }
+
+  private static SerializedNode serializeReference(NodeRef ref) {
+    final byte[] data = ref.serializeWhenDirty();
+    if (data != null)
+      return new SerializedNode(ref, data);
+    else
+      return null;
   }
 
   @Override
