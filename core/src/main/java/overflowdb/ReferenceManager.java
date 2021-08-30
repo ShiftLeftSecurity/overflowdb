@@ -34,7 +34,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   private final Object backPressureSyncObject = new Object();
   private final OdbStorage storage;
   private final NodesWriter nodesWriter;
-  private final List<NodeRef> clearableRefs = Collections.synchronizedList(new LinkedList<>());
+  private final List<NodeRef> clearableRefs = Collections.synchronizedList(new ArrayList<>());
 
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter) {
     this.storage = storage;
@@ -135,62 +135,27 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    * useful when saving the graph
    */
   public void clearAllReferences() {
-    int initialRefCount = clearableRefs.size();
-    int clearedCount = 0;
-    while (!clearableRefs.isEmpty()) {
-      try {
-        final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
-        if (!refsToClear.isEmpty()) {
-          int clearCountCurr = refsToClear.size();
-          safelyClearReferences(refsToClear);
-          clearedCount += clearCountCurr;
-        }
-
-        if (logger.isInfoEnabled()) {
-          float progressPercent = 100f * clearedCount / initialRefCount;
-          logger.info(String.format("progress of clearing references: %.2f%s", Float.min(100f, progressPercent), "%"));
-        }
-      } catch (Exception e) {
-        throw new RuntimeException("error while clearing references to disk", e);
-      }
-    }
+//    int initialRefCount = clearableRefs.size();
+//    int clearedCount = 0;
+//    while (!clearableRefs.isEmpty()) {
+//      try {
+//        final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
+//        if (!refsToClear.isEmpty()) {
+//          int clearCountCurr = refsToClear.size();
+//          safelyClearReferences(refsToClear);
+//          clearedCount += clearCountCurr;
+//        }
+//
+//        if (logger.isInfoEnabled()) {
+//          float progressPercent = 100f * clearedCount / initialRefCount;
+//          logger.info(String.format("progress of clearing references: %.2f%s", Float.min(100f, progressPercent), "%"));
+//        }
+//      } catch (Exception e) {
+//        throw new RuntimeException("error while clearing references to disk", e);
+//      }
+//    }
+    nodesWriter.writeAndClearBatched((ArrayList<Node>) clearableRefs);
     logger.info("cleared all clearable references");
-  }
-
-  /** persists and clears given references */
-  private void clearReferences(final List<NodeRef> refsToClear) {
-    AtomicInteger releaseCount = new AtomicInteger(0);
-    serializeReferences(refsToClear.parallelStream().filter(NodeRef::isSet))
-            .sequential()
-            .forEach(serializedNode -> {
-              serializedNode.ref.persist(serializedNode.data);
-              serializedNode.ref.clear();
-              releaseCount.incrementAndGet();
-            });
-  }
-
-  private static class SerializedNode {
-    public final NodeRef ref;
-    public final byte[] data;
-
-    public SerializedNode(NodeRef ref, byte[] data) {
-      this.ref = ref;
-      this.data = data;
-    }
-  }
-
-  private Stream<SerializedNode> serializeReferences(Stream<NodeRef> refs) {
-    return refs
-            .map(ReferenceManager::serializeReference)
-            .filter(Objects::nonNull);
-  }
-
-  private static SerializedNode serializeReference(NodeRef ref) {
-    final byte[] data = ref.serializeWhenDirty();
-    if (data != null)
-      return new SerializedNode(ref, data);
-    else
-      return null;
   }
 
   @Override

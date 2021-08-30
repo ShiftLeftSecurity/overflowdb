@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NodesWriter {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final boolean isLogInfoEnabled = logger.isInfoEnabled();
-  public final int batchSize = 100000;
   private final NodeSerializer nodeSerializer;
   private final OdbStorage storage;
 
