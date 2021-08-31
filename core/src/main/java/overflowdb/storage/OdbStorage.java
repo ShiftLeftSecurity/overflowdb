@@ -165,11 +165,10 @@ public class OdbStorage implements AutoCloseable {
     if (stringToIntReverseMappings == null) {
       int mappingsCount = stringToIntMappings.size();
       stringToIntReverseMappings = new ArrayList<>(mappingsCount);
-      // initialize list with correct size - we want to use it as an reverse index, and ArrayList.ensureCapacity doesn't actually grow the list...
-      for (int i = 0; i <= mappingsCount; i++) {
-        stringToIntReverseMappings.add(null);
-      }
-      stringToIntMappings.forEach((string, id) -> stringToIntReverseMappings.set(id, string));
+      stringToIntMappings.forEach((string, id) -> {
+        ensureCapacity(stringToIntReverseMappings, id + 1);
+        stringToIntReverseMappings.set(id, string);
+      });
     }
 
     return stringToIntMappings;
@@ -185,12 +184,21 @@ public class OdbStorage implements AutoCloseable {
   }
 
   private int createStringToIntMapping(String s) {
-    int index = stringToIntMappingsMaxId.incrementAndGet();
+    final int index = stringToIntMappingsMaxId.incrementAndGet();
     getStringToIntMappings().put(s, index);
 
-    stringToIntReverseMappings.add(null); // ensure there's enough space
+    ensureCapacity(stringToIntReverseMappings, index + 1);
     stringToIntReverseMappings.set(index, s);
     return index;
+  }
+
+  /**
+   * initialize list with correct size - we want to use it as an reverse index,
+   * and ArrayList.ensureCapacity doesn't actually grow the list... */
+  private void ensureCapacity(ArrayList array, int requiredMinSize) {
+    while (array.size() < requiredMinSize) {
+      array.add(null);
+    }
   }
 
   public String reverseLookupStringToIntMapping(int stringId) {

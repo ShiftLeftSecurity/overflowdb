@@ -204,7 +204,7 @@ public final class Graph implements AutoCloseable {
         if (referenceManager != null) {
           referenceManager.clearAllReferences();
         } else {
-          // TODO write all to disk - just like in referencemanager - ideally factor out some logic
+          nodes.persistAll(nodesWriter);
         }
       }
     } finally {

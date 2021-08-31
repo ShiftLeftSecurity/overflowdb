@@ -7,8 +7,8 @@ import overflowdb.NodeDb;
 import overflowdb.NodeRef;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Spliterator;
+import java.util.stream.StreamSupport;
 
 /**
  * Persists collections of nodes in bulk to disk. Used either by ReferenceManager (if overflow to disk is enabled),
@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class NodesWriter {
   private final Logger logger = LoggerFactory.getLogger(getClass());
   private final boolean isLogInfoEnabled = logger.isInfoEnabled();
+  private static final int LogAfterXSerializedNodes = 100_000;
   private final NodeSerializer nodeSerializer;
   private final OdbStorage storage;
 
@@ -27,12 +28,11 @@ public class NodesWriter {
 
   /**
    * writes all references to storage, blocks until complete.
-   *
-   * @return number of persisted nodes
    */
-  public int writeAndClearBatched(ArrayList<Node> nodes) {
-    AtomicInteger count = new AtomicInteger(0);
-    nodes.parallelStream().forEach(node -> {
+  public void writeAndClearBatched(Spliterator<? extends Node> nodes, int estimatedTotalCount) {
+    CountEstimates countEstimates = new CountEstimates();
+
+    StreamSupport.stream(nodes, false).forEach(node -> {
       NodeDb nodeDb = null;
       NodeRef ref = null;
       if (node instanceof NodeDb) {
@@ -43,7 +43,7 @@ public class NodesWriter {
         if (ref.isSet()) nodeDb = ref.get();
       }
 
-      if (nodeDb.isDirty()) {
+      if (nodeDb != null && nodeDb.isDirty()) {
         try {
           byte[] bytes = nodeSerializer.serialize(nodeDb);
           storage.persist(ref.id(), bytes);
@@ -53,15 +53,26 @@ public class NodesWriter {
         }
       }
 
-      int currCount = count.incrementAndGet();
-      // log status every now and then (once in 2^16 times, i.e. once in 131072 times)
-      if (isLogInfoEnabled && currCount >> 17 == 0) {
-        float progressPercent = 100f * currCount / nodes.size();
-        logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
+      if (isLogInfoEnabled) {
+        countEstimates.countEstimate++;
+        countEstimates.nodesToSerializeUntilLogging--;
+        if (countEstimates.nodesToSerializeUntilLogging == 0) {
+          float progressPercent = 100f * countEstimates.countEstimate / estimatedTotalCount;
+          countEstimates.nodesToSerializeUntilLogging = LogAfterXSerializedNodes;
+          logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
+        }
       }
     });
+  }
 
-    return count.get();
+  /**
+   * Counts aren't atomic or synchronized, but worst case we'll miss or duplicate a log.info message,
+   * which is not a big problem :tm:
+   * They're only wrapped in a separate object to trick the compiler into thinking that these are 'final or effectively final'
+   */
+  private static class CountEstimates {
+    int countEstimate = 0;
+    int nodesToSerializeUntilLogging = LogAfterXSerializedNodes;
   }
 
 }

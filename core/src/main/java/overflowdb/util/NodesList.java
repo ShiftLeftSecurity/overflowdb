@@ -5,14 +5,9 @@ import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import overflowdb.Node;
+import overflowdb.storage.NodesWriter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 public class NodesList {
   private Node[] nodes;
@@ -218,6 +213,10 @@ public class NodesList {
       return nodesByLabel.get(label).size();
     else
       return 0;
+  }
+
+  public synchronized void persistAll(NodesWriter nodesWriter) {
+    nodesWriter.writeAndClearBatched(Arrays.spliterator(nodes), nodes.length);
   }
 
   public static class NodesIterator implements Iterator<Node> {

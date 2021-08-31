@@ -116,7 +116,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       synchronized (backPressureSyncObject) {
         clearingProcessCount += 1;
       }
-      clearReferences(refsToClear);
+      nodesWriter.writeAndClearBatched(refsToClear.spliterator(), refsToClear.size());
       storage.flush();
     } catch (Exception e) {
       logger.error("error while trying to clear references", e);
@@ -135,26 +135,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    * useful when saving the graph
    */
   public void clearAllReferences() {
-//    int initialRefCount = clearableRefs.size();
-//    int clearedCount = 0;
-//    while (!clearableRefs.isEmpty()) {
-//      try {
-//        final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
-//        if (!refsToClear.isEmpty()) {
-//          int clearCountCurr = refsToClear.size();
-//          safelyClearReferences(refsToClear);
-//          clearedCount += clearCountCurr;
-//        }
-//
-//        if (logger.isInfoEnabled()) {
-//          float progressPercent = 100f * clearedCount / initialRefCount;
-//          logger.info(String.format("progress of clearing references: %.2f%s", Float.min(100f, progressPercent), "%"));
-//        }
-//      } catch (Exception e) {
-//        throw new RuntimeException("error while clearing references to disk", e);
-//      }
-//    }
-    nodesWriter.writeAndClearBatched((ArrayList<Node>) clearableRefs);
+    nodesWriter.writeAndClearBatched(clearableRefs.spliterator(), clearableRefs.size());
     logger.info("cleared all clearable references");
   }
 
