@@ -47,7 +47,7 @@ public class NodesWriter {
         try {
           byte[] bytes = nodeSerializer.serialize(nodeDb);
           storage.persist(ref.id(), bytes);
-          ref.clear();
+          NodeRef.clear(ref);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
