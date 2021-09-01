@@ -7,7 +7,9 @@ import overflowdb.NodeDb;
 import overflowdb.NodeRef;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
 /**
@@ -32,12 +34,22 @@ public class NodesWriter {
     if (estimatedTotalCount > 0)
       logger.info(String.format("START: serializing and persisting %d nodes", estimatedTotalCount));
 
+    AtomicInteger count = new AtomicInteger(0);
+
     StreamSupport.stream(nodes, true)
         .map(this::serializeIfDirty)
         .sequential()
         .forEach(serializedNode -> {
           if (serializedNode != null) {
             storage.persist(serializedNode.id, serializedNode.data);
+
+            /** counting only for printing statistics - this is rafher slow, but since persisting to disk is much slower
+             * and also disk-bound, it doesn't really matter... */
+            int currCount = count.incrementAndGet();
+            if (currCount % 100_000 == 0) {
+               float progressPercent = 100f * currCount / estimatedTotalCount;
+               logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
+            }
           }
         });
 
@@ -45,7 +57,31 @@ public class NodesWriter {
       logger.info(String.format("END: serializing and persisting %d nodes", estimatedTotalCount));
   }
 
+  public static void main(String[] args) {
+    Arrays.asList(1, 2, 3, 4, 5, 6).parallelStream().map(i -> {
+      System.out.println("XXX" + i);
+//      try {
+//        Thread.sleep(100);
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+      return i;}
+    )
+//        .sequential()
+        .forEach(i -> {
+      System.out.println("YYY" + i);
+//      try {
+//        Thread.sleep(100);
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+    });
+//      i -> System.out.println("XXX" + i); return i;}
+
+  }
+
   private SerializedNode serializeIfDirty(Node node) {
+    System.out.println("NodesWriter.serializeIfDirty");
     NodeDb nodeDb = null;
     NodeRef ref = null;
     if (node instanceof NodeDb) {
