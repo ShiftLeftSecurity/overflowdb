@@ -52,7 +52,7 @@ public abstract class NodeDb extends Node {
 
     ref.setNode(this);
     if (ref.graph != null) {
-      ref.graph.referenceManager.applyBackpressureMaybe();
+      ref.graph.applyBackpressureMaybe();
     }
 
     adjacentNodes = new AdjacentNodes(layoutInformation().numberOfDifferentAdjacentTypes());
