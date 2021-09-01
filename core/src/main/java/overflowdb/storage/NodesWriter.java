@@ -27,32 +27,47 @@ public class NodesWriter {
   }
 
   /**
-   * writes all references to storage, blocks until complete.
+   * Writes all references to storage, blocks until complete.
+   * Serialization happens in parallel, however writing to storage happens sequentially, to avoid lock contention in mvstore.
    */
   public void writeAndClearBatched(Spliterator<? extends Node> nodes, int estimatedTotalCount) {
-    CountEstimates countEstimates = new CountEstimates();
+    // TODO
+//    CountEstimates countEstimates = new CountEstimates();
 
-    StreamSupport.stream(nodes, false).forEach(node -> {
-      NodeDb nodeDb = null;
-      NodeRef ref = null;
-      if (node instanceof NodeDb) {
-        nodeDb = (NodeDb) node;
-        ref = nodeDb.ref;
-      } else if (node instanceof NodeRef) {
-        ref = (NodeRef) node;
-        if (ref.isSet()) nodeDb = ref.get();
+    StreamSupport.stream(nodes, true)
+        .map(this::serializeIfDirty)
+        .sequential()
+        .forEach(serializedNode -> {
+          if (serializedNode != null) {
+            storage.persist(serializedNode.id, serializedNode.data);
+          }
+        });
+  }
+
+  private SerializedNode serializeIfDirty(Node node) {
+    NodeDb nodeDb = null;
+    NodeRef ref = null;
+    if (node instanceof NodeDb) {
+      nodeDb = (NodeDb) node;
+      ref = nodeDb.ref;
+    } else if (node instanceof NodeRef) {
+      ref = (NodeRef) node;
+      if (ref.isSet()) nodeDb = ref.get();
+    }
+
+    if (nodeDb != null && nodeDb.isDirty()) {
+      try {
+        byte[] data = nodeSerializer.serialize(nodeDb);
+        NodeRef.clear(ref);
+        return new SerializedNode(ref.id(), data);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
+    }
+    return null;
+  }
 
-      if (nodeDb != null && nodeDb.isDirty()) {
-        try {
-          byte[] bytes = nodeSerializer.serialize(nodeDb);
-          storage.persist(ref.id(), bytes);
-          NodeRef.clear(ref);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
+  /*
       if (isLogInfoEnabled) {
         countEstimates.countEstimate++;
         countEstimates.nodesToSerializeUntilLogging--;
@@ -62,8 +77,7 @@ public class NodesWriter {
           logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
         }
       }
-    });
-  }
+   */
 
   /**
    * Counts aren't atomic or synchronized, but worst case we'll miss or duplicate a log.info message,
@@ -74,5 +88,16 @@ public class NodesWriter {
     int countEstimate = 0;
     int nodesToSerializeUntilLogging = LogAfterXSerializedNodes;
   }
+
+  private static class SerializedNode {
+    private final long id;
+    private final byte[] data;
+
+    private SerializedNode(long id, byte[] data) {
+      this.id = id;
+      this.data = data;
+    }
+  }
+
 
 }
