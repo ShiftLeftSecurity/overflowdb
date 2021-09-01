@@ -16,8 +16,6 @@ import java.util.stream.StreamSupport;
  */
 public class NodesWriter {
   private final Logger logger = LoggerFactory.getLogger(getClass());
-  private final boolean isLogInfoEnabled = logger.isInfoEnabled();
-  private static final int LogAfterXSerializedNodes = 100_000;
   private final NodeSerializer nodeSerializer;
   private final OdbStorage storage;
 
@@ -31,8 +29,8 @@ public class NodesWriter {
    * Serialization happens in parallel, however writing to storage happens sequentially, to avoid lock contention in mvstore.
    */
   public void writeAndClearBatched(Spliterator<? extends Node> nodes, int estimatedTotalCount) {
-    // TODO
-//    CountEstimates countEstimates = new CountEstimates();
+    if (estimatedTotalCount > 0)
+      logger.info(String.format("START: serializing and persisting %d nodes", estimatedTotalCount));
 
     StreamSupport.stream(nodes, true)
         .map(this::serializeIfDirty)
@@ -42,6 +40,9 @@ public class NodesWriter {
             storage.persist(serializedNode.id, serializedNode.data);
           }
         });
+
+    if (estimatedTotalCount > 0)
+      logger.info(String.format("END: serializing and persisting %d nodes", estimatedTotalCount));
   }
 
   private SerializedNode serializeIfDirty(Node node) {
@@ -67,28 +68,6 @@ public class NodesWriter {
     return null;
   }
 
-  /*
-      if (isLogInfoEnabled) {
-        countEstimates.countEstimate++;
-        countEstimates.nodesToSerializeUntilLogging--;
-        if (countEstimates.nodesToSerializeUntilLogging == 0) {
-          float progressPercent = 100f * countEstimates.countEstimate / estimatedTotalCount;
-          countEstimates.nodesToSerializeUntilLogging = LogAfterXSerializedNodes;
-          logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
-        }
-      }
-   */
-
-  /**
-   * Counts aren't atomic or synchronized, but worst case we'll miss or duplicate a log.info message,
-   * which is not a big problem :tm:
-   * They're only wrapped in a separate object to trick the compiler into thinking that these are 'final or effectively final'
-   */
-  private static class CountEstimates {
-    int countEstimate = 0;
-    int nodesToSerializeUntilLogging = LogAfterXSerializedNodes;
-  }
-
   private static class SerializedNode {
     private final long id;
     private final byte[] data;
@@ -98,6 +77,5 @@ public class NodesWriter {
       this.data = data;
     }
   }
-
 
 }
