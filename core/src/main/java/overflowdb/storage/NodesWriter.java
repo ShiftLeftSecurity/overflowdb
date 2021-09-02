@@ -56,32 +56,7 @@ public class NodesWriter {
     if (estimatedTotalCount > 0)
       logger.info(String.format("END: serializing and persisting %d nodes", estimatedTotalCount));
   }
-
-  public static void main(String[] args) {
-    Arrays.asList(1, 2, 3, 4, 5, 6).parallelStream().map(i -> {
-      System.out.println("XXX" + i);
-//      try {
-//        Thread.sleep(100);
-//      } catch (InterruptedException e) {
-//        e.printStackTrace();
-//      }
-      return i;}
-    )
-//        .sequential()
-        .forEach(i -> {
-      System.out.println("YYY" + i);
-//      try {
-//        Thread.sleep(100);
-//      } catch (InterruptedException e) {
-//        e.printStackTrace();
-//      }
-    });
-//      i -> System.out.println("XXX" + i); return i;}
-
-  }
-
   private SerializedNode serializeIfDirty(Node node) {
-    System.out.println("NodesWriter.serializeIfDirty");
     NodeDb nodeDb = null;
     NodeRef ref = null;
     if (node instanceof NodeDb) {
