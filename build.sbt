@@ -12,8 +12,7 @@ lazy val traversal = project.in(file("traversal"))
                        .dependsOn(tinkerpop3 % "test->test") // TODO drop this dependency - currently necessary for GratefulDeadTest which uses graphml loading
 
 ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature", "-target:jvm-1.8")
-ThisBuild/javacOptions ++= Seq("-source", "1.8")
-ThisBuild/Test/compile/javacOptions ++= Seq("-g", "-target", "1.8")
+ThisBuild/javacOptions ++= Seq("-g")
 ThisBuild/Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
 ThisBuild/Test/fork := true
 
