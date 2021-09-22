@@ -32,7 +32,7 @@ public class NodesWriter {
    */
   public void writeAndClearBatched(Spliterator<? extends Node> nodes, int estimatedTotalCount) {
     if (estimatedTotalCount > 0)
-      logger.info(String.format("START: serializing and persisting %d nodes", estimatedTotalCount));
+      logger.info(String.format("serializing and persisting %d nodes (this may take a while)", estimatedTotalCount));
 
     AtomicInteger count = new AtomicInteger(0);
 
@@ -48,13 +48,13 @@ public class NodesWriter {
             int currCount = count.incrementAndGet();
             if (currCount % 100_000 == 0) {
                float progressPercent = 100f * currCount / estimatedTotalCount;
-               logger.info(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
+               logger.debug(String.format("progress of writing nodes to storage: %.2f%s", Float.min(100f, progressPercent), "%"));
             }
           }
         });
 
     if (estimatedTotalCount > 0)
-      logger.info(String.format("END: serializing and persisting %d nodes", estimatedTotalCount));
+      logger.info(String.format("finished serializing and persisting %d nodes", estimatedTotalCount));
   }
   private SerializedNode serializeIfDirty(Node node) {
     NodeDb nodeDb = null;
