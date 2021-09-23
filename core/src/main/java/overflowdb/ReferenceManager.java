@@ -136,7 +136,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    */
   public void clearAllReferences() {
     nodesWriter.writeAndClearBatched(clearableRefs.spliterator(), clearableRefs.size());
-    logger.info("cleared all clearable references");
+    logger.debug("cleared all clearable references");
   }
 
   @Override
