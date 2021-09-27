@@ -88,8 +88,7 @@ public final class Graph implements AutoCloseable {
   private void initElementCollections(OdbStorage storage) {
     long start = System.currentTimeMillis();
     final Set<Map.Entry<Long, byte[]>> serializedNodes = storage.allNodes();
-    if (logger.isInfoEnabled())
-      logger.info(String.format("initializing %d nodes from existing storage", serializedNodes.size()));
+    logger.info(String.format("initializing %d nodes from existing storage", serializedNodes.size()));
     int importCount = 0;
     long maxId = currentId.get();
 
@@ -112,8 +111,7 @@ public final class Graph implements AutoCloseable {
     currentId.set(maxId + 1);
     indexManager.initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
-    if (logger.isDebugEnabled())
-      logger.debug(String.format("initialized %s from existing storage in %sms", this, elapsedMillis));
+    logger.debug(String.format("initialized %s from existing storage in %sms", this, elapsedMillis));
   }
 
 
