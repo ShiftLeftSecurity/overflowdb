@@ -188,7 +188,7 @@ public class GraphSaveRestoreTest {
 
   private void loadGraphMl(Graph graph) throws RuntimeException {
     try {
-      OdbGraphTp3.wrap(graph).io(IoCore.graphml()).readGraph("../src/test/resources/grateful-dead.xml");
+      OdbGraphTp3.wrap(graph).io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -4,13 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.NodeSerializer;
+import overflowdb.storage.NodesWriter;
 import overflowdb.storage.OdbStorage;
 import overflowdb.util.IteratorUtils;
 import overflowdb.util.MultiIterator;
 import overflowdb.util.NodesList;
 import overflowdb.util.PropertyHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -33,7 +33,9 @@ public final class Graph implements AutoCloseable {
   public final NodeSerializer nodeSerializer;
   protected final NodeDeserializer nodeDeserializer;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
+  protected final boolean overflowEnabled;
   protected final ReferenceManager referenceManager;
+  protected final NodesWriter nodesWriter;
 
   /**
    * @param convertPropertyForPersistence applied to all element property values by @{@link NodeSerializer} prior
@@ -65,22 +67,28 @@ public final class Graph implements AutoCloseable {
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
 
-    storage = config.getStorageLocation().isPresent()
+    this.storage = config.getStorageLocation().isPresent()
         ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile())
         : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
+    this.nodesWriter = new NodesWriter(nodeSerializer, storage);
     config.getStorageLocation().ifPresent(l -> initElementCollections(storage));
-    referenceManager = new ReferenceManager(storage);
-    heapUsageMonitor = config.isOverflowEnabled() ?
-        Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), referenceManager)) :
-        Optional.empty();
+
+    this.overflowEnabled = config.isOverflowEnabled();
+    if (this.overflowEnabled) {
+      this.referenceManager = new ReferenceManager(storage, nodesWriter);
+      this.heapUsageMonitor = Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), this.referenceManager));
+    } else {
+      this.referenceManager = null; // not using Optional only due to performance reasons - it's invoked *a lot*
+      this.heapUsageMonitor = Optional.empty();
+    }
   }
 
   private void initElementCollections(OdbStorage storage) {
     long start = System.currentTimeMillis();
     final Set<Map.Entry<Long, byte[]>> serializedNodes = storage.allNodes();
-    logger.info("initializing " + serializedNodes.size() + " nodes from existing storage - this may take some time");
+    logger.info(String.format("initializing %d nodes from existing storage", serializedNodes.size()));
     int importCount = 0;
     long maxId = currentId.get();
 
@@ -103,25 +111,42 @@ public final class Graph implements AutoCloseable {
     currentId.set(maxId + 1);
     indexManager.initializeStoredIndices(storage);
     long elapsedMillis = System.currentTimeMillis() - start;
-    logger.debug("initialized " + this.toString() + " from existing storage in " + elapsedMillis + "ms");
+    logger.debug(String.format("initialized %s from existing storage in %sms", this, elapsedMillis));
   }
 
 
   ////////////// STRUCTURE API METHODS //////////////////
 
+  /**
+   * Add a node with given label and properties
+   * Will automatically assign an ID - this is the safest option to avoid ID clashes.
+   */
   public Node addNode(final String label, final Object... keyValues) {
-    return addNode(currentId.incrementAndGet(), label, keyValues);
+    return addNodeInternal(currentId.incrementAndGet(), label, keyValues);
   }
 
+  /**
+   * Add a node with given id, label and properties.
+   * Throws an {@link IllegalArgumentException} if a node with the given ID already exists
+   */
   public Node addNode(final long id, final String label, final Object... keyValues) {
+    if (nodes.contains(id)) {
+      throw new IllegalArgumentException(String.format("Node with id already exists: %s", id));
+    }
+
+    long currentIdBefore = currentId.get();
+    long currentIdAfter = Long.max(id, currentId.get());
+    if (!currentId.compareAndSet(currentIdBefore, currentIdAfter)) {
+      // concurrent thread must have changed `currentId` - try again
+      return addNode(id, label, keyValues);
+    }
+    return addNodeInternal(id, label, keyValues);
+  }
+
+  private Node addNodeInternal(long id, String label, Object... keyValues) {
     if (isClosed()) {
       throw new IllegalStateException("cannot add more elements, graph is closed");
     }
-    if (nodes.contains(id)) {
-      throw new IllegalArgumentException(String.format("Vertex with id already exists: %s", id));
-    }
-
-    currentId.set(Long.max(id, currentId.get()));
     final NodeRef node = createNode(id, label, keyValues);
     nodes.add(node);
     return node;
@@ -142,9 +167,28 @@ public final class Graph implements AutoCloseable {
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final NodeDb node = factory.createNode(this, idValue);
     PropertyHelper.attachProperties(node, keyValues);
-    this.referenceManager.registerRef(node.ref);
+    if (this.referenceManager != null) {
+      this.referenceManager.registerRef(node.ref);
+    }
 
     return node.ref;
+  }
+
+  /**
+   * When we're running low on heap memory we'll serialize some elements to disk. To ensure we're not creating new ones
+   * faster than old ones are serialized away, we're applying some backpressure to those newly created ones.
+   */
+  public void applyBackpressureMaybe() {
+    if (referenceManager != null) {
+      referenceManager.applyBackpressureMaybe();
+    }
+  }
+
+  /* Register NodeRef at ReferenceManager, so it can be cleared on low memory */
+  public void registerNodeRef(NodeRef ref) {
+    if (referenceManager != null) {
+      referenceManager.registerRef(ref);
+    }
   }
 
   @Override
@@ -161,12 +205,20 @@ public final class Graph implements AutoCloseable {
     try {
       heapUsageMonitor.ifPresent(monitor -> monitor.close());
       if (config.getStorageLocation().isPresent()) {
-        /* persist to disk */
+
+        /* persist to disk: if overflow is enabled, ReferenceManager takes care of that
+        * otherwise: persist all nodes here */
         indexManager.storeIndexes(storage);
-        referenceManager.clearAllReferences();
+        if (referenceManager != null) {
+          referenceManager.clearAllReferences();
+        } else {
+          nodes.persistAll(nodesWriter);
+        }
       }
     } finally {
-      referenceManager.close();
+      if (referenceManager != null) {
+        referenceManager.close();
+      }
       storage.close();
     }
   }
@@ -223,13 +275,13 @@ public final class Graph implements AutoCloseable {
     return nodes(ids);
   }
 
-  public final Node node(long id) {
+  public Node node(long id) {
     return nodes.nodeById(id);
   }
 
   /** Iterator over nodes with provided ids
    * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
-  public final Iterator<Node> nodes(long... ids) {
+  public Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
       return Collections.emptyIterator();
     } else if (ids.length == 1) {

@@ -54,10 +54,10 @@ public class ElementTest {
       assertEquals(Long.valueOf(99), testEdge.longProperty());
 
       //trim test
-      assertEquals(2 + (((long)4)<<32), ((NodeRef)n2).get().trim());
-      assertEquals(2 + (((long)2)<<32), ((NodeRef)n2).get().trim());
-      assertEquals(2 + (((long)4)<<32), ((NodeRef)n1).get().trim());
-      assertEquals(2 + (((long)2)<<32), ((NodeRef)n1).get().trim());
+      assertEquals(2L + (4L<<32), ((NodeRef)n2).get().trim());
+      assertEquals(2L + (2L<<32), ((NodeRef)n2).get().trim());
+      assertEquals(2L + (4L<<32), ((NodeRef)n1).get().trim());
+      assertEquals(2L + (2L<<32), ((NodeRef)n1).get().trim());
 
       // node traversals
       assertSize(1, n1.out());
@@ -283,7 +283,6 @@ public class ElementTest {
       n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
 
       // round trip serialization, delete edge with longProperty=0;
-      graph.referenceManager.clearAllReferences();
       graph.node(n0.id()).outE().forEachRemaining(edge -> {
         if (0L == (long) edge.property(TestEdge.LONG_PROPERTY)) {
           edge.remove();

@@ -52,9 +52,13 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     return node == null;
   }
 
-  /* only called by @ReferenceManager */
-  protected void clear() {
-    this.node = null;
+  /**
+   * Only supposed to be called by @NodesWriter
+   * We'd prefer this to be package-private, but since NodesWriter is in a different package that's not an option in java.
+   * To not pollute the public api (esp. for console users) we made this method static instead.
+   * */
+  public static void clear(NodeRef ref) {
+    ref.node = null;
   }
 
   protected byte[] serializeWhenDirty() {
@@ -98,7 +102,7 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
       final N node = readFromDisk(id);
       if (node == null) throw new IllegalStateException("unable to read node from disk; id=" + id);
       this.node = node;
-      graph.referenceManager.registerRef(this); // so it can be cleared on low memory
+      graph.registerNodeRef(this);
       return node;
     }
   }
@@ -130,7 +134,7 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
   @Override
   public void remove() {
     get().remove();
-    clear();
+    NodeRef.clear(this);
   }
 
   @Override

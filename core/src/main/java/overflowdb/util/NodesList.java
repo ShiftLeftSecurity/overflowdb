@@ -4,18 +4,10 @@ import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
-import gnu.trove.set.hash.THashSet;
 import overflowdb.Node;
-import overflowdb.NodeRef;
-import overflowdb.NodeDb;
+import overflowdb.storage.NodesWriter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 public class NodesList {
   private Node[] nodes;
@@ -87,14 +79,11 @@ public class NodesList {
     }
   }
 
-  public void remove(Node node) {
+  public synchronized void remove(Node node) {
     int index = nodeIndexByNodeId.remove(node.id());
     nodes[index] = null;
     emptySlots.set(index);
 
-    NodeRef ref = node instanceof NodeDb
-        ? ((NodeDb) node).ref
-        : (NodeRef) node;
     this.nodesByLabel = null;
 
     size--;
@@ -105,24 +94,25 @@ public class NodesList {
     return size;
   }
 
-
-  synchronized private void refreshNodesByLabel(){
-    TMap<String, ArrayList<Node>> tmp = new THashMap<>();
-    for(Node node: nodes){
-      if(node != null){
-        ArrayList<Node> nodelist = tmp.get(node.label());
-        if(nodelist == null){
-          nodelist = new ArrayList<>();
-          tmp.put(node.label(), nodelist);
+  private synchronized void initialiseNodesByLabel(){
+    if (nodesByLabel == null) {
+      TMap<String, ArrayList<Node>> tmp = new THashMap<>();
+      for (Node node : nodes) {
+        if (node != null) {
+          ArrayList<Node> nodelist = tmp.get(node.label());
+          if (nodelist == null) {
+            nodelist = new ArrayList<>();
+            tmp.put(node.label(), nodelist);
+          }
+          nodelist.add(node);
         }
-        nodelist.add(node);
       }
+      this.nodesByLabel = tmp;
     }
-    this.nodesByLabel = tmp;
   }
 
   public ArrayList<Node> nodesByLabel(String label) {
-    if(nodesByLabel == null) refreshNodesByLabel();
+    if(nodesByLabel == null) initialiseNodesByLabel();
     ArrayList<Node> nodelist = nodesByLabel.get(label);
     if(nodelist == null){
       nodelist = new ArrayList<>();
@@ -160,7 +150,7 @@ public class NodesList {
 
   /** trims down internal collections to just about the necessary size, in order to allow the remainder to be
    * garbage collected */
-  public void compact() {
+  synchronized void compact() {
     final ArrayList<Node> newNodes = new ArrayList<>(size);
     Iterator<Node> iter = iterator();
     while (iter.hasNext()) {
@@ -191,7 +181,7 @@ public class NodesList {
   /** Increases the capacity to ensure that it can hold at least the
    * number of elements specified by the minimum capacity argument.
    * @see java.util.ArrayList (copied from there) */
-  private void grow(int minCapacity) {
+  private synchronized void grow(int minCapacity) {
     // overflow-conscious code
     int oldCapacity = nodes.length;
     int newCapacity = oldCapacity + (oldCapacity >> 1);
@@ -223,6 +213,10 @@ public class NodesList {
       return nodesByLabel.get(label).size();
     else
       return 0;
+  }
+
+  public synchronized void persistAll(NodesWriter nodesWriter) {
+    nodesWriter.writeAndClearBatched(Arrays.spliterator(nodes), nodes.length);
   }
 
   public static class NodesIterator implements Iterator<Node> {

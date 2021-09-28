@@ -41,7 +41,7 @@ public abstract class Edge extends Element {
     this.inNode = inVertex;
 
     this.specificKeys = specificKeys;
-    graph.referenceManager.applyBackpressureMaybe();
+    graph.applyBackpressureMaybe();
   }
 
   public NodeRef outNode() {
