@@ -54,9 +54,9 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     synchronized (backPressureSyncObject) {
       while (clearingProcessCount > 0) {
         try {
-          if (logger.isTraceEnabled()) logger.trace("wait until ref clearing completed");
+          logger.trace("wait until ref clearing completed");
           backPressureSyncObject.wait();
-          if (logger.isTraceEnabled()) logger.trace("continue");
+          logger.trace("continue");
         } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
@@ -72,7 +72,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
       logger.info("no refs to clear at the moment, i.e. the heap is used by other components");
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
-      if (logger.isInfoEnabled()) logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
+      logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
       singleThreadExecutor.submit(() -> syncClearReferences(releaseCount));
     }
   }
@@ -85,9 +85,9 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     final List<NodeRef> refsToClear = collectRefsToClear(releaseCount);
     if (!refsToClear.isEmpty()) {
       safelyClearReferences(refsToClear);
-      if (logger.isInfoEnabled()) logger.info("completed clearing of " + refsToClear.size() + " references");
-      if (logger.isDebugEnabled()) logger.debug("remaining clearable references: " + clearableRefs.size());
-      if (logger.isTraceEnabled()) logger.trace("references cleared in total: " + totalReleaseCount);
+      logger.info("completed clearing of " + refsToClear.size() + " references");
+      logger.debug("remaining clearable references: " + clearableRefs.size());
+      logger.trace("references cleared in total: " + totalReleaseCount);
     }
   }
 
@@ -136,7 +136,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    */
   public void clearAllReferences() {
     nodesWriter.writeAndClearBatched(clearableRefs.spliterator(), clearableRefs.size());
-    logger.info("cleared all clearable references");
+    logger.debug("cleared all clearable references");
   }
 
   @Override
