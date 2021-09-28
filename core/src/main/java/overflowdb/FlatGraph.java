@@ -260,9 +260,9 @@ public class FlatGraph {
             if (inputdata instanceof FlatGraphWIP.ReadJob) {
                 inputdata = ((FlatGraphWIP.ReadJob) inputdata).runWithResult();
             }
-            assert(offsets.start == 0L);
-            assert(offsets.compressedLen == 0L);
-            assert(offsets.decompressedLen == 0L);
+            assert (offsets.start == 0L);
+            assert (offsets.compressedLen == 0L);
+            assert (offsets.decompressedLen == 0L);
             byte[] byteData;
             if (inputdata instanceof boolean[]) {
                 boolean[] data = (boolean[]) inputdata;
@@ -315,7 +315,12 @@ public class FlatGraph {
                         buf.put(i, (((long) handle.kindId) << 32) | ((long) handle.seqId));
                     }
                 }
-            } else throw new RuntimeException();
+            } else {
+                if (inputdata == null)
+                    throw new NullPointerException();
+                else
+                    throw new RuntimeException("Unexpected data type for serialization: " + inputdata.getClass());
+            }
             offsets.decompressedLen = byteData.length;
             byte[] compressed = Zstd.compress(byteData);
             //just making sure...
@@ -337,12 +342,67 @@ public class FlatGraph {
         }
     }
 
+    public static class MMapCollection {
+        ArrayList<MappedByteBuffer> mmaps = new ArrayList<>();
+        ArrayList<Long> mmapStarts = new ArrayList<>();
+        static public int MAXSIZE = 3<<29; //1.5GB. round number, large enough for realistic cpgs, far away from integer overflow
+
+        public MMapCollection(ArrayList<Long> offsets, FileChannel file) throws java.io.IOException {
+            offsets.sort(Long::compareTo);
+            long curBase = 0;
+            long curOff = 0;
+            for (int i = 0; i < offsets.size(); i += 1) {
+                long off = offsets.get(i);
+                if (off - curBase > MAXSIZE) {
+                    mmaps.add(file.map(FileChannel.MapMode.READ_ONLY, curBase, curOff - curBase));
+                    mmapStarts.add(curBase);
+                    curBase = curOff;
+                }
+                curOff = off;
+                if (curOff - curBase > MAXSIZE)
+                    throw new RuntimeException("Cannot MMAP file segment: Max size " + MAXSIZE + " but requested " + (curOff - curBase));
+            }
+            if (curBase != curOff) {
+                mmaps.add(file.map(FileChannel.MapMode.READ_ONLY, curBase, curOff - curBase));
+                mmapStarts.add(curBase);
+            }
+            mmapStarts.add(curOff);
+
+        }
+
+        public ByteBuffer get(long offset, long len) {
+            int i = mmapStarts.size()-1;
+            while (mmapStarts.get(i) > offset) i -= 1;
+            ByteBuffer buf = mmaps.get(i).duplicate();
+            long base = mmapStarts.get(i);
+            if (base + buf.limit() < offset + len) {
+                StringBuilder b = new StringBuilder();
+                b.append("Requested MMAP for off: ").append(offset).append(" len: ").append(len).append("\nAvailable mappings: ");
+                for (int j = 0; j < mmaps.size(); j += 1) {
+                    if (j == i - 1) b.append(" [");
+                    b.append(" (from: ").append(mmapStarts.get(j)).append(" to: ").append(mmapStarts.get(j + 1))
+                            .append(" intendedLen: ").append(mmapStarts.get(j + 1) - mmapStarts.get(j))
+                            .append(" reportedLen: ").append(mmaps.get(j).limit()).append(" ) ");
+                    if (j == i - 1) b.append("] ");
+                }
+                throw new RuntimeException(b.toString());
+            }
+            buf.position((int) (offset - base)).limit((int) (offset + len - base));
+            return buf;
+        }
+
+        public ByteBuffer get(SerializedOffsets offsets) {
+            return get(offsets.start, offsets.compressedLen);
+        }
+
+    }
+
 
     static public class FlatGraphWIP {
         public ArrayList<Property> properties;
         public ArrayList<String> nodeLabels;
         public NodeHandle[][] nodes;
-        public FlatGraphManifest fooManifest;
+        public FlatGraphManifest debugManifest;
 
         public FlatGraphManifest makeManifest() {
             String[] labels = nodeLabels.toArray(new String[0]);
@@ -358,6 +418,13 @@ public class FlatGraph {
             return new FlatGraphManifest(labels, counts, props);
         }
 
+
+        public FlatGraphWIP() {
+        }
+
+        public FlatGraphWIP(FileChannel src, boolean eager) {
+            readGraph(src, eager);
+        }
 
         public void readGraph(FileChannel src, boolean eager) {
             try {
@@ -382,7 +449,7 @@ public class FlatGraph {
                         }
                     }
                     manifest = (FlatGraphManifest) (new ObjectInputStream(new ByteArrayInputStream(manifestBytes))).readObject();
-                    this.fooManifest = manifest;
+                    this.debugManifest = manifest;
                 }
                 //allocate nodes
                 this.nodes = new NodeHandle[manifest.nodeCounts.length][];
@@ -394,7 +461,23 @@ public class FlatGraph {
                         nnodes[j] = new NodeHandle(this, (short) i, j);
                     }
                 }
-                ExecutorService executor = Executors.newCachedThreadPool();
+                this.nodeLabels = new ArrayList<>(Arrays.asList(manifest.nodeLabels));
+
+
+                //generate cached set of memory-maps.
+                MMapCollection mmaps;
+                {
+                    ArrayList<Long> offsets = new ArrayList<Long>();
+                    offsets.add(manifestPos);
+                    for (FlatGraphManifest.StorageProperty p : manifest.properties) {
+                        offsets.add(p.qtyOffsets.start);
+                        offsets.add(p.valuesOffsets.start);
+                    }
+                    offsets.sort(Long::compareTo);
+                    mmaps = new MMapCollection(offsets, src);
+                }
+
+                ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
                 ArrayList<Future<?>> futures = new ArrayList<>();
                 this.properties = new ArrayList<>(Arrays.asList(new Property[manifest.properties.length]));
                 for (int i = 0; i < manifest.properties.length; i += 1) {
@@ -402,15 +485,16 @@ public class FlatGraph {
                     Property newp = new Property(p.nodeLabel, p.propertyLabel, p.disposition);
                     properties.set(i, newp);
                     newp.cardinality = p.cardinality;
+                    newp.type = p.type;
                     if (newp.cardinality != Cardinality.ONE) {
-                        ReadJob job = new ReadJob(src, p, newp, true, null, this.nodes);
+                        ReadJob job = new ReadJob(mmaps.get(p.qtyOffsets), p, newp, true, null, null);
                         newp.qty = job;
                         if (eager) {
                             futures.add(executor.submit(job));
                         }
                     }
                     if (newp.type != ContentType.STRING) {
-                        ReadJob job = new ReadJob(src, p, newp, true, null, this.nodes);
+                        ReadJob job = new ReadJob(mmaps.get(p.valuesOffsets), p, newp, false, null, this.nodes);
                         newp.values = job;
                         if (eager) {
                             futures.add(executor.submit(job));
@@ -422,9 +506,8 @@ public class FlatGraph {
                 //obtain stringpool
                 int[] stringpoolLens;
                 {
-                    MappedByteBuffer buf = src.map(FileChannel.MapMode.READ_ONLY, manifest.stringPoolLengths.start, manifest.stringPoolLengths.compressedLen);
-                    ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(buf);
-                    ByteBuffer outbuf = ByteBuffer.allocateDirect(1 << 16).order(ByteOrder.LITTLE_ENDIAN);
+                    ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(mmaps.get(manifest.stringPoolLengths));
+                    ByteBuffer outbuf = ByteBuffer.allocateDirect(4 + ZstdDirectBufferDecompressingStream.recommendedTargetBufferSize()).order(ByteOrder.LITTLE_ENDIAN);
                     IntBuffer asInt = outbuf.asIntBuffer();
                     stringpoolLens = new int[(int) (manifest.stringPoolLengths.decompressedLen >> 2)];
                     int outpos = 0;
@@ -435,6 +518,7 @@ public class FlatGraph {
                         outbuf.flip().position(readable * 4);
                         outbuf.compact();
                         outpos += readable;
+                        asInt.clear();
                     }
                     decompressingStream.close();
                 }
@@ -442,37 +526,35 @@ public class FlatGraph {
                 for (int i = 0; i < stringpoolLens.length; i += 1) maxlen = Math.max(maxlen, stringpoolLens[i]);
                 String[] strings = new String[stringpoolLens.length + 1];
                 {
-                    MappedByteBuffer buf = src.map(FileChannel.MapMode.READ_ONLY, manifest.stringPoolData.start, manifest.stringPoolData.compressedLen);
-                    ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(buf);
-                    //fixme: complains about too small output buffer.
-                    // Figure out how large this wants the outbuf to be
-                    // OR use the inputstream based class (needs to subclass filteredInputStream to get slice of file)
-                    ByteBuffer outbuf = ByteBuffer.allocateDirect(Math.min(maxlen, ZstdDirectBufferDecompressingStream.recommendedTargetBufferSize()));
-                    byte[] outbuf2 = new byte[outbuf.capacity()];
-
-                    int outpos = 1;
-                    while (outpos < strings.length) {
-                        decompressingStream.read(outbuf);
-                        outbuf.flip();
-                        int inputpos = 0;
-                        int lim = outbuf.limit();
-                        outbuf.get(outbuf2, 0, outbuf.limit());
-                        while (lim - inputpos > stringpoolLens[outpos - 1]) {
-                            strings[outpos] = new String(outbuf2, inputpos, stringpoolLens[outpos - 1], StandardCharsets.UTF_8);
-                            inputpos += stringpoolLens[outpos - 1];
-                            outpos += 1;
+                    ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(mmaps.get(manifest.stringPoolData));
+                    ByteBuffer directBuf = ByteBuffer.allocateDirect(maxlen + ZstdDirectBufferDecompressingStream.recommendedTargetBufferSize());
+                    byte[] heapBuf = new byte[directBuf.capacity()];
+                    int i = 1;
+                    while (i < strings.length) {
+                        decompressingStream.read(directBuf);
+                        directBuf.remaining();
+                        directBuf.flip();
+                        int heapBufPos = 0;
+                        int heapBufLim = directBuf.limit();
+                        int i0 = i;
+                        directBuf.get(heapBuf, 0, heapBufLim);
+                        while (i < strings.length && stringpoolLens[i - 1] <= heapBufLim - heapBufPos) {
+                            strings[i] = new String(heapBuf, heapBufPos, stringpoolLens[i - 1], StandardCharsets.UTF_8);
+                            heapBufPos += stringpoolLens[i - 1];
+                            i += 1;
                         }
-                        outbuf.position(inputpos);
-                        outbuf.compact();
+                        directBuf.position(heapBufPos);
+                        directBuf.compact();
                     }
                     decompressingStream.close();
+
                 }
 
                 for (int i = 0; i < manifest.properties.length; i += 1) {
                     FlatGraphManifest.StorageProperty p = manifest.properties[i];
                     Property newp = properties.get(i);
                     if (newp.type == ContentType.STRING) {
-                        ReadJob job = new ReadJob(src, p, newp, true, strings, this.nodes);
+                        ReadJob job = new ReadJob(mmaps.get(p.valuesOffsets), p, newp, false, strings, this.nodes);
                         newp.values = job;
                         if (eager) {
                             futures.add(executor.submit(job));
@@ -484,22 +566,25 @@ public class FlatGraph {
                 while (futures.size() > 0) {
                     futures.remove(futures.size() - 1).get();
                 }
+                executor.shutdown();
+                executor.awaitTermination(1L, TimeUnit.SECONDS);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
 
         }
 
-        private static class ReadJob implements Runnable {
-            String[] strings;
-            FileChannel src;
-            FlatGraphManifest.StorageProperty propertyManifest;
-            Property property;
-            boolean isQty;
-            NodeHandle[][] nodeHandles;
+        //fixme: This should really take a DirectBuffer as input, and we should cache the memorymaps for reuse somewhere.
+        public static class ReadJob implements Runnable {
+            public String[] strings;
+            public ByteBuffer src;
+            public FlatGraphManifest.StorageProperty propertyManifest;
+            public Property property;
+            public boolean isQty;
+            public NodeHandle[][] nodeHandles;
             public volatile boolean hasRun = false;
 
-            public ReadJob(FileChannel src, FlatGraphManifest.StorageProperty propertyManifest, Property property, boolean isQty, String[] strings, NodeHandle[][] nodeHandles) {
+            public ReadJob(ByteBuffer src, FlatGraphManifest.StorageProperty propertyManifest, Property property, boolean isQty, String[] strings, NodeHandle[][] nodeHandles) {
                 this.strings = strings;
                 this.src = src;
                 this.propertyManifest = propertyManifest;
@@ -515,16 +600,17 @@ public class FlatGraph {
 
             public synchronized Object runWithResult() {
                 try {
-                    if (hasRun) return isQty ? property.qty : property.values;
                     ContentType type = isQty ? (propertyManifest.cardinality == Cardinality.MULTI ? ContentType.INT : ContentType.BOOL) : propertyManifest.type;
                     SerializedOffsets offsets = isQty ? propertyManifest.qtyOffsets : propertyManifest.valuesOffsets;
+
+                    if (hasRun) return isQty ? property.qty : property.values;
                     Object res;
                     if (offsets.decompressedLen <= 0) {
                         res = null;
                     } else {
-                        MappedByteBuffer buf = src.map(FileChannel.MapMode.READ_ONLY, offsets.start, offsets.compressedLen);
-                        ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(buf);
-                        ByteBuffer outbuf = ByteBuffer.allocateDirect(Math.max((int) offsets.decompressedLen, 1 << 16)).order(ByteOrder.LITTLE_ENDIAN);
+                        ZstdDirectBufferDecompressingStream decompressingStream = new ZstdDirectBufferDecompressingStream(src);
+                        //fixme: We need a better way of using the zstd streaming api
+                        ByteBuffer outbuf = ByteBuffer.allocateDirect(8 + ZstdDirectBufferDecompressingStream.recommendedTargetBufferSize()).order(ByteOrder.LITTLE_ENDIAN);
                         switch (type) {
                             case BOOL: {
                                 int numItems = (int) offsets.decompressedLen;
@@ -573,7 +659,7 @@ public class FlatGraph {
                                     buf2.clear();
                                     outbuf.position(lim >> 1 << 1);
                                     outbuf.compact();
-                                    outIndex += lim >> 1 << 1;
+                                    outIndex += lim >> 1;
                                 }
                             }
                             break;
@@ -591,7 +677,7 @@ public class FlatGraph {
                                     buf2.clear();
                                     outbuf.position(lim >> 2 << 2);
                                     outbuf.compact();
-                                    outIndex += lim >> 2 << 2;
+                                    outIndex += lim >> 2;
                                 }
                             }
                             break;
@@ -609,7 +695,7 @@ public class FlatGraph {
                                     buf2.clear();
                                     outbuf.position(lim >> 3 << 3);
                                     outbuf.compact();
-                                    outIndex += lim >> 3 << 3;
+                                    outIndex += lim >> 3;
                                 }
                             }
                             break;
@@ -627,7 +713,7 @@ public class FlatGraph {
                                     buf2.clear();
                                     outbuf.position(lim >> 2 << 2);
                                     outbuf.compact();
-                                    outIndex += lim >> 2 << 2;
+                                    outIndex += lim >> 2;
                                 }
                             }
                             break;
@@ -645,7 +731,7 @@ public class FlatGraph {
                                     buf2.clear();
                                     outbuf.position(lim >> 3 << 3);
                                     outbuf.compact();
-                                    outIndex += lim >> 3 << 3;
+                                    outIndex += lim >> 3;
                                 }
                             }
                             break;
@@ -712,7 +798,7 @@ public class FlatGraph {
                     strings = null;
                     return res;
                 } catch (Exception e) {
-                    throw new RuntimeException("except at nodeLabel:" + propertyManifest.nodeLabel + " pLabel:" + propertyManifest.propertyLabel + " disposition:" + propertyManifest.disposition.name() , e);
+                    throw new RuntimeException("except at nodeLabel:" + propertyManifest.nodeLabel + " pLabel:" + propertyManifest.propertyLabel + " disposition:" + propertyManifest.disposition.name(), e);
                 }
             }
         }
@@ -721,9 +807,9 @@ public class FlatGraph {
             try {
                 LinkedHashMap<String, Integer> stringpool = new LinkedHashMap<>();
                 FlatGraphManifest manifest = makeManifest();
-                this.fooManifest = manifest;
+                this.debugManifest = manifest;
 
-                ExecutorService executor = Executors.newCachedThreadPool();
+                ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
                 AtomicLong filePointer = new AtomicLong(16);
                 ArrayList<Future<?>> futures = new ArrayList<>();
 
@@ -746,6 +832,7 @@ public class FlatGraph {
                 for (int j = 0; j < manifest.properties.length; j += 1) {
                     Property prop = properties.get(j);
                     if (prop.type == ContentType.STRING) {
+                        if (prop.values instanceof ReadJob) ((ReadJob) prop.values).run();
                         String[] strings = (String[]) prop.values;
                         int[] translated = new int[strings.length];
                         for (int i = 0; i < translated.length; i += 1) {
@@ -776,6 +863,8 @@ public class FlatGraph {
                 while (futures.size() > 0) {
                     futures.remove(futures.size() - 1).get();
                 }
+                executor.shutdown();
+                executor.awaitTermination(1, TimeUnit.SECONDS);
                 //we can now write the file header and the manifest.
                 ByteArrayOutputStream iobuf = new ByteArrayOutputStream();
                 ObjectOutputStream manifestStream = new ObjectOutputStream(iobuf);
@@ -796,6 +885,28 @@ public class FlatGraph {
                 dest.close();
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            }
+        }
+    }
+
+    //for benchmark purposes
+    public static void touchGraph(Graph graph) {
+        for (Iterator<Node> iter = graph.nodes(); iter.hasNext(); ) {
+            Node nx = iter.next();
+            if (nx instanceof NodeRef) {
+                ((NodeRef) nx).get();
+            }
+        }
+    }
+
+    //for benchmark purposes
+    public static void touchGraph(FlatGraphWIP graph) {
+        for (Property p : graph.properties) {
+            if (p.qty != null && p.qty instanceof FlatGraphWIP.ReadJob) {
+                ((FlatGraphWIP.ReadJob) p.qty).run();
+            }
+            if (p.values instanceof FlatGraphWIP.ReadJob) {
+                ((FlatGraphWIP.ReadJob) p.values).run();
             }
         }
     }
