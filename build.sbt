@@ -2,7 +2,6 @@ name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
 ThisBuild/scalaVersion := "2.13.6"
 publish/skip := true
-enablePlugins(GitVersioning)
 
 lazy val core = project.in(file("core"))
 lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->compile;test->test")
