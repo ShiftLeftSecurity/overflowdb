@@ -9,6 +9,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test,
 )
 
+scalacOptions ++= Seq("-deprecation:false")
 /* it's a java-only build */
 autoScalaLibrary := false
 crossPaths := false
