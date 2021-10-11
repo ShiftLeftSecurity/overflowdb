@@ -1,5 +1,7 @@
 package overflowdb;
 
+import overflowdb.util.PropertyHelper;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
@@ -76,7 +78,8 @@ public abstract class Node extends Element {
   }
   /*Allows fast initialization from detached node data; available as static instead of instance method, because we need to keep the REPL clean*/
   public static void initializeFromDetached(Node node, DetachedNodeData data, Function<DetachedNodeData, Node> refMapper){
-    if(data.hasData())
-      node._initializeFromDetached(data, refMapper);
+    if(data instanceof DetachedNodeGeneric){
+      PropertyHelper.attachProperties(node,((DetachedNodeGeneric) data).keyvalues);
+    } else node._initializeFromDetached(data, refMapper);
   }
 }

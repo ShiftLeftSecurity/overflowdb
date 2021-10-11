@@ -10,7 +10,4 @@ public interface DetachedNodeData extends BatchedUpdate.Change {
          * */
         public Object getRefOrId();
         public void setRefOrId(Object refOrId);
-        public boolean hasData();
-        //expects String key, Object property pairs
-        public void setProperty(String key, Object value);
 }

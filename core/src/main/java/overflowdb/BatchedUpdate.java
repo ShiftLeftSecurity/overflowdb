@@ -75,6 +75,11 @@ public class BatchedUpdate {
             return this;
         }
 
+        public DiffGraphBuilder addNode(String label, Object... keyvalues){
+            _buffer.addLast(new DetachedNodeGeneric(label, keyvalues));
+            return this;
+        }
+
         public DiffGraphBuilder addEdge(String label, Node src, Node dst, Object... properties){
             _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
             return this;
@@ -209,6 +214,10 @@ public class BatchedUpdate {
         }
     }
 
+    public static AppliedDiff applyDiff(Graph graph, DiffOrBuilder diff){
+        return new DiffGraphApplier(graph, diff, null, null).run();
+    }
+
     public static AppliedDiff applyDiff(Graph graph, DiffOrBuilder diff, KeyPool keyPool, ModificationListener listener){
         return new DiffGraphApplier(graph, diff, keyPool, listener).run();
     }
@@ -244,7 +253,7 @@ public class BatchedUpdate {
         }
 
 
-        Node mapDetached(DetachedNodeData detachedNode) {
+        private Node mapDetached(DetachedNodeData detachedNode) {
             Object linkedNode = detachedNode.getRefOrId();
             if(linkedNode == null || linkedNode instanceof Long){
                 if(linkedNode == null) {
@@ -262,7 +271,7 @@ public class BatchedUpdate {
             return (Node) linkedNode;
         }
 
-        void drainDeferred(){
+        private void drainDeferred(){
             while(!deferredInitializers.isEmpty()){
                 DetachedNodeData detachedNode = deferredInitializers.removeFirst();
                 Node actualNode = (Node) detachedNode.getRefOrId();
@@ -274,7 +283,7 @@ public class BatchedUpdate {
             }
         }
 
-        void applyChange(Change change){
+        private void applyChange(Change change){
             if(change instanceof DetachedNodeData){
                 mapDetached((DetachedNodeData) change);
                 drainDeferred();
@@ -289,7 +298,7 @@ public class BatchedUpdate {
                     Edge edge = src.addEdge(create.label, dst, properties);
                     listener.onAfterAddNewEdge(edge);
                 } else {
-                    dst.addEdgeSilent(create.label, dst, properties);
+                    src.addEdgeSilent(create.label, dst, properties);
                 }
             } else if (change instanceof RemoveEdge){
                 nChanges += 1;
