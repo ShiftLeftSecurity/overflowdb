@@ -113,6 +113,19 @@ class RepeatTraversalTests extends WordSpec with Matchers {
     }
   }
 
+  "support repeat/while behaviour" should {
+    "base case: given `whilst` condition is also evaluated for first iteration" in {
+      centerTrav.repeat(_.followedBy)(_.whilst(_.name("does not exist"))).name.toSet shouldBe Set("Center")
+      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "does not exist"))).property(Name).toSet shouldBe Set("Center")
+    }
+
+    "walk one iteration" in {
+      val L1R1 = Set("L1", "R1")
+      centerTrav.repeat(_.followedBy)(_.whilst(_.name("Center"))).name.toSet shouldBe L1R1
+      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "Center"))).property(Name).toSet shouldBe L1R1
+    }
+  }
+
   ".dedup should apply to all repeat iterations" when {
     "path tracking is not enabled" in {
       centerTrav.repeat(_.both)(_.times(2).dedup).toSet shouldBe Set(l2, r2)

@@ -5,6 +5,7 @@ import RepeatBehaviour._
 trait RepeatBehaviour[A] { this: EmitBehaviour =>
   val searchAlgorithm: SearchAlgorithm.Value
   val untilCondition: Option[Traversal[A] => Traversal[_]]
+  val whileCondition: Option[Traversal[A] => Traversal[_]]
   val times: Option[Int]
   val dedupEnabled: Boolean
 
@@ -12,9 +13,13 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
     times.isDefined && times.get <= currentDepth
 
   def untilConditionReached(element: A): Boolean =
-    untilCondition.map { untilTraversal =>
-      untilTraversal(Traversal.fromSingle(element)).hasNext
-    }.getOrElse(false)
+    untilCondition.map(conditionReached(_, element)).getOrElse(false)
+
+  def whileConditionReached(element: A): Boolean =
+    whileCondition.map(conditionReached(_, element)).getOrElse(false)
+
+  private def conditionReached(conditionTraversal: Traversal[A] => Traversal[_], element: A): Boolean =
+    conditionTraversal(Traversal.fromSingle(element)).hasNext
 
   def shouldEmit(element: A, currentDepth: Int): Boolean
 }
@@ -39,6 +44,7 @@ object RepeatBehaviour {
     private[this] var _emitAllButFirst: Boolean = false
     private[this] var _emitCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _untilCondition: Option[Traversal[A] => Traversal[_]] = None
+    private[this] var _whileCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _times: Option[Int] = None
     private[this] var _dedupEnabled: Boolean = false
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
@@ -77,9 +83,19 @@ object RepeatBehaviour {
       this
     }
 
-    /* configure `repeat` step to stop traversing when given traversal has at least one result */
+    /* Configure `repeat` step to stop traversing when given condition-traversal has at least one result.
+    * The condition-traversal is only evaluated _after_ the first iteration, for classic repeat/until behaviour */
     def until(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _untilCondition = Some(condition)
+      this
+    }
+
+    /* Configure `repeat` step to stop traversing when given condition-traversal has at least one result.
+    * The condition-traversal is already evaluated at the first iteration, for classic while/repeat behaviour.
+    *
+    * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted. */
+    def whilst(condition: Traversal[A] => Traversal[_]): Builder[A] = {
+      _whileCondition = Some(condition)
       this
     }
 
@@ -99,6 +115,7 @@ object RepeatBehaviour {
         new RepeatBehaviour[A] with EmitNothing {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition
+          override val whileCondition = _whileCondition
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = false
@@ -106,7 +123,8 @@ object RepeatBehaviour {
       } else if (_emitAll) {
         new RepeatBehaviour[A] with EmitAll {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override final val untilCondition = _untilCondition
+          override val untilCondition = _untilCondition
+          override val whileCondition = _whileCondition
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = true
@@ -114,7 +132,8 @@ object RepeatBehaviour {
       } else if (_emitAllButFirst) {
         new RepeatBehaviour[A] with EmitAllButFirst {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override final val untilCondition = _untilCondition
+          override val untilCondition = _untilCondition
+          override val whileCondition = _whileCondition
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = currentDepth > 0
@@ -123,7 +142,8 @@ object RepeatBehaviour {
         val __emitCondition = _emitCondition
         new RepeatBehaviour[A] with EmitConditional[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override final val untilCondition = _untilCondition
+          override val untilCondition = _untilCondition
+          override val whileCondition = _whileCondition
           final private val _emitCondition = __emitCondition.get
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled

@@ -40,8 +40,11 @@ object RepeatStep {
           else {
             val element = trav.next()
             if (behaviour.dedupEnabled) visited.addOne(element)
-            if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
-              && behaviour.untilConditionReached(element)) {
+            if (
+              // `while/repeat` behaviour, i.e. check every time
+              !behaviour.whileConditionReached(element) ||
+              // `repeat/until` behaviour, i.e. only check the `until` condition from depth 1
+              (depth > 0 && behaviour.untilConditionReached(element))) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue(element)
               stop = true
