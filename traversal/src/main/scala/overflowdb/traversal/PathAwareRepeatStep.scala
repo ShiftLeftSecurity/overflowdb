@@ -44,8 +44,11 @@ object PathAwareRepeatStep {
             val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
             val element = elementInSeq.head.asInstanceOf[A]
             if (behaviour.dedupEnabled) visited.addOne(element)
-            if (depth > 0  // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
-              && behaviour.untilConditionReached(element)) {
+            if (
+              // `while/repeat` behaviour, i.e. check every time
+              behaviour.whileConditionIsDefinedAndEmpty(element) ||
+              // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
+              (depth > 0 && behaviour.untilConditionReached(element))) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue((element, path1))
               stop = true
