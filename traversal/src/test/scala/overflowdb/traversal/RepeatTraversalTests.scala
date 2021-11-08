@@ -115,14 +115,22 @@ class RepeatTraversalTests extends WordSpec with Matchers {
 
   "support repeat/while behaviour" should {
     "base case: given `whilst` condition is also evaluated for first iteration" in {
-      centerTrav.repeat(_.followedBy)(_.whilst(_.name("does not exist"))).name.toSet shouldBe Set("Center")
-      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "does not exist"))).property(Name).toSet shouldBe Set("Center")
+      centerTrav.repeat(_.followedBy)(_.whilst(_.name("does not exist"))).toSet shouldBe Set(center)
+      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "does not exist"))).toSet shouldBe Set(center)
     }
 
     "walk one iteration" in {
-      val L1R1 = Set("L1", "R1")
-      centerTrav.repeat(_.followedBy)(_.whilst(_.name("Center"))).name.toSet shouldBe L1R1
-      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "Center"))).property(Name).toSet shouldBe L1R1
+      centerTrav.repeat(_.followedBy)(_.whilst(_.name("Center"))).toSet shouldBe Set(l1, r1)
+      centerTrav.repeat(_.out)(_.whilst(_.has(Name, "Center"))).toSet shouldBe Set(l1, r1)
+    }
+
+    "emitting nodes along the way" in {
+      centerTrav.repeat(_.followedBy)(_.emit.whilst(_.name("Center"))).toSet shouldBe Set(center, l1, r1)
+      centerTrav.repeat(_.followedBy)(_.emitAllButFirst.whilst(_.name("Center"))).toSet shouldBe Set(l1, r1)
+    }
+
+    "with path tracking enabled" in {
+//      centerTrav.enablePathTracking.repeat(_.followedBy)(_.whilst(_.name("Center"))).name.toSet shouldBe Set("Center", "L1", "R1")
     }
   }
 
