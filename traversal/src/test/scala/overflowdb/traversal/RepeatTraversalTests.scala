@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
 import overflowdb._
+import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
 
@@ -124,13 +125,28 @@ class RepeatTraversalTests extends WordSpec with Matchers {
       centerTrav.repeat(_.out)(_.whilst(_.has(Name, "Center"))).toSet shouldBe Set(l1, r1)
     }
 
+    "walk two iterations" in {
+      centerTrav.repeat(_.followedBy)(_.whilst(_.or(
+        _.name("Center"),
+        _.nameEndsWith("1")
+      ))).toSet shouldBe Set(l2, r2)
+
+      centerTrav.repeat(_.out)(_.whilst(_.or(
+        _.has(Name.where(_.endsWith("1"))),
+        _.has(Name, "Center"),
+      ))).toSet shouldBe Set(l2, r2)
+    }
+
     "emitting nodes along the way" in {
       centerTrav.repeat(_.followedBy)(_.emit.whilst(_.name("Center"))).toSet shouldBe Set(center, l1, r1)
       centerTrav.repeat(_.followedBy)(_.emitAllButFirst.whilst(_.name("Center"))).toSet shouldBe Set(l1, r1)
     }
 
     "with path tracking enabled" in {
-//      centerTrav.enablePathTracking.repeat(_.followedBy)(_.whilst(_.name("Center"))).name.toSet shouldBe Set("Center", "L1", "R1")
+      centerTrav.enablePathTracking.repeat(_.followedBy)(_.whilst(_.name("Center"))).path.toSet shouldBe Set(
+        Seq(center, r1),
+        Seq(center, l1),
+      )
     }
   }
 

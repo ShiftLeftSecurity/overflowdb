@@ -42,7 +42,7 @@ object RepeatStep {
             if (behaviour.dedupEnabled) visited.addOne(element)
             if (
               // `while/repeat` behaviour, i.e. check every time
-              !behaviour.whileConditionReached(element) ||
+              behaviour.whileConditionIsDefinedAndEmpty(element) ||
               // `repeat/until` behaviour, i.e. only check the `until` condition from depth 1
               (depth > 0 && behaviour.untilConditionReached(element))) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack

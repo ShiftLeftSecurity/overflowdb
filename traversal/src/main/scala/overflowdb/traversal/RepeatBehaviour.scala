@@ -13,13 +13,18 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
     times.isDefined && times.get <= currentDepth
 
   def untilConditionReached(element: A): Boolean =
-    untilCondition.map(conditionReached(_, element)).getOrElse(false)
+    untilCondition match {
+      case Some(untilConditionTraversal) => untilConditionTraversal(Traversal.fromSingle(element)).hasNext
+      case None => false
+    }
 
-  def whileConditionReached(element: A): Boolean =
-    whileCondition.map(conditionReached(_, element)).getOrElse(false)
-
-  private def conditionReached(conditionTraversal: Traversal[A] => Traversal[_], element: A): Boolean =
-    conditionTraversal(Traversal.fromSingle(element)).hasNext
+  def whileConditionIsDefinedAndEmpty(element: A): Boolean =
+    whileCondition match {
+      case Some(whileConditionTraversal) =>
+        whileConditionTraversal(Traversal.fromSingle(element)).isEmpty
+      case None =>
+        false
+    }
 
   def shouldEmit(element: A, currentDepth: Int): Boolean
 }
