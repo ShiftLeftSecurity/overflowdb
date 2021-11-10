@@ -4,8 +4,8 @@ import RepeatBehaviour._
 
 trait RepeatBehaviour[A] { this: EmitBehaviour =>
   val searchAlgorithm: SearchAlgorithm.Value
-  val untilCondition: Option[Traversal[A] => Traversal[_]]
-  val whileCondition: Option[Traversal[A] => Traversal[_]]
+  val untilCondition: Option[A => Iterator[_]]
+  val whileCondition: Option[A => Iterator[_]]
   val times: Option[Int]
   val dedupEnabled: Boolean
 
@@ -14,14 +14,14 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
 
   def untilConditionReached(element: A): Boolean =
     untilCondition match {
-      case Some(untilConditionTraversal) => untilConditionTraversal(Traversal.fromSingle(element)).hasNext
+      case Some(untilConditionTraversal) => untilConditionTraversal(element).hasNext
       case None => false
     }
 
   def whileConditionIsDefinedAndEmpty(element: A): Boolean =
     whileCondition match {
       case Some(whileConditionTraversal) =>
-        whileConditionTraversal(Traversal.fromSingle(element)).isEmpty
+        whileConditionTraversal(element).isEmpty
       case None =>
         false
     }
@@ -119,8 +119,8 @@ object RepeatBehaviour {
       if (_emitNothing) {
         new RepeatBehaviour[A] with EmitNothing {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override val untilCondition = _untilCondition
-          override val whileCondition = _whileCondition
+          override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
+          override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = false
@@ -128,8 +128,8 @@ object RepeatBehaviour {
       } else if (_emitAll) {
         new RepeatBehaviour[A] with EmitAll {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override val untilCondition = _untilCondition
-          override val whileCondition = _whileCondition
+          override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
+          override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = true
@@ -137,8 +137,8 @@ object RepeatBehaviour {
       } else if (_emitAllButFirst) {
         new RepeatBehaviour[A] with EmitAllButFirst {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override val untilCondition = _untilCondition
-          override val whileCondition = _whileCondition
+          override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
+          override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
           override def shouldEmit(element: A, currentDepth: Int): Boolean = currentDepth > 0
@@ -147,8 +147,8 @@ object RepeatBehaviour {
         val __emitCondition = _emitCondition
         new RepeatBehaviour[A] with EmitConditional[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-          override val untilCondition = _untilCondition
-          override val whileCondition = _whileCondition
+          override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
+          override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           final private val _emitCondition = __emitCondition.get
           final override val times: Option[Int] = _times
           final override val dedupEnabled = _dedupEnabled
