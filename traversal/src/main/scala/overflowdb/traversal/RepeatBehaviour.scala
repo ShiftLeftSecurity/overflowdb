@@ -2,7 +2,7 @@ package overflowdb.traversal
 
 import RepeatBehaviour._
 
-trait RepeatBehaviour[A] { this: EmitBehaviour =>
+trait RepeatBehaviour[A] {
   val searchAlgorithm: SearchAlgorithm.Value
   val untilCondition: Option[A => Iterator[_]]
   val whileCondition: Option[A => Iterator[_]]
@@ -30,11 +30,6 @@ trait RepeatBehaviour[A] { this: EmitBehaviour =>
 }
 
 object RepeatBehaviour {
-  sealed trait EmitBehaviour
-  trait EmitNothing extends EmitBehaviour
-  trait EmitAll extends EmitBehaviour
-  trait EmitAllButFirst extends EmitBehaviour
-  trait EmitConditional[A] extends EmitBehaviour
 
   object SearchAlgorithm extends Enumeration {
     type SearchAlgorithm = Value
@@ -117,7 +112,7 @@ object RepeatBehaviour {
 
     private[traversal] def build: RepeatBehaviour[A] = {
       if (_emitNothing) {
-        new RepeatBehaviour[A] with EmitNothing {
+        new RepeatBehaviour[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
@@ -126,7 +121,7 @@ object RepeatBehaviour {
           override def shouldEmit(element: A, currentDepth: Int): Boolean = false
         }
       } else if (_emitAll) {
-        new RepeatBehaviour[A] with EmitAll {
+        new RepeatBehaviour[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
@@ -135,7 +130,7 @@ object RepeatBehaviour {
           override def shouldEmit(element: A, currentDepth: Int): Boolean = true
         }
       } else if (_emitAllButFirst) {
-        new RepeatBehaviour[A] with EmitAllButFirst {
+        new RepeatBehaviour[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
@@ -145,7 +140,7 @@ object RepeatBehaviour {
         }
       } else {
         val __emitCondition = _emitCondition
-        new RepeatBehaviour[A] with EmitConditional[A] {
+        new RepeatBehaviour[A] {
           override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
           override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
           override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
