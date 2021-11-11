@@ -1,6 +1,6 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.13.6"
+ThisBuild/scalaVersion := "2.13.7"
 publish/skip := true
 
 lazy val core = project.in(file("core"))
