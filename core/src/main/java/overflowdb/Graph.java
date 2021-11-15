@@ -77,7 +77,11 @@ public final class Graph implements AutoCloseable {
 
     this.overflowEnabled = config.isOverflowEnabled();
     if (this.overflowEnabled) {
-      this.referenceManager = new ReferenceManager(storage, nodesWriter);
+      if (config.getExecutorService().isPresent()) {
+        this.referenceManager = new ReferenceManager(storage, nodesWriter, config.getExecutorService().get());
+      } else {
+        this.referenceManager = new ReferenceManager(storage, nodesWriter);
+      }
       this.heapUsageMonitor = Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), this.referenceManager));
     } else {
       this.referenceManager = null; // not using Optional only due to performance reasons - it's invoked *a lot*
