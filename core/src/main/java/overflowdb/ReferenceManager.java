@@ -26,7 +26,8 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   public final int releaseCount = 100000;
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
-  private final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
+  private final ExecutorService executorService;
+  private final boolean shouldShutdown;
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
   private final OdbStorage storage;
@@ -36,6 +37,15 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter) {
     this.storage = storage;
     this.nodesWriter = nodesWriter;
+    this.executorService = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
+    this.shouldShutdown = false;
+  }
+
+  public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter, ExecutorService executorService) {
+    this.storage = storage;
+    this.nodesWriter = nodesWriter;
+    this.executorService = executorService;
+    this.shouldShutdown = true;
   }
 
   /* Register NodeRef, so it can be cleared on low memory */
@@ -70,7 +80,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     } else {
       int releaseCount = Integer.min(this.releaseCount, clearableRefs.size());
       logger.info("scheduled to clear " + releaseCount + " references (asynchronously)");
-      singleThreadExecutor.submit(() -> syncClearReferences(releaseCount));
+      executorService.submit(() -> syncClearReferences(releaseCount));
     }
   }
 
@@ -138,6 +148,8 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   @Override
   public void close() {
-    singleThreadExecutor.shutdown();
+    if (shouldShutdown) {
+      executorService.shutdown();
+    }
   }
 }
