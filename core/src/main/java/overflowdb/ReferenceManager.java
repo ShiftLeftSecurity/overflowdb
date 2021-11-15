@@ -8,13 +8,10 @@ import overflowdb.util.NamedThreadFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 /**
  * can clear references to disk and apply backpressure when creating new nodes, both to avoid an OutOfMemoryError
