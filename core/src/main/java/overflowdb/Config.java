@@ -3,12 +3,14 @@ package overflowdb;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 public class Config {
   private boolean overflowEnabled = true;
   private int heapPercentageThreshold = 80;
   private Optional<Path> storageLocation = Optional.empty();
   private boolean serializationStatsEnabled = false;
+  private Optional<ExecutorService> executorService = Optional.empty();
 
   public static Config withDefaults() {
     return new Config();
@@ -64,5 +66,14 @@ public class Config {
 
   public boolean isSerializationStatsEnabled() {
     return serializationStatsEnabled;
+  }
+
+  public Config withExecutorService(ExecutorService executorService) {
+    this.executorService = Optional.ofNullable(executorService);
+    return this;
+  }
+
+  public Optional<ExecutorService> getExecutorService() {
+    return executorService;
   }
 }

@@ -7,7 +7,6 @@ import overflowdb.NodeDb;
 import overflowdb.NodeRef;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
