@@ -27,25 +27,35 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   public final int releaseCount = 100000;
   private AtomicInteger totalReleaseCount = new AtomicInteger(0);
   private final ExecutorService executorService;
-  private final boolean shouldShutdown;
+  private final boolean shutdownExecutorOnClose;
   private int clearingProcessCount = 0;
   private final Object backPressureSyncObject = new Object();
   private final OdbStorage storage;
   private final NodesWriter nodesWriter;
   private final List<NodeRef> clearableRefs = Collections.synchronizedList(new ArrayList<>());
 
+  /**
+   * Create a reference manager with the given storage and node writer set; also spawns and manages
+   * a background thread for clearing references - if you'd like more control consider using
+   * {@link #ReferenceManager(OdbStorage, NodesWriter, ExecutorService)} instead.
+   */
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter) {
     this.storage = storage;
     this.nodesWriter = nodesWriter;
     this.executorService = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
-    this.shouldShutdown = true;
+    this.shutdownExecutorOnClose = true;
   }
 
+  /**
+   * Create a reference manager with the given storage and node writer set; the given executor will be used to spawn
+   * a background thread for clearing references.  Note that the executor will not be shut down once {@link #close()}
+   * is called, it's the callers responsibility to manage it.
+   */
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter, ExecutorService executorService) {
     this.storage = storage;
     this.nodesWriter = nodesWriter;
     this.executorService = executorService;
-    this.shouldShutdown = false;
+    this.shutdownExecutorOnClose = false;
   }
 
   /* Register NodeRef, so it can be cleared on low memory */
@@ -148,7 +158,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   @Override
   public void close() {
-    if (shouldShutdown) {
+    if (shutdownExecutorOnClose) {
       executorService.shutdown();
     }
   }
