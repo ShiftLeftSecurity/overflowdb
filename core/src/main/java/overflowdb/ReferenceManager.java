@@ -38,14 +38,14 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
     this.storage = storage;
     this.nodesWriter = nodesWriter;
     this.executorService = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
-    this.shouldShutdown = false;
+    this.shouldShutdown = true;
   }
 
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter, ExecutorService executorService) {
     this.storage = storage;
     this.nodesWriter = nodesWriter;
     this.executorService = executorService;
-    this.shouldShutdown = true;
+    this.shouldShutdown = false;
   }
 
   /* Register NodeRef, so it can be cleared on low memory */
