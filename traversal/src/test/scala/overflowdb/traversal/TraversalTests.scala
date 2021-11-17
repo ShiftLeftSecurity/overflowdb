@@ -1,9 +1,12 @@
 package overflowdb.traversal
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+import overflowdb.traversal.filter.P
+import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, SimpleDomain, Thing}
 import overflowdb.traversal.testdomains.gratefuldead._
-import overflowdb.Node
+import overflowdb.{Node, toPropertyKeyOps}
+import overflowdb.traversal.testdomains.simple.ExampleGraphSetup.graph
+
 import scala.collection.mutable
 
 class TraversalTests extends WordSpec with Matchers {
@@ -155,6 +158,22 @@ class TraversalTests extends WordSpec with Matchers {
     val Seq(keys -> values) = traversal.l
     keys shouldBe "a"
     values.toSet shouldBe(Set(1, 2))
+  }
+
+  "string filter steps" in {
+    val graph = SimpleDomain.newGraph
+    val Name = Thing.PropertyNames.Name
+
+    graph.addNode(Thing.Label, Name, "regular name")
+    graph.addNode(Thing.Label, Name,
+      """multi line name
+        |line two
+        |""".stripMargin)
+
+    graph.V.has(Thing.Properties.Name.where(P.matches(".*"))).size shouldBe 2
+    graph.V.has(Thing.Properties.Name.where(P.matches(".*", ".*"))).size shouldBe 2
+    SimpleDomain.traversal(graph).things.name(".*").size shouldBe 2
+    SimpleDomain.traversal(graph).things.name(".*", ".*").size shouldBe 2
   }
 
   "number filter steps" in {
