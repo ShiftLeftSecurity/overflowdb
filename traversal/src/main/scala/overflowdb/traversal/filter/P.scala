@@ -17,14 +17,14 @@ object P {
     a => !values.contains(a)
 
   def matches(regex: String): String => Boolean =
-    matches(regex.r)
+    matches(StringPropertyFilter.regexpCompile(regex))
 
   def matches(regex: Regex): String => Boolean =
     regex.matches
 
   /* true if (at least) one of the given regexes matches */
   def matches(regexes: String*): String => Boolean = {
-    val regexes0 = regexes.map(_.r)
+    val regexes0 = regexes.map(StringPropertyFilter.regexpCompile)
     value => regexes0.exists(_.matches(value))
   }
 
