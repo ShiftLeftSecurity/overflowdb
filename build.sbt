@@ -3,7 +3,8 @@ ThisBuild/organization := "io.shiftleft"
 ThisBuild/scalaVersion := "2.13.7"
 publish/skip := true
 
-lazy val core = project.in(file("core"))
+lazy val tpi = project.in(file("threadpool-isolation"))
+lazy val core = project.in(file("core")).dependsOn(tpi)
 lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->compile;test->test")
 
 lazy val traversal = project.in(file("traversal"))

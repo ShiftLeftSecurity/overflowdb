@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodesWriter;
 import overflowdb.storage.OdbStorage;
-import overflowdb.util.NamedThreadFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +11,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import io.shiftleft.threadpoolisolation.StructuredConcurrencyContext;
 
 /**
  * can clear references to disk and apply backpressure when creating new nodes, both to avoid an OutOfMemoryError
@@ -42,7 +42,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
   public ReferenceManager(OdbStorage storage, NodesWriter nodesWriter) {
     this.storage = storage;
     this.nodesWriter = nodesWriter;
-    this.executorService = Executors.newSingleThreadExecutor(new NamedThreadFactory("overflowdb-reference-manager"));
+    this.executorService = Executors.newSingleThreadExecutor(StructuredConcurrencyContext.getThreadFactory());
     this.shutdownExecutorOnClose = true;
   }
 
@@ -83,6 +83,7 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
 
   @Override
   public void notifyHeapAboveThreshold() {
+    //this is running on a JVM controlled thread. However, MDC has been set up already by the wrapped HeapUsageMonitor.
     if (clearingProcessCount > 0) {
       logger.debug("cleaning in progress, will only queue up more references to clear after that's completed");
     } else if (clearableRefs.isEmpty()) {
