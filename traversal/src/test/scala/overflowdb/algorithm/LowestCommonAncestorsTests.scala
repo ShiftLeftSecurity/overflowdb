@@ -7,6 +7,28 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
     override def toString = s"Node($value)"
   }
 
+  /**
+   *              +-------------------+
+   *              |                   v
+   *  +---+     +---+     +---+     +---+     +---+     +---+
+   *  | 0 | --> | 2 | --> | 3 | --> | 6 | --> | 7 | --> | 8 |
+   *  +---+     +---+     +---+     +---+     +---+     +---+
+   *    |         |                   |
+   *    |         |                   |
+   *    v         v                   v
+   *  +---+     +---+               +---+
+   *  | 1 |     | 4 |               | 5 |
+   *  +---+     +---+               +---+
+   *
+   * created by `graph-easy --input=lca.eg`, where lca.eg:
+[0] --> [1],[2]
+[2] --> [3],[4],[6]
+[3] --> [6]
+[6] --> [5],[7]
+[7] --> [8]
+   *
+   */
+
   val _0 = new Node(0, Set.empty)
   val _1 = new Node(1, Set(_0))
   val _2 = new Node(2, Set(_0))
