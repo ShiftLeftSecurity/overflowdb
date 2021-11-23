@@ -25,6 +25,20 @@ class DependencySequencerTests extends WordSpec with Matchers {
     DependencySequencer(Set(_0, _1)) shouldBe Seq(Set(_0), Set(_1))
   }
 
+  "sequence and parallelism - simple 1" in {
+    val _0 = new Node(0, Set.empty)
+    val _1 = new Node(1, Set.empty)
+    val _2 = new Node(1, Set(_0, _1))
+    DependencySequencer(Set(_0, _1, _2)) shouldBe Seq(Set(_0, _1), Set(_2))
+  }
+
+  "sequence and parallelism - simple 2" in {
+    val _0 = new Node(0, Set.empty)
+    val _1 = new Node(1, Set(_0))
+    val _2 = new Node(1, Set(_0))
+    DependencySequencer(Set(_0, _1, _2)) shouldBe Seq(Set(_0), Set(_1, _2))
+  }
+
   class Node(val value: Int, val parents: Set[Node]) {
     override def toString = s"Node($value)"
   }
