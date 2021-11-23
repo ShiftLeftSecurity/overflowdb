@@ -19,19 +19,12 @@ object DependencySequencer {
   @tailrec
   private def apply0[A: GetParents](nodes: Set[A], accumulator: Seq[Set[A]], visited: Set[A]): Seq[Set[A]] = {
     if (nodes.size == 0) {
-      Nil
-    } else if (nodes.size == 1) {
-      Seq(nodes)
+      accumulator
     } else {
-      // TODO split up in separate method, call (tail-) recursively
-      //      val remainder: mutable.Map[A, Set[A]] = nodes
-      //      val remainder = nodes.to
       val getParents = implicitly[GetParents[A]]
-      val leafs = nodes.filter(getParents(_).isEmpty)
+      val leafs = nodes.filter(getParents(_).diff(visited).isEmpty)
       val remainder = nodes.diff(leafs)
-//      Seq(leafs) ++ apply0(remainder, visited ++ leafs)
-
-      apply0(nodes, visited ++ leafs)
+      apply0(remainder, accumulator :+ leafs, visited ++ leafs)
     }
 
   }
