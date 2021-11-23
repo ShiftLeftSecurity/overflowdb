@@ -11,9 +11,9 @@ package overflowdb.algorithm
   */
 object LowestCommonAncestors {
 
-  def apply[A](nodes: Set[A])(parents: A => Set[A]): Set[A] = {
+  def apply[A: GetParents](nodes: Set[A]): Set[A] = {
     def parentsRecursive(node: A): Set[A] = {
-      val nodeParents = parents(node)
+      val nodeParents = implicitly[GetParents[A]].apply(node)
       nodeParents ++ nodeParents.flatMap(parentsRecursive)
     }
 

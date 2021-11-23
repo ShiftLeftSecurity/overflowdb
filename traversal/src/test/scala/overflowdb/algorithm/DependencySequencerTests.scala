@@ -1,15 +1,8 @@
 package overflowdb.algorithm
 
 import org.scalatest.{Matchers, WordSpec}
-import overflowdb.algorithm.DependencySequencer.GetParents
 
 class DependencySequencerTests extends WordSpec with Matchers {
-  class Node(val value: Int, val parents: Set[Node]) {
-    override def toString = s"Node($value)"
-  }
-  implicit val getParents = new GetParents[Node] {
-    override def apply(node: Node): Set[Node] = node.parents
-  }
 
   "empty graph" in {
     DependencySequencer(Set.empty[Node]) shouldBe Seq.empty
@@ -32,4 +25,8 @@ class DependencySequencerTests extends WordSpec with Matchers {
     DependencySequencer(Set(_0, _1)) shouldBe Seq(Set(_0), Set(_1))
   }
 
+  class Node(val value: Int, val parents: Set[Node]) {
+    override def toString = s"Node($value)"
+  }
+  implicit def getParents: GetParents[Node] = (node: Node) => node.parents
 }

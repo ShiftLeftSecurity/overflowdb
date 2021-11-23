@@ -3,9 +3,6 @@ package overflowdb.algorithm
 import org.scalatest.{Matchers, WordSpec}
 
 class LowestCommonAncestorsTests extends WordSpec with Matchers {
-  class Node(val value: Int, val parents: Set[Node]) {
-    override def toString = s"Node($value)"
-  }
 
   /**
    *              +-------------------+
@@ -41,27 +38,31 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
 
   "empty set" in {
     val relevantNodes = Set.empty[Node]
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set.empty
+    LowestCommonAncestors(relevantNodes) shouldBe Set.empty
   }
 
   "one node" in {
     val relevantNodes = Set(_3)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe relevantNodes
+    LowestCommonAncestors(relevantNodes) shouldBe relevantNodes
   }
 
   "node 4 and 7" in {
     val relevantNodes = Set(_4, _7)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(_1, _2)
+    LowestCommonAncestors(relevantNodes) shouldBe Set(_1, _2)
   }
 
   "node 1,4,7" in {
     val relevantNodes = Set(_1, _4, _7)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(_0)
+    LowestCommonAncestors(relevantNodes) shouldBe Set(_0)
   }
 
   "node 0,1,4,7" in {
     val relevantNodes = Set(_0, _1, _4, _7)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set.empty
+    LowestCommonAncestors(relevantNodes) shouldBe Set.empty
   }
 
+  class Node(val value: Int, val parents: Set[Node]) {
+    override def toString = s"Node($value)"
+  }
+  implicit def getParents: GetParents[Node] = (node: Node) => node.parents
 }
