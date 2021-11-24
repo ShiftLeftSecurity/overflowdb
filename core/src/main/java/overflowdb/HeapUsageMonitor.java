@@ -3,6 +3,7 @@ package overflowdb;
 import com.sun.management.GarbageCollectionNotificationInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.management.ListenerNotFoundException;
 import javax.management.NotificationEmitter;
@@ -55,6 +56,9 @@ public class HeapUsageMonitor implements AutoCloseable {
   }
 
   private NotificationListener createNotificationListener(float heapUsageThreshold, HeapNotificationListener notificationListener) {
+    //we have no control where the notificationListeners will run -- presumably some thread belonging to GC / JVM.
+    //so we need to capture MDC now
+    Map<String, String> capturedMDC = MDC.getCopyOfContextMap();
     Set<String> ignoredMemoryAreas = new HashSet<>(Arrays.asList("Code Cache", "Compressed Class Space", "Metaspace"));
     return (notification, handback) -> {
       if (notification.getType().equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION)) {
@@ -74,12 +78,17 @@ public class HeapUsageMonitor implements AutoCloseable {
         float heapUsage = (float) totalMemUsed / (float) totalMemMax;
         int heapUsagePercent = (int) Math.floor(heapUsage * 100f);
         if (heapUsage > heapUsageThreshold) {
-          String msg = "heap usage after GC: " + heapUsagePercent + "% -> will clear some references (if possible)";
-          if (heapUsagePercent > 95) logger.warn(msg);
-          else logger.info(msg);
+          Map<String, String> oldMDC = MDC.getCopyOfContextMap();
+          try{
+            MDC.setContextMap(capturedMDC);
+            String msg = "heap usage after GC: " + heapUsagePercent + "% -> will clear some references (if possible)";
+            if (heapUsagePercent > 95) logger.warn(msg);
+            else logger.info(msg);
 
-          notificationListener.notifyHeapAboveThreshold();
+            notificationListener.notifyHeapAboveThreshold();
+          } finally{ MDC.setContextMap(oldMDC); }
         } else {
+          // note: this message won't have correct MDC, but that shouldn't matter too much
           logger.trace("heap usage after GC: " + heapUsagePercent + "%");
         }
       }
