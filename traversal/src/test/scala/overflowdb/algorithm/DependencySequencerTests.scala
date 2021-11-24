@@ -46,7 +46,7 @@ class DependencySequencerTests extends WordSpec with Matchers {
     assertThrows[AssertionError](DependencySequencer(Set(A, B)))
   }
 
-  "larger graph" in {
+  "larger graph 1" in {
     /**
      *             +-------------------+
      *             |                   v
@@ -65,6 +65,30 @@ class DependencySequencerTests extends WordSpec with Matchers {
     val D = new Node("D", Set(B))
     val E = new Node("E", Set(B, C, D))
     DependencySequencer(Set(A, B, C, D, E)) shouldBe Seq(Set(A), Set(B), Set(C, D), Set(E))
+  }
+
+  "larger graph 2" in {
+    /**
+     *             +-----------------------------+
+     *             |                             v
+     * +---+     +---+     +---+     +---+     +---+
+     * | A | --> | B | --> | D | --> | E | --> | F |
+     * +---+     +---+     +---+     +---+     +---+
+     *             |                             ^
+     *             v                             |
+     *           +---+                           |
+     *           | C | --------------------------+
+     *           +---+
+     */
+    val A = new Node("A")
+    val B = new Node("B", Set(A))
+    val C = new Node("C", Set(B))
+    val D = new Node("D", Set(B))
+    val E = new Node("E", Set(D))
+    val F = new Node("F", Set(B, C, E))
+    DependencySequencer(Set(A, B, C, D, E, F)) shouldBe Seq(Set(A), Set(B), Set(C, D), Set(E), Set(F))
+    // note: for task processing this isn't actually the optimal solution,
+    // because E will only start after [C|D] are finished... it wouldn't need to wait for C though...
   }
 
   class Node(val name: String, var parents: Set[Node] = Set.empty) {

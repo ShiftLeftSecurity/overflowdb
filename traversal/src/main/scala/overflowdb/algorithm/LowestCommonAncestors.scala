@@ -6,7 +6,7 @@ object LowestCommonAncestors {
 
   /**
    * Find the lowest common ancestor(s) for a set of nodes in a directed acyclic graph (DAG).
-   * @return empty Set if given nodes have cyclic dependencies
+   * @return Set.empty if given nodes have cyclic dependencies
    *
    * Algorithm:
    * 1) for each relevant node, find their recursive parents
@@ -32,18 +32,19 @@ object LowestCommonAncestors {
     }
   }
 
-  private def parentsRecursive[A: GetParents](node: A): Set[A] =
-    parentsRecursive0(Set(node), Set.empty)
+  def parentsRecursive[A: GetParents](node: A): Set[A] =
+    parentsRecursive0(Set(node), Set.empty, Set.empty)
 
   @tailrec
-  private def parentsRecursive0[A: GetParents](nodes: Set[A], accumulator: Set[A]): Set[A] = {
-    if (nodes.isEmpty)
+  private def parentsRecursive0[A: GetParents](nodes: Set[A], accumulator: Set[A], visited: Set[A]): Set[A] = {
+    if (nodes.isEmpty || nodes.forall(visited.contains))
       accumulator
     else {
       val getParents = implicitly[GetParents[A]]
-      val nextAccumulator = accumulator ++ nodes
-      val nextNodes = nodes.flatMap(getParents.apply).diff(nextAccumulator)
-      parentsRecursive0(nextNodes, nextAccumulator)
+      val parents = nodes.flatMap(getParents.apply)
+      val nextAccumulator = accumulator ++ parents
+
+      parentsRecursive0(parents, nextAccumulator, visited ++ nodes)
     }
 
   }
