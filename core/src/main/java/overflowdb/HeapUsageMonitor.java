@@ -88,7 +88,7 @@ public class HeapUsageMonitor implements AutoCloseable {
             notificationListener.notifyHeapAboveThreshold();
           } finally{ MDC.setContextMap(oldMDC); }
         } else {
-          //fixme? This message won't have correct MDC
+          // note: this message won't have correct MDC, but that shouldn't matter too much
           logger.trace("heap usage after GC: " + heapUsagePercent + "%");
         }
       }
