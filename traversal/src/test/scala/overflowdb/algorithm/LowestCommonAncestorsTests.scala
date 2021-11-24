@@ -61,7 +61,14 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
     LowestCommonAncestors(relevantNodes) shouldBe Set.empty
   }
 
-  class Node(val name: String, val parents: Set[Node]) {
+  "cyclic dependencies" in {
+    val A = new Node("A", Set.empty)
+    val B = new Node("B", Set(A))
+    A.parents = Set(B)  // cycle in dependencies, not a DAG any longer
+    LowestCommonAncestors(Set(A, B)) shouldBe Set.empty
+  }
+
+  class Node(val name: String, var parents: Set[Node]) {
     override def toString = name
   }
   implicit def getParents: GetParents[Node] = (node: Node) => node.parents
