@@ -8,33 +8,33 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
    *              +-------------------+
    *              |                   v
    *  +---+     +---+     +---+     +---+     +---+     +---+
-   *  | 0 | --> | 2 | --> | 3 | --> | 6 | --> | 7 | --> | 8 |
+   *  | A | --> | C | --> | D | --> | G | --> | H | --> | I |
    *  +---+     +---+     +---+     +---+     +---+     +---+
    *    |         |                   |
    *    |         |                   |
    *    v         v                   v
    *  +---+     +---+               +---+
-   *  | 1 |     | 4 |               | 5 |
+   *  | B |     | E |               | F |
    *  +---+     +---+               +---+
    *
    * created by `graph-easy --input=lca.eg`, where lca.eg:
-[0] --> [1],[2]
-[2] --> [3],[4],[6]
-[3] --> [6]
-[6] --> [5],[7]
-[7] --> [8]
+[A] --> [B],[C]
+[C] --> [D],[E],[G]
+[D] --> [G]
+[G] --> [F],[H]
+[H] --> [I]
    *
    */
 
-  val _0 = new Node(0, Set.empty)
-  val _1 = new Node(1, Set(_0))
-  val _2 = new Node(2, Set(_0))
-  val _3 = new Node(3, Set(_2))
-  val _4 = new Node(4, Set(_1, _2))
-  val _6 = new Node(6, Set(_1, _2, _3))
-  val _5 = new Node(5, Set(_6))
-  val _7 = new Node(7, Set(_6))
-  val _8 = new Node(8, Set(_7))
+  val A = new Node("A", Set.empty)
+  val B = new Node("B", Set(A))
+  val C = new Node("C", Set(A))
+  val D = new Node("D", Set(C))
+  val E = new Node("E", Set(B, C))
+  val G = new Node("F", Set(B, C, D))
+  val F = new Node("G", Set(G))
+  val H = new Node("H", Set(G))
+  val I = new Node("I", Set(H))
 
   "empty set" in {
     val relevantNodes = Set.empty[Node]
@@ -42,27 +42,27 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
   }
 
   "one node" in {
-    val relevantNodes = Set(_3)
+    val relevantNodes = Set(D)
     LowestCommonAncestors(relevantNodes) shouldBe relevantNodes
   }
 
-  "node 4 and 7" in {
-    val relevantNodes = Set(_4, _7)
-    LowestCommonAncestors(relevantNodes) shouldBe Set(_1, _2)
+  "node E and H" in {
+    val relevantNodes = Set(E, H)
+    LowestCommonAncestors(relevantNodes) shouldBe Set(B, C)
   }
 
-  "node 1,4,7" in {
-    val relevantNodes = Set(_1, _4, _7)
-    LowestCommonAncestors(relevantNodes) shouldBe Set(_0)
+  "node B,E,H" in {
+    val relevantNodes = Set(B, E, H)
+    LowestCommonAncestors(relevantNodes) shouldBe Set(A)
   }
 
-  "node 0,1,4,7" in {
-    val relevantNodes = Set(_0, _1, _4, _7)
+  "node A,B,E,H" in {
+    val relevantNodes = Set(A, B, E, H)
     LowestCommonAncestors(relevantNodes) shouldBe Set.empty
   }
 
-  class Node(val value: Int, val parents: Set[Node]) {
-    override def toString = s"Node($value)"
+  class Node(val name: String, val parents: Set[Node]) {
+    override def toString = name
   }
   implicit def getParents: GetParents[Node] = (node: Node) => node.parents
 }

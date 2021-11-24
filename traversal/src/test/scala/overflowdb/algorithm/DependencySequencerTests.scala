@@ -9,67 +9,66 @@ class DependencySequencerTests extends WordSpec with Matchers {
   }
 
   "one node" in {
-    val _0 = new Node(0)
-    DependencySequencer(Set(_0)) shouldBe Seq(Set(_0))
+    val A = new Node("A")
+    DependencySequencer(Set(A)) shouldBe Seq(Set(A))
   }
 
   "two independent nodes" in {
-    val _0 = new Node(0)
-    val _1 = new Node(1)
-    DependencySequencer(Set(_0, _1)) shouldBe Seq(Set(_0, _1))
+    val A = new Node("A")
+    val B = new Node("B")
+    DependencySequencer(Set(A, B)) shouldBe Seq(Set(A, B))
   }
 
   "two nodes in sequence" in {
-    val _0 = new Node(0)
-    val _1 = new Node(1, Set(_0))
-    DependencySequencer(Set(_0, _1)) shouldBe Seq(Set(_0), Set(_1))
+    val A = new Node("A")
+    val B = new Node("B", Set(A))
+    DependencySequencer(Set(A, B)) shouldBe Seq(Set(A), Set(B))
   }
 
   "sequence and parallelism - simple 1" in {
-    val _0 = new Node(0)
-    val _1 = new Node(1)
-    val _2 = new Node(2, Set(_0, _1))
-    DependencySequencer(Set(_0, _1, _2)) shouldBe Seq(Set(_0, _1), Set(_2))
+    val A = new Node("A")
+    val B = new Node("B")
+    val C = new Node("C", Set(A, B))
+    DependencySequencer(Set(A, B, C)) shouldBe Seq(Set(A, B), Set(C))
   }
 
   "sequence and parallelism - simple 2" in {
-    val _0 = new Node(0)
-    val _1 = new Node(1, Set(_0))
-    val _2 = new Node(2, Set(_0))
-    DependencySequencer(Set(_0, _1, _2)) shouldBe Seq(Set(_0), Set(_1, _2))
+    val A = new Node("A")
+    val B = new Node("B", Set(A))
+    val C = new Node("C", Set(A))
+    DependencySequencer(Set(A, B, C)) shouldBe Seq(Set(A), Set(B, C))
   }
 
   "throw error if it's not a DAG" in {
-    val _0 = new Node(0)
-    val _1 = new Node(1, Set(_0))
-    _0.parents = Set(_1)  // cycle in dependencies, not a DAG any longer
-    assertThrows[AssertionError](DependencySequencer(Set(_0, _1)))
+    val A = new Node("A")
+    val B = new Node("B", Set(A))
+    A.parents = Set(B)  // cycle in dependencies, not a DAG any longer
+    assertThrows[AssertionError](DependencySequencer(Set(A, B)))
   }
 
   "larger graph" in {
-
     /**
      *             +-------------------+
      *             |                   v
      * +---+     +---+     +---+     +---+
-     * | 0 | --> | 1 | --> | 2 | --> | 4 |
+     * | A | --> | B | --> | C | --> | E |
      * +---+     +---+     +---+     +---+
      *             |                   ^
      *             v                   |
      *           +---+                 |
-     *           | 3 | ----------------+
+     *           | D | ----------------+
      *           +---+
      */
-    val _0 = new Node(0)
-    val _1 = new Node(1, Set(_0))
-    val _2 = new Node(2, Set(_1))
-    val _3 = new Node(3, Set(_1))
-    val _4 = new Node(4, Set(_1, _2, _3))
-    DependencySequencer(Set(_0, _1, _2, _3, _4)) shouldBe Seq(Set(_0), Set(_1), Set(_2, _3), Set(_4))
+    val A = new Node("A")
+    val B = new Node("B", Set(A))
+    val C = new Node("C", Set(B))
+    val D = new Node("D", Set(B))
+    val E = new Node("E", Set(B, C, D))
+    DependencySequencer(Set(A, B, C, D, E)) shouldBe Seq(Set(A), Set(B), Set(C, D), Set(E))
   }
 
-  class Node(val value: Int, var parents: Set[Node] = Set.empty) {
-    override def toString = s"Node($value)"
+  class Node(val name: String, var parents: Set[Node] = Set.empty) {
+    override def toString = name
   }
   implicit def getParents: GetParents[Node] = (node: Node) => node.parents
 }
