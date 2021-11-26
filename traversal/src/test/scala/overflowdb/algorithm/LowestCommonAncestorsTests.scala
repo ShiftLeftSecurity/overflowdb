@@ -3,19 +3,46 @@ package overflowdb.algorithm
 import org.scalatest.{Matchers, WordSpec}
 
 class LowestCommonAncestorsTests extends WordSpec with Matchers {
-  class Node(val value: Int, val parents: Set[Node]) {
-    override def toString = s"Node($value)"
-  }
 
-  val _0 = new Node(0, Set.empty)
-  val _1 = new Node(1, Set(_0))
-  val _2 = new Node(2, Set(_0))
-  val _3 = new Node(3, Set(_2))
-  val _4 = new Node(4, Set(_1, _2))
-  val _6 = new Node(6, Set(_1, _2, _3))
-  val _5 = new Node(5, Set(_6))
-  val _7 = new Node(7, Set(_6))
-  val _8 = new Node(8, Set(_7))
+  /**
+   *
+   *    +--------------+
+   *    |              |
+   *    |  +---+     +---+     +---+     +---+     +---+     +---+
+   *    |  | A | --> | C | --> | D | --> |   | --> | H | --> | I |
+   *    |  +---+     +---+     +---+     |   |     +---+     +---+
+   *    |    |         |                 |   |
+   *    |    |         +---------------> | G |
+   *    |    v                           |   |
+   *    |  +---+                         |   |     +---+
+   *    |  | B | ----------------------> |   | --> | F |
+   *    |  +---+                         +---+     +---+
+   *    |    |
+   *    |    |
+   *    |    v
+   *    |  +---+
+   *    +> | E |
+   *       +---+
+   *
+   * created by `graph-easy --input=lca.eg`, where lca.eg:
+[A] --> [B],[C]
+[B] --> [E],[G]
+[C] --> [D],[E],[G]
+[D] --> [G]
+[G] --> [F],[H]
+[H] --> [I]
+   *
+   */
+
+  val A = new Node("A", Set.empty)
+  val B = new Node("B", Set(A))
+  val C = new Node("C", Set(A))
+  val D = new Node("D", Set(C))
+  val E = new Node("E", Set(B, C))
+  val G = new Node("G", Set(B, C, D))
+  val F = new Node("F", Set(G))
+  val H = new Node("H", Set(G))
+  val I = new Node("I", Set(H))
 
   "empty set" in {
     val relevantNodes = Set.empty[Node]
@@ -23,23 +50,34 @@ class LowestCommonAncestorsTests extends WordSpec with Matchers {
   }
 
   "one node" in {
-    val relevantNodes = Set(_3)
+    val relevantNodes = Set(D)
     LowestCommonAncestors(relevantNodes)(_.parents) shouldBe relevantNodes
   }
 
-  "node 4 and 7" in {
-    val relevantNodes = Set(_4, _7)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(_1, _2)
+  "node E and H" in {
+    val relevantNodes = Set(E, H)
+    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(B, C)
   }
 
-  "node 1,4,7" in {
-    val relevantNodes = Set(_1, _4, _7)
-    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(_0)
+  "node B,E,H" in {
+    val relevantNodes = Set(B, E, H)
+    LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set(A)
   }
 
-  "node 0,1,4,7" in {
-    val relevantNodes = Set(_0, _1, _4, _7)
+  "node A,B,E,H" in {
+    val relevantNodes = Set(A, B, E, H)
     LowestCommonAncestors(relevantNodes)(_.parents) shouldBe Set.empty
   }
 
+  "cyclic dependencies" in {
+    val A = new Node("A", Set.empty)
+    val B = new Node("B", Set(A))
+    A.parents = Set(B)  // cycle in dependencies, not a DAG any longer
+    LowestCommonAncestors(Set(A, B)) shouldBe Set.empty
+  }
+
+  class Node(val name: String, var parents: Set[Node]) {
+    override def toString = name
+  }
+  implicit def getParents: GetParents[Node] = (node: Node) => node.parents
 }
