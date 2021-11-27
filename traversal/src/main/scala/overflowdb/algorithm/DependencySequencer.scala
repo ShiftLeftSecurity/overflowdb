@@ -9,7 +9,7 @@ object DependencySequencer {
    * Sample use case: concurrent task processing: given a set of tasks, determine which ones can be
    * executed in parallel, and which ones need to run in sequence.
    *
-   * @throws AssertionError if given nodes have cyclic dependencies
+   * @throws java.lang.AssertionError if given nodes have cyclic dependencies
    *
    * Algorithm: variant of Kahn's algorithm for topological sort
    * 1) for given nodes, find all leaves, i.e. the those without parents (e.g. task dependencies)
