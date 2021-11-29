@@ -24,7 +24,7 @@ public final class Graph implements AutoCloseable {
   protected final NodesList nodes = new NodesList();
   public final IndexManager indexManager = new IndexManager(this);
   private final Config config;
-  private volatile boolean closed = false;
+  private boolean closed = false;
 
   protected final Map<String, NodeFactory> nodeFactoryByLabel;
   protected final Map<String, EdgeFactory> edgeFactoryByLabel;
