@@ -13,6 +13,7 @@ import overflowdb.util.PropertyHelper;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -24,7 +25,8 @@ public final class Graph implements AutoCloseable {
   protected final NodesList nodes = new NodesList();
   public final IndexManager indexManager = new IndexManager(this);
   private final Config config;
-  private boolean closed = false;
+  private volatile boolean closed = false;
+  private volatile FutureTask<Object> shutdownTask;
 
   protected final Map<String, NodeFactory> nodeFactoryByLabel;
   protected final Map<String, EdgeFactory> edgeFactoryByLabel;
@@ -193,29 +195,60 @@ public final class Graph implements AutoCloseable {
   }
 
   /**
-   * if the config.graphLocation is set, data in the graph is persisted to that location.
+   * If the config.graphLocation is set, data in the graph is persisted to that location.
+   *
+   * If called from multiple threads concurrently, only one starts the shutdown process, but the other one will
+   * still await the result. Background: we also want the second caller to block until `close` is completed, and not
+   * falsely assume that it has finished, only because it exits straight away.
    */
   @Override
-  public void close() {
-    this.closed = true;
-    try {
-      heapUsageMonitor.ifPresent(monitor -> monitor.close());
-      if (config.getStorageLocation().isPresent()) {
+  public synchronized void close() {
+    if (isClosed()) {
+      if (shutdownTask.isDone()) {
+        logger.info("graph is already closed");
+      } else {
+        logger.info("shutdown was already triggered by a different thread - awaiting result");
+        awaitShutdown();
+      }
+    } else {
+      this.closed = true;
+      this.shutdownTask = new FutureTask(shutdownNow(), null);
+      awaitShutdown();
+    }
+  }
 
-        /* persist to disk: if overflow is enabled, ReferenceManager takes care of that
-        * otherwise: persist all nodes here */
-        indexManager.storeIndexes(storage);
-        if (referenceManager != null) {
-          referenceManager.clearAllReferences();
-        } else {
-          nodes.persistAll(nodesWriter);
+  private Runnable shutdownNow() {
+    return () -> {
+      logger.info("close: starting shutdown procedure");
+      try {
+        heapUsageMonitor.ifPresent(monitor -> monitor.close());
+        if (config.getStorageLocation().isPresent()) {
+
+          /* persist to disk: if overflow is enabled, ReferenceManager takes care of that
+           * otherwise: persist all nodes here */
+          indexManager.storeIndexes(storage);
+          if (referenceManager != null) {
+            referenceManager.clearAllReferences();
+          } else {
+            nodes.persistAll(nodesWriter);
+          }
         }
+      } finally {
+        if (referenceManager != null) {
+          referenceManager.close();
+        }
+        storage.close();
       }
-    } finally {
-      if (referenceManager != null) {
-        referenceManager.close();
-      }
-      storage.close();
+      logger.info("close: completed shutdown procedure");
+    };
+  }
+
+  private void awaitShutdown() {
+    try {
+      this.shutdownTask.get();
+    } catch (Exception e) {
+      logger.error("error while awaiting shutdown task", e);
+      throw new RuntimeException(e);
     }
   }
 
