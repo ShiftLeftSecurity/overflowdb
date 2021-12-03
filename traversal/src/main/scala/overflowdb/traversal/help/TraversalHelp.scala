@@ -3,6 +3,7 @@ package overflowdb.traversal.help
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import overflowdb.{NodeRef, NodeDb}
 import java.lang.annotation.{Annotation => JAnnotation}
+import DocFinder.StepDoc
 
 import org.reflections8.Reflections
 
@@ -88,15 +89,6 @@ class TraversalHelp(domainBasePackage: String) {
     findStepDocs(classOf[NodeTraversal[_]]) ++ findStepDocs(classOf[ElementTraversal[_]])
 
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
-    traversal.getMethods.flatMap { method =>
-      method.getAnnotations.find(_.isInstanceOf[Doc]).map { case docAnnotation: Doc =>
-        StepDoc(traversal.getName, method.getName,
-          StrippedDoc(docAnnotation.info, docAnnotation.longInfo.stripMargin, docAnnotation.example.stripMargin)
-        )
-      }
-    }
+    DocFinder.findDocumentedMethodsOf(traversal)
   }
-
-  case class StepDoc(traversalClassName: String, methodName: String, doc: StrippedDoc)
-  case class StrippedDoc(info: String, longInfo: String, example: String)
 }
