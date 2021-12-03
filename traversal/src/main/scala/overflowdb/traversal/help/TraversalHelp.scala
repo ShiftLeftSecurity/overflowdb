@@ -91,9 +91,7 @@ class TraversalHelp(domainBasePackage: String) {
     traversal.getMethods.flatMap { method =>
       method.getAnnotations.find(_.isInstanceOf[Doc]).map { case docAnnotation: Doc =>
         StepDoc(traversal.getName, method.getName,
-          StrippedDoc(docAnnotation.info,
-            docAnnotation.longInfo.stripMargin,
-            docAnnotation.example.stripMargin)
+          StrippedDoc(docAnnotation.info, docAnnotation.longInfo.stripMargin, docAnnotation.example.stripMargin)
         )
       }
     }
