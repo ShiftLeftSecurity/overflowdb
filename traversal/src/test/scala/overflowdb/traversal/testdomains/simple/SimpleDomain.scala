@@ -25,7 +25,7 @@ object SimpleDomain {
 @help.TraversalSource
 class SimpleDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
 
-  @Doc("all things")
+  @Doc(info = "all things")
   def things: Traversal[Thing] = label(Thing.Label).cast[Thing]
 
   lazy val help: String = SimpleDomain.help.forTraversalSources
