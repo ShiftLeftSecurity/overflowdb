@@ -8,7 +8,7 @@ import scala.jdk.CollectionConverters._
 class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal {
 
   /** traverse to the element label */
-  @Doc("Traverse to the element label")
+  @Doc(info = "Traverse to the element label")
   def label: Traversal[String] = traversal.map(_.label)
 
   /** filter by the element label
