@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
@@ -8,7 +9,7 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 
 /** generic graph traversals, i.e. domain independent */
-class GenericGraphTraversalTests extends WordSpec with Matchers {
+class GenericGraphTraversalTests extends AnyWordSpec {
   import ExampleGraphSetup._
 
   "V for all nodes" in {

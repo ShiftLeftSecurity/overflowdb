@@ -1,8 +1,9 @@
 package overflowdb.algorithm
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
-class DependencySequencerTests extends WordSpec with Matchers {
+class DependencySequencerTests extends AnyWordSpec {
 
   "empty graph" in {
     DependencySequencer(Set.empty[Node]) shouldBe Seq.empty

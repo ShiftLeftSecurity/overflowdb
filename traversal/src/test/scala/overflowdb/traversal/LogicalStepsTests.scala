@@ -1,11 +1,12 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers._
 import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 
-class LogicalStepsTests extends WordSpec with Matchers {
+class LogicalStepsTests extends AnyWordSpec {
   import ExampleGraphSetup._
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5

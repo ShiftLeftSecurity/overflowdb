@@ -1,8 +1,9 @@
 package overflowdb.algorithm
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 
-class LowestCommonAncestorsTests extends WordSpec with Matchers {
+class LowestCommonAncestorsTests extends AnyWordSpec {
 
   /**
    *

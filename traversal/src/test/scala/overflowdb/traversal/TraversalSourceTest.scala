@@ -1,10 +1,11 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.testdomains.simple.{SimpleDomain, Thing}
 
-class TraversalSourceTest extends WordSpec with Matchers {
+class TraversalSourceTest extends AnyWordSpec {
 
   "property lookup with and without indexes" in {
     val graph = SimpleDomain.newGraph
