@@ -90,10 +90,13 @@ class TraversalHelp(domainBasePackage: String) {
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
     traversal.getMethods.flatMap { method =>
       method.getAnnotations.find(_.isInstanceOf[Doc]).map { case docAnnotation: Doc =>
-        StepDoc(traversal.getName, method.getName, docAnnotation)
+        StepDoc(traversal.getName, method.getName,
+          StrippedDoc(docAnnotation.info, docAnnotation.longInfo.stripMargin, docAnnotation.example.stripMargin)
+        )
       }
     }
   }
 
-  case class StepDoc(traversalClassName: String, methodName: String, doc: Doc)
+  case class StepDoc(traversalClassName: String, methodName: String, doc: StrippedDoc)
+  case class StrippedDoc(info: String, longInfo: String, example: String)
 }
