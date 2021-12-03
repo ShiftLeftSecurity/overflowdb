@@ -1,15 +1,15 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, SimpleDomain, Thing}
 import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.{Node, toPropertyKeyOps}
-import overflowdb.traversal.testdomains.simple.ExampleGraphSetup.graph
 
 import scala.collection.mutable
 
-class TraversalTests extends WordSpec with Matchers {
+class TraversalTests extends AnyWordSpec {
   import ExampleGraphSetup._
 
   "can only be iterated once" in {

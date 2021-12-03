@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
@@ -9,7 +10,7 @@ import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, S
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-class RepeatTraversalTests extends WordSpec with Matchers {
+class RepeatTraversalTests extends AnyWordSpec {
   import ExampleGraphSetup._
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5

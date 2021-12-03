@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
@@ -8,7 +9,7 @@ import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
 import scala.collection.mutable
 
 
-class PathTraversalTests extends WordSpec with Matchers {
+class PathTraversalTests extends AnyWordSpec {
   import ExampleGraphSetup._
 
   ".path step" should {
