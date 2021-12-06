@@ -13,12 +13,12 @@ class GratefulDeadTests extends AnyWordSpec {
     "perform generic graph steps" in {
       gratefulDead.all.size shouldBe 808
       gratefulDead.all.id.l.sorted.head shouldBe 1
-      gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
+      gratefulDead.all.label.toSetMutable shouldBe Set(Artist.Label, Song.Label)
 
       gratefulDead.label(Artist.Label).size shouldBe 224
       gratefulDead.id(1).label.head shouldBe Song.Label
       gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
-      gratefulDead.ids(3, 4).property[String]("name").toSet shouldBe Set("BERTHA", "NOT FADE AWAY")
+      gratefulDead.ids(3, 4).property[String]("name").toSetMutable shouldBe Set("BERTHA", "NOT FADE AWAY")
       gratefulDead.all.has(Song.Properties.SongType).size shouldBe 584
       gratefulDead.all.has(Song.Properties.Performances, 2).size shouldBe 36
     }
@@ -64,7 +64,7 @@ class GratefulDeadTests extends AnyWordSpec {
     "traverse domain-specific edges" in {
       gratefulDead.artists.nameExact("Bob_Dylan").sangSongs.size shouldBe 22
       gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.size shouldBe 5
-      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSet shouldBe Set("original", "cover", "")
+      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSetMutable shouldBe Set("original", "cover", "")
     }
 
     "be expressed in for comprehension" in {
@@ -102,7 +102,7 @@ class GratefulDeadTests extends AnyWordSpec {
         .sangSongs
         .repeat(_.followedBy)(_.times(3))
         .sungBy
-        .toSet
+        .toSetMutable
         .size shouldBe 43
     }
   }

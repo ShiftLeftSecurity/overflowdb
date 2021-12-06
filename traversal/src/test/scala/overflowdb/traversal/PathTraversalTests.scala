@@ -18,59 +18,59 @@ class PathTraversalTests extends AnyWordSpec {
     }
 
     "work for single element traversal (boring)" in {
-      centerTrav.enablePathTracking.path.toSet shouldBe Set(Seq(center))
+      centerTrav.enablePathTracking.path.toSetMutable shouldBe Set(Seq(center))
     }
 
     "work for simple one-step expansion" in {
-      centerTrav.enablePathTracking.out.path.toSet shouldBe Set(
+      centerTrav.enablePathTracking.out.path.toSetMutable shouldBe Set(
         Seq(center, l1),
         Seq(center, r1))
     }
 
     "work for simple two-step expansion" in {
-      centerTrav.enablePathTracking.out.out.path.toSet shouldBe Set(
+      centerTrav.enablePathTracking.out.out.path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))
     }
 
     "only track from where it's enabled" in {
-      centerTrav.out.enablePathTracking.out.path.toSet shouldBe Set(
+      centerTrav.out.enablePathTracking.out.path.toSetMutable shouldBe Set(
         Seq(l1, l2),
         Seq(r1, r2))
     }
 
     "support domain-specific steps" in {
-      centerTrav.enablePathTracking.followedBy.followedBy.path.toSet shouldBe Set(
+      centerTrav.enablePathTracking.followedBy.followedBy.path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))
     }
 
     "work in combination with other steps" should {
       ".map: include intermediate results in path" in {
-        centerTrav.enablePathTracking.followedBy.map(_.name).path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.map(_.name).path.toSetMutable shouldBe Set(
           Seq(center, l1, "L1"),
           Seq(center, r1, "R1"))
       }
 
       "collect: include intermediate results in path" in {
-        centerTrav.enablePathTracking.followedBy.collect { case x => x.name }.path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.collect { case x => x.name }.path.toSetMutable shouldBe Set(
           Seq(center, l1, "L1"),
           Seq(center, r1, "R1"))
       }
 
       "filter" in {
-        centerTrav.enablePathTracking.followedBy.nameStartsWith("R").followedBy.path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.nameStartsWith("R").followedBy.path.toSetMutable shouldBe Set(
           Seq(center, r1, r2))
       }
 
       "filterNot" in {
-        centerTrav.enablePathTracking.followedBy.filterNot(_.name.startsWith("R")).followedBy.path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.filterNot(_.name.startsWith("R")).followedBy.path.toSetMutable shouldBe Set(
           Seq(center, l1, l2))
       }
 
       "dedup" in {
-        verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSet)
-        verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSet)
+        verifyResults(center.start.enablePathTracking.both.both.dedup.path.toSetMutable)
+        verifyResults(center.start.enablePathTracking.both.both.dedupBy(_.hashCode).path.toSetMutable)
 
         def verifyResults(paths: collection.Set[Vector[_]]) = {
           paths should contain(Vector(center, l1, l2))
@@ -92,18 +92,18 @@ class PathTraversalTests extends AnyWordSpec {
       }
 
       "where" in {
-        centerTrav.enablePathTracking.followedBy.where(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.where(_.nameStartsWith("R")).followedBy.path.toSetMutable shouldBe Set(
           Seq(center, r1, r2))
       }
 
       "whereNot" in {
-        centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSet shouldBe Set(
+        centerTrav.enablePathTracking.followedBy.whereNot(_.nameStartsWith("R")).followedBy.path.toSetMutable shouldBe Set(
           Seq(center, l1, l2))
       }
 
       "sideEffect" in {
         val sack = mutable.ListBuffer.empty[Node]
-        center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSet shouldBe Set(
+        center.start.enablePathTracking.out.sideEffect(sack.addOne).out.path.toSetMutable shouldBe Set(
           Seq(center, l1, l2),
           Seq(center, r1, r2),
         )
@@ -123,7 +123,7 @@ class PathTraversalTests extends AnyWordSpec {
           }
           .out
           .path
-          .toSet shouldBe Set(
+          .toSetMutable shouldBe Set(
           Seq(center, l1, l2),
           Seq(center, r1, r2)
         )
@@ -154,7 +154,7 @@ class PathTraversalTests extends AnyWordSpec {
           .choose(_.property(Name)) {
             case "L1" => _.out // -> L2
             case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
-          }.property(Name).path.toSet shouldBe Set(
+          }.property(Name).path.toSetMutable shouldBe Set(
           Seq(r1, r4, "R4"),
           Seq(l1, l2, "L2")
         )
@@ -166,7 +166,7 @@ class PathTraversalTests extends AnyWordSpec {
           _.out("doesn't exist"),
           _.out,
           _.sideEffect(_ => traversalInvoked = true).out
-        ).property(Name).path.toSet shouldBe Set(
+        ).property(Name).path.toSetMutable shouldBe Set(
           Seq(center, l1, "L1"),
           Seq(center, r1, "R1"),
         )
@@ -178,9 +178,9 @@ class PathTraversalTests extends AnyWordSpec {
 
   ".simplePath step" should {
     "remove results where path has repeated objects on the path" in {
-      center.start.enablePathTracking.both.both.simplePath.toSet shouldBe Set(l2, r2)
+      center.start.enablePathTracking.both.both.simplePath.toSetMutable shouldBe Set(l2, r2)
 
-      center.start.enablePathTracking.both.both.simplePath.path.toSet shouldBe Set(
+      center.start.enablePathTracking.both.both.simplePath.path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2),
       )

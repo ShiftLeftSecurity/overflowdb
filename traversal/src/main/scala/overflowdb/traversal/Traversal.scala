@@ -30,6 +30,9 @@ class Traversal[A](elements: IterableOnce[A])
   /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
   def toSet: mutable.Set[A] = mutable.Set.from(this)
 
+ /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
+  def toSetMutable: mutable.Set[A] = mutable.Set.from(this)
+
   /** Execute the traversal and convert the result to an immutable Set */
   def toSetImmutable: Set[A] = iterator.toSet
 
