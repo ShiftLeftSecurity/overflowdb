@@ -5,7 +5,7 @@ import scala.jdk.CollectionConverters._
 
 class FollowedBy(graph: Graph, outVertex: NodeRef[SongDb], inVertex: NodeRef[SongDb])
     extends Edge(graph, FollowedBy.Label, outVertex, inVertex, FollowedBy.PropertyNames.all.asJava) {
-  def weight: Option[Integer] =
+  def weight: Option[Int] =
     Option(property(FollowedBy.Properties.Weight))
 }
 
