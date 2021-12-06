@@ -16,7 +16,7 @@ object PathAwareRepeatStep {
     * */
   def apply[A](repeatTraversal: Traversal[A] => Traversal[A],
                behaviour: RepeatBehaviour[A]): A => PathAwareTraversal[A] = {
-    element: A =>
+    (element: A) =>
       new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
         val visited = mutable.Set.empty[A]
         val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty

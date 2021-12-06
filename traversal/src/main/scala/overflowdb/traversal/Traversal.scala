@@ -99,21 +99,21 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc(info = "perform side effect without changing the contents of the traversal")
   def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] =
     mapElements { a =>
-      pf.applyOrElse(a, {_: A => ()})
+      pf.applyOrElse(a, {(_: A) => ()})
       a
     }
 
   /** only preserves elements if the provided traversal has at least one result */
   @Doc(info = "only preserves elements if the provided traversal has at least one result")
   def where(trav: Traversal[A] => Traversal[_]): Traversal[A] =
-    filter { a: A =>
+    filter { (a: A) =>
       trav(Traversal.fromSingle(a)).hasNext
     }
 
   /** only preserves elements if the provided traversal does _not_ have any results */
   @Doc(info = "only preserves elements if the provided traversal does _not_ have any results")
   def whereNot(trav: Traversal[A] => Traversal[_]): Traversal[A] =
-    filterNot { a: A =>
+    filterNot { (a: A) =>
       trav(Traversal.fromSingle(a)).hasNext
     }
 
@@ -130,7 +130,7 @@ class Traversal[A](elements: IterableOnce[A])
    * }}} */
   @Doc(info = "only preserves elements for which _at least one of_ the given traversals has at least one result")
   def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
-    filter { a: A =>
+    filter { (a: A) =>
       traversals.exists { trav =>
         trav(Traversal.fromSingle(a)).hasNext
       }
@@ -144,7 +144,7 @@ class Traversal[A](elements: IterableOnce[A])
    * }}} */
   @Doc(info = "only preserves elements for which _all of_ the given traversals have at least one result")
   def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
-    filter { a: A =>
+    filter { (a: A) =>
       traversals.forall { trav =>
         trav(Traversal.fromSingle(a)).hasNext
       }
@@ -211,7 +211,7 @@ class Traversal[A](elements: IterableOnce[A])
   def choose[BranchOn >: Null, NewEnd]
     (on: Traversal[A] => Traversal[BranchOn])
     (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
-    flatMap { a: A =>
+    flatMap { (a: A) =>
       val branchOnValue: BranchOn = on(Traversal.fromSingle(a)).headOption.getOrElse(null)
       if (options.isDefinedAt(branchOnValue)) {
         options(branchOnValue)(Traversal.fromSingle(a))
@@ -234,7 +234,7 @@ class Traversal[A](elements: IterableOnce[A])
    */
   @Doc(info = "evaluates the provided traversals in order and returns the first traversal that emits at least one element")
   def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
-    flatMap { a: A =>
+    flatMap { (a: A) =>
       options.iterator.map(_.apply(Traversal.fromSingle(a))).collectFirst {
         case option if option.nonEmpty => option
       }.getOrElse(Traversal.empty)
@@ -265,7 +265,7 @@ class Traversal[A](elements: IterableOnce[A])
   /** group elements and count how often they appear */
   @Doc(info = "group elements and count how often they appear")
   def groupCount: Map[A, Int] =
-    groupCount(identity)
+    groupCount(identity[A])
 
   /** group elements by a given transformation function and count how often the results appear */
   @Doc(info = "group elements by a given transformation function and count how often the results appear")
@@ -327,7 +327,7 @@ object Traversal extends IterableFactory[Traversal] {
 
   override def from[A](iterable: IterableOnce[A]): Traversal[A] =
     iterable match {
-      case traversal: Traversal[A] => traversal
+      case traversal: Traversal[_] => traversal.asInstanceOf[Traversal[A]]
       case _ => new Traversal(iterable)
     }
 
