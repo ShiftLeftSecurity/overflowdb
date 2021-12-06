@@ -28,9 +28,9 @@ class GenericGraphTraversalTests extends AnyWordSpec {
   }
 
   "property lookup" in {
-    graph.V.property(Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
-    graph.E.property(Distance).toSet shouldBe Set(10, 13, 14)
-    graph.E.propertyOption(Distance).toSet shouldBe Set(Some(10), Some(13), Some(14), None)
+    graph.V.property(Name).toSetMutable shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
+    graph.E.property(Distance).toSetMutable shouldBe Set(10, 13, 14)
+    graph.E.propertyOption(Distance).toSetMutable shouldBe Set(Some(10), Some(13), Some(14), None)
   }
 
   "filter steps" can {
@@ -89,61 +89,61 @@ class GenericGraphTraversalTests extends AnyWordSpec {
 
     "`where` step taking a traversal" in {
       // find all nodes that _do_ have an OUT neighbor, i.e. find the inner nodes
-      graph.V.where(_.out).property(Name).toSet shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3", "R4")
+      graph.V.where(_.out).property(Name).toSetMutable shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3", "R4")
     }
 
     "`not` step taking a traversal" in {
       // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
-       graph.V.not(_.out).property(Name).toSet shouldBe Set("L3", "R5")
+       graph.V.not(_.out).property(Name).toSetMutable shouldBe Set("L3", "R5")
     }
   }
 
   "base steps: out/in/both" can {
     "step out" in {
-      center.start.out.toSet shouldBe Set(l1, r1)
-      center.start.out.out.toSet shouldBe Set(l2, r2)
-      center.start.out(Connection.Label).toSet shouldBe Set(l1, r1)
-      center.start.out(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1, r1)
-      center.start.out(nonExistingLabel).toSet shouldBe Set.empty
+      center.start.out.toSetMutable shouldBe Set(l1, r1)
+      center.start.out.out.toSetMutable shouldBe Set(l2, r2)
+      center.start.out(Connection.Label).toSetMutable shouldBe Set(l1, r1)
+      center.start.out(nonExistingLabel, Connection.Label).toSetMutable shouldBe Set(l1, r1)
+      center.start.out(nonExistingLabel).toSetMutable shouldBe Set.empty
     }
 
     "step in" in {
       l2.start.in.size shouldBe 1
-      l2.start.in.toSet shouldBe Set(l1)
-      l2.start.in.in.toSet shouldBe Set(center)
-      l2.start.in(Connection.Label).toSet shouldBe Set(l1)
-      l2.start.in(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1)
-      l2.start.in(nonExistingLabel).toSet shouldBe Set.empty
+      l2.start.in.toSetMutable shouldBe Set(l1)
+      l2.start.in.in.toSetMutable shouldBe Set(center)
+      l2.start.in(Connection.Label).toSetMutable shouldBe Set(l1)
+      l2.start.in(nonExistingLabel, Connection.Label).toSetMutable shouldBe Set(l1)
+      l2.start.in(nonExistingLabel).toSetMutable shouldBe Set.empty
     }
 
     "step both" in {
       /* L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 */
       l2.start.both.size shouldBe 2
-      l2.start.both.toSet shouldBe Set(l1, l3)
-      r2.start.both.toSet shouldBe Set(r1, r3)
-      l2.start.both.both.toSet shouldBe Set(l2, center)
-      r2.start.both.both.toSet shouldBe Set(center, r2, r4)
-      l2.start.both(Connection.Label).toSet shouldBe Set(l1, l3)
-      l2.start.both(nonExistingLabel, Connection.Label).toSet shouldBe Set(l1, l3)
-      l2.start.both(nonExistingLabel).toSet shouldBe Set.empty
+      l2.start.both.toSetMutable shouldBe Set(l1, l3)
+      r2.start.both.toSetMutable shouldBe Set(r1, r3)
+      l2.start.both.both.toSetMutable shouldBe Set(l2, center)
+      r2.start.both.both.toSetMutable shouldBe Set(center, r2, r4)
+      l2.start.both(Connection.Label).toSetMutable shouldBe Set(l1, l3)
+      l2.start.both(nonExistingLabel, Connection.Label).toSetMutable shouldBe Set(l1, l3)
+      l2.start.both(nonExistingLabel).toSetMutable shouldBe Set.empty
     }
 
     "step outE" in {
       center.start.outE.size shouldBe 2
-      center.start.outE.inV.toSet shouldBe Set(l1, r1)
-      center.start.outE.inV.outE.inV.toSet shouldBe Set(l2, r2)
-      center.start.outE(Connection.Label).inV.toSet shouldBe Set(l1, r1)
-      center.start.outE(nonExistingLabel, Connection.Label).inV.toSet shouldBe Set(l1, r1)
-      center.start.outE(nonExistingLabel).inV.toSet shouldBe Set.empty
+      center.start.outE.inV.toSetMutable shouldBe Set(l1, r1)
+      center.start.outE.inV.outE.inV.toSetMutable shouldBe Set(l2, r2)
+      center.start.outE(Connection.Label).inV.toSetMutable shouldBe Set(l1, r1)
+      center.start.outE(nonExistingLabel, Connection.Label).inV.toSetMutable shouldBe Set(l1, r1)
+      center.start.outE(nonExistingLabel).inV.toSetMutable shouldBe Set.empty
     }
 
     "step inE" in {
       l2.start.inE.size shouldBe 1
-      l2.start.inE.outV.toSet shouldBe Set(l1)
-      l2.start.inE.outV.inE.outV.toSet shouldBe Set(center)
-      l2.start.inE(Connection.Label).outV.toSet shouldBe Set(l1)
-      l2.start.inE(nonExistingLabel, Connection.Label).outV.toSet shouldBe Set(l1)
-      l2.start.inE(nonExistingLabel).outV.toSet shouldBe Set.empty
+      l2.start.inE.outV.toSetMutable shouldBe Set(l1)
+      l2.start.inE.outV.inE.outV.toSetMutable shouldBe Set(center)
+      l2.start.inE(Connection.Label).outV.toSetMutable shouldBe Set(l1)
+      l2.start.inE(nonExistingLabel, Connection.Label).outV.toSetMutable shouldBe Set(l1)
+      l2.start.inE(nonExistingLabel).outV.toSetMutable shouldBe Set.empty
     }
 
     "step bothE" in {

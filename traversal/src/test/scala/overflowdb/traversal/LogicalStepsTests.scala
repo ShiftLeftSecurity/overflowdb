@@ -42,7 +42,7 @@ class LogicalStepsTests extends AnyWordSpec {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
-        }.property(Name).toSet shouldBe Set("L2")
+        }.property(Name).toSetMutable shouldBe Set("L2")
     }
 
     "provide if/elseif semantics" in {
@@ -50,7 +50,7 @@ class LogicalStepsTests extends AnyWordSpec {
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
           case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
-        }.property(Name).toSet shouldBe Set("L2", "R4")
+        }.property(Name).toSetMutable shouldBe Set("L2", "R4")
     }
 
     "provide if/else semantics" in {
@@ -59,7 +59,7 @@ class LogicalStepsTests extends AnyWordSpec {
           case "L1" => _.out // -> L2
           case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
           case _ => _.in
-        }.property(Name).toSet shouldBe Set("L2", "L1", "R1", "R2", "R3", "R4")
+        }.property(Name).toSetMutable shouldBe Set("L2", "L1", "R1", "R2", "R3", "R4")
     }
 
     "handle empty `on` traversal: if semantics" in {
@@ -74,12 +74,12 @@ class LogicalStepsTests extends AnyWordSpec {
         .choose(_.property(Name).filter(_ => false)) {
           case "L1" => _.in
           case _ => _.out
-        }.property(Name).toSet shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5")
+        }.property(Name).toSetMutable shouldBe Set("L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5")
     }
   }
 
   "coalesce step takes arbitrary number of traversals and follows the first one that returns at least one element" in {
-    centerTrav.coalesce(_.out).property(Name).toSet shouldBe Set("L1", "R1")
+    centerTrav.coalesce(_.out).property(Name).toSetMutable shouldBe Set("L1", "R1")
 
     centerTrav.coalesce().size shouldBe 0
     centerTrav.coalesce(_.out("doesn't exist")).size shouldBe 0
@@ -90,17 +90,17 @@ class LogicalStepsTests extends AnyWordSpec {
       _.out("doesn't exist"),
       _.out,
       _.sideEffect(_ => thirdTraversalInvoked = true).out
-    ).property(Name).toSet shouldBe Set("L1", "R1")
+    ).property(Name).toSetMutable shouldBe Set("L1", "R1")
     thirdTraversalInvoked shouldBe false
 
     centerTrav.coalesce(
       _.name("doesn't exist"),
       _.followedBy
-    ).name.toSet shouldBe Set("L1", "R1")
+    ).name.toSetMutable shouldBe Set("L1", "R1")
 
     // we can even mix generic graph steps (.out) and domain-specific steps (.followedBy), but need to help the type
     // inferencer by specifying `[Node]` as the result type
-    centerTrav.coalesce[Node](_.out, _.followedBy).property(Name).toSet shouldBe Set("L1", "R1")
+    centerTrav.coalesce[Node](_.out, _.followedBy).property(Name).toSetMutable shouldBe Set("L1", "R1")
   }
 
 }

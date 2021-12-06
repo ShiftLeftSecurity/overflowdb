@@ -24,7 +24,7 @@ class TraversalTests extends AnyWordSpec {
 
   ".sideEffect step should apply provided function and do nothing else" in {
     val sack = mutable.ListBuffer.empty[Node]
-    center.start.out.sideEffect(sack.addOne).out.toSet shouldBe Set(l2, r2)
+    center.start.out.sideEffect(sack.addOne).out.toSetMutable shouldBe Set(l2, r2)
     sack.toSet shouldBe Set(l1, r1)
   }
 
@@ -39,15 +39,15 @@ class TraversalTests extends AnyWordSpec {
           sack.addOne(node)
       }
       .out
-      .toSet shouldBe Set(l2, r2)
+      .toSetMutable shouldBe Set(l2, r2)
 
     sack.toSet shouldBe Set(l1)
   }
 
   "domain overview" in {
-    simpleDomain.all.property(Thing.Properties.Name).toSet shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
+    simpleDomain.all.property(Thing.Properties.Name).toSetMutable shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
     centerTrav.head.name shouldBe "Center"
-    simpleDomain.all.label.toSet shouldBe Set(Thing.Label)
+    simpleDomain.all.label.toSetMutable shouldBe Set(Thing.Label)
   }
 
   ".dedup step" should {
@@ -91,7 +91,7 @@ class TraversalTests extends AnyWordSpec {
     "path tracking is not enabled" in {
       val trav = centerTrav.followedBy.followedBy
       trav.hasNext shouldBe true
-      trav.toSet shouldBe Set(l2, r2)
+      trav.toSetMutable shouldBe Set(l2, r2)
     }
 
     "path tracking is enabled" in {
@@ -99,8 +99,8 @@ class TraversalTests extends AnyWordSpec {
       val trav2 = centerTrav.enablePathTracking.followedBy.followedBy.path
       trav1.hasNext shouldBe true
       trav2.hasNext shouldBe true
-      trav1.toSet shouldBe Set(l2, r2)
-      trav2.toSet shouldBe Set(
+      trav1.toSetMutable shouldBe Set(l2, r2)
+      trav2.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2)
       )
@@ -146,7 +146,7 @@ class TraversalTests extends AnyWordSpec {
     val traversal: Traversal[(Int, Traversal[String])] =
       Traversal("aaa", "bbb", "cc").groupBy(_.length)
 
-    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSet) }.toSet
+    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSetMutable) }.toSetMutable
     results shouldBe Set(
       2 -> Set("cc"),
       3 -> Set("aaa", "bbb"))
@@ -157,7 +157,7 @@ class TraversalTests extends AnyWordSpec {
 
     val Seq(keys -> values) = traversal.l
     keys shouldBe "a"
-    values.toSet shouldBe(Set(1, 2))
+    values.toSetMutable shouldBe(Set(1, 2))
   }
 
   "string filter steps" in {
