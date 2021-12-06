@@ -4,7 +4,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers._
 import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
-import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing}
+import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing, ThingTraversal}
 
 class LogicalStepsTests extends AnyWordSpec {
   import ExampleGraphSetup._

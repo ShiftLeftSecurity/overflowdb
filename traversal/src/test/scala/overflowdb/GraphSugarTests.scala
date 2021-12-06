@@ -4,7 +4,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal._
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
-import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing, ThingTraversal}
 import overflowdb.traversal.testdomains.simple.Thing.Properties._
 
 class GraphSugarTests extends AnyWordSpec {

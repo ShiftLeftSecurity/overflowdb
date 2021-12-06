@@ -5,7 +5,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
-import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
