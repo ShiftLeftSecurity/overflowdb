@@ -183,7 +183,7 @@ public final class Graph implements AutoCloseable {
 
   /* Register NodeRef at ReferenceManager, so it can be cleared on low memory */
   public void registerNodeRef(NodeRef ref) {
-    if (referenceManager != null) {
+    if (referenceManager != null && !isClosed()) {
       referenceManager.registerRef(ref);
     }
   }
