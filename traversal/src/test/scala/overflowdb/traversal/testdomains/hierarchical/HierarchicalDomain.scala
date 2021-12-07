@@ -27,13 +27,13 @@ object HierarchicalDomain {
 @help.TraversalSource
 class HierarchicalDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
 
-  @Doc("all cars")
+  @Doc(info = "all cars")
   def car: Traversal[Car] = label(Car.Label).cast[Car]
 
-  @Doc("all elephants")
+  @Doc(info = "all elephants")
   def elephant: Traversal[Elephant] = label(Elephant.Label).cast[Elephant]
 
-  @Doc("all animals")
+  @Doc(info = "all animals")
   def animal: Traversal[Animal] = all.collect { case node: Animal => node }
 
   lazy val help: String = HierarchicalDomain.help.forTraversalSources

@@ -5,7 +5,7 @@ import overflowdb.{Node, Edge}
 
 class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
 
-  @Doc("Traverse to node id")
+  @Doc(info = "Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
 
   /** Filter by given id
@@ -29,7 +29,7 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
   def hasId(values: Long*): Traversal[E] = id(values: _*)
 
   /** follow outgoing edges to adjacent nodes */
-  @Doc("follow outgoing edges to adjacent nodes")
+  @Doc(info = "follow outgoing edges to adjacent nodes")
   def out: Traversal[Node] =
     traversal.flatMap(_.out)
 

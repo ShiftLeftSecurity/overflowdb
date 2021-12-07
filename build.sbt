@@ -1,6 +1,7 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "2.13.6"
+ThisBuild/scalaVersion := "3.1.0"
+ThisBuild/crossScalaVersions := Seq("2.13.7", "3.1.0")
 publish/skip := true
 
 lazy val core = project.in(file("core"))
@@ -10,7 +11,16 @@ lazy val traversal = project.in(file("traversal"))
                        .dependsOn(core)
                        .dependsOn(tinkerpop3 % "test->test") // TODO drop this dependency - currently necessary for GratefulDeadTest which uses graphml loading
 
-ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature", "-target:jvm-1.8")
+ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((3, _)) => Seq(
+          "-Xtarget:8"
+          )
+    case _ => Seq(
+          "-target:jvm-1.8"
+      )
+  }
+)
 
 ThisBuild / compile / javacOptions ++= Seq(
   "-g", //debug symbols
@@ -25,8 +35,6 @@ ThisBuild/resolvers ++= Seq(
 
 ThisBuild/Compile/scalacOptions ++= Seq(
   "-Xfatal-warnings",
-  "-feature",
-  "-deprecation",
   "-language:implicitConversions",
   // "-language:existentials",
 )

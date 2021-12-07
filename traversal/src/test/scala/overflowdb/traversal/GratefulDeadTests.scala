@@ -1,23 +1,24 @@
 package overflowdb.traversal
 
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.filter.StringPropertyFilter.InvalidRegexException
 import overflowdb.traversal.testdomains.gratefuldead._
-import org.scalatest.{Matchers, WordSpec}
 
 // TODO this should really be in the `traversal` project, we only need tinkerpop to load the data...
-class GratefulDeadTests extends WordSpec with Matchers {
+class GratefulDeadTests extends AnyWordSpec {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
   "generic graph traversal" can {
     "perform generic graph steps" in {
       gratefulDead.all.size shouldBe 808
       gratefulDead.all.id.l.sorted.head shouldBe 1
-      gratefulDead.all.label.toSet shouldBe Set(Artist.Label, Song.Label)
+      gratefulDead.all.label.toSetMutable shouldBe Set(Artist.Label, Song.Label)
 
       gratefulDead.label(Artist.Label).size shouldBe 224
       gratefulDead.id(1).label.head shouldBe Song.Label
       gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
-      gratefulDead.ids(3, 4).property[String]("name").toSet shouldBe Set("BERTHA", "NOT FADE AWAY")
+      gratefulDead.ids(3, 4).property[String]("name").toSetMutable shouldBe Set("BERTHA", "NOT FADE AWAY")
       gratefulDead.all.has(Song.Properties.SongType).size shouldBe 584
       gratefulDead.all.has(Song.Properties.Performances, 2).size shouldBe 36
     }
@@ -63,7 +64,7 @@ class GratefulDeadTests extends WordSpec with Matchers {
     "traverse domain-specific edges" in {
       gratefulDead.artists.nameExact("Bob_Dylan").sangSongs.size shouldBe 22
       gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.size shouldBe 5
-      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSet shouldBe Set("original", "cover", "")
+      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSetMutable shouldBe Set("original", "cover", "")
     }
 
     "be expressed in for comprehension" in {
@@ -101,7 +102,7 @@ class GratefulDeadTests extends WordSpec with Matchers {
         .sangSongs
         .repeat(_.followedBy)(_.times(3))
         .sungBy
-        .toSet
+        .toSetMutable
         .size shouldBe 43
     }
   }

@@ -77,7 +77,11 @@ public final class Graph implements AutoCloseable {
 
     this.overflowEnabled = config.isOverflowEnabled();
     if (this.overflowEnabled) {
-      this.referenceManager = new ReferenceManager(storage, nodesWriter);
+      if (config.getExecutorService().isPresent()) {
+        this.referenceManager = new ReferenceManager(storage, nodesWriter, config.getExecutorService().get());
+      } else {
+        this.referenceManager = new ReferenceManager(storage, nodesWriter);
+      }
       this.heapUsageMonitor = Optional.of(new HeapUsageMonitor(config.getHeapPercentageThreshold(), this.referenceManager));
     } else {
       this.referenceManager = null; // not using Optional only due to performance reasons - it's invoked *a lot*
@@ -197,17 +201,30 @@ public final class Graph implements AutoCloseable {
   }
 
   /**
-   * if the config.graphLocation is set, data in the graph is persisted to that location.
+   * If the config.graphLocation is set, data in the graph is persisted to that location.
+   *
+   * If called from multiple threads concurrently, only one starts the shutdown process, but the other one will
+   * still be blocked. This is intentional: we also want the second caller to block until `close` is completed, and not
+   * falsely assume that it has finished, only because it exits straight away.
    */
   @Override
-  public void close() {
-    this.closed = true;
+  public synchronized void close() {
+    if (isClosed()) {
+      logger.info("graph is already closed");
+    } else {
+      this.closed = true;
+      shutdownNow();
+    }
+  }
+
+  private void shutdownNow() {
+    logger.info("shutdown: start");
     try {
       heapUsageMonitor.ifPresent(monitor -> monitor.close());
       if (config.getStorageLocation().isPresent()) {
 
         /* persist to disk: if overflow is enabled, ReferenceManager takes care of that
-        * otherwise: persist all nodes here */
+         * otherwise: persist all nodes here */
         indexManager.storeIndexes(storage);
         if (referenceManager != null) {
           referenceManager.clearAllReferences();
@@ -221,6 +238,7 @@ public final class Graph implements AutoCloseable {
       }
       storage.close();
     }
+    logger.info("shutdown finished");
   }
 
   public int nodeCount() {

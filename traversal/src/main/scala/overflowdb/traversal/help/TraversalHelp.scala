@@ -3,11 +3,10 @@ package overflowdb.traversal.help
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import overflowdb.{NodeRef, NodeDb}
 import java.lang.annotation.{Annotation => JAnnotation}
+import DocFinder.StepDoc
 
 import org.reflections8.Reflections
 
-import scala.annotation.tailrec
-import scala.reflect.runtime.universe.runtimeMirror
 import scala.jdk.CollectionConverters._
 
 /**
@@ -43,7 +42,7 @@ class TraversalHelp(domainBasePackage: String) {
     val table = Table(
       columnNames = if (verbose) ColumnNamesVerbose else ColumnNames,
       rows = stepDocs.sortBy(_.methodName).map { stepDoc =>
-        val baseColumns = List(s".${stepDoc.methodName}", stepDoc.doc.short)
+        val baseColumns = List(s".${stepDoc.methodName}", stepDoc.doc.info)
         if (verbose) baseColumns :+ stepDoc.traversalClassName
         else baseColumns
       }
@@ -59,7 +58,7 @@ class TraversalHelp(domainBasePackage: String) {
     val table = Table(
       columnNames = ColumnNames,
       rows = stepDocs.toList.sortBy(_.methodName).map { stepDoc =>
-        List(s".${stepDoc.methodName}", stepDoc.doc.short)
+        List(s".${stepDoc.methodName}", stepDoc.doc.info)
       }
     )
 
@@ -89,15 +88,7 @@ class TraversalHelp(domainBasePackage: String) {
   lazy val genericNodeStepDocs: Iterable[StepDoc] =
     findStepDocs(classOf[NodeTraversal[_]]) ++ findStepDocs(classOf[ElementTraversal[_]])
 
-  private lazy val mirror = runtimeMirror(this.getClass.getClassLoader)
-
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
-    val traversalTpe = mirror.classSymbol(traversal).toType
-    Doc.docByMethodName(traversalTpe).map {
-      case (methodName, doc) =>
-        StepDoc(traversal.getName, methodName, doc)
-    }
+    DocFinder.findDocumentedMethodsOf(traversal)
   }
-
-  case class StepDoc(traversalClassName: String, methodName: String, doc: Doc)
 }

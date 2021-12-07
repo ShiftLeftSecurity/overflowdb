@@ -11,7 +11,7 @@ package object simple {
   implicit class ThingTraversal(val trav: Traversal[Thing]) extends AnyVal {
     def followedBy: Traversal[Thing] = trav.flatMap(_.followedBy)
 
-    @Doc("name of the Thing")
+    @Doc(info = "name of the Thing")
     def name: Traversal[String] = trav.map(_.name)
 
     def name(regexp: String): Traversal[Thing] = StringPropertyFilter.regexp(trav)(_.name, regexp)

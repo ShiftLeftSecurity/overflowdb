@@ -1,12 +1,13 @@
 package overflowdb
 
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.matchers.should.Matchers._
+import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal._
 import overflowdb.traversal.testdomains.simple.Connection.Properties.Distance
-import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing}
+import overflowdb.traversal.testdomains.simple.{Connection, SimpleDomain, Thing, ThingTraversal}
 import overflowdb.traversal.testdomains.simple.Thing.Properties._
 
-class GraphSugarTests extends WordSpec with Matchers {
+class GraphSugarTests extends AnyWordSpec {
 
   "graph + label" can {
     "add a node" in {
@@ -32,7 +33,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       val graph = SimpleDomain.newGraph
       graph + (Thing.Label, Name -> "one thing")
       graph + (Thing.Label, Name -> "another thing", Size -> 42)
-      SimpleDomain.traversal(graph).things.propertiesMap.toSet shouldBe Set(
+      SimpleDomain.traversal(graph).things.propertiesMap.toSetMutable shouldBe Set(
         Map(("name", "one thing")),
         Map(("name", "another thing"), ("size", 42))
       )
@@ -93,7 +94,7 @@ class GraphSugarTests extends WordSpec with Matchers {
       node1 --- (Connection.Label, Distance.of(30), Name.of("Alternative")) --> node2
 
       node1.out(Connection.Label).toList shouldBe List(node2, node2)
-      node1.outE(Connection.Label).propertiesMap.toSet shouldBe Set(
+      node1.outE(Connection.Label).propertiesMap.toSetMutable shouldBe Set(
         Map(("distance", 10)),
         Map(("distance", 30), ("name", "Alternative"))
       )

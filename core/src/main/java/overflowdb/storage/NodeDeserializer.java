@@ -3,7 +3,6 @@ package overflowdb.storage;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessageUnpacker;
 import org.msgpack.value.ArrayValue;
-import org.msgpack.value.ImmutableArrayValue;
 import org.msgpack.value.ImmutableValue;
 import org.msgpack.value.Value;
 import overflowdb.Direction;

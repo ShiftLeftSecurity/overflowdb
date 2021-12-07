@@ -38,13 +38,17 @@ object StringPropertyFilter {
     }
   }
 
-  private def regexpCompile(regexp: String): Regex =
+  /** compiles given string into a Regex which can be reused
+   * prefixes given string with `(?s)` to enable multi line matching
+   */
+  def regexpCompile(regexp: String): Regex =
     try {
-      regexp.r
+      s"(?s)$regexp".r
     } catch {
       case e: PatternSyntaxException =>
         throw new InvalidRegexException(regexp, e)
     }
+
   class InvalidRegexException(regexp: String, cause: PatternSyntaxException)
       extends RuntimeException(s"invalid regular expression: `$regexp`", cause)
 

@@ -101,8 +101,8 @@ object PathAwareTraversal {
 
   def from[A](iterable: IterableOnce[A]): PathAwareTraversal[A] =
     iterable match {
-      case traversal: PathAwareTraversal[A] => traversal
-      case traversal: Traversal[A] => traversal.enablePathTracking
+      case traversal: PathAwareTraversal[_] => traversal.asInstanceOf[PathAwareTraversal[A]]
+      case traversal: Traversal[_] => traversal.asInstanceOf[Traversal[A]].enablePathTracking
       case iterable => new PathAwareTraversal[A](iterable.iterator.map(a => (a, Vector.empty)))
     }
 }
