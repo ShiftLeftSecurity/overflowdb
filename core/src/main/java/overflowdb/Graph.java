@@ -157,15 +157,16 @@ public final class Graph implements AutoCloseable {
   }
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
+    if (closed) {
+      throw new AssertionError("graph is closed - no more mutation allowed");
+    }
     if (!nodeFactoryByLabel.containsKey(label)) {
       throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
     final NodeDb node = factory.createNode(this, idValue);
     PropertyHelper.attachProperties(node, keyValues);
-    if (this.referenceManager != null) {
-      this.referenceManager.registerRef(node.ref);
-    }
+    registerNodeRef(node.ref);
 
     return node.ref;
   }
@@ -182,7 +183,7 @@ public final class Graph implements AutoCloseable {
 
   /* Register NodeRef at ReferenceManager, so it can be cleared on low memory */
   public void registerNodeRef(NodeRef ref) {
-    if (referenceManager != null) {
+    if (referenceManager != null && !isClosed()) {
       referenceManager.registerRef(ref);
     }
   }
