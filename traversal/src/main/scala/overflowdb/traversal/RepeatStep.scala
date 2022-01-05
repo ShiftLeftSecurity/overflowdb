@@ -106,7 +106,7 @@ class RepeatStepIterator[A](element: A,
 
   override def next(): A = {
     val result = {
-      if (emitSack.hasNext)
+      if (emitSack.nonEmpty)
         emitSack.dequeue()
       else if (worklistTopHasNext)
         worklist.head.traversal.next()
