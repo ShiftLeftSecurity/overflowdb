@@ -196,8 +196,9 @@ class TraversalTests extends AnyWordSpec {
 
   ".help step" should {
     "give a domain overview" in {
-      simpleDomain.help should include(".things")
-      simpleDomain.help should include("all things")
+      val helpText = simpleDomain.help
+      helpText should include(".things")
+      helpText should include("all things")
     }
 
     "provide node-specific overview" when {
