@@ -73,7 +73,7 @@ class TraversalHelp(domainBasePackage: String) {
 
     val table = Table(
       columnNames = ColumnNames,
-      rows = stepDocs.dedup.sortBy(_.methodName).map { stepDoc =>
+      rows = stepDocs.distinct.sortBy(_.methodName).map { stepDoc =>
         List(s".${stepDoc.methodName}", stepDoc.doc.info)
       }
     )
@@ -94,7 +94,7 @@ class TraversalHelp(domainBasePackage: String) {
       annotation <- Option(traversal.getAnnotation(classOf[help.Traversal])).iterator
       stepDoc    <- findStepDocs(traversal)
     } yield (annotation.elementType, stepDoc)
-  }.dedup.toList.groupMap(_._1)(_._2)
+  }.toList.distinct.groupMap(_._1)(_._2)
 
   private def findClassesAnnotatedWith[Annotation <: JAnnotation](packageName: String, annotationClass: Class[Annotation]): Iterator[Class[_]] =
     new Reflections(packageName).getTypesAnnotatedWith(annotationClass).asScala.iterator

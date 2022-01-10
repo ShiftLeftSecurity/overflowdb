@@ -1,6 +1,6 @@
 name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
-ThisBuild/scalaVersion := "3.1.0"
+ThisBuild/scalaVersion := "2.13.7"
 ThisBuild/crossScalaVersions := Seq("2.13.7", "3.1.0")
 publish/skip := true
 
