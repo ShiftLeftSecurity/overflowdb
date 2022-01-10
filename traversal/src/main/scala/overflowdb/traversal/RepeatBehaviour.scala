@@ -78,7 +78,7 @@ object RepeatBehaviour {
       this
     }
 
-    /* Configure `repeat` step to stop traversing when given condition-traversal has at least one result.
+    /* Configure `repeat` step to stop traversing when given condition-traversal has no result.
     * The condition-traversal is already evaluated at the first iteration, for classic while/repeat behaviour.
     *
     * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted. */
