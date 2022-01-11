@@ -7,10 +7,12 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.28",
   "com.novocode" % "junit-interface" % "0.11" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.28" % Test,
+  "com.github.luben" % "zstd-jni" % "1.5.0-4",
+  "org.scala-lang" % "scala-library" % "2.13.5"
 )
 
 /* it's a java-only build */
 autoScalaLibrary := false
 crossPaths := false
 
-Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
+Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
