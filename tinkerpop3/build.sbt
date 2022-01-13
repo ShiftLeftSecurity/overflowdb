@@ -1,6 +1,6 @@
 name := "overflowdb-tinkerpop3"
 
-val tinkerpopVersion = "3.4.12"
+val tinkerpopVersion = "3.5.1"
 
 libraryDependencies ++= Seq(
   "org.apache.tinkerpop" % "gremlin-core" % tinkerpopVersion,
