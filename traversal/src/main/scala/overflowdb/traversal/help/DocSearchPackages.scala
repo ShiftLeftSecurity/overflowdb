@@ -8,9 +8,6 @@ trait DocSearchPackages {
 
 object DocSearchPackages {
   implicit val defaultDocSearchPackage: DocSearchPackages =
-    () => Seq("default.foo")
-
+    () => Nil
 }
-
-//trait LowPrioImplicits
 
