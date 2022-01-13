@@ -11,8 +11,7 @@ import scala.jdk.CollectionConverters._
 
 // TODO docs, unify with TraversalHelp
 class TraversalHelp2(searchPackages: DocSearchPackages) {
-  val ColumnNames = Array("step", "description")
-  val ColumnNamesVerbose = ColumnNames :+ "traversal name"
+  import TraversalHelp2._
 
   def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
@@ -91,8 +90,15 @@ class TraversalHelp2(searchPackages: DocSearchPackages) {
 
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
     DocFinder.findDocumentedMethodsOf(traversal)
+      // scala generates additional `fooBar$extension` methods, but those don't matter in the context of .help/@Doc
+      .filterNot(_.methodName.endsWith("$extension"))
   }
 
   private def packageNamesToSearch: Seq[String] =
     searchPackages() :+ "overflowdb"
+}
+
+object TraversalHelp2 {
+  private val ColumnNames = Array("step", "description")
+  private val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 }

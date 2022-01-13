@@ -55,6 +55,9 @@ class Traversal[A](elements: IterableOnce[A])
   def help2(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
     new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
+  def help2Verbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+    new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
+
   def helpVerbose(implicit elementType: ClassTag[A]): String =
     Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
