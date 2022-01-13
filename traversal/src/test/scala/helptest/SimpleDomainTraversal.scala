@@ -1,9 +1,10 @@
 package helptest
 
-import overflowdb.traversal.Traversal
+import overflowdb.traversal.{Traversal, help}
 import overflowdb.traversal.help.Doc
 import overflowdb.traversal.testdomains.simple.Thing
 
+@help.Traversal(elementType = classOf[Thing])
 class SimpleDomainTraversal(val traversal: Traversal[Thing]) extends AnyVal {
 
   @Doc(info = "name2",

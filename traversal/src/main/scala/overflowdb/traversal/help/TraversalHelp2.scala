@@ -1,34 +1,18 @@
 package overflowdb.traversal.help
 
+import org.reflections8.Reflections
+import overflowdb.traversal.help.DocFinder.StepDoc
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import overflowdb.{NodeDb, NodeRef}
 
 import java.lang.annotation.{Annotation => JAnnotation}
-import DocFinder.StepDoc
-import org.reflections8.Reflections
-
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-/**
- * domainBasePackage: The base package that we scan for @Traversal annotations. You can register additional
- * packages via `registerAdditionalSearchPackage`.
- *
- * Note that this restricts us to only find @Doc annotations in classes in that namespace and it's children.
- * If you specify the root package or leave this empty, the scan takes considerable amount of
- * time (depending on your classpath).
- */
-class TraversalHelp(domainBasePackage: String) {
+// TODO docs, unify with TraversalHelp
+class TraversalHelp2(searchPackages: DocSearchPackages) {
   val ColumnNames = Array("step", "description")
   val ColumnNamesVerbose = ColumnNames :+ "traversal name"
-
-  private val additionalSearchPackages: mutable.Set[String] = mutable.Set.empty
-
-  /** register an additional package that should be searched for @Doc annotations */
-  def registerAdditionalSearchPackage(packageName: String): this.type = {
-    additionalSearchPackages.addOne(packageName)
-    this
-  }
 
   def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
@@ -84,9 +68,8 @@ class TraversalHelp(domainBasePackage: String) {
   }
 
   /**
-    * Scans (part of) the classpath for classes annotated with @Traversal (using java reflection),
+    * Scans the entire classpath for classes annotated with @TraversalExt (using java reflection),
     * to then extract the @Doc annotations for all steps, and group them by the elementType (e.g. node.Method).
-    * To ensure this doesn't take forever, we don't scan the entire classpath, but only `packageNamesToSearch`
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
@@ -111,5 +94,5 @@ class TraversalHelp(domainBasePackage: String) {
   }
 
   private def packageNamesToSearch: Seq[String] =
-    (additionalSearchPackages ++ Seq(domainBasePackage)).toSeq
+    searchPackages() :+ "overflowdb"
 }
