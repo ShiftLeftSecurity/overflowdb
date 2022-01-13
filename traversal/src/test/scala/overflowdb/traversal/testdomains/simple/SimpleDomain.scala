@@ -2,14 +2,17 @@ package overflowdb.traversal.testdomains.simple
 
 import overflowdb.traversal.{Traversal, TraversalSource, help}
 import overflowdb.{Config, Graph}
-import java.util
 
-import overflowdb.traversal.help.{Doc, TraversalHelp}
+import java.util
+import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 
 /** probably the most simple domain one can think of:
  * Thing --- Connection --> Thing
  * */
 object SimpleDomain {
+  implicit val defaultDocSearchPackage: DocSearchPackages =
+    () => Seq("custom2")
+
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
   def newGraph(config: Config): Graph =

@@ -3,6 +3,7 @@ package overflowdb.traversal
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.filter.P
+import overflowdb.traversal.help.DocSearchPackages
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
 import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.{Node, toPropertyKeyOps}
@@ -203,14 +204,27 @@ class TraversalTests extends AnyWordSpec {
 
     "provide node-specific overview" when {
       "using simple domain" in {
-        val thingTraversal: Traversal[Thing] = Traversal.empty
-        thingTraversal.help should include("Available steps for Thing")
-        thingTraversal.help should include(".name")
+        // TODO drop
+//        implicit val defaultDocSearchPackage: DocSearchPackages =
+//          () => Seq("custom")
+//        import SimpleDomain._
+        import SimpleDomain.defaultDocSearchPackage
+        println(SimpleDomain.traversal(SimpleDomain.newGraph).things.help2)
+        ???
+        // TODO drop end
 
-        thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
-        thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
-        thingTraversal.helpVerbose should include(".label") // step from ElementTraversal
-        thingTraversal.helpVerbose should include(".out") // step from NodeTraversal
+        val thingTraversal = SimpleDomain.traversal(SimpleDomain.newGraph).things
+        val thingTraversalHelp = thingTraversal.help
+        thingTraversalHelp should include("Available steps for Thing")
+        thingTraversalHelp should include(".name")
+        thingTraversalHelp should include(".name2") // step from helptest.SimpleDomainTraversal
+
+        val thingTraversalHelpVerbose = thingTraversal.helpVerbose
+        thingTraversalHelpVerbose should include("ThingTraversal") // the Traversal classname
+        thingTraversalHelpVerbose should include(".sideEffect") // step from Traversal
+        thingTraversalHelpVerbose should include(".label") // step from ElementTraversal
+        thingTraversalHelpVerbose should include(".out") // step from NodeTraversal
+        thingTraversalHelpVerbose should include("just like name, but in a different package") // step from helptest.SimpleDomainTraversal
       }
 
       "using hierarchical domain" in {
