@@ -1,13 +1,3 @@
 package overflowdb.traversal.help
 
-//case class DocSearchPackages(packages: Seq[String])
-
-trait DocSearchPackages {
-  def apply(): Seq[String]
-}
-
-object DocSearchPackages {
-  implicit val defaultDocSearchPackage: DocSearchPackages =
-    () => Nil
-}
-
+case class DocSearchPackages(packages: Seq[String])

@@ -53,7 +53,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   // TODO replace old one
   def help2(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
-    searchPackages().mkString("\n")
+    searchPackages.packages.mkString("\n")
 //    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
   def helpVerbose(implicit elementType: ClassTag[A]): String =

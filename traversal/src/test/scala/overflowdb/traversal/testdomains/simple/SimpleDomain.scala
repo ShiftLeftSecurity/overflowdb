@@ -10,8 +10,7 @@ import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
  * Thing --- Connection --> Thing
  * */
 object SimpleDomain {
-  implicit val defaultDocSearchPackage: DocSearchPackages =
-    () => Seq("custom2")
+  implicit val defaultDocSearchPackage: DocSearchPackages = DocSearchPackages(Seq("custom3"))
 
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
