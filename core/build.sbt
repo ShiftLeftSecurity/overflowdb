@@ -5,7 +5,7 @@ libraryDependencies ++= Seq(
   "org.msgpack" % "msgpack-core" % "0.8.24",
   "com.h2database" % "h2-mvstore" % "1.4.200",
   "org.slf4j" % "slf4j-api" % "1.7.32",
-  "com.github.sbt" % "junit-interface" % "0.13.2" % Test,
+  "com.github.sbt" % "junit-interface" % "0.13.3" % Test,
   "org.slf4j" % "slf4j-simple" % "1.7.32" % Test,
 )
 
