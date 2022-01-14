@@ -1,7 +1,7 @@
 package overflowdb.traversal.help
 
 /**
- * specifies where we should search for @Traversal/@Doc annotations
+ * defines where we should search for @Traversal/@TraversalSource/@Doc annotations
  */
 trait DocSearchPackages {
   def apply(): Seq[String]

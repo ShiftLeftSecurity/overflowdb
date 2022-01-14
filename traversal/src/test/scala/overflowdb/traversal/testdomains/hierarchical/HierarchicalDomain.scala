@@ -16,6 +16,8 @@ object HierarchicalDomain {
   implicit val defaultDocSearchPackage: DocSearchPackages =
     DocSearchPackages(getClass.getPackage.getName)
 
+  lazy val help = new TraversalHelp(defaultDocSearchPackage)
+
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
   def newGraph(config: Config): Graph =
@@ -24,8 +26,6 @@ object HierarchicalDomain {
       util.Arrays.asList())
 
   def traversal(graph: Graph) = new HierarchicalDomainTraversalSource(graph)
-
-  lazy val help = new TraversalHelp(defaultDocSearchPackage)
 }
 
 @help.TraversalSource
