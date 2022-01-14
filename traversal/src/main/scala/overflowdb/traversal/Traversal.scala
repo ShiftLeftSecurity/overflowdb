@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
-import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp, TraversalHelp2}
+import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.collection.immutable.ArraySeq
@@ -49,11 +49,11 @@ class Traversal[A](elements: IterableOnce[A])
    * */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
   def help(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
-    new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
+    new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
   @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
   def helpVerbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
-    new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
+    new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =
     Traversal.fromSingle(iterator.size)

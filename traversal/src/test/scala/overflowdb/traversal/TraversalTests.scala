@@ -3,7 +3,6 @@ package overflowdb.traversal
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.filter.P
-import overflowdb.traversal.help.DocSearchPackages
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
 import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.{Node, toPropertyKeyOps}
@@ -196,6 +195,8 @@ class TraversalTests extends AnyWordSpec {
   }
 
   ".help step" should {
+    import SimpleDomain._ // for domain specific `DocSearchPackages`
+
     "give a domain overview" in {
       val helpText = simpleDomain.help
       helpText should include(".things")
@@ -204,8 +205,6 @@ class TraversalTests extends AnyWordSpec {
 
     "provide node-specific overview" when {
       "using simple domain" in {
-        import SimpleDomain._ // for domain specific `DocSearchPackages`
-
         val thingTraversal = SimpleDomain.traversal(SimpleDomain.newGraph).things
         val thingTraversalHelp = thingTraversal.help
         thingTraversalHelp should include("Available steps for Thing")

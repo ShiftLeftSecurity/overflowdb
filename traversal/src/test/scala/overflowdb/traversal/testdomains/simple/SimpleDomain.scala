@@ -11,7 +11,7 @@ import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
  * */
 object SimpleDomain {
   implicit val defaultDocSearchPackage: DocSearchPackages =
-    () => Seq("helptest")
+    DocSearchPackages("helptest", getClass.getPackage.getName)
 
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
@@ -22,7 +22,7 @@ object SimpleDomain {
 
   def traversal(graph: Graph) = new SimpleDomainTraversalSource(graph)
 
-  lazy val help = new TraversalHelp(getClass.getPackage.getName)
+  lazy val help = new TraversalHelp(defaultDocSearchPackage)
 }
 
 @help.TraversalSource
