@@ -205,9 +205,6 @@ class TraversalTests extends AnyWordSpec {
     "provide node-specific overview" when {
       "using simple domain" in {
         import SimpleDomain._ // for domain specific `DocSearchPackages`
-        println(SimpleDomain.traversal(SimpleDomain.newGraph).things.help2)
-        ???
-        // TODO drop end
 
         val thingTraversal = SimpleDomain.traversal(SimpleDomain.newGraph).things
         val thingTraversalHelp = thingTraversal.help

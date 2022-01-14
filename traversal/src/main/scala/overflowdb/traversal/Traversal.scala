@@ -48,18 +48,12 @@ class Traversal[A](elements: IterableOnce[A])
    * all documented steps in the classpath
    * */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
-  def help(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
-
-  // TODO replace old one
-  def help2(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+  def help(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
     new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
-  def help2Verbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+  @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
+  def helpVerbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
     new TraversalHelp2(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
-
-  def helpVerbose(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =
     Traversal.fromSingle(iterator.size)
