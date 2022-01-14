@@ -1,34 +1,28 @@
 package overflowdb.traversal.help
 
+import org.reflections8.Reflections
+import overflowdb.traversal.help.DocFinder.StepDoc
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
 import overflowdb.{NodeDb, NodeRef}
 
 import java.lang.annotation.{Annotation => JAnnotation}
-import DocFinder.StepDoc
-import org.reflections8.Reflections
-
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 /**
- * domainBasePackage: The base package that we scan for @Traversal annotations. You can register additional
- * packages via `registerAdditionalSearchPackage`.
+ * Searches classpath for @Traversal|@TraversalSource and @Doc annotations (via reflection).
+ * Used for `.help` step. There are two use cases for this, which require slightly different implementations
+ * 1) `myDomain.help` - for the node starter steps
+ * 2) `myDomain.someNodeType.help` - for steps that are available a specific node type
  *
- * Note that this restricts us to only find @Doc annotations in classes in that namespace and it's children.
- * If you specify the root package or leave this empty, the scan takes considerable amount of
- * time (depending on your classpath).
+ * For use case 2, we also take into account all parent traits of a node type, recursively.
+ * I.e. if `SomeNodeType` has a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`,
+ * we will include those in the results.
+ *
+ * @param searchPackages: The base packages that we scan for - we're not scanning the entire classpath
  */
-class TraversalHelp(domainBasePackage: String) {
-  val ColumnNames = Array("step", "description")
-  val ColumnNamesVerbose = ColumnNames :+ "traversal name"
-
-  private val additionalSearchPackages: mutable.Set[String] = mutable.Set.empty
-
-  /** register an additional package that should be searched for @Doc annotations */
-  def registerAdditionalSearchPackage(packageName: String): this.type = {
-    additionalSearchPackages.addOne(packageName)
-    this
-  }
+class TraversalHelp(searchPackages: DocSearchPackages) {
+  import TraversalHelp._
 
   def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
@@ -107,8 +101,15 @@ class TraversalHelp(domainBasePackage: String) {
 
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
     DocFinder.findDocumentedMethodsOf(traversal)
+      // scala generates additional `fooBar$extension` methods, but those don't matter in the context of .help/@Doc
+      .filterNot(_.methodName.endsWith("$extension"))
   }
 
   private def packageNamesToSearch: Seq[String] =
-    (additionalSearchPackages ++ Seq(domainBasePackage)).toSeq
+    searchPackages() :+ "overflowdb"
+}
+
+object TraversalHelp {
+  private val ColumnNames = Array("step", "description")
+  private val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 }

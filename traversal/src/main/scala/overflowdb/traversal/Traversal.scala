@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
-import overflowdb.traversal.help.{Doc, TraversalHelp}
+import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 
 import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
 import scala.collection.immutable.ArraySeq
@@ -43,16 +43,17 @@ class Traversal[A](elements: IterableOnce[A])
 
   /**
    * Print help/documentation based on the current elementType `A`.
-   * Relies on all step extensions being annotated with @TraversalExt / @Doc
+   * Relies on all step extensions being annotated with @Traversal / @Doc
    * Note that this works independently of tab completion and implicit conversions in scope - it will simply list
    * all documented steps in the classpath
    * */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
-  def help(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = false)
+  def help(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+    new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
-  def helpVerbose(implicit elementType: ClassTag[A]): String =
-    Traversal.help.forElementSpecificSteps(elementType.runtimeClass, verbose = true)
+  @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
+  def helpVerbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+    new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =
     Traversal.fromSingle(iterator.size)
@@ -317,8 +318,7 @@ class Traversal[A](elements: IterableOnce[A])
 object Traversal extends IterableFactory[Traversal] {
   protected val logger = LoggerFactory.getLogger("Traversal")
 
-  /* reconfigure with different base package if needed */
-  var help = new TraversalHelp("overflowdb")
+  def help: TraversalHelp = ???// = new TraversalHelp
 
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
