@@ -113,6 +113,11 @@ class RepeatTraversalTests extends AnyWordSpec {
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label))).property(Name).toSetMutable shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
+
+    "be combinable with `.times`" in {
+      centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).times(3)).name.toSet shouldBe Set("L3", "R2")
+    }
+
   }
 
   "support repeat/while behaviour" should {
@@ -148,6 +153,10 @@ class RepeatTraversalTests extends AnyWordSpec {
         Seq(center, r1),
         Seq(center, l1),
       )
+    }
+
+    "be combinable with `.times`" in {
+      centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).times(3)).name.toSet shouldBe Set("L3", "R2")
     }
   }
 
