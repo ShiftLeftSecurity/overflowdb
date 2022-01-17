@@ -3,12 +3,9 @@ package overflowdb.traversal
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb._
-import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
-
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
 
 class RepeatTraversalTests extends AnyWordSpec {
   import ExampleGraphSetup._
@@ -68,8 +65,8 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "emit nodes that meet given condition" in {
     val expectedResults = Set("L1", "L2", "L3")
-    centerTrav.repeat(_.followedBy)(_.emit(_.name.filter(_.startsWith("L")))).name.toSetMutable shouldBe expectedResults
-    centerTrav.repeat(_.followedBy)(_.emit(_.name.filter(_.startsWith("L"))).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+    centerTrav.repeat(_.followedBy)(_.emit(_.nameStartsWith("L"))).name.toSetMutable shouldBe expectedResults
+    centerTrav.repeat(_.followedBy)(_.emit(_.nameStartsWith("L")).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L"))))).property(Name).toSetMutable shouldBe expectedResults
     centerTrav.repeat(_.out)(_.emit(_.has(Name.where(_.startsWith("L")))).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
   }
@@ -86,8 +83,8 @@ class RepeatTraversalTests extends AnyWordSpec {
   "support arbitrary `until` condition" should {
     "work without emit" in {
       val expectedResults = Set("L2", "R2")
-      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2")))).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.nameEndsWith("2"))).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.nameEndsWith("2")).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
 
       centerTrav.repeat(_.out)(
         _.until(_.has(Name.where(_.matches(".*2")))))
@@ -100,16 +97,16 @@ class RepeatTraversalTests extends AnyWordSpec {
 
     "work in combination with emit" in {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
-      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.name.filter(_.endsWith("2"))).emit.breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.nameEndsWith("2")).emit).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.nameEndsWith("2")).emit.breadthFirstSearch).name.toSetMutable shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit).property(Name).toSetMutable shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.has(Name.where(_.matches(".*2")))).emit.breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
 
     "result in 'repeat/until' behaviour, i.e. `until` condition is only evaluated after one iteration" in {
       val expectedResults = Set("L1", "R1")
-      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.label == Thing.Label))).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.until(_.filter(_.label == Thing.Label)).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.label(Thing.Label))).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.until(_.label(Thing.Label)).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label))).property(Name).toSetMutable shouldBe expectedResults
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
