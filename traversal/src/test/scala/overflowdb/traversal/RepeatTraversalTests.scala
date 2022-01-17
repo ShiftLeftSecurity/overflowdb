@@ -115,7 +115,7 @@ class RepeatTraversalTests extends AnyWordSpec {
     }
 
     "be combinable with `.times`" in {
-      centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).times(3)).name.toSet shouldBe Set("L3", "R2")
+      centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).times(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
 
   }
@@ -156,7 +156,7 @@ class RepeatTraversalTests extends AnyWordSpec {
     }
 
     "be combinable with `.times`" in {
-      centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).times(3)).name.toSet shouldBe Set("L3", "R2")
+      centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).times(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
   }
 
