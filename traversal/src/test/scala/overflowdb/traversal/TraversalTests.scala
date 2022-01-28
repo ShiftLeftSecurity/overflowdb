@@ -195,21 +195,28 @@ class TraversalTests extends AnyWordSpec {
   }
 
   ".help step" should {
+    import SimpleDomain._ // for domain specific `DocSearchPackages`
+
     "give a domain overview" in {
-      simpleDomain.help should include(".things")
-      simpleDomain.help should include("all things")
+      val helpText = simpleDomain.help
+      helpText should include(".things")
+      helpText should include("all things")
     }
 
     "provide node-specific overview" when {
       "using simple domain" in {
-        val thingTraversal: Traversal[Thing] = Traversal.empty
-        thingTraversal.help should include("Available steps for Thing")
-        thingTraversal.help should include(".name")
+        val thingTraversal = SimpleDomain.traversal(SimpleDomain.newGraph).things
+        val thingTraversalHelp = thingTraversal.help
+        thingTraversalHelp should include("Available steps for Thing")
+        thingTraversalHelp should include(".name")
+        thingTraversalHelp should include(".name2") // step from helptest.SimpleDomainTraversal
 
-        thingTraversal.helpVerbose should include("ThingTraversal") // the Traversal classname
-        thingTraversal.helpVerbose should include(".sideEffect") // step from Traversal
-        thingTraversal.helpVerbose should include(".label") // step from ElementTraversal
-        thingTraversal.helpVerbose should include(".out") // step from NodeTraversal
+        val thingTraversalHelpVerbose = thingTraversal.helpVerbose
+        thingTraversalHelpVerbose should include("ThingTraversal") // the Traversal classname
+        thingTraversalHelpVerbose should include(".sideEffect") // step from Traversal
+        thingTraversalHelpVerbose should include(".label") // step from ElementTraversal
+        thingTraversalHelpVerbose should include(".out") // step from NodeTraversal
+        thingTraversalHelpVerbose should include("just like name, but in a different package") // step from helptest.SimpleDomainTraversal
       }
 
       "using hierarchical domain" in {

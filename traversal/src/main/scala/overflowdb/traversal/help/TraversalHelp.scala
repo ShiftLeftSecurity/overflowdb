@@ -1,23 +1,28 @@
 package overflowdb.traversal.help
 
-import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
-import overflowdb.{NodeRef, NodeDb}
-import java.lang.annotation.{Annotation => JAnnotation}
-import DocFinder.StepDoc
-
 import org.reflections8.Reflections
+import overflowdb.traversal.help.DocFinder.StepDoc
+import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
+import overflowdb.{NodeDb, NodeRef}
 
+import java.lang.annotation.{Annotation => JAnnotation}
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 /**
+ * Searches classpath for @Traversal|@TraversalSource and @Doc annotations (via reflection).
+ * Used for `.help` step. There are two use cases for this, which require slightly different implementations
+ * 1) `myDomain.help` - for the node starter steps
+ * 2) `myDomain.someNodeType.help` - for steps that are available a specific node type
  *
- * traversalExtBasePackage: The base package that we scan for @TraversalExt annotations.
- * Note that this restricts us to only find @Doc annotations in classes in that namespace and it's children.
- * If left empty, the scan takes considerable amount of time (depending on your classpath, obviously).
+ * For use case 2, we also take into account all parent traits of a node type, recursively.
+ * I.e. if `SomeNodeType` has a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`,
+ * we will include those in the results.
+ *
+ * @param searchPackages: The base packages that we scan for - we're not scanning the entire classpath
  */
-class TraversalHelp(domainBasePackage: String) {
-  val ColumnNames = Array("step", "description")
-  val ColumnNamesVerbose = ColumnNames :+ "traversal name"
+class TraversalHelp(searchPackages: DocSearchPackages) {
+  import TraversalHelp._
 
   def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
@@ -54,10 +59,15 @@ class TraversalHelp(domainBasePackage: String) {
   }
 
   lazy val forTraversalSources: String = {
-    val stepDocs = findClassesAnnotatedWith(classOf[TraversalSource]).flatMap(findStepDocs)
+    val stepDocs = for {
+      packageName <- packageNamesToSearch
+      traversal   <- findClassesAnnotatedWith(packageName, classOf[help.TraversalSource])
+      stepDoc     <- findStepDocs(traversal)
+    } yield stepDoc
+
     val table = Table(
       columnNames = ColumnNames,
-      rows = stepDocs.toList.sortBy(_.methodName).map { stepDoc =>
+      rows = stepDocs.distinct.sortBy(_.methodName).map { stepDoc =>
         List(s".${stepDoc.methodName}", stepDoc.doc.info)
       }
     )
@@ -73,14 +83,15 @@ class TraversalHelp(domainBasePackage: String) {
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
-      traversal  <- findClassesAnnotatedWith(classOf[help.Traversal])
+      packageName <- packageNamesToSearch
+      traversal  <- findClassesAnnotatedWith(packageName, classOf[help.Traversal])
       annotation <- Option(traversal.getAnnotation(classOf[help.Traversal])).iterator
       stepDoc    <- findStepDocs(traversal)
     } yield (annotation.elementType, stepDoc)
-  }.toList.groupMap(_._1)(_._2)
+  }.toList.distinct.groupMap(_._1)(_._2)
 
-  private def findClassesAnnotatedWith[Annotation <: JAnnotation](annotationClass: Class[Annotation]): Iterator[Class[_]] =
-    new Reflections(domainBasePackage).getTypesAnnotatedWith(annotationClass).asScala.iterator
+  private def findClassesAnnotatedWith[Annotation <: JAnnotation](packageName: String, annotationClass: Class[Annotation]): Iterator[Class[_]] =
+    new Reflections(packageName).getTypesAnnotatedWith(annotationClass).asScala.iterator
 
   lazy val genericStepDocs: Iterable[StepDoc] =
     findStepDocs(classOf[Traversal[_]])
@@ -90,5 +101,15 @@ class TraversalHelp(domainBasePackage: String) {
 
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
     DocFinder.findDocumentedMethodsOf(traversal)
+      // scala generates additional `fooBar$extension` methods, but those don't matter in the context of .help/@Doc
+      .filterNot(_.methodName.endsWith("$extension"))
   }
+
+  private def packageNamesToSearch: Seq[String] =
+    searchPackages() :+ "overflowdb"
+}
+
+object TraversalHelp {
+  private val ColumnNames = Array("step", "description")
+  private val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 }
