@@ -41,7 +41,7 @@ public class ElementTest {
               TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
               TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
 
-      builder.addEdge(TestEdge.LABEL, n1D, n2D, TestEdge.LONG_PROPERTY, 99L);
+      builder.addEdge(n1D, n2D,TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
 
       BatchedUpdate.applyDiff(graph, builder);
 
@@ -111,7 +111,7 @@ public class ElementTest {
     BatchedUpdate.DiffGraphBuilder builder = new BatchedUpdate.DiffGraphBuilder();
     DetachedNodeData n0 = new DetachedNodeGeneric(TestNode.LABEL);
     DetachedNodeData n1 = new DetachedNodeGeneric(TestNode.LABEL);
-    builder.addEdge(TestEdge.LABEL, n0, n1, TestEdge.LONG_PROPERTY, 99L);
+    builder.addEdge(n0, n1,TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
     BatchedUpdate.applyDiff(graph, builder);
 
 

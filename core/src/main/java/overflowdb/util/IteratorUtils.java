@@ -145,14 +145,13 @@ public class IteratorUtils {
     private int pos;
     public ArrayIterator(E[] elems){
       this.elems = elems;
-      this.pos = -1;
+      this.pos = 0;
     }
     public E next(){
-      pos += 1;
-      return elems[pos];
+      return elems[pos++];
     }
     public boolean hasNext(){
-      return pos + 2 < elems.length;
+      return pos < elems.length;
     }
   }
 }
