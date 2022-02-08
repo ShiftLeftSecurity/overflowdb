@@ -27,19 +27,28 @@ public class ElementTest {
   @Test
   public void overviewTest() {
     try (Graph graph = SimpleDomain.newGraph()) {
-      Node n1 = graph.addNode(
-          TestNode.LABEL,
-          TestNode.STRING_PROPERTY, "node 1",
-          TestNode.INT_PROPERTY, 42,
-          TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
-          TestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43));
-      Node n2 = graph.addNode(
-          TestNode.LABEL,
-          TestNode.STRING_PROPERTY, "node 2",
-          TestNode.INT_PROPERTY, 52,
-          TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
-          TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
-      Edge e = n1.addEdge(TestEdge.LABEL, n2, TestEdge.LONG_PROPERTY, 99l);
+      BatchedUpdate.DiffGraphBuilder builder = new BatchedUpdate.DiffGraphBuilder();
+      DetachedNodeData n1D = new DetachedNodeGeneric(
+              TestNode.LABEL,
+              TestNode.STRING_PROPERTY, "node 1",
+              TestNode.INT_PROPERTY, 42,
+              TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringOne", "stringTwo"),
+              TestNode.INT_LIST_PROPERTY, Arrays.asList(42, 43));
+      DetachedNodeData n2D = new DetachedNodeGeneric(
+              TestNode.LABEL,
+              TestNode.STRING_PROPERTY, "node 2",
+              TestNode.INT_PROPERTY, 52,
+              TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
+              TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
+
+      builder.addEdge(n1D, n2D,TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
+
+      BatchedUpdate.applyDiff(graph, builder);
+
+      Node n1 = (Node)n1D.getRefOrId();
+      Node n2 = (Node)n2D.getRefOrId();
+      Edge e = n1.outE().next();
+
 
       //  verify that we can cast to our domain-specific nodes/edges
       TestNode node1 = (TestNode) n1;
@@ -88,33 +97,34 @@ public class ElementTest {
 
       // edge properties
       assertTrue(e instanceof TestEdge);
-      assertEquals(Long.valueOf(99l), ((TestEdge) e).longProperty());
+      assertEquals(Long.valueOf(99L), ((TestEdge) e).longProperty());
       assertEquals(Long.valueOf(99l), e.property(TestEdge.LONG_PROPERTY));
-      assertEquals(99l, (long) n1.outE().next().property(TestEdge.LONG_PROPERTY));
-      assertEquals(99l, (long) n2.inE().next().property(TestEdge.LONG_PROPERTY));
-      assertEquals(new HashMap<String, Object>() {{ put(TestEdge.LONG_PROPERTY, 99l); }}, n2.inE().next().propertiesMap());
+      assertEquals(99L, (long) n1.outE().next().property(TestEdge.LONG_PROPERTY));
+      assertEquals(99L, (long) n2.inE().next().property(TestEdge.LONG_PROPERTY));
+      assertEquals(new HashMap<String, Object>() {{ put(TestEdge.LONG_PROPERTY, 99L); }}, n2.inE().next().propertiesMap());
     }
   }
 
   @Test
   public void testEdgeEquality() {
     Graph graph = SimpleDomain.newGraph();
+    BatchedUpdate.DiffGraphBuilder builder = new BatchedUpdate.DiffGraphBuilder();
+    DetachedNodeData n0 = new DetachedNodeGeneric(TestNode.LABEL);
+    DetachedNodeData n1 = new DetachedNodeGeneric(TestNode.LABEL);
+    builder.addEdge(n0, n1,TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
+    BatchedUpdate.applyDiff(graph, builder);
 
-    Node n0 = graph.addNode(TestNode.LABEL);
-    Node n1 = graph.addNode(TestNode.LABEL);
 
-    Edge e0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 99l);
+    Edge e0FromOut = ((Node)n0.getRefOrId()).outE().next();
+    Edge e0FromIn = ((Node)n1.getRefOrId()).inE().next();
 
-    Edge e0FromOut = n0.outE().next();
-    Edge e0FromIn = n1.inE().next();
-
-    assertEquals(e0, e0FromOut);
-    assertEquals(e0, e0FromIn);
     assertEquals(e0FromOut, e0FromIn);
   }
 
+
   @Test
   public void setAndGetEdgePropertyViaNewEdge() {
+
     Graph graph = SimpleDomain.newGraph();
 
     Node n0 = graph.addNode(TestNode.LABEL);
@@ -241,16 +251,16 @@ public class ElementTest {
     try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
-      Edge edge1 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0L);
+      Edge edge1 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
 
       edge0.remove();
 
       Iterator<Edge> n0outEdges = n0.outE();
-      assertEquals(1l, (long) n0outEdges.next().property(TestEdge.LONG_PROPERTY));
+      assertEquals(1L, (long) n0outEdges.next().property(TestEdge.LONG_PROPERTY));
       assertFalse(n0outEdges.hasNext());
       Iterator<Edge> n1inEdges = n1.inE();
-      assertEquals(1l, (long) n1inEdges.next().property(TestEdge.LONG_PROPERTY));
+      assertEquals(1L, (long) n1inEdges.next().property(TestEdge.LONG_PROPERTY));
       assertFalse(n1inEdges.hasNext());
     }
   }
@@ -260,8 +270,8 @@ public class ElementTest {
     try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
-      Edge edge1 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      Edge edge0 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0L);
+      Edge edge1 = n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
 
       edge1.remove();
 
@@ -279,8 +289,8 @@ public class ElementTest {
     try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0l);
-      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 0L);
+      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
 
       // round trip serialization, delete edge with longProperty=0;
       graph.node(n0.id()).outE().forEachRemaining(edge -> {
@@ -303,7 +313,7 @@ public class ElementTest {
     try (Graph graph = SimpleDomain.newGraph()) {
       Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
       Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
-      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1l);
+      n0.addEdge(TestEdge.LABEL, n1, TestEdge.LONG_PROPERTY, 1L);
 
       n0.remove();
 
@@ -327,7 +337,7 @@ public class ElementTest {
       assertTrue(names.contains("song 1"));
       assertTrue(names.contains("song 2"));
 
-      song1.addEdge(FollowedBy.LABEL, song2, FollowedBy.WEIGHT, new Integer(42));
+      song1.addEdge(FollowedBy.LABEL, song2, FollowedBy.WEIGHT, Integer.valueOf(42));
       Iterator<Edge> edgesWithWeight = IteratorUtils.filter(graph.edges(), edge -> edge.property(FollowedBy.WEIGHT) != null);
       assertEquals(42, (int) edgesWithWeight.next().property(FollowedBy.WEIGHT));
       assertEquals(42, (int) song1.outE().next().property(FollowedBy.WEIGHT));
@@ -528,7 +538,7 @@ public class ElementTest {
       Edge e0FromOut = n0.outE().next();
       Edge e0FromIn = n1.inE().next();
 
-      long defaultLongPropertyValue = -99l;
+      long defaultLongPropertyValue = -99L;
       assertEquals(defaultLongPropertyValue, e0.property(TestEdge.LONG_PROPERTY));
       assertEquals(defaultLongPropertyValue, e0FromOut.property(TestEdge.LONG_PROPERTY));
       assertEquals(defaultLongPropertyValue, e0FromIn.property(TestEdge.LONG_PROPERTY));
@@ -538,8 +548,8 @@ public class ElementTest {
   @Test
   public void shouldAllowToSpecifyIds() {
     try(Graph graph = GratefulDead.newGraph()) {
-      Node n10 = graph.addNode(10l, Song.label, Song.NAME, "Song 10");
-      Node n20 = graph.addNode(20l, Song.label, Song.NAME, "Song 20");
+      Node n10 = graph.addNode(10L, Song.label, Song.NAME, "Song 10");
+      Node n20 = graph.addNode(20L, Song.label, Song.NAME, "Song 20");
       n10.addEdge(FollowedBy.LABEL, n20, FollowedBy.WEIGHT, 5);
 
       assertEquals(5, (int) graph.node(10).outE(FollowedBy.LABEL).next().property(FollowedBy.WEIGHT));

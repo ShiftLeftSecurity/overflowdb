@@ -135,7 +135,7 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public void setProperty(String key, Object value) {
+  protected void setPropertyImpl(String key, Object value) {
     updateSpecificProperty(key, value);
     ref.graph.indexManager.putIfIndexed(key, value, ref);
     /* marking as dirty *after* we updated - if node gets serialized before we finish, it'll be marked as dirty */
@@ -143,17 +143,17 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public <A> void setProperty(PropertyKey<A> key, A value) {
+  protected <A> void setPropertyImpl(PropertyKey<A> key, A value) {
     setProperty(key.name, value);
   }
 
   @Override
-  public void setProperty(Property<?> property) {
+  protected void setPropertyImpl(Property<?> property) {
     setProperty(property.key.name, property.value);
   }
 
   @Override
-  public void removeProperty(String key) {
+  protected void removePropertyImpl(String key) {
     Object oldValue = property(key);
     removeSpecificProperty(key);
     ref.graph.indexManager.remove(key, oldValue, ref);
@@ -166,7 +166,7 @@ public abstract class NodeDb extends Node {
   protected abstract void removeSpecificProperty(String key);
 
   @Override
-  public void remove() {
+  protected void removeImpl() {
     final List<Edge> edges = new ArrayList<>();
     bothE().forEachRemaining(edges::add);
     for (Edge edge : edges) {
@@ -296,7 +296,7 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public Edge addEdge(String label, Node inNode, Object... keyValues) {
+  protected Edge addEdgeImpl(String label, Node inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
 
@@ -311,12 +311,12 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public Edge addEdge(String label, Node inNode, Map<String, Object> keyValues) {
+  protected Edge addEdgeImpl(String label, Node inNode, Map<String, Object> keyValues) {
     return addEdge(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 
   @Override
-  public void addEdgeSilent(String label, Node inNode, Object... keyValues) {
+  protected void addEdgeSilentImpl(String label, Node inNode, Object... keyValues) {
     final NodeRef inNodeRef = (NodeRef) inNode;
     NodeRef thisNodeRef = ref;
 
@@ -325,7 +325,7 @@ public abstract class NodeDb extends Node {
   }
 
   @Override
-  public void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues) {
+  protected void addEdgeSilentImpl(String label, Node inNode, Map<String, Object> keyValues) {
     addEdgeSilent(label, inNode, PropertyHelper.toKeyValueArray(keyValues));
   }
 

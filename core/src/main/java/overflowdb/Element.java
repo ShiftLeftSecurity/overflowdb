@@ -37,13 +37,28 @@ public abstract class Element {
   /** Map with all properties, including the default property values which haven't been explicitly set */
   public abstract Map<String, Object> propertiesMap();
 
-  public abstract void setProperty(String key, Object value);
 
-  public abstract <A> void setProperty(PropertyKey<A> key, A value);
+  @Deprecated public final void setProperty(String key, Object value) {setPropertyImpl(key, value);};
+  protected abstract void setPropertyImpl(String key, Object value);
+  final void setPropertyInternal(String key, Object value) {setPropertyImpl(key, value);}
 
-  public abstract void setProperty(Property<?> property);
+  @Deprecated public final <A> void setProperty(PropertyKey<A> key, A value){setPropertyImpl(key, value);}
+  protected abstract <A> void setPropertyImpl(PropertyKey<A> key, A value);
+  final <A> void setPropertyInternal(PropertyKey<A> key, A value){setPropertyImpl(key, value);}
 
-  public abstract void removeProperty(String key);
 
-  public abstract void remove();
+  @Deprecated public final void setProperty(Property<?> property){setPropertyImpl(property);}
+  protected abstract void setPropertyImpl(Property<?> property);
+  final void setPropertyInternal(Property<?> property){setPropertyImpl(property);}
+
+
+  @Deprecated final public void removeProperty(String key){removePropertyImpl(key);}
+  protected abstract void removePropertyImpl(String key);
+  final void removePropertyInternal(String key){removePropertyImpl(key);}
+
+
+  @Deprecated public final void remove(){removeImpl();};
+  protected abstract void removeImpl();
+  final void removeInternal(){removeImpl();};
+
 }
