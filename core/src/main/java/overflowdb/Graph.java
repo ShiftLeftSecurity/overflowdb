@@ -156,6 +156,14 @@ public final class Graph implements AutoCloseable {
     return node;
   }
 
+  public DetachedNodeData createDetached(String label){
+    if (!nodeFactoryByLabel.containsKey(label)) {
+      throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
+    }
+    final NodeFactory factory = nodeFactoryByLabel.get(label);
+    return factory.createDetached();
+  }
+
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
     if (closed) {
       throw new AssertionError("graph is closed - no more mutation allowed");

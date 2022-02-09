@@ -83,7 +83,7 @@ public abstract class Edge extends Element {
   }
 
   @Override
-  public void setProperty(String key, Object value) {
+  protected void setPropertyImpl(String key, Object value) {
     // TODO check if it's an allowed property key
     if (inBlockOffset != UNINITIALIZED_BLOCK_OFFSET) {
       if (outBlockOffset == UNINITIALIZED_BLOCK_OFFSET) {
@@ -106,13 +106,13 @@ public abstract class Edge extends Element {
   }
 
   @Override
-  public void removeProperty(String key) {
+  protected void removePropertyImpl(String key) {
     inNode.get().removeEdgeProperty(Direction.IN, label, key, inBlockOffset);
     outNode.get().removeEdgeProperty(Direction.OUT, label, key, outBlockOffset);
   }
 
   @Override
-  public void remove() {
+  protected void removeImpl() {
     fixupBlockOffsets();
     outNode.get().removeEdge(Direction.OUT, label(), outBlockOffset);
     inNode.get().removeEdge(Direction.IN, label(), inBlockOffset);
@@ -169,12 +169,12 @@ public abstract class Edge extends Element {
   }
 
   @Override
-  public <A> void setProperty(PropertyKey<A> key, A value) {
+  protected <A> void setPropertyImpl(PropertyKey<A> key, A value) {
     setProperty(key.name, value);
   }
 
   @Override
-  public void setProperty(Property<?> property) {
+  protected void setPropertyImpl(Property<?> property) {
     setProperty(property.key.name, property.value);
   }
 

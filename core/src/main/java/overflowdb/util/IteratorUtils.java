@@ -139,4 +139,19 @@ public class IteratorUtils {
       return ret;
     }
   }
+
+  public static class ArrayIterator<E> implements Iterator<E>{
+    private final E[] elems;
+    private int pos;
+    public ArrayIterator(E[] elems){
+      this.elems = elems;
+      this.pos = 0;
+    }
+    public E next(){
+      return elems[pos++];
+    }
+    public boolean hasNext(){
+      return pos < elems.length;
+    }
+  }
 }

@@ -15,5 +15,9 @@ public abstract class NodeFactory<V extends NodeDb> {
     return node;
   }
 
+  public DetachedNodeData createDetached(){
+    return new DetachedNodeGeneric(forLabel());
+  }
+
 }
 

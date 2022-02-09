@@ -1,7 +1,10 @@
 package overflowdb;
 
+import overflowdb.util.PropertyHelper;
+
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 public abstract class Node extends Element {
 
@@ -10,12 +13,18 @@ public abstract class Node extends Element {
    * These key/values must be provided in an even number where the odd numbered arguments are {@link String}
    * property keys and the even numbered arguments are the related property values.
    */
-  public abstract Edge addEdge(String label, Node inNode, Object... keyValues);
+  @Deprecated public final Edge addEdge(String label, Node inNode, Object... keyValues){return addEdgeImpl(label, inNode, keyValues);}
+  protected abstract Edge addEdgeImpl(String label, Node inNode, Object... keyValues);
+  final Edge addEdgeInternal(String label, Node inNode, Object... keyValues){return addEdgeImpl(label, inNode, keyValues);}
+
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
    */
-  public abstract Edge addEdge(String label, Node inNode, Map<String, Object> keyValues);
+  @Deprecated public final Edge addEdge(String label, Node inNode, Map<String, Object> keyValues){return addEdgeImpl(label, inNode, keyValues);}
+  protected abstract Edge addEdgeImpl(String label, Node inNode, Map<String, Object> keyValues);
+  final Edge addEdgeInternal(String label, Node inNode, Map<String, Object> keyValues){return addEdgeImpl(label, inNode, keyValues);}
+
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
@@ -23,13 +32,19 @@ public abstract class Node extends Element {
    * property keys and the even numbered arguments are the related property values.
    * Just like {{{addEdge2}}, but doesn't instantiate and return a dummy edge
    */
-  public abstract void addEdgeSilent(String label, Node inNode, Object... keyValues);
+  @Deprecated public final void addEdgeSilent(String label, Node inNode, Object... keyValues){addEdgeSilentImpl(label, inNode, keyValues);}
+  protected abstract void addEdgeSilentImpl(String label, Node inNode, Object... keyValues);
+  final void addEdgeSilentInternal(String label, Node inNode, Object... keyValues){addEdgeSilentImpl(label, inNode, keyValues);}
+
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.
    * Just like {{{addEdge2}}, but doesn't instantiate and return a dummy edge
    */
-  public abstract void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues);
+  @Deprecated public final void addEdgeSilent(String label, Node inNode, Map<String, Object> keyValues){addEdgeSilentImpl(label, inNode, keyValues);}
+  protected abstract void addEdgeSilentImpl(String label, Node inNode, Map<String, Object> keyValues);
+  final void addEdgeSilentInternal(String label, Node inNode, Map<String, Object> keyValues){addEdgeSilentImpl(label, inNode, keyValues);}
+
 
   public abstract long id();
 
@@ -68,4 +83,15 @@ public abstract class Node extends Element {
 
   /* adjacent OUT/IN edges for given labels */
   public abstract Iterator<Edge> bothE(String... edgeLabels);
+
+  /*Allows fast initialization from detached node data*/
+  protected void _initializeFromDetached(DetachedNodeData data, Function<DetachedNodeData, Node> mapper){
+    throw new RuntimeException("Detached initialization is not supported by node type " + label() + " of class " + getClass().getName() );
+  }
+  /*Allows fast initialization from detached node data; available as static instead of instance method, because we need to keep the REPL clean*/
+  static void initializeFromDetached(Node node, DetachedNodeData data, Function<DetachedNodeData, Node> refMapper){
+    if(data instanceof DetachedNodeGeneric){
+      PropertyHelper.attachProperties(node,((DetachedNodeGeneric) data).keyvalues);
+    } else node._initializeFromDetached(data, refMapper);
+  }
 }
