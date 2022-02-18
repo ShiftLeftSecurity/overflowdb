@@ -294,6 +294,7 @@ public final class Graph implements AutoCloseable {
     return nodes(ids);
   }
 
+  /** return node with given `id`, or `null` if there is no such node */
   public Node node(long id) {
     return nodes.nodeById(id);
   }
