@@ -725,7 +725,7 @@ public abstract class NodeDb extends Node {
   }
 
   /**
-   * to follow the tinkerpop api, instantiate and return a dummy edge, which doesn't really exist in the graph
+   * instantiate and return a dummy edge, which doesn't really exist in the graph
    */
   public final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);

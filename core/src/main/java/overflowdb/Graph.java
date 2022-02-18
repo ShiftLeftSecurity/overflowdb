@@ -300,7 +300,7 @@ public final class Graph implements AutoCloseable {
   }
 
   /** Iterator over nodes with provided ids
-   * note: this behaves differently from the tinkerpop api, in that it returns no nodes if no ids are provided */
+   * empty, if no ids are provided */
   public Iterator<Node> nodes(long... ids) {
     if (ids.length == 0) {
       return Collections.emptyIterator();
