@@ -25,9 +25,6 @@ public class GratefulDeadTp3 {
 
 
   public static void loadData(OdbGraphTp3 graph) throws IOException {
-//    GraphML.
-//    graph.graph
-//    new overflowdb.formats.Foo();
     graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
   }
 
