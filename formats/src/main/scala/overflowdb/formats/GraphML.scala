@@ -5,8 +5,6 @@ import overflowdb.Graph
 
 import scala.xml.XML
 
-class Foo
-
 /** primitive GraphML importer which doesn't support much from the spec...
  *  only enough to get us covered for some standard test cases, really */
 object GraphML {

@@ -1,12 +1,11 @@
 package overflowdb.storage;
 
-import org.apache.tinkerpop.gremlin.structure.io.IoCore;
 import org.junit.Test;
 import overflowdb.Node;
 import overflowdb.Config;
 import overflowdb.Edge;
 import overflowdb.Graph;
-import overflowdb.tinkerpop.OdbGraphTp3;
+import overflowdb.formats.GraphML;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
@@ -23,7 +22,6 @@ import static org.junit.Assert.assertFalse;
 
 /**
  * save and restore a graph from disk overlay
- * TODO move to core... cannot do currently because it depends on loading graph from graphml...
  */
 public class GraphSaveRestoreTest {
 
@@ -186,12 +184,8 @@ public class GraphSaveRestoreTest {
     return GratefulDead.newGraph(config.withStorageLocation(overflowDb.getAbsolutePath()));
   }
 
-  private void loadGraphMl(Graph graph) throws RuntimeException {
-    try {
-      OdbGraphTp3.wrap(graph).io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  private void loadGraphMl(Graph graph) {
+    GraphML.insert("src/test/resources/grateful-dead.xml", graph);
   }
 
   private Iterator<Node> getSongs(Graph graph, String songName) {

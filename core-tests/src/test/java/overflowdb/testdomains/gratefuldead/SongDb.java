@@ -3,6 +3,7 @@ package overflowdb.testdomains.gratefuldead;
 import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.NodeDb;
+import scala.Int;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,7 +56,11 @@ public class SongDb extends NodeDb {
     } else if (Song.SONG_TYPE.equals(key)) {
       this._songType = (String) value;
     } else if (Song.PERFORMANCES.equals(key)) {
-      this._performances = ((Integer) value);
+      if (value instanceof String) {
+        this._performances = Integer.valueOf((String) value);
+      } else {
+        this._performances = ((Integer) value);
+      }
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
