@@ -31,5 +31,5 @@ class GraphMLTests extends AnyWordSpec {
 
     graph.close()
   }
-  
+
 }
