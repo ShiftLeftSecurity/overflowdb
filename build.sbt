@@ -6,7 +6,7 @@ publish/skip := true
 
 lazy val core      = project.in(file("core"))
 lazy val formats   = project.in(file("formats")).dependsOn(core)
-lazy val traversal = project.in(file("traversal")).dependsOn(core)
+lazy val traversal = project.in(file("traversal")).dependsOn(core, formats)
 lazy val coreTests = project.in(file("core-tests")) // separated out core-tests to resolve cyclic dependencies between core and formats
   .dependsOn(core % Test)
   .dependsOn(formats % Test)

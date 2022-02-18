@@ -36,7 +36,10 @@ class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
       case Song.PropertyNames.SongType =>
         _songType = value.asInstanceOf[String]
       case Song.PropertyNames.Performances =>
-        _performances = value.asInstanceOf[Integer]
+        _performances = value match {
+          case value: String => Integer.valueOf(value)
+          case value => value.asInstanceOf[Integer]
+        }
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
