@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-element"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.1/graphml.xsd">
+    <key id="labelV" for="node" attr.name="labelV" attr.type="string"></key>
+    <key id="name" for="node" attr.name="name" attr.type="string"></key>
+    <key id="songType" for="node" attr.name="songType" attr.type="string"></key>
+    <key id="labelE" for="edge" attr.name="labelE" attr.type="string"></key>
+    <graph id="G" edgedefault="directed">
+        <node id="1">
+            <data key="labelV">song</data>
+            <data key="name">HEY BO DIDDLEY</data>
+            <data key="songType">cover</data>
+        </node>
+        <node id="340">
+            <data key="labelV">artist</data>
+            <data key="name">Garcia</data>
+        </node>
+        <node id="527">
+            <data key="labelV">artist</data>
+            <data key="name">Bo_Diddley</data>
+        </node>
+        <edge id="7611" source="1" target="527">
+            <data key="labelE">writtenBy</data>
+        </edge>
+        <edge id="7612" source="1" target="340">
+            <data key="labelE">sungBy</data>
+        </edge>
+    </graph>
+</graphml>

@@ -4,12 +4,12 @@ ThisBuild/scalaVersion := "2.13.8"
 ThisBuild/crossScalaVersions := Seq("2.13.8", "3.1.1")
 publish/skip := true
 
-lazy val core = project.in(file("core"))
-lazy val tinkerpop3 = project.in(file("tinkerpop3")).dependsOn(core % "compile->compile;test->test")
-
-lazy val traversal = project.in(file("traversal"))
-                       .dependsOn(core)
-                       .dependsOn(tinkerpop3 % "test->test") // TODO drop this dependency - currently necessary for GratefulDeadTest which uses graphml loading
+lazy val core      = project.in(file("core"))
+lazy val formats   = project.in(file("formats")).dependsOn(core)
+lazy val traversal = project.in(file("traversal")).dependsOn(core, formats)
+lazy val coreTests = project.in(file("core-tests")) // separated out core-tests to resolve cyclic dependencies between core and formats
+  .dependsOn(core % Test)
+  .dependsOn(formats % Test)
 
 ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
   CrossVersion.partialVersion(scalaVersion.value) match {

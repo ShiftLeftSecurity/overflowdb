@@ -12,7 +12,6 @@ import scala.reflect.ClassTag
   * TODO more docs
   *
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
-  * Since this may trip up users, we'll log a warning
  **/
 class Traversal[A](elements: IterableOnce[A])
     extends IterableOnce[A]

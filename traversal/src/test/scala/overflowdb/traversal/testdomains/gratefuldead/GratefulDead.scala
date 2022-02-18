@@ -1,8 +1,8 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
-import java.util
+import overflowdb.formats.GraphML
 
-import overflowdb.tinkerpop.OdbGraphTp3
+import java.util
 import overflowdb.traversal.{Traversal, TraversalSource}
 import overflowdb.{Config, Graph}
 
@@ -22,7 +22,7 @@ object GratefulDead {
   }
 
   def loadData(graph: Graph): Unit =
-    OdbGraphTp3.wrap(graph).traversal().io("src/test/resources/grateful-dead.xml").read().iterate()
+    GraphML.insert("src/test/resources/grateful-dead.xml", graph)
 
   def traversal(graph: Graph) = new GratefulDeadTraversalSource(graph)
 }

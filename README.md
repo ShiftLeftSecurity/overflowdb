@@ -1,5 +1,5 @@
 [![Release](https://github.com/ShiftLeftSecurity/overflowdb/actions/workflows/release.yml/badge.svg)](https://github.com/ShiftLeftSecurity/overflowdb/actions/workflows/release.yml)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-traversal_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-traversal_2.13)
 
 ## ShiftLeft OverflowDB
 * in-memory graph database with low memory footprint
@@ -18,7 +18,6 @@ https://github.com/jonschlinkert/markdown-toc
 - [Core concepts](#core-concepts)
 - [Usage](#usage)
 - [Configuration](#configuration)
-- [TinkerPop3 compatibility](#tinkerpop3-compatibility)
 - [FAQ](#faq)
 
 ### Core concepts
@@ -31,9 +30,6 @@ This model has been chosen in order to be memory efficient, and is based on the 
 **Simple classes and schema**: all nodes/edges are *specific to your domain* rather than *generic with arbitrary properties*. 
 This way we get a strict schema and don't waste memory on `Map` instances. On the flip side, you need to provide your domain-specific
 `[Node|Edge]Factories` to instantiate them. These can be auto-generated though, and we may provide a codegen in future. 
-As of today, TinkerPop3 is the only query language to interact with the graph. TinkerPop returns generic `Vertex|Edge` instances,
-but if you want to access their properties in a type-safe way (`person.name` rather than `vertex.property("NAME")`, you can cast 
-them to your specific node|edge based on their label. 
 
 **Overflow**: for maximum throughput and simplicity, OverflowDB is designed to run on the same JVM as your 
 main application. Since the memory requirements of your application will likely vary over time, OverflowDB dynamically adapts 
@@ -50,21 +46,21 @@ If the `graphLocation` file already exists, OverflowDB will initialize all NodeR
 Note that there's no guarantees what happens on jvm crash.
 
 ### Usage
-**1)** add a dependency - depending on your build tool. Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-tinkerpop3)
+**1)** add a dependency - depending on your build tool. Latest release: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-traversal_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.shiftleft/overflowdb-traversal_2.13)
+```scala
+libraryDependencies += "io.shiftleft" %% "overflowdb-traversal" % "x.y" // sbt
+```
 ```xml
 <dependency> <!-- maven -->
   <groupId>io.shiftleft</groupId>
-  <artifactId>overflowdb-tinkerpop3</artifactId>
+  <artifactId>overflowdb-traversal_2.13</artifactId>
   <version>x.y</version>
 </dependency>
 ```
 ```groovy
-implementation 'io.shiftleft:overflowdb-tinkerpop3:x.y' // gradle
+implementation 'io.shiftleft:overflowdb-traversal_2.13:x.y' // gradle
 ```
-```scala
-libraryDependencies += "io.shiftleft" % "overflowdb-tinkerpop3" % "x.y" // sbt
-```
-[Other build tools and versions](https://search.maven.org/search?q=g:io.shiftleft%20AND%20a:overflowdb-tinkerpop3&core=gav)
+[Other build tools and versions](https://search.maven.org/search?q=g:io.shiftleft%20AND%20a:overflowdb-traversal_2.13&core=gav)
 
 **2)** Implement your domain-specific nodes/edges and factories. It's probably best to follow the example implementations 
 of [simple](https://github.com/ShiftLeftSecurity/overflowdb/tree/master/tinkerpop3/src/test/java/io/shiftleft/overflowdb/testdomains/simple) 
@@ -84,7 +80,7 @@ Song song2 = (Song) graph.addVertex(T.label, Song.label, Song.NAME, "Song 2");
 song1.addEdge(FollowedBy.LABEL, song2);
 
 // or import e.g. a graphml
-graph.io(IoCore.graphml()).readGraph("src/test/resources/grateful-dead.xml");
+GraphML.insert("src/test/resources/grateful-dead.xml", graph);
 ```
 
 **4)** Traverse for fun and profit
@@ -144,13 +140,6 @@ around the application. `Node`s in contrast hold all properties, as well as the 
 heap is getting low, it is the `Node` instances that are serialized to disk and collected by the garbage collector. That's why you should 
 never hold a (strong) reference onto them in your main application: it would inhibit the overflow mechanism.   
 
-### TinkerPop3 compatibility
-While this project originally started as a [Fork of TinkerGraph](https://github.com/ShiftLeftSecurity/tinkergraph-gremlin/), 
-it has diverged significantly. While most traversals *should* still work, there may be some that don't. The most obvious thing 
-that doesn't work is starting a traversal with an edge, e.g. by `g.E(0).toList` - that's because edges only exist virtually, 
-so they don't have IDs and can't be indexed. There's no inherent reason this can't be done, but the need didn't yet arise. 
-Same goes for an OLAP (GraphComputer) implementation, which is not yet available.
-
 ### DiffTool util
 `overflowdb.util.DiffTool.compare(graph1, graph2)` allows you to do some very basic comparison of two graphs. It identifies nodes by their ids, and compares their existence, properties, adjacent edges and properties of those edges. 
 
@@ -161,6 +150,3 @@ most applications have varying memory needs over time, it would be hard/impossib
 with a regular cache. Besides that, it's very compute-intensive to calculate the size of the cache in megabytes on the heap. 
 1. **When is the next release coming out?**  
 Releases happen automatically. Every PR merged to master is automatically released by github actions and tagged in git, using [sbt-ci-release-early](https://github.com/ShiftLeftSecurity/sbt-ci-release-early)
-1. **What repositories are the artifacts deployed to?**   
-https://oss.sonatype.org/content/repositories/public/io/shiftleft/overflowdb-tinkerpop3/
-https://repo1.maven.org/maven2/io/shiftleft/overflowdb-tinkerpop3/
