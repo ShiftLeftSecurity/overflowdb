@@ -114,6 +114,15 @@ public class BatchedUpdate {
             return this;
         }
 
+        public DiffGraphBuilder addEdge(Object src, Object dst, String label, Object... properties) {
+            if (!(src instanceof Node || src instanceof DetachedNodeData))
+                throw new RuntimeException("Can only add edges emanating from Node or NewNode, found src " + src.toString() + " of type " + src.getClass());
+            if (!(dst instanceof Node || dst instanceof DetachedNodeData))
+                throw new RuntimeException("Can only add edges ending in Node or NewNode, found dst " + dst.toString() + " of type " + dst.getClass());
+            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
+            return this;
+        }
+
         public DiffGraphBuilder addEdge(Node src, Node dst, String label, Object... properties) {
             _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
             return this;
