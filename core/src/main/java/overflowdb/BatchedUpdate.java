@@ -114,22 +114,12 @@ public class BatchedUpdate {
             return this;
         }
 
-        public DiffGraphBuilder addEdge(Node src, Node dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
+        public DiffGraphBuilder addEdge(NodeOrDetachedNode src, NodeOrDetachedNode dst, String label) {
+            _buffer.addLast(new CreateEdge(label, src, dst, null));
             return this;
         }
 
-        public DiffGraphBuilder addEdge(Node src, DetachedNodeData dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
-            return this;
-        }
-
-        public DiffGraphBuilder addEdge(DetachedNodeData src, Node dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
-            return this;
-        }
-
-        public DiffGraphBuilder addEdge(DetachedNodeData src, DetachedNodeData dst, String label, Object... properties) {
+        public DiffGraphBuilder addEdge(NodeOrDetachedNode src, NodeOrDetachedNode dst, String label, Object... properties) {
             _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
             return this;
         }
@@ -213,11 +203,11 @@ public class BatchedUpdate {
 
     public static class CreateEdge implements Change {
         public String label;
-        public Object src;
-        public Object dst;
+        public NodeOrDetachedNode src;
+        public NodeOrDetachedNode dst;
         public Object[] propertiesAndKeys;
 
-        public CreateEdge(String label, Object src, Object dst, Object[] propertiesAndKeys) {
+        public CreateEdge(String label, NodeOrDetachedNode src, NodeOrDetachedNode dst, Object[] propertiesAndKeys) {
             this.label = label;
             this.src = src;
             this.dst = dst;
