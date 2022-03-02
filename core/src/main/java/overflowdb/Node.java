@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class Node extends Element {
+public abstract class Node extends Element implements NodeOrDetachedNode {
 
   /**
    * Add an outgoing edge to the node with provided label and edge properties as key/value pairs.

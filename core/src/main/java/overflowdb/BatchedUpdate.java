@@ -114,31 +114,12 @@ public class BatchedUpdate {
             return this;
         }
 
-        public DiffGraphBuilder addEdge(Object src, Object dst, String label, Object... properties) {
-            if (!(src instanceof Node || src instanceof DetachedNodeData))
-                throw new RuntimeException("Can only add edges emanating from Node or NewNode, found src " + src.toString() + " of type " + src.getClass());
-            if (!(dst instanceof Node || dst instanceof DetachedNodeData))
-                throw new RuntimeException("Can only add edges ending in Node or NewNode, found dst " + dst.toString() + " of type " + dst.getClass());
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
+        public DiffGraphBuilder addEdge(NodeOrDetachedNode src, NodeOrDetachedNode dst, String label) {
+            _buffer.addLast(new CreateEdge(label, src, dst, null));
             return this;
         }
 
-        public DiffGraphBuilder addEdge(Node src, Node dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
-            return this;
-        }
-
-        public DiffGraphBuilder addEdge(Node src, DetachedNodeData dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
-            return this;
-        }
-
-        public DiffGraphBuilder addEdge(DetachedNodeData src, Node dst, String label, Object... properties) {
-            _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
-            return this;
-        }
-
-        public DiffGraphBuilder addEdge(DetachedNodeData src, DetachedNodeData dst, String label, Object... properties) {
+        public DiffGraphBuilder addEdge(NodeOrDetachedNode src, NodeOrDetachedNode dst, String label, Object... properties) {
             _buffer.addLast(new CreateEdge(label, src, dst, properties.length > 0 ? properties : null));
             return this;
         }
@@ -222,11 +203,11 @@ public class BatchedUpdate {
 
     public static class CreateEdge implements Change {
         public String label;
-        public Object src;
-        public Object dst;
+        public NodeOrDetachedNode src;
+        public NodeOrDetachedNode dst;
         public Object[] propertiesAndKeys;
 
-        public CreateEdge(String label, Object src, Object dst, Object[] propertiesAndKeys) {
+        public CreateEdge(String label, NodeOrDetachedNode src, NodeOrDetachedNode dst, Object[] propertiesAndKeys) {
             this.label = label;
             this.src = src;
             this.dst = dst;
