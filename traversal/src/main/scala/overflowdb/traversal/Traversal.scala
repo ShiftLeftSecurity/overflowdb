@@ -13,7 +13,7 @@ import scala.reflect.ClassTag
   *
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
  **/
-class Traversal[A](elements: IterableOnce[A])
+class Traversal[+A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
     with IterableFactoryDefaults[A, Traversal] {
@@ -26,14 +26,11 @@ class Traversal[A](elements: IterableOnce[A])
   @Doc(info = "Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iterator.toList
 
-  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
-  def toSet: mutable.Set[A] = mutable.Set.from(this)
-
  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
-  def toSetMutable: mutable.Set[A] = mutable.Set.from(this)
+  def toSetMutable[B >: A]: mutable.Set[B] = mutable.Set.from(this)
 
   /** Execute the traversal and convert the result to an immutable Set */
-  def toSetImmutable: Set[A] = iterator.toSet
+  def toSetImmutable[B >: A]: Set[B] = iterator.toSet
 
   /** Execute the traversal without returning anything */
   @Doc(info = "Execute the traversal without returning anything")
@@ -47,11 +44,11 @@ class Traversal[A](elements: IterableOnce[A])
    * all documented steps in the classpath
    * */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
-  def help(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+  def help[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
   @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
-  def helpVerbose(implicit elementType: ClassTag[A], searchPackages: DocSearchPackages): String =
+  def helpVerbose[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 
   def count: Traversal[Int] =
@@ -71,12 +68,12 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** filters out all elements that are _not_ in the provided set */
   @Doc(info = "filters out all elements that are _not_ in the provided set")
-  def within(values: Set[A]): Traversal[A] =
+  def within[B >: A](values: Set[B]): Traversal[A] =
     filter(values.contains)
 
   /** filters out all elements that _are_ in the provided set */
   @Doc(info = "filters out all elements that _are_ in the provided set")
-  def without(values: Set[A]): Traversal[A] =
+  def without[B >: A](values: Set[B]): Traversal[A] =
     filterNot(values.contains)
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
@@ -257,8 +254,9 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** sort elements by their natural order */
   @Doc(info = "sort elements by their natural order")
-  def sorted(implicit ord: Ordering[A]): Seq[A] =
-    elements.to(ArraySeq.untagged).sorted
+  def sorted[B >: A](implicit ord: Ordering[B]): Seq[B] = {
+    (elements.to(ArraySeq.untagged): ArraySeq[B]).sorted
+  }
 
   /** sort elements by the value of the given transformation function */
   @Doc(info = "sort elements by the value of the given transformation function")
@@ -267,7 +265,7 @@ class Traversal[A](elements: IterableOnce[A])
 
   /** group elements and count how often they appear */
   @Doc(info = "group elements and count how often they appear")
-  def groupCount: Map[A, Int] =
+  def groupCount[B >: A]: Map[B, Int] =
     groupCount(identity[A])
 
   /** group elements by a given transformation function and count how often the results appear */
