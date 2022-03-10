@@ -3,7 +3,7 @@ package overflowdb.traversal
 import scala.annotation.tailrec
 import scala.collection.{IterableOnce, Iterator}
 
-class PathAwareTraversal[A](val elementsWithPath: IterableOnce[(A, Vector[Any])])
+class PathAwareTraversal[+A](val elementsWithPath: IterableOnce[(A, Vector[Any])])
   extends Traversal[A](elementsWithPath.iterator.map(_._1)) {
 
   private val elementsWithPathIterator: Iterator[(A, Vector[Any])] = elementsWithPath.iterator
