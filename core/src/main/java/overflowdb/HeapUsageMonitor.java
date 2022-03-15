@@ -80,13 +80,19 @@ public class HeapUsageMonitor implements AutoCloseable {
         if (heapUsage > heapUsageThreshold) {
           Map<String, String> oldMDC = MDC.getCopyOfContextMap();
           try{
-            MDC.setContextMap(capturedMDC);
+            //logback chokes on null-maps
+            if(capturedMDC != null) MDC.setContextMap(capturedMDC);
+            else MDC.clear();
             String msg = "heap usage after GC: " + heapUsagePercent + "% -> will clear some references (if possible)";
             if (heapUsagePercent > 95) logger.warn(msg);
             else logger.info(msg);
 
             notificationListener.notifyHeapAboveThreshold();
-          } finally{ MDC.setContextMap(oldMDC); }
+          } finally{
+            //logback chokes on null-maps
+            if(oldMDC != null) MDC.setContextMap(oldMDC);
+            else MDC.clear();
+          }
         } else {
           // note: this message won't have correct MDC, but that shouldn't matter too much
           logger.trace("heap usage after GC: " + heapUsagePercent + "%");
