@@ -2,6 +2,7 @@ package overflowdb.util;
 
 import org.slf4j.MDC;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 
@@ -12,9 +13,9 @@ public class NamedThreadFactory implements ThreadFactory {
   public NamedThreadFactory(String threadName) {
 
     this.threadName = threadName;
-    Map<String, String> mdcTmp = = MDC.getCopyOfContextMap();
+    Map<String, String> mdcTmp = MDC.getCopyOfContextMap();
     //logback chokes on null-maps
-    this.mdc = mdcTmp != null ? mdcTmp : new Map<String, String>();
+    this.mdc = mdcTmp != null ? mdcTmp : new HashMap<>();
   }
 
   public Thread newThread(Runnable r) {
