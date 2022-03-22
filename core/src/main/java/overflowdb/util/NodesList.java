@@ -112,9 +112,9 @@ public class NodesList {
   }
 
   public ArrayList<Node> nodesByLabel(String label) {
-    if(nodesByLabel == null) initialiseNodesByLabel();
+    if (nodesByLabel == null) initialiseNodesByLabel();
     ArrayList<Node> nodelist = nodesByLabel.get(label);
-    if(nodelist == null){
+    if (nodelist == null){
       nodelist = new ArrayList<>();
       nodesByLabel.put(label, nodelist);
     }
@@ -122,6 +122,7 @@ public class NodesList {
   }
 
   public Set<String> nodeLabels() {
+    if (nodesByLabel == null) initialiseNodesByLabel();
     Set<String> ret = new HashSet<>(nodesByLabel.size());
     nodesByLabel.entrySet().forEach(entry -> {
       if (!entry.getValue().isEmpty()) {
