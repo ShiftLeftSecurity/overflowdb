@@ -11,6 +11,7 @@ import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -42,6 +43,11 @@ public class GraphTest {
     song2.remove();
     assertEquals(3, graph.nodeCount());
     assertEquals(1, graph.edgeCount());
+
+    Map<String, Integer> countByLabel = graph.nodeCountByLabel();
+    assertEquals(2, countByLabel.size());
+    assertEquals(Integer.valueOf(2), countByLabel.get(Artist.label));
+    assertEquals(Integer.valueOf(1), countByLabel.get(Song.label));
   }
 
   @Test

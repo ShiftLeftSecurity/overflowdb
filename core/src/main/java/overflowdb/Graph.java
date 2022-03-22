@@ -242,12 +242,24 @@ public final class Graph implements AutoCloseable {
     logger.info("shutdown finished");
   }
 
+  /** overall number of nodes */
   public int nodeCount() {
     return nodes.size();
   }
 
+  /** number of nodes for given label */
   public int nodeCount(String label) {
     return nodes.cardinality(label);
+  }
+
+  /** number of nodes grouped by label */
+  public Map<String, Integer> nodeCountByLabel() {
+    Set<String> nodeLabels = nodes.nodeLabels();
+    HashMap counts = new HashMap<String, Integer>(nodeLabels.size());
+    for (String label : nodeLabels) {
+      counts.put(label, nodes.nodesByLabel(label).size());
+    }
+    return counts;
   }
 
   /** calculates the number of edges in the graph
