@@ -1,18 +1,16 @@
 package overflowdb.formats
 
-import java.nio.file.{Path, Paths}
 import overflowdb.Graph
 
+import java.nio.file.Path
 import scala.xml.XML
 
 /** primitive GraphML importer which doesn't support much from the spec...
  *  only enough to get us covered for some standard test cases, really */
-object GraphML {
-  def insert(graphMLFile: String, graph: Graph): Unit =
-    insert(Paths.get(graphMLFile), graph)
+object GraphMLImport extends Importer {
 
-  def insert(graphMLFile: Path, graph: Graph): Unit = {
-    val doc = XML.loadFile(graphMLFile.toFile)
+  override def run(inputFile: Path, graph: Graph): Unit = {
+    val doc = XML.loadFile(inputFile.toFile)
     val graphXml = doc \ "graph"
     for (node <- graphXml \ "node") {
       addNode(graph, node)
