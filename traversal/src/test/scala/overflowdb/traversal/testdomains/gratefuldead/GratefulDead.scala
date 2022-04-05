@@ -1,6 +1,6 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
-import overflowdb.formats.GraphML
+import overflowdb.formats.GraphMLImport
 
 import java.util
 import overflowdb.traversal.{Traversal, TraversalSource}
@@ -22,7 +22,7 @@ object GratefulDead {
   }
 
   def loadData(graph: Graph): Unit =
-    GraphML.insert("src/test/resources/grateful-dead.xml", graph)
+    GraphMLImport.runImport("src/test/resources/grateful-dead.xml", graph)
 
   def traversal(graph: Graph) = new GratefulDeadTraversalSource(graph)
 }

@@ -1,6 +1,8 @@
 package overflowdb;
 
+import overflowdb.formats.GraphMLImport;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
+
 import org.junit.Test;
 
 import java.io.File;
@@ -116,7 +118,7 @@ public class IndexesTest {
     final File overflowDb = Files.createTempFile("overflowdb", "bin").toFile();
     overflowDb.deleteOnExit();
     // save indexes
-    try(Graph graph = GratefulDead.openAndLoadSampleData(overflowDb.getAbsolutePath())) {
+    try(Graph graph = openAndLoadSampleData(overflowDb.getAbsolutePath())) {
       graph.indexManager.createNodePropertyIndex("performances");
       assertEquals(584, graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.indexManager.getIndexedNodeProperties());
@@ -126,6 +128,12 @@ public class IndexesTest {
       assertEquals(584, graph.indexManager.getIndexedNodeCount("performances"));
       assertEquals(new HashSet<String>(Arrays.asList("performances")), graph.indexManager.getIndexedNodeProperties());
     }
+  }
+
+  public static Graph openAndLoadSampleData(String path) {
+    Graph graph = GratefulDead.newGraph(Config.withDefaults().withStorageLocation(path));
+    GraphMLImport.runImport("src/test/resources/grateful-dead.xml", graph);
+    return graph;
   }
 
 }
