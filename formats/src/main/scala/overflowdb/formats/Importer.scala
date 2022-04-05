@@ -6,9 +6,9 @@ import java.nio.file.Path
 
 trait Importer {
 
-  def run(inputFile: Path, graph: Graph): Unit
+  def runImport(inputFile: Path, graph: Graph): Unit
 
-  def run(inputFile: String, graph: Graph): Unit =
-    run(Path.of(inputFile), graph)
+  def runImport(inputFile: String, graph: Graph): Unit =
+    runImport(Path.of(inputFile), graph)
 
 }
