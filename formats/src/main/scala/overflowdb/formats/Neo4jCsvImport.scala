@@ -4,6 +4,7 @@ import com.github.tototoshi.csv._
 import overflowdb.Graph
 
 import java.nio.file.Path
+import scala.util.Using
 
 /**
  * imports neo4j csv files,
@@ -12,7 +13,15 @@ import java.nio.file.Path
 object Neo4jCsvImport extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
-    groupInputFiles(inputFiles)
+    groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
+      Using.resources(CSVReader.open(headerFile.toFile), CSVReader.open(dataFile.toFile)) { (headerReader, dataReader) =>
+        val firstLine = headerReader.all().headOption.getOrElse(
+          throw new AssertionError(s"header file $headerFile is empty"))
+        // TODO parse header format
+
+
+      }
+    }
   }
 
   private def groupInputFiles(inputFiles: Seq[Path]): Seq[HeaderAndDataFile] = {
