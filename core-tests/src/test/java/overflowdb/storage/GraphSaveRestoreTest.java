@@ -185,7 +185,7 @@ public class GraphSaveRestoreTest {
   }
 
   private void loadGraphMl(Graph graph) {
-    GraphMLImport.runImport("src/test/resources/grateful-dead.xml", graph);
+    GraphMLImport.runImport(graph, "src/test/resources/grateful-dead.xml");
   }
 
   private Iterator<Node> getSongs(Graph graph, String songName) {

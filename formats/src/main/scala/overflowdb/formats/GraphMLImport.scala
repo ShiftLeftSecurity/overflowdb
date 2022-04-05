@@ -9,14 +9,16 @@ import scala.xml.XML
  *  only enough to get us covered for some standard test cases, really */
 object GraphMLImport extends Importer {
 
-  override def runImport(inputFile: Path, graph: Graph): Unit = {
-    val doc = XML.loadFile(inputFile.toFile)
-    val graphXml = doc \ "graph"
-    for (node <- graphXml \ "node") {
-      addNode(graph, node)
-    }
-    for (edge <- graphXml \ "edge") {
-      addEdge(graph, edge)
+  override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
+    inputFiles.foreach { inputFile =>
+      val doc = XML.loadFile(inputFile.toFile)
+      val graphXml = doc \ "graph"
+      for (node <- graphXml \ "node") {
+        addNode(graph, node)
+      }
+      for (edge <- graphXml \ "edge") {
+        addEdge(graph, edge)
+      }
     }
   }
 

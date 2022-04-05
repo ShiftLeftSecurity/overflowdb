@@ -10,8 +10,10 @@ class Neo4jCsvTests extends AnyWordSpec {
   val neo4jcsvRoot = Paths.get("src/test/resources/neo4jcsv")
 
   "foo" in {
+    val csvInputFiles = Seq("testnodes_header.csv", "testnodes.csv").map(neo4jcsvRoot.resolve)
+
     val graph = SimpleDomain.newGraph()
-    Neo4jCsvImport.runImport(neo4jcsvRoot.resolve("testnodes"), graph)
+    Neo4jCsvImport.runImport(graph, csvInputFiles)
   }
 
 }

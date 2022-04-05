@@ -6,7 +6,7 @@ import java.nio.file.Path
 
 object Neo4jCsvImport extends Importer {
 
-  override def runImport(inputFile: Path, graph: Graph): Unit = {
+  override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     ???
   }
 

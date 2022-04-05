@@ -5,10 +5,11 @@ import overflowdb.Graph
 import java.nio.file.Path
 
 trait Importer {
+  def runImport(graph: Graph, inputFiles: Seq[Path]): Unit
 
-  def runImport(inputFile: Path, graph: Graph): Unit
+  def runImport(graph: Graph, inputFile: Path): Unit =
+    runImport(graph, Seq(inputFile))
 
-  def runImport(inputFile: String, graph: Graph): Unit =
-    runImport(Path.of(inputFile), graph)
-
+  def runImport(graph: Graph, inputFile: String): Unit =
+    runImport(graph, Path.of(inputFile))
 }
