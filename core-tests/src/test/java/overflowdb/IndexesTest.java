@@ -132,7 +132,7 @@ public class IndexesTest {
 
   public static Graph openAndLoadSampleData(String path) {
     Graph graph = GratefulDead.newGraph(Config.withDefaults().withStorageLocation(path));
-    GraphMLImport.runImport("src/test/resources/grateful-dead.xml", graph);
+    GraphMLImport.runImport(graph, "src/test/resources/grateful-dead.xml");
     return graph;
   }
 

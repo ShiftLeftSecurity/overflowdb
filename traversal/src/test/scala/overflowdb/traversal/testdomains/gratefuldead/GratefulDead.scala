@@ -22,7 +22,7 @@ object GratefulDead {
   }
 
   def loadData(graph: Graph): Unit =
-    GraphMLImport.runImport("src/test/resources/grateful-dead.xml", graph)
+    GraphMLImport.runImport(graph, "src/test/resources/grateful-dead.xml")
 
   def traversal(graph: Graph) = new GratefulDeadTraversalSource(graph)
 }
