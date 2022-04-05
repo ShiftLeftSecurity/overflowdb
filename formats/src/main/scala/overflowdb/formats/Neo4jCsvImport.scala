@@ -14,12 +14,17 @@ object Neo4jCsvImport extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
-      Using.resources(CSVReader.open(headerFile.toFile), CSVReader.open(dataFile.toFile)) { (headerReader, dataReader) =>
-        val firstLine = headerReader.all().headOption.getOrElse(
+      val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
+        headerReader.all().headOption.getOrElse(
           throw new AssertionError(s"header file $headerFile is empty"))
-        // TODO parse header format
+      }.get.to(IndexedSeq)
+
+      Using(CSVReader.open(dataFile.toFile)) { dataReader =>
+        dataReader.foreach { row =>
+          assert(row.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${row.size} for row=${row.mkString(",")}")
 
 
+        }
       }
     }
   }
