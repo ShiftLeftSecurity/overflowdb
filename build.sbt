@@ -10,6 +10,11 @@ lazy val formats     = project.in(file("formats"    )).dependsOn(testdomains)
 lazy val traversal   = project.in(file("traversal"  )).dependsOn(formats)
 lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats % Test)
 
+ThisBuild/libraryDependencies ++= Seq(
+  "org.slf4j" % "slf4j-simple" % "1.7.36" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+)
+
 ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((3, _)) => Seq(
