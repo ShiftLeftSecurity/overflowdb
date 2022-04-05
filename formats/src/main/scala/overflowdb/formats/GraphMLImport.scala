@@ -9,7 +9,7 @@ import scala.xml.XML
  *  only enough to get us covered for some standard test cases, really */
 object GraphMLImport extends Importer {
 
-  override def run(inputFile: Path, graph: Graph): Unit = {
+  override def runImport(inputFile: Path, graph: Graph): Unit = {
     val doc = XML.loadFile(inputFile.toFile)
     val graphXml = doc \ "graph"
     for (node <- graphXml \ "node") {
