@@ -17,13 +17,19 @@ object Neo4jCsvImport extends Importer {
       val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
         headerReader.all().headOption.getOrElse(
           throw new AssertionError(s"header file $headerFile is empty"))
-      }.get.to(IndexedSeq)
+      }.get.to(IndexedSeq).zipWithIndex
+
+      // TODO extract to method / case class
+      val Seq(idIdx, labelIdx) = Seq(":ID", ":LABEL").map { columnType =>
+         columnDefs.find(_._1.endsWith(columnType)).getOrElse(throw new AssertionError(s"`$columnType` column not found among column headers: ${columnDefs.mkString(",")}"))._2
+      }
 
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
         dataReader.foreach { row =>
           assert(row.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${row.size} for row=${row.mkString(",")}")
-
-
+//          row.zipWithIndex.foreach { case (entry, idx) =>
+//            println(s"$entry ${columnDefs(idx)}")
+//          }
         }
       }
     }
