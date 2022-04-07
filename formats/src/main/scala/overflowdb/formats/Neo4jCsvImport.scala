@@ -17,12 +17,19 @@ object Neo4jCsvImport extends Importer {
       val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
         headerReader.all().headOption.getOrElse(
           throw new AssertionError(s"header file $headerFile is empty"))
-      }.get.to(IndexedSeq).zipWithIndex
+      }.get.to(IndexedSeq)
 
       // TODO extract to method / case class
-      val Seq(idIdx, labelIdx) = Seq(":ID", ":LABEL").map { columnType =>
-         columnDefs.find(_._1.endsWith(columnType)).getOrElse(throw new AssertionError(s"`$columnType` column not found among column headers: ${columnDefs.mkString(",")}"))._2
+//      val Seq(idIdx, labelIdx) = Seq(":ID", ":LABEL").map { columnType =>
+//         columnDefs.find(_._1.endsWith(columnType)).getOrElse(throw new AssertionError(s"`$columnType` column not found among column headers: ${columnDefs.mkString(",")}"))._2
+//      }
+      var label: String = null
+      var id: Integer = null
+      var properties = Seq.newBuilder[PropertyDef]
+      columnDefs.zipWithIndex.foreach { case (entry, idx) =>
+
       }
+
 
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
         dataReader.foreach { row =>
@@ -56,4 +63,32 @@ object Neo4jCsvImport extends Importer {
   }
 
   private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
+  private case class PropertyDef(name: String, index: Int, valueType: Neo4jValueType.Value)
+
+  object Neo4jValueType extends Enumeration {
+    type Neo4jValueType = Value
+    val Int = Value("int")
+    val Long = Value("long")
+    val Float = Value("float")
+    val Double = Value("double")
+    val Boolean = Value("boolean")
+    val Byte = Value("byte")
+    val Short = Value("short")
+    val Char = Value("char")
+    val String = Value("string")
+    val Point = Value("point")
+    val Date = Value("date")
+    val LocalTime = Value("localtime")
+    val Time = Value("time")
+    val LocalDateTime = Value("localdatetime")
+    val DateTime = Value("datetime")
+    val Duration = Value("duration")
+    
+    def parse(s: String): Neo4jValueType.Value =
+      s match {
+        case "" => String
+        case nonEmpty => withName(nonEmpty)
+      }
+
+  }
 }
