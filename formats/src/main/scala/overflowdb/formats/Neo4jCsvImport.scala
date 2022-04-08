@@ -20,16 +20,20 @@ object Neo4jCsvImport extends Importer {
       }.get.to(IndexedSeq)
 
       // TODO extract to method / case class
-//      val Seq(idIdx, labelIdx) = Seq(":ID", ":LABEL").map { columnType =>
-//         columnDefs.find(_._1.endsWith(columnType)).getOrElse(throw new AssertionError(s"`$columnType` column not found among column headers: ${columnDefs.mkString(",")}"))._2
-//      }
-      var label: String = null
-      var id: Integer = null
-      var properties = Seq.newBuilder[PropertyDef]
+      var labelCol: Integer = null
+      var idCol: Integer = null
+      val propertyDefs = Seq.newBuilder[PropertyDef]
       columnDefs.zipWithIndex.foreach { case (entry, idx) =>
-
+        entry match {
+          case ":LABEL" => labelCol = idx
+          case s if s.endsWith(":ID") => idCol = idx
+          case propertyDef if propertyDef.contains(":") =>
+            val name :: valueTpe :: Nil = propertyDef.split(':').toList
+            propertyDefs.addOne(PropertyDef(name = name, index = idx, valueType = Neo4jValueType.withName(valueTpe)))
+          case propertyName =>
+            propertyDefs.addOne(PropertyDef(name = propertyName, index = idx, valueType = Neo4jValueType.String))
+        }
       }
-
 
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
         dataReader.foreach { row =>
@@ -83,12 +87,5 @@ object Neo4jCsvImport extends Importer {
     val LocalDateTime = Value("localdatetime")
     val DateTime = Value("datetime")
     val Duration = Value("duration")
-    
-    def parse(s: String): Neo4jValueType.Value =
-      s match {
-        case "" => String
-        case nonEmpty => withName(nonEmpty)
-      }
-
   }
 }
