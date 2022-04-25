@@ -7,40 +7,27 @@ import java.nio.file.Path
 import scala.util.Using
 
 /**
- * imports neo4j csv files,
+ * Imports from neo4j csv files
  * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
  * */
 object Neo4jCsvImport extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
-      val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
-        headerReader.all().headOption.getOrElse(
-          throw new AssertionError(s"header file $headerFile is empty"))
-      }.get.to(IndexedSeq)
+      val columnDefs = parseHeaderFile(headerFile)
 
-      // TODO extract to method / case class
-      var labelCol: Integer = null
-      var idCol: Integer = null
-      val propertyDefs = Seq.newBuilder[PropertyDef]
-      columnDefs.zipWithIndex.foreach { case (entry, idx) =>
-        entry match {
-          case ":LABEL" => labelCol = idx
-          case s if s.endsWith(":ID") => idCol = idx
-          case propertyDef if propertyDef.contains(":") =>
-            val name :: valueTpe :: Nil = propertyDef.split(':').toList
-            propertyDefs.addOne(PropertyDef(name = name, index = idx, valueType = Neo4jValueType.withName(valueTpe)))
-          case propertyName =>
-            propertyDefs.addOne(PropertyDef(name = propertyName, index = idx, valueType = Neo4jValueType.String))
-        }
-      }
-
+      // TODO refactor: extract to method
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
-        dataReader.foreach { row =>
-          assert(row.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${row.size} for row=${row.mkString(",")}")
-//          row.zipWithIndex.foreach { case (entry, idx) =>
-//            println(s"$entry ${columnDefs(idx)}")
-//          }
+        dataReader.foreach { columns =>
+          assert(columns.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columns.size} for row=${columns.mkString(",")}")
+
+          columns.zipWithIndex.foreach { case (entry, idx) =>
+            val columnDef = columnDefs.get(idx)
+              .getOrElse(throw new AssertionError(s"column with index=$idx not found in column definitions derived from headerFile $headerFile"))
+
+
+            println(s"$entry $columnDef")
+          }
         }
       }
     }
@@ -66,11 +53,46 @@ object Neo4jCsvImport extends Importer {
     }
   }
 
+  private def parseHeaderFile(headerFile: Path): Map[Int, PropertyDef] = {
+    val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
+      headerReader.all().headOption.getOrElse(
+        throw new AssertionError(s"header file $headerFile is empty"))
+    }.get
+
+    val propertyDefs = Map.newBuilder[Int, PropertyDef]
+    columnDefs.zipWithIndex.foreach { case (entry, idx) =>
+      val propertyDef = entry match {
+        case ":LABEL" =>
+          PropertyDef("label", Neo4jValueType.Label)
+        case s if s.endsWith(":ID") =>
+          PropertyDef("id", Neo4jValueType.Id)
+        case propertyDef if propertyDef.contains(":") =>
+          val name :: valueTpe :: Nil = propertyDef.split(':').toList
+          PropertyDef(name, valueType = Neo4jValueType.withName(valueTpe))
+        case propertyName =>
+          PropertyDef(propertyName, valueType = Neo4jValueType.String)
+      }
+      propertyDefs.addOne((idx, propertyDef))
+    }
+
+    val result = propertyDefs.result()
+    List(Neo4jValueType.Id, Neo4jValueType.Label).foreach { valueType =>
+      assert(result.find(_._2.valueType == valueType).isDefined,
+        s"no $valueType column found in headerFile $headerFile - see format definition in https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/#import-tool-header-format")
+    }
+    result
+  }
+
   private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
-  private case class PropertyDef(name: String, index: Int, valueType: Neo4jValueType.Value)
+  private case class PropertyDef(name: String, valueType: Neo4jValueType.Value)
 
   object Neo4jValueType extends Enumeration {
     type Neo4jValueType = Value
+    // special types Id and Label
+    val Id = Value(":id")
+    val Label = Value(":label")
+
+    // regular data types
     val Int = Value("int")
     val Long = Value("long")
     val Float = Value("float")
