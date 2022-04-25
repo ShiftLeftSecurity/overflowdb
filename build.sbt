@@ -12,7 +12,7 @@ lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats % Test)
 
 ThisBuild/libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.36" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.12" % Test,
 )
 
 ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
