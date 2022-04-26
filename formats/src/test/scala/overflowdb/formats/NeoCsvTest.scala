@@ -2,7 +2,7 @@ package overflowdb.formats
 
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.testdomains.simple.SimpleDomain
+import overflowdb.testdomains.simple.{SimpleDomain, TestNode}
 import testutils.ProjectRoot
 
 import java.nio.file.Paths
@@ -18,6 +18,10 @@ class Neo4jCsvTests extends AnyWordSpec {
     Neo4jCsvImport.runImport(graph, csvInputFiles)
 
     graph.nodeCount() shouldBe 1
+    val node1 = graph.node(1).asInstanceOf[TestNode]
+    node1.label() shouldBe "testNode"
+    node1.intProperty() shouldBe 11
+    node1.stringProperty() shouldBe "stringProp1"
   }
 
 }
