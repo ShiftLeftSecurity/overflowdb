@@ -4,6 +4,7 @@ import com.github.tototoshi.csv._
 import overflowdb.Graph
 
 import java.nio.file.Path
+import java.util
 import scala.util.Using
 
 /**
@@ -32,7 +33,13 @@ object Neo4jCsvImport extends Importer {
             case FileType.Relationships =>
               parseEdgeRowData(columnsRaw, lineNo, columnDefs) match {
                 case ParsedEdgeRowData(startId, endId, label, properties) =>
-                  println(s"XXXX $properties")
+                  val startNode = graph.node(startId)
+                  val endNode = graph.node(endId)
+                  val propertiesMap = new util.HashMap[String, Object]
+                  properties.foreach { case ParsedProperty(name, value) =>
+                    propertiesMap.put(name, value.asInstanceOf[Object])
+                  }
+                  startNode.addEdge(label, endNode, propertiesMap)
               }
           }
         }
