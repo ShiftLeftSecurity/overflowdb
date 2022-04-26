@@ -16,22 +16,35 @@ object Neo4jCsvImport extends Importer {
     groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
       val columnDefs = parseHeaderFile(headerFile)
 
-      // TODO refactor: extract to method
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
-        dataReader.foreach { columns =>
+        dataReader.iterator.zipWithIndex.foreach { case (columns, idx) =>
+          val lineNo = idx + 1
           assert(columns.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columns.size} for row=${columns.mkString(",")}")
 
+          // TODO refactor: extract to method
+          var id: Integer = null
+          var label: String = null
+          val properties = Map.newBuilder[String, AnyRef]
           columns.zipWithIndex.foreach { case (entry, idx) =>
-            val columnDef = columnDefs.get(idx)
-              .getOrElse(throw new AssertionError(s"column with index=$idx not found in column definitions derived from headerFile $headerFile"))
-
-
-            println(s"$entry $columnDef")
+            assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile $headerFile")
+            columnDefs(idx) match {
+              case PropertyDef(_, Neo4jValueType.Id) =>
+                id = entry.toInt
+              case PropertyDef(_, Neo4jValueType.Label) =>
+                label = entry
+              case PropertyDef(name, valueType) =>
+                // TODO adjust for different value types, arrays etc.
+                properties.addOne((name, entry))
+            }
           }
+          assert(id != null, s"no ID column found in row $lineNo in $dataFile")
+          assert(label != null, s"no LABEL column found in row $lineNo in $dataFile")
         }
       }
     }
   }
+
+//  private def
 
   private def groupInputFiles(inputFiles: Seq[Path]): Seq[HeaderAndDataFile] = {
     val nonCsvFiles = inputFiles.filterNot(_.getFileName.toString.endsWith(".csv"))
