@@ -94,7 +94,9 @@ object Neo4jCsvImport extends Importer {
         case PropertyDef(_, Neo4jValueType.Label) =>
           label = entry
         case PropertyDef(name, valueType) =>
-          properties.addOne(parseProperty(name, entry, valueType))
+          if (entry != "" || valueType == Neo4jValueType.String) {
+            properties.addOne(parseProperty(name, entry, valueType))
+          }
       }
     }
     assert(id != null, s"no ID column found in row $lineNo")
