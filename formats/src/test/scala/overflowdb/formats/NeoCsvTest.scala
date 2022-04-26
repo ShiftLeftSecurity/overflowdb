@@ -2,7 +2,7 @@ package overflowdb.formats
 
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.testdomains.simple.{SimpleDomain, TestNode}
+import overflowdb.testdomains.simple.{SimpleDomain, TestEdge, TestNode}
 import testutils.ProjectRoot
 
 import java.nio.file.Paths
@@ -40,7 +40,12 @@ class Neo4jCsvTests extends AnyWordSpec {
 
 
     graph.edgeCount shouldBe 2
-    ???
+    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
+    edge1.longProperty shouldBe Long.MaxValue
+    edge1.inNode shouldBe node2
+
+    val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
+    edge2.outNode shouldBe node2
   }
 
 }
