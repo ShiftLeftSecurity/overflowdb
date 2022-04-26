@@ -66,8 +66,12 @@ object Neo4jCsvImport extends Importer {
         case s if s.endsWith(":ID") =>
           PropertyDef("id", Neo4jValueType.Id)
         case propertyDef if propertyDef.contains(":") =>
-          val name :: valueTpe :: Nil = propertyDef.split(':').toList
-          PropertyDef(name, valueType = Neo4jValueType.withName(valueTpe))
+          val name :: valueTpe0 :: Nil = propertyDef.split(':').toList
+          val isArray = propertyDef.endsWith("[]") // from the docs: "To define an array type, append [] to the type"
+          val valueTpe =
+            if (isArray) valueTpe0.dropRight(2)
+            else valueTpe0
+          PropertyDef(name, valueType = Neo4jValueType.withName(valueTpe), isArray)
         case propertyName =>
           PropertyDef(propertyName, valueType = Neo4jValueType.String)
       }
@@ -89,13 +93,20 @@ object Neo4jCsvImport extends Importer {
     columns.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case PropertyDef(_, Neo4jValueType.Id) =>
+        case PropertyDef(_, Neo4jValueType.Id, _) =>
           id = entry.toInt
-        case PropertyDef(_, Neo4jValueType.Label) =>
+        case PropertyDef(_, Neo4jValueType.Label, _) =>
           label = entry
-        case PropertyDef(name, valueType) =>
+        case PropertyDef(name, valueType, false) =>
           if (entry != "" || valueType == Neo4jValueType.String) {
-            properties.addOne(parseProperty(name, entry, valueType))
+            val value = parsePropertyValue(entry, valueType)
+            properties.addOne(ParsedProperty(name, value))
+          }
+        case PropertyDef(name, valueType, true) =>
+          val values = entry.split(';') // from the docs: "By default, array values are separated by ;"
+          if (values.nonEmpty && values.head != "") { // csv parser always adds one empty string entry...
+            val parsedValues = values.map(parsePropertyValue(_, valueType))
+            properties.addOne(ParsedProperty(name, parsedValues))
           }
       }
     }
@@ -107,17 +118,17 @@ object Neo4jCsvImport extends Importer {
     ret
   }
 
-  private def parseProperty(name: String, entry: String, valueType: Neo4jValueType.Value): ParsedProperty = {
-    val value = valueType match {
-      case Neo4jValueType.Int => entry.toInt
-      case Neo4jValueType.Long => entry.toLong
-      case Neo4jValueType.Float => entry.toFloat
-      case Neo4jValueType.Double => entry.toDouble
-      case Neo4jValueType.Boolean => entry.toBoolean
-      case Neo4jValueType.Byte => entry.toByte
-      case Neo4jValueType.Short => entry.toShort
-      case Neo4jValueType.Char => entry.head
-      case Neo4jValueType.String => entry
+  private def parsePropertyValue(rawString: String, valueType: Neo4jValueType.Value): Any = {
+    valueType match {
+      case Neo4jValueType.Int => rawString.toInt
+      case Neo4jValueType.Long => rawString.toLong
+      case Neo4jValueType.Float => rawString.toFloat
+      case Neo4jValueType.Double => rawString.toDouble
+      case Neo4jValueType.Boolean => rawString.toBoolean
+      case Neo4jValueType.Byte => rawString.toByte
+      case Neo4jValueType.Short => rawString.toShort
+      case Neo4jValueType.Char => rawString.head
+      case Neo4jValueType.String => rawString
       case Neo4jValueType.Point => ???
       case Neo4jValueType.Date => ???
       case Neo4jValueType.LocalTime => ???
@@ -126,11 +137,10 @@ object Neo4jCsvImport extends Importer {
       case Neo4jValueType.DateTime => ???
       case Neo4jValueType.Duration => ???
     }
-    ParsedProperty(name, value)
   }
 
   private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
-  private case class PropertyDef(name: String, valueType: Neo4jValueType.Value)
+  private case class PropertyDef(name: String, valueType: Neo4jValueType.Value, isArray: Boolean = false)
   private case class ParsedProperty(name: String, value: Any)
   private case class ParsedRowData(id: Int, label: String, properties: Seq[ParsedProperty])
 
