@@ -18,33 +18,12 @@ object Neo4jCsvImport extends Importer {
 
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
         dataReader.iterator.zipWithIndex.foreach { case (columns, idx) =>
-          val lineNo = idx + 1
           assert(columns.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columns.size} for row=${columns.mkString(",")}")
-
-          // TODO refactor: extract to method
-          var id: Integer = null
-          var label: String = null
-          val properties = Map.newBuilder[String, AnyRef]
-          columns.zipWithIndex.foreach { case (entry, idx) =>
-            assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile $headerFile")
-            columnDefs(idx) match {
-              case PropertyDef(_, Neo4jValueType.Id) =>
-                id = entry.toInt
-              case PropertyDef(_, Neo4jValueType.Label) =>
-                label = entry
-              case PropertyDef(name, valueType) =>
-                // TODO adjust for different value types, arrays etc.
-                properties.addOne((name, entry))
-            }
-          }
-          assert(id != null, s"no ID column found in row $lineNo in $dataFile")
-          assert(label != null, s"no LABEL column found in row $lineNo in $dataFile")
+          parseRowData(columns, lineNo = idx + 1, columnDefs)
         }
       }
     }
   }
-
-//  private def
 
   private def groupInputFiles(inputFiles: Seq[Path]): Seq[HeaderAndDataFile] = {
     val nonCsvFiles = inputFiles.filterNot(_.getFileName.toString.endsWith(".csv"))
@@ -96,8 +75,31 @@ object Neo4jCsvImport extends Importer {
     result
   }
 
+  private def parseRowData(columns: Seq[String], lineNo: Int, columnDefs: Map[Int, PropertyDef]): ParsedRowData = {
+    var id: Integer = null
+    var label: String = null
+    val properties = Seq.newBuilder[ParsedProperty]
+    columns.zipWithIndex.foreach { case (entry, idx) =>
+      assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
+      columnDefs(idx) match {
+        case PropertyDef(_, Neo4jValueType.Id) =>
+          id = entry.toInt
+        case PropertyDef(_, Neo4jValueType.Label) =>
+          label = entry
+        case PropertyDef(name, valueType) =>
+          // TODO adjust for different value types, arrays etc.
+          properties.addOne(ParsedProperty(name, entry))
+      }
+    }
+    assert(id != null, s"no ID column found in row $lineNo")
+    assert(label != null, s"no LABEL column found in row $lineNo")
+    ParsedRowData(id, label, properties.result())
+  }
+
   private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
   private case class PropertyDef(name: String, valueType: Neo4jValueType.Value)
+  private case class ParsedProperty(name: String, value: Any)
+  private case class ParsedRowData(id: Int, label: String, properties: Seq[ParsedProperty])
 
   object Neo4jValueType extends Enumeration {
     type Neo4jValueType = Value
