@@ -17,11 +17,18 @@ class Neo4jCsvTests extends AnyWordSpec {
     val graph = SimpleDomain.newGraph()
     Neo4jCsvImport.runImport(graph, csvInputFiles)
 
-    graph.nodeCount() shouldBe 1
+    graph.nodeCount shouldBe 3
+
     val node1 = graph.node(1).asInstanceOf[TestNode]
-    node1.label() shouldBe "testNode"
-    node1.intProperty() shouldBe 11
-    node1.stringProperty() shouldBe "stringProp1"
+    node1.label shouldBe "testNode"
+    node1.intProperty shouldBe 11
+    node1.stringProperty shouldBe "stringProp1"
+
+    val node2 = graph.node(2).asInstanceOf[TestNode]
+    node2.stringProperty shouldBe "stringProp2"
+
+    val node3 = graph.node(3).asInstanceOf[TestNode]
+    node3.intProperty shouldBe 13
   }
 
 }
