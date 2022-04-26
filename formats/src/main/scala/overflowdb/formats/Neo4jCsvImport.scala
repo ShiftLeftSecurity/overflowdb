@@ -17,20 +17,23 @@ object Neo4jCsvImport extends Importer {
     var importedNodeCount = 0
     groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
       val ParsedHeaderFile(fileType, columnDefs) = parseHeaderFile(headerFile)
-//      fileType match {
-//        case FileType.Nodes => ???
-//        case FileType.Relationships => ???
-//      }
-
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
-
-        dataReader.iterator.zipWithIndex.foreach { case (columns, idx) =>
-          assert(columns.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columns.size} for row=${columns.mkString(",")}")
-          parseRowData(columns, lineNo = idx + 1, columnDefs) match {
-            case ParsedRowData(id, label, properties) =>
-              val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
-              graph.addNode(id, label, propertiesAsKeyValues: _*)
-              importedNodeCount += 1
+        dataReader.iterator.zipWithIndex.foreach { case (columnsRaw, idx) =>
+          assert(columnsRaw.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
+          val lineNo = idx + 1
+          fileType match {
+            case FileType.Nodes =>
+              parseNodeRowData(columnsRaw, lineNo, columnDefs) match {
+                case ParsedNodeRowData(id, label, properties) =>
+                  val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
+                  graph.addNode(id, label, propertiesAsKeyValues: _*)
+                  importedNodeCount += 1
+              }
+            case FileType.Relationships =>
+              parseEdgeRowData(columnsRaw, lineNo, columnDefs) match {
+                case ParsedEdgeRowData(startId, endId, label, properties) =>
+                  println(s"XXXX $properties")
+              }
           }
         }
       }.get
@@ -74,11 +77,13 @@ object Neo4jCsvImport extends Importer {
           CsvColumnDef(None, CsvColumnType.Label)
         case ":TYPE" =>
           fileType = Option(FileType.Relationships)
-          CsvColumnDef(None, CsvColumnType.Label)
+          CsvColumnDef(None, CsvColumnType.Type)
         case s if s.endsWith(":ID") =>
           CsvColumnDef(None, CsvColumnType.Id)
         case s if s.endsWith(":START_ID") =>
           CsvColumnDef(None, CsvColumnType.StartId)
+        case s if s.endsWith(":END_ID") =>
+          CsvColumnDef(None, CsvColumnType.EndId)
         case propertyDef if propertyDef.contains(":") =>
           val name :: valueTpe0 :: Nil = propertyDef.split(':').toList
           val isArray = propertyDef.endsWith("[]") // from the docs: "To define an array type, append [] to the type"
@@ -92,7 +97,6 @@ object Neo4jCsvImport extends Importer {
       propertyDefs.addOne((idx, propertyDef))
     }
 
-
     val propertyDefsRes = propertyDefs.result()
     fileType match {
       case Some(FileType.Nodes) =>
@@ -103,53 +107,82 @@ object Neo4jCsvImport extends Importer {
         assert(propertyDefsRes.values.exists(_.valueType == CsvColumnType.StartId),
           s"no :START_ID column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
         assert(propertyDefsRes.values.exists(_.valueType == CsvColumnType.EndId),
-          s"no :END column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
+          s"no :END_ID column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
         ParsedHeaderFile(FileType.Relationships, propertyDefsRes)
       case _ =>
         throw new AssertionError(s"unable to determine file type - neither :LABEL (for nodes) nor :TYPE (for relationships) found")
     }
-
-    val result = ParsedHeaderFile(
-      fileType.getOrElse(throw new AssertionError(s"unable to determine file type - neither :LABEL (for nodes) nor :TYPE (for relationships) found")),
-      propertyDefs.result()
-    )
-    List(CsvColumnType.Id, CsvColumnType.Label).foreach { valueType =>
-      assert(result.propertyByColumnIndex.values.find { _.valueType == valueType }.isDefined,
-        s"no $valueType column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
-    }
-    result
   }
 
-  private def parseRowData(columns: Seq[String], lineNo: Int, columnDefs: Map[Int, CsvColumnDef]): ParsedRowData = {
+  private def parseNodeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, CsvColumnDef]): ParsedNodeRowData = {
     var id: Integer = null
     var label: String = null
     val properties = Seq.newBuilder[ParsedProperty]
-    columns.zipWithIndex.foreach { case (entry, idx) =>
+    columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case CsvColumnDef(None, CsvColumnType.Id, _) =>
+        case CsvColumnDef(_, CsvColumnType.Id, _) =>
           id = entry.toInt
-        case CsvColumnDef(None, CsvColumnType.Label, _) =>
+        case CsvColumnDef(_, CsvColumnType.Label, _) =>
           label = entry
         case CsvColumnDef(Some(name), valueType, false) =>
-          if (entry != "" || valueType == CsvColumnType.String) {
-            val value = parsePropertyValue(entry, valueType)
-            properties.addOne(ParsedProperty(name, value))
-          }
+          parseProperty(entry, name, valueType).foreach(properties.addOne)
         case CsvColumnDef(Some(name), valueType, true) =>
-          val values = entry.split(';') // from the docs: "By default, array values are separated by ;"
-          if (values.nonEmpty && values.head != "") { // csv parser always adds one empty string entry...
-            val parsedValues = values.map(parsePropertyValue(_, valueType))
-            properties.addOne(ParsedProperty(name, parsedValues))
-          }
+          parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
       }
     }
-    assert(id != null, s"no ID column found in row $lineNo")
-    assert(label != null, s"no LABEL column found in row $lineNo")
+    assert(id != null, s"no ID column found in line $lineNo")
+    assert(label != null, s"no LABEL column found in line $lineNo")
 
-    val ret = ParsedRowData(id, label, properties.result())
+    val ret = ParsedNodeRowData(id, label, properties.result())
     logger.debug("parsed line {}: {}", lineNo, ret)
     ret
+  }
+
+  private def parseEdgeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, CsvColumnDef]): ParsedEdgeRowData = {
+    var startId: Integer = null
+    var endId: Integer = null
+    var label: String = null
+    val properties = Seq.newBuilder[ParsedProperty]
+    columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
+      assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
+      columnDefs(idx) match {
+        case CsvColumnDef(_, CsvColumnType.StartId, _) =>
+          startId = entry.toInt
+        case CsvColumnDef(_, CsvColumnType.EndId, _) =>
+          endId = entry.toInt
+        case CsvColumnDef(_, CsvColumnType.Type, _) =>
+          label = entry
+        case CsvColumnDef(Some(name), valueType, false) =>
+          parseProperty(entry, name, valueType).foreach(properties.addOne)
+        case CsvColumnDef(Some(name), valueType, true) =>
+          parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
+      }
+    }
+    assert(startId != null, s"no START_ID column found in line $lineNo")
+    assert(endId != null, s"no END_ID column found in line $lineNo")
+    assert(label != null, s"no LABEL column found in line $lineNo")
+
+    val ret = ParsedEdgeRowData(startId, endId, label, properties.result())
+    logger.debug("parsed line {}: {}", lineNo, ret)
+    ret
+  }
+
+  private def parseProperty(rawValue: String, name: String, valueType: CsvColumnType.Value): Option[ParsedProperty] = {
+    if (rawValue != "" || valueType == CsvColumnType.String)
+      Some(ParsedProperty(name, parsePropertyValue(rawValue, valueType)))
+    else
+      None
+  }
+
+  private def parseArrayProperty(rawValue: String, name: String, valueType: CsvColumnType.Value): Option[ParsedProperty] = {
+    val values = rawValue.split(';') // from the docs: "By default, array values are separated by ;"
+    if (values.nonEmpty && values.head != "") { // csv parser always adds one empty string entry...
+      val parsedValues = values.map(parsePropertyValue(_, valueType))
+      Some(ParsedProperty(name, parsedValues))
+    } else {
+      None
+    }
   }
 
   private def parsePropertyValue(rawString: String, valueType: CsvColumnType.Value): Any = {
@@ -177,7 +210,8 @@ object Neo4jCsvImport extends Importer {
   private case class ParsedHeaderFile(fileType: FileType.Value, propertyByColumnIndex: Map[Int, CsvColumnDef])
   private case class CsvColumnDef(name: Option[String], valueType: CsvColumnType.Value, isArray: Boolean = false)
   private case class ParsedProperty(name: String, value: Any)
-  private case class ParsedRowData(id: Int, label: String, properties: Seq[ParsedProperty])
+  private case class ParsedNodeRowData(id: Int, label: String, properties: Seq[ParsedProperty])
+  private case class ParsedEdgeRowData(startId: Int, endId: Int, label: String, properties: Seq[ParsedProperty])
 
   private object FileType extends Enumeration {
     val Nodes = Value
