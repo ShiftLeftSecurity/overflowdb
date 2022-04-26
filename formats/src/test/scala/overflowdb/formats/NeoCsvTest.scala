@@ -13,7 +13,12 @@ class Neo4jCsvTests extends AnyWordSpec {
   val neo4jcsvRoot = Paths.get(subprojectRoot, "src/test/resources/neo4jcsv")
 
   "import from csv" in {
-    val csvInputFiles = Seq("testnodes_header.csv", "testnodes.csv").map(neo4jcsvRoot.resolve)
+    val csvInputFiles = Seq(
+      "testnodes_header.csv",
+      "testnodes.csv",
+      "testedges_header.csv",
+      "testedges.csv",
+    ).map(neo4jcsvRoot.resolve)
 
     val graph = SimpleDomain.newGraph()
     Neo4jCsvImport.runImport(graph, csvInputFiles)
@@ -32,6 +37,10 @@ class Neo4jCsvTests extends AnyWordSpec {
 
     val node3 = graph.node(3).asInstanceOf[TestNode]
     node3.intProperty shouldBe 13
+
+
+    graph.edgeCount shouldBe 2
+    ???
   }
 
 }
