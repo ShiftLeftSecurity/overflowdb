@@ -27,7 +27,7 @@ object Neo4jCsvImport extends Importer {
               importedNodeCount += 1
           }
         }
-      }
+      }.get
     }
     logger.info(s"imported $importedNodeCount nodes")
   }
@@ -99,7 +99,10 @@ object Neo4jCsvImport extends Importer {
     }
     assert(id != null, s"no ID column found in row $lineNo")
     assert(label != null, s"no LABEL column found in row $lineNo")
-    ParsedRowData(id, label, properties.result())
+
+    val ret = ParsedRowData(id, label, properties.result())
+    logger.debug("parsed line {}: {}", lineNo, ret)
+    ret
   }
 
   private def parseProperty(name: String, entry: String, valueType: Neo4jValueType.Value): ParsedProperty = {
