@@ -13,6 +13,7 @@ import scala.util.Using
 object Neo4jCsvImport extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
+    var importedNodeCount = 0
     groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
       val columnDefs = parseHeaderFile(headerFile)
 
@@ -23,10 +24,12 @@ object Neo4jCsvImport extends Importer {
             case ParsedRowData(id, label, properties) =>
               val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
               graph.addNode(id, label, propertiesAsKeyValues: _*)
+              importedNodeCount += 1
           }
         }
       }
     }
+    logger.info(s"imported $importedNodeCount nodes")
   }
 
   private def groupInputFiles(inputFiles: Seq[Path]): Seq[HeaderAndDataFile] = {
