@@ -69,7 +69,7 @@ object Neo4jCsvImport extends Importer {
 
     val result = propertyDefs.result()
     List(Neo4jValueType.Id, Neo4jValueType.Label).foreach { valueType =>
-      assert(result.find(_._2.valueType == valueType).isDefined,
+      assert(result.find { case (_, propertyDef) => propertyDef.valueType == valueType }.isDefined,
         s"no $valueType column found in headerFile $headerFile - see format definition in https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/#import-tool-header-format")
     }
     result
@@ -87,13 +87,34 @@ object Neo4jCsvImport extends Importer {
         case PropertyDef(_, Neo4jValueType.Label) =>
           label = entry
         case PropertyDef(name, valueType) =>
-          // TODO adjust for different value types, arrays etc.
-          properties.addOne(ParsedProperty(name, entry))
+          properties.addOne(parseProperty(name, entry, valueType))
       }
     }
     assert(id != null, s"no ID column found in row $lineNo")
     assert(label != null, s"no LABEL column found in row $lineNo")
     ParsedRowData(id, label, properties.result())
+  }
+
+  private def parseProperty(name: String, entry: String, valueType: Neo4jValueType.Value): ParsedProperty = {
+    val value = valueType match {
+      case Neo4jValueType.Int => entry.toInt
+      case Neo4jValueType.Long => entry.toLong
+      case Neo4jValueType.Float => entry.toFloat
+      case Neo4jValueType.Double => entry.toDouble
+      case Neo4jValueType.Boolean => entry.toBoolean
+      case Neo4jValueType.Byte => entry.toByte
+      case Neo4jValueType.Short => entry.toShort
+      case Neo4jValueType.Char => entry.head
+      case Neo4jValueType.String => entry
+      case Neo4jValueType.Point => ???
+      case Neo4jValueType.Date => ???
+      case Neo4jValueType.LocalTime => ???
+      case Neo4jValueType.Time => ???
+      case Neo4jValueType.LocalDateTime => ???
+      case Neo4jValueType.DateTime => ???
+      case Neo4jValueType.Duration => ???
+    }
+    ParsedProperty(name, value)
   }
 
   private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
