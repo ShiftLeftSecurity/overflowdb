@@ -19,7 +19,11 @@ object Neo4jCsvImport extends Importer {
       Using(CSVReader.open(dataFile.toFile)) { dataReader =>
         dataReader.iterator.zipWithIndex.foreach { case (columns, idx) =>
           assert(columns.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columns.size} for row=${columns.mkString(",")}")
-          parseRowData(columns, lineNo = idx + 1, columnDefs)
+          parseRowData(columns, lineNo = idx + 1, columnDefs) match {
+            case ParsedRowData(id, label, properties) =>
+              val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
+              graph.addNode(id, label, propertiesAsKeyValues: _*)
+          }
         }
       }
     }
