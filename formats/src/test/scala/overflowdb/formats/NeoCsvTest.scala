@@ -6,6 +6,7 @@ import overflowdb.testdomains.simple.{SimpleDomain, TestNode}
 import testutils.ProjectRoot
 
 import java.nio.file.Paths
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
@@ -23,6 +24,8 @@ class Neo4jCsvTests extends AnyWordSpec {
     node1.label shouldBe "testNode"
     node1.intProperty shouldBe 11
     node1.stringProperty shouldBe "stringProp1"
+    node1.stringListProperty.asScala.toList shouldBe List("stringListProp1a", "stringListProp1b")
+    node1.intListProperty.asScala.toList shouldBe List(21, 31, 41)
 
     val node2 = graph.node(2).asInstanceOf[TestNode]
     node2.stringProperty shouldBe "stringProp2"

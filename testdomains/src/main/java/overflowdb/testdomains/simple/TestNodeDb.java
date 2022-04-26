@@ -92,6 +92,11 @@ public class TestNodeDb extends NodeDb {
         for (Integer i : _intListProperty) _intListProperty[idx++] = i;
       } else if (value instanceof int[]) {
         this._intListProperty = (int[]) value;
+      } else if (value instanceof Object[]) {
+        Object[] value1 = (Object[]) value;
+        this._intListProperty = new int[value1.length];
+        for (int i = 0; i < value1.length; i++)
+          this._intListProperty[i] = (int) value1[i];
       } else {
         throw new RuntimeException("not implemented... " + value.getClass());
       }
