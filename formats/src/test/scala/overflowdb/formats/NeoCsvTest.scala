@@ -14,10 +14,10 @@ class Neo4jCsvTests extends AnyWordSpec {
 
   "import from csv" in {
     val csvInputFiles = Seq(
-      "testnodes_header.csv",
-      "testnodes.csv",
       "testedges_header.csv",
       "testedges.csv",
+      "testnodes_header.csv",
+      "testnodes.csv",
     ).map(neo4jcsvRoot.resolve)
 
     val graph = SimpleDomain.newGraph()
