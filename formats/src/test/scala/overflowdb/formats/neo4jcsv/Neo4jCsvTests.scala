@@ -7,6 +7,9 @@ import testutils.ProjectRoot
 
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
+import better.files._
+
+import java.io.FileNotFoundException
 
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
@@ -63,7 +66,7 @@ class Neo4jCsvTests extends AnyWordSpec {
   }
 
   "Exporter should export valid csv" in {
-//    val graph = SimpleDomain.newGraph()
+    val graph = SimpleDomain.newGraph()
 
 //    val node1 = graph.addNode(1, TestNode.LABEL,
 //      TestNode.INT_PROPERTY, 11,
@@ -75,10 +78,9 @@ class Neo4jCsvTests extends AnyWordSpec {
 //    val node2 = graph.addNode(2, TestNode.LABEL,
 //      TestNode.STRING_PROPERTY, "stringProp2",
 //    )
-//
-//    val node3 = graph.node(3).asInstanceOf[TestNode]
-//    node3.intProperty shouldBe 13
-//
+
+    val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
+
 //    graph.edgeCount shouldBe 2
 //    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
 //    edge1.longProperty shouldBe Long.MaxValue
@@ -87,14 +89,29 @@ class Neo4jCsvTests extends AnyWordSpec {
 //    val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
 //    edge2.outNode shouldBe node2
 
-//    Neo4jCsvExporter.runExport(graph, exportRootDirectory)
+    File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
+      val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
+      exportedFiles.foreach(_.root shouldBe exportRootDirectory)
+      exportedFiles.size shouldBe 2
 
-    // assert csv file content
-    // use difftool for round trip of conversion
-    ???
+      fuzzyFindFile(exportedFiles, TestNode.LABEL, "_header").contentAsString shouldBe
+        "TODO"
 
 
 
+      // TODO use difftool for round trip of conversion?
+
+      //      exportRootDirectory.contentAsString
+
+      // TODO assert csv file content
+    }
+  }
+
+  private def fuzzyFindFile(availableFiles: Seq[File], searchTerms: String*): File = {
+    availableFiles.find { file =>
+      val relevantNamePart = file.nameWithoutExtension.toLowerCase
+      searchTerms.forall(relevantNamePart.contains)
+    }.getOrElse(throw new FileNotFoundException(s"fuzzy file search didn't find anything for given search terms (${searchTerms.mkString(",")}) among $availableFiles"))
   }
 
 }
