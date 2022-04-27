@@ -75,11 +75,15 @@ object Neo4jCsvImport extends Importer {
     }.get
 
     val propertyDefs = Map.newBuilder[Int, CsvColumnDef]
+    var labelColumnFound = false
     // will figure out if this is a node or relationship file during parsing
     var fileType: Option[FileType.Value] = None
     columnDefs.zipWithIndex.foreach { case (entry, idx) =>
       val propertyDef = entry match {
         case ":LABEL" =>
+          if (labelColumnFound)
+            throw new NotImplementedError(s"multiple :LABEL columns found in $headerFile, which is not supported by overflowdb")
+          labelColumnFound = true
           fileType = Option(FileType.Nodes)
           CsvColumnDef(None, CsvColumnType.Label)
         case ":TYPE" =>

@@ -38,7 +38,6 @@ class Neo4jCsvTests extends AnyWordSpec {
     val node3 = graph.node(3).asInstanceOf[TestNode]
     node3.intProperty shouldBe 13
 
-
     graph.edgeCount shouldBe 2
     val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
     edge1.longProperty shouldBe Long.MaxValue
@@ -46,6 +45,18 @@ class Neo4jCsvTests extends AnyWordSpec {
 
     val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
     edge2.outNode shouldBe node2
+  }
+
+  "fail if multiple labels are used (unsupported by overflowdb)" in {
+    val csvInputFiles = Seq(
+      "unsupported_multiple_labels_header.csv",
+      "unsupported_multiple_labels.csv",
+    ).map(neo4jcsvRoot.resolve)
+
+    val graph = SimpleDomain.newGraph()
+    intercept[NotImplementedError] {
+      Neo4jCsvImport.runImport(graph, csvInputFiles)
+    }.getMessage should include("multiple :LABEL columns found")
   }
 
 }
