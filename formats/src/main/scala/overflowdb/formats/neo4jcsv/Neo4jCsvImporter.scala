@@ -1,7 +1,8 @@
-package overflowdb.formats
+package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
+import overflowdb.formats.Importer
 
 import java.nio.file.Path
 import java.util
@@ -11,7 +12,7 @@ import scala.util.Using
  * Imports from neo4j csv files
  * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
  * */
-object Neo4jCsvImport extends Importer {
+object Neo4jCsvImporter extends Importer {
   val Neo4jAdminDoc = "https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import"
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
