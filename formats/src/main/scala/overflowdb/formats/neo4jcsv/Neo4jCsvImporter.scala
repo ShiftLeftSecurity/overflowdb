@@ -241,11 +241,6 @@ object Neo4jCsvImporter extends Importer {
   private case class ParsedNodeRowData(id: Int, label: String, properties: Seq[ParsedProperty])
   private case class ParsedEdgeRowData(startId: Int, endId: Int, label: String, properties: Seq[ParsedProperty])
 
-  private object FileType extends Enumeration {
-    val Nodes = Value
-    val Relationships = Value
-  }
-
   object CsvColumnType extends Enumeration {
     // special types for nodes
     val Id = Value(":ID")
