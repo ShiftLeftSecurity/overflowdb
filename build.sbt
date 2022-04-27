@@ -6,9 +6,10 @@ publish/skip := true
 
 lazy val core        = project.in(file("core"))
 lazy val testdomains = project.in(file("testdomains")).dependsOn(core)
-lazy val formats     = project.in(file("formats"    )).dependsOn(testdomains)
-lazy val traversal   = project.in(file("traversal"  )).dependsOn(formats)
-lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats % Test)
+lazy val traversal   = project.in(file("traversal"  )).dependsOn(core)
+lazy val formats     = project.in(file("formats"    )).dependsOn(traversal, testdomains % Test)
+lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats)
+lazy val traversalTests = project.in(file("traversal-tests"  )).dependsOn(formats)
 
 ThisBuild/libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.36" % Test,
