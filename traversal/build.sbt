@@ -5,5 +5,3 @@ libraryDependencies ++= Seq(
   "com.massisframework" % "j-text-utils" % "0.3.4",
 )
 scalacOptions ++= Seq("-deprecation:false")
-
-Test/console/scalacOptions -= "-Xlint"
