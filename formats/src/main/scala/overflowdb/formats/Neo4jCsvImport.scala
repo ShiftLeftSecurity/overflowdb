@@ -136,6 +136,8 @@ object Neo4jCsvImport extends Importer {
           parseProperty(entry, name, valueType).foreach(properties.addOne)
         case CsvColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
+        case other =>
+          throw new MatchError(s"unhandled case $other")
       }
     }
     assert(id != null, s"no ID column found in line $lineNo")
@@ -164,6 +166,8 @@ object Neo4jCsvImport extends Importer {
           parseProperty(entry, name, valueType).foreach(properties.addOne)
         case CsvColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
+        case other =>
+          throw new MatchError(s"unhandled case $other")
       }
     }
     assert(startId != null, s"no START_ID column found in line $lineNo")
