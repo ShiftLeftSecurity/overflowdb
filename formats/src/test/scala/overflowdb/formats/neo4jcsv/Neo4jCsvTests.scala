@@ -94,24 +94,24 @@ class Neo4jCsvTests extends AnyWordSpec {
       exportedFiles.foreach(_.root shouldBe exportRootDirectory)
       exportedFiles.size shouldBe 2
 
-      fuzzyFindFile(exportedFiles, TestNode.LABEL, "_header").contentAsString shouldBe
-        "TODO"
+      // assert csv file contents
+      exportedFiles.find { file =>
+        val relevantPart = file.nameWithoutExtension.toLowerCase
+        relevantPart.contains(TestNode.LABEL) && relevantPart.endsWith("_header")
+      }.get.contentAsString shouldBe "id:ID,StringProperty,IntProperty:int,:LABEL,StringListProperty:string[],IntListProperty:int[]"
+
+      exportedFiles.find { file =>
+        val relevantPart = file.nameWithoutExtension.toLowerCase
+        relevantPart.contains(TestNode.LABEL) && !relevantPart.endsWith("_header")
+      }.get.contentAsString shouldBe
+        """
+          |TODO
+          |""".stripMargin
 
 
 
       // TODO use difftool for round trip of conversion?
-
-      //      exportRootDirectory.contentAsString
-
-      // TODO assert csv file content
     }
-  }
-
-  private def fuzzyFindFile(availableFiles: Seq[File], searchTerms: String*): File = {
-    availableFiles.find { file =>
-      val relevantNamePart = file.nameWithoutExtension.toLowerCase
-      searchTerms.forall(relevantNamePart.contains)
-    }.getOrElse(throw new FileNotFoundException(s"fuzzy file search didn't find anything for given search terms (${searchTerms.mkString(",")}) among $availableFiles"))
   }
 
 }
