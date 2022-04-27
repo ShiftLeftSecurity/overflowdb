@@ -16,35 +16,39 @@ object Neo4jCsvImport extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     var importedNodeCount = 0
-    groupInputFiles(inputFiles).foreach { case HeaderAndDataFile(headerFile, dataFile) =>
-      val ParsedHeaderFile(fileType, columnDefs) = parseHeaderFile(headerFile)
-      Using(CSVReader.open(dataFile.toFile)) { dataReader =>
-        dataReader.iterator.zipWithIndex.foreach { case (columnsRaw, idx) =>
-          assert(columnsRaw.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
-          val lineNo = idx + 1
-          fileType match {
-            case FileType.Nodes =>
-              parseNodeRowData(columnsRaw, lineNo, columnDefs) match {
-                case ParsedNodeRowData(id, label, properties) =>
-                  val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
-                  graph.addNode(id, label, propertiesAsKeyValues: _*)
-                  importedNodeCount += 1
-              }
-            case FileType.Relationships =>
-              parseEdgeRowData(columnsRaw, lineNo, columnDefs) match {
-                case ParsedEdgeRowData(startId, endId, label, properties) =>
-                  val startNode = graph.node(startId)
-                  val endNode = graph.node(endId)
-                  val propertiesMap = new util.HashMap[String, Object]
-                  properties.foreach { case ParsedProperty(name, value) =>
-                    propertiesMap.put(name, value.asInstanceOf[Object])
-                  }
-                  startNode.addEdge(label, endNode, propertiesMap)
-              }
+    var importedEdgeCount = 0
+
+    groupInputFiles(inputFiles)
+      .sortBy(nodeFilesFirst)
+      .foreach { case HeaderAndDataFile(ParsedHeaderFile(fileType, columnDefs), dataFile) =>
+        Using(CSVReader.open(dataFile.toFile)) { dataReader =>
+          dataReader.iterator.zipWithIndex.foreach { case (columnsRaw, idx) =>
+            assert(columnsRaw.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
+            val lineNo = idx + 1
+            fileType match {
+              case FileType.Nodes =>
+                parseNodeRowData(columnsRaw, lineNo, columnDefs) match {
+                  case ParsedNodeRowData(id, label, properties) =>
+                    val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
+                    graph.addNode(id, label, propertiesAsKeyValues: _*)
+                    importedNodeCount += 1
+                }
+              case FileType.Relationships =>
+                parseEdgeRowData(columnsRaw, lineNo, columnDefs) match {
+                  case ParsedEdgeRowData(startId, endId, label, properties) =>
+                    val startNode = graph.node(startId)
+                    val endNode = graph.node(endId)
+                    val propertiesMap = new util.HashMap[String, Object]
+                    properties.foreach { case ParsedProperty(name, value) =>
+                      propertiesMap.put(name, value.asInstanceOf[Object])
+                    }
+                    startNode.addEdge(label, endNode, propertiesMap)
+                    importedEdgeCount += 1
+                }
+            }
           }
-        }
-      }.get
-    }
+        }.get
+      }
     logger.info(s"imported $importedNodeCount nodes")
   }
 
@@ -60,11 +64,19 @@ object Neo4jCsvImport extends Importer {
     headerFiles.map { headerFile =>
       val wantedBodyFilename = headerFile.getFileName.toString.replaceAll("_header", "")
       dataFiles.find(_.getFileName.toString == wantedBodyFilename) match {
-        case Some(dataFile) => HeaderAndDataFile(headerFile, dataFile)
+        case Some(dataFile) =>
+          HeaderAndDataFile(parseHeaderFile(headerFile), dataFile)
         case None =>
           val inputFilenames = inputFiles.map(_.getFileName).mkString(", ")
           throw new AssertionError(s"body filename `$wantedBodyFilename` wanted, but not found in given input files: $inputFilenames")
       }
+    }
+  }
+
+  private def nodeFilesFirst(headerAndDataFile: HeaderAndDataFile): Int = {
+    headerAndDataFile.headerFile.fileType match {
+      case FileType.Nodes => 1 // we must import nodes first, because relationships refer to nodes
+      case FileType.Relationships => 2
     }
   }
 
@@ -221,7 +233,7 @@ object Neo4jCsvImport extends Importer {
     }
   }
 
-  private case class HeaderAndDataFile(headerFile: Path, dataFile: Path)
+  private case class HeaderAndDataFile(headerFile: ParsedHeaderFile, dataFile: Path)
   private case class ParsedHeaderFile(fileType: FileType.Value, propertyByColumnIndex: Map[Int, CsvColumnDef])
   private case class CsvColumnDef(name: Option[String], valueType: CsvColumnType.Value, isArray: Boolean = false)
   private case class ParsedProperty(name: String, value: Any)
