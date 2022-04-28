@@ -93,30 +93,30 @@ object Neo4jCsvImporter extends Importer {
     var fileType: Option[FileType.Value] = None
     columnDefs.zipWithIndex.foreach { case (entry, idx) =>
       val propertyDef = entry match {
-        case ":LABEL" =>
+        case ColumnType.LabelMarker  =>
           if (labelColumnFound)
-            throw new NotImplementedError(s"multiple :LABEL columns found in $headerFile, which is not supported by overflowdb")
+            throw new NotImplementedError(s"multiple ${ColumnType.Label} columns found in $headerFile, which is not supported by overflowdb")
           labelColumnFound = true
           fileType = Option(FileType.Nodes)
-          CsvColumnDef(None, CsvColumnType.Label)
-        case ":TYPE" =>
+          CsvColumnDef(None, ColumnType.Label)
+        case ColumnType.TypeMarker =>
           fileType = Option(FileType.Relationships)
-          CsvColumnDef(None, CsvColumnType.Type)
-        case s if s.endsWith(":ID") =>
-          CsvColumnDef(None, CsvColumnType.Id)
-        case s if s.endsWith(":START_ID") =>
-          CsvColumnDef(None, CsvColumnType.StartId)
-        case s if s.endsWith(":END_ID") =>
-          CsvColumnDef(None, CsvColumnType.EndId)
+          CsvColumnDef(None, ColumnType.Type)
+        case s if s.endsWith(ColumnType.Id.toString) =>
+          CsvColumnDef(None, ColumnType.Id)
+        case s if s.endsWith(ColumnType.StartId.toString) =>
+          CsvColumnDef(None, ColumnType.StartId)
+        case s if s.endsWith(ColumnType.EndId.toString) =>
+          CsvColumnDef(None, ColumnType.EndId)
         case propertyDef if propertyDef.contains(":") =>
           val name :: valueTpe0 :: Nil = propertyDef.split(':').toList
           val isArray = propertyDef.endsWith("[]") // from the docs: "To define an array type, append [] to the type"
           val valueTpe =
             if (isArray) valueTpe0.dropRight(2)
             else valueTpe0
-          CsvColumnDef(Option(name), valueType = CsvColumnType.withName(valueTpe), isArray)
+          CsvColumnDef(Option(name), valueType = ColumnType.withName(valueTpe), isArray)
         case propertyName =>
-          CsvColumnDef(Option(propertyName), valueType = CsvColumnType.String)
+          CsvColumnDef(Option(propertyName), valueType = ColumnType.String) // if property is not annotated with `:someType`, default to String
       }
       propertyDefs.addOne((idx, propertyDef))
     }
@@ -124,17 +124,17 @@ object Neo4jCsvImporter extends Importer {
     val propertyDefsRes = propertyDefs.result()
     fileType match {
       case Some(FileType.Nodes) =>
-        assert(propertyDefsRes.values.exists(_.valueType == CsvColumnType.Id),
+        assert(propertyDefsRes.values.exists(_.valueType == ColumnType.Id),
           s"no :ID column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
         ParsedHeaderFile(FileType.Nodes, propertyDefsRes)
       case Some(FileType.Relationships) =>
-        assert(propertyDefsRes.values.exists(_.valueType == CsvColumnType.StartId),
+        assert(propertyDefsRes.values.exists(_.valueType == ColumnType.StartId),
           s"no :START_ID column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
-        assert(propertyDefsRes.values.exists(_.valueType == CsvColumnType.EndId),
+        assert(propertyDefsRes.values.exists(_.valueType == ColumnType.EndId),
           s"no :END_ID column found in headerFile $headerFile - see format definition in $Neo4jAdminDoc")
         ParsedHeaderFile(FileType.Relationships, propertyDefsRes)
       case _ =>
-        throw new AssertionError(s"unable to determine file type - neither :LABEL (for nodes) nor :TYPE (for relationships) found")
+        throw new AssertionError(s"unable to determine file type - neither ${ColumnType.Label} (for nodes) nor ${ColumnType.Type} (for relationships) found")
     }
   }
 
@@ -145,9 +145,9 @@ object Neo4jCsvImporter extends Importer {
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case CsvColumnDef(_, CsvColumnType.Id, _) =>
+        case CsvColumnDef(_, ColumnType.Id, _) =>
           id = entry.toInt
-        case CsvColumnDef(_, CsvColumnType.Label, _) =>
+        case CsvColumnDef(_, ColumnType.Label, _) =>
           label = entry
         case CsvColumnDef(Some(name), valueType, false) =>
           parseProperty(entry, name, valueType).foreach(properties.addOne)
@@ -173,11 +173,11 @@ object Neo4jCsvImporter extends Importer {
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case CsvColumnDef(_, CsvColumnType.StartId, _) =>
+        case CsvColumnDef(_, ColumnType.StartId, _) =>
           startId = entry.toInt
-        case CsvColumnDef(_, CsvColumnType.EndId, _) =>
+        case CsvColumnDef(_, ColumnType.EndId, _) =>
           endId = entry.toInt
-        case CsvColumnDef(_, CsvColumnType.Type, _) =>
+        case CsvColumnDef(_, ColumnType.Type, _) =>
           label = entry
         case CsvColumnDef(Some(name), valueType, false) =>
           parseProperty(entry, name, valueType).foreach(properties.addOne)
@@ -196,14 +196,14 @@ object Neo4jCsvImporter extends Importer {
     ret
   }
 
-  private def parseProperty(rawValue: String, name: String, valueType: CsvColumnType.Value): Option[ParsedProperty] = {
-    if (rawValue != "" || valueType == CsvColumnType.String)
+  private def parseProperty(rawValue: String, name: String, valueType: ColumnType.Value): Option[ParsedProperty] = {
+    if (rawValue != "" || valueType == ColumnType.String)
       Some(ParsedProperty(name, parsePropertyValue(rawValue, valueType)))
     else
       None
   }
 
-  private def parseArrayProperty(rawValue: String, name: String, valueType: CsvColumnType.Value): Option[ParsedProperty] = {
+  private def parseArrayProperty(rawValue: String, name: String, valueType: ColumnType.Value): Option[ParsedProperty] = {
     val values = rawValue.split(';') // from the docs: "By default, array values are separated by ;"
     if (values.nonEmpty && values.head != "") { // csv parser always adds one empty string entry...
       val parsedValues = values.map(parsePropertyValue(_, valueType))
@@ -213,61 +213,32 @@ object Neo4jCsvImporter extends Importer {
     }
   }
 
-  private def parsePropertyValue(rawString: String, valueType: CsvColumnType.Value): Any = {
+  private def parsePropertyValue(rawString: String, valueType: ColumnType.Value): Any = {
     valueType match {
-      case CsvColumnType.Int => rawString.toInt
-      case CsvColumnType.Long => rawString.toLong
-      case CsvColumnType.Float => rawString.toFloat
-      case CsvColumnType.Double => rawString.toDouble
-      case CsvColumnType.Boolean => rawString.toBoolean
-      case CsvColumnType.Byte => rawString.toByte
-      case CsvColumnType.Short => rawString.toShort
-      case CsvColumnType.Char => rawString.head
-      case CsvColumnType.String => rawString
-      case CsvColumnType.Point => ???
-      case CsvColumnType.Date => ???
-      case CsvColumnType.LocalTime => ???
-      case CsvColumnType.Time => ???
-      case CsvColumnType.LocalDateTime => ???
-      case CsvColumnType.DateTime => ???
-      case CsvColumnType.Duration => ???
+      case ColumnType.Int => rawString.toInt
+      case ColumnType.Long => rawString.toLong
+      case ColumnType.Float => rawString.toFloat
+      case ColumnType.Double => rawString.toDouble
+      case ColumnType.Boolean => rawString.toBoolean
+      case ColumnType.Byte => rawString.toByte
+      case ColumnType.Short => rawString.toShort
+      case ColumnType.Char => rawString.head
+      case ColumnType.String => rawString
+      case ColumnType.Point => ???
+      case ColumnType.Date => ???
+      case ColumnType.LocalTime => ???
+      case ColumnType.Time => ???
+      case ColumnType.LocalDateTime => ???
+      case ColumnType.DateTime => ???
+      case ColumnType.Duration => ???
     }
   }
 
   private case class HeaderAndDataFile(headerFile: ParsedHeaderFile, dataFile: Path)
   private case class ParsedHeaderFile(fileType: FileType.Value, propertyByColumnIndex: Map[Int, CsvColumnDef])
-  private case class CsvColumnDef(name: Option[String], valueType: CsvColumnType.Value, isArray: Boolean = false)
+  private case class CsvColumnDef(name: Option[String], valueType: ColumnType.Value, isArray: Boolean = false)
   private case class ParsedProperty(name: String, value: Any)
   private case class ParsedNodeRowData(id: Int, label: String, properties: Seq[ParsedProperty])
   private case class ParsedEdgeRowData(startId: Int, endId: Int, label: String, properties: Seq[ParsedProperty])
-
-  object CsvColumnType extends Enumeration {
-    // special types for nodes
-    val Id = Value(":ID")
-    val Label = Value(":LABEL")
-
-    // special types for relationships
-    val Type = Value(":TYPE")
-    val StartId = Value(":START_ID")
-    val EndId = Value(":END_ID")
-
-    // regular data types
-    val Int = Value("int")
-    val Long = Value("long")
-    val Float = Value("float")
-    val Double = Value("double")
-    val Boolean = Value("boolean")
-    val Byte = Value("byte")
-    val Short = Value("short")
-    val Char = Value("char")
-    val String = Value("string")
-    val Point = Value("point")
-    val Date = Value("date")
-    val LocalTime = Value("localtime")
-    val Time = Value("time")
-    val LocalDateTime = Value("localdatetime")
-    val DateTime = Value("datetime")
-    val Duration = Value("duration")
-  }
 
 }

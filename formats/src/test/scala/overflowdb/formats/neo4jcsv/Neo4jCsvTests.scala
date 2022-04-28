@@ -9,8 +9,6 @@ import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
 
-import java.io.FileNotFoundException
-
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
   val neo4jcsvRoot = Paths.get(subprojectRoot, "src/test/resources/neo4jcsv")
