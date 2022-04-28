@@ -31,7 +31,7 @@ object Neo4jCsvExporter extends Exporter {
 
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
         writer.writeRow(
-          Seq(":ID", ":LABEL") ++ propertyNamesOrdered
+          Seq(ColumnType.Id, ColumnType.Label) ++ propertyNamesOrdered
         )
       }
 
