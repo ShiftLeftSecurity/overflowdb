@@ -91,18 +91,18 @@ class Neo4jCsvTests extends AnyWordSpec {
 
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
       val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
-      exportedFiles.foreach(_.root shouldBe exportRootDirectory)
+      exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
       exportedFiles.size shouldBe 2
 
       // assert csv file contents
       exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestNode.LABEL) && relevantPart.endsWith("_header")
-      }.get.contentAsString shouldBe "id:ID,StringProperty,IntProperty:int,:LABEL,StringListProperty:string[],IntListProperty:int[]"
+        relevantPart.contains(TestNode.LABEL.toLowerCase) && relevantPart.endsWith("_header")
+      }.get.contentAsString shouldBe ":ID,:LABEL,StringProperty,IntProperty:int,:LABEL,StringListProperty:string[],IntListProperty:int[]"
 
       exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestNode.LABEL) && !relevantPart.endsWith("_header")
+        relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
       }.get.contentAsString shouldBe
         """
           |TODO
