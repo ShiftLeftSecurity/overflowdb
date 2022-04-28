@@ -96,17 +96,16 @@ class Neo4jCsvTests extends AnyWordSpec {
       exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && relevantPart.endsWith("_header")
-      }.get.contentAsString shouldBe ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty"
+      }.get.contentAsString.trim shouldBe
+        ":ID,:LABEL,FunkyListProperty,IntListProperty,IntProperty:int,StringListProperty,StringProperty:string"
 
-      exportedFiles.find { file =>
+    exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
-      }.get.contentAsString shouldBe
+      }.get.contentAsString.trim shouldBe
         """
           |TODO
           |""".stripMargin
-
-
 
       // TODO use difftool for round trip of conversion?
     }
