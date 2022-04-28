@@ -6,9 +6,8 @@ import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
-import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.MapHasAsScala
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
@@ -23,16 +22,13 @@ object Neo4jCsvExporter extends Exporter {
       val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
       val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
 
-      /** we first write the data file and collect all property names and their types (derived from their runtime types)
-       *  which are in use */
-      var nextColumnIndex = new AtomicInteger(2) // reserving 0 for ID and 1 for LABEL
-//      val usedPropertyNames = mutable.Set.empty[String]
-      val propertyIndexByName = mutable.Map.empty[String, Int]
+      /**
+       * We first write the data file and to derive the property types from their runtime types.
+       * We will write columns for all declared properties, because we only
+       * know which ones are actually in use *after* traversing all nodes.
+       *  */
+      val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
       val propertyTypeByName = mutable.Map.empty[String, ColumnType.Value]
-//      graph.nodes(label).forEachRemaining { node =>
-//        node.propertyKeys().forEach(propertyNames.add)
-//      }
-//      val propertyNamesOrdered = propertyNames.toSeq.sorted
 
       Using(CSVWriter.open(dataFile, append = false)) { writer =>
         Traversal(graph.nodes(label)).foreach { node =>
@@ -42,35 +38,45 @@ object Neo4jCsvExporter extends Exporter {
           rowBuilder.addOne(node.id.toString)
           rowBuilder.addOne(node.label)
 
-          node.propertiesMap().forEach { (name, value) =>
-            val propertyIndex = propertyIndexByName.getOrElseUpdate(name, nextColumnIndex.getAndIncrement())
+          propertyNamesOrdered.foreach { propertyName =>
+            val entry = node.propertyOption(propertyName).toScala match {
+              case None => ""
+              case Some(value) =>
+                // update property types as we go based on the runtime types
+                // note: this ignores the edge case that there may be different runtime types for the same property
+                if (!propertyTypeByName.contains(propertyName))
+                  deriveNeo4jType(value.getClass)
 
-            // note: this ignores the edge case that there may be different runtime types for the same property
-            val tpe = propertyTypeByName.getOrElseUpdate(name, deriveNeo4jType(value.getClass))
-
-            
+                value.toString
+            }
+            rowBuilder.addOne(entry)
           }
-
-//          propertyNamesOrdered.foreach { propertyName =>
-//            rowBuilder.addOne(node.propertyOption(propertyName).toScala.map(_.toString).getOrElse(""))
-//          }
 
           writer.writeRow(rowBuilder.result)
         }
-      }
+      }.get
 
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
         writer.writeRow(
           Seq(ColumnType.Id, ColumnType.Label) ++ propertyNamesOrdered
         )
-      }
+      }.get
 
       Seq(headerFile.toPath, dataFile.toPath)
     }
   }
 
-  private def deriveNeo4jType(value: Class[_]): ColumnType.Value = {
-    ???
+  private def deriveNeo4jType(tpe: Class[_]): ColumnType.Value = {
+//    if (tpe.isAssignableFrom(classOf[String]))
+//      ColumnType.String
+//    else if (tpe.isAssignableFrom(classOf[Integer]))
+//      ColumnType.Int
+//    else
+      throw new NotImplementedError(s"unable to derive a Neo4j type for given runtime type $tpe")
+//    val String = classOf[String]
+//    tpe match {
+//      case String => ColumnType.String
+//    }
   }
 
 }
