@@ -20,11 +20,10 @@ object Neo4jCsvExporter extends Exporter {
 
     labelsWithNodes.flatMap { label =>
       val propertyNames = mutable.Set.empty[String]
-      graph.nodes(label).forEachRemaining(node =>
+      graph.nodes(label).forEachRemaining { node =>
         node.propertyKeys().forEach(propertyNames.add)
-      )
-      val propertyNamesOrdered: Seq[String] =
-        propertyNames.toSeq.sorted
+      }
+      val propertyNamesOrdered = propertyNames.toSeq.sorted
 
       val headerFile = outputRootDirectory.resolve(s"${label}_header.csv").toFile
       val dataFile   = outputRootDirectory.resolve(s"${label}.csv").toFile

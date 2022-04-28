@@ -96,7 +96,7 @@ class Neo4jCsvTests extends AnyWordSpec {
       exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && relevantPart.endsWith("_header")
-      }.get.contentAsString shouldBe ":ID,:LABEL,StringProperty,IntProperty:int,:LABEL,StringListProperty:string[],IntListProperty:int[]"
+      }.get.contentAsString shouldBe ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty"
 
       exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase

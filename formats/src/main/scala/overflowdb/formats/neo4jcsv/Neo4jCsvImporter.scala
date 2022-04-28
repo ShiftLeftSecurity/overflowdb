@@ -87,7 +87,7 @@ object Neo4jCsvImporter extends Importer {
         throw new AssertionError(s"header file $headerFile is empty"))
     }.get
 
-    val propertyDefs = Map.newBuilder[Int, CsvColumnDef]
+    val propertyDefs = Map.newBuilder[Int, ColumnDef]
     var labelColumnFound = false
     // will figure out if this is a node or relationship file during parsing
     var fileType: Option[FileType.Value] = None
@@ -98,25 +98,25 @@ object Neo4jCsvImporter extends Importer {
             throw new NotImplementedError(s"multiple ${ColumnType.Label} columns found in $headerFile, which is not supported by overflowdb")
           labelColumnFound = true
           fileType = Option(FileType.Nodes)
-          CsvColumnDef(None, ColumnType.Label)
+          ColumnDef(None, ColumnType.Label)
         case ColumnType.TypeMarker =>
           fileType = Option(FileType.Relationships)
-          CsvColumnDef(None, ColumnType.Type)
+          ColumnDef(None, ColumnType.Type)
         case s if s.endsWith(ColumnType.Id.toString) =>
-          CsvColumnDef(None, ColumnType.Id)
+          ColumnDef(None, ColumnType.Id)
         case s if s.endsWith(ColumnType.StartId.toString) =>
-          CsvColumnDef(None, ColumnType.StartId)
+          ColumnDef(None, ColumnType.StartId)
         case s if s.endsWith(ColumnType.EndId.toString) =>
-          CsvColumnDef(None, ColumnType.EndId)
+          ColumnDef(None, ColumnType.EndId)
         case propertyDef if propertyDef.contains(":") =>
           val name :: valueTpe0 :: Nil = propertyDef.split(':').toList
-          val isArray = propertyDef.endsWith("[]") // from the docs: "To define an array type, append [] to the type"
+          val isArray = propertyDef.endsWith(ColumnType.ArrayMarker) // from the docs: "To define an array type, append [] to the type"
           val valueTpe =
             if (isArray) valueTpe0.dropRight(2)
             else valueTpe0
-          CsvColumnDef(Option(name), valueType = ColumnType.withName(valueTpe), isArray)
+          ColumnDef(Option(name), valueType = ColumnType.withName(valueTpe), isArray)
         case propertyName =>
-          CsvColumnDef(Option(propertyName), valueType = ColumnType.String) // if property is not annotated with `:someType`, default to String
+          ColumnDef(Option(propertyName), valueType = ColumnType.String) // if property is not annotated with `:someType`, default to String
       }
       propertyDefs.addOne((idx, propertyDef))
     }
@@ -138,20 +138,20 @@ object Neo4jCsvImporter extends Importer {
     }
   }
 
-  private def parseNodeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, CsvColumnDef]): ParsedNodeRowData = {
+  private def parseNodeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, ColumnDef]): ParsedNodeRowData = {
     var id: Integer = null
     var label: String = null
     val properties = Seq.newBuilder[ParsedProperty]
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case CsvColumnDef(_, ColumnType.Id, _) =>
+        case ColumnDef(_, ColumnType.Id, _) =>
           id = entry.toInt
-        case CsvColumnDef(_, ColumnType.Label, _) =>
+        case ColumnDef(_, ColumnType.Label, _) =>
           label = entry
-        case CsvColumnDef(Some(name), valueType, false) =>
+        case ColumnDef(Some(name), valueType, false) =>
           parseProperty(entry, name, valueType).foreach(properties.addOne)
-        case CsvColumnDef(Some(name), valueType, true) =>
+        case ColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
         case other =>
           throw new MatchError(s"unhandled case $other")
@@ -165,7 +165,7 @@ object Neo4jCsvImporter extends Importer {
     ret
   }
 
-  private def parseEdgeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, CsvColumnDef]): ParsedEdgeRowData = {
+  private def parseEdgeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, ColumnDef]): ParsedEdgeRowData = {
     var startId: Integer = null
     var endId: Integer = null
     var label: String = null
@@ -173,15 +173,15 @@ object Neo4jCsvImporter extends Importer {
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
-        case CsvColumnDef(_, ColumnType.StartId, _) =>
+        case ColumnDef(_, ColumnType.StartId, _) =>
           startId = entry.toInt
-        case CsvColumnDef(_, ColumnType.EndId, _) =>
+        case ColumnDef(_, ColumnType.EndId, _) =>
           endId = entry.toInt
-        case CsvColumnDef(_, ColumnType.Type, _) =>
+        case ColumnDef(_, ColumnType.Type, _) =>
           label = entry
-        case CsvColumnDef(Some(name), valueType, false) =>
+        case ColumnDef(Some(name), valueType, false) =>
           parseProperty(entry, name, valueType).foreach(properties.addOne)
-        case CsvColumnDef(Some(name), valueType, true) =>
+        case ColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
         case other =>
           throw new MatchError(s"unhandled case $other")
@@ -235,8 +235,8 @@ object Neo4jCsvImporter extends Importer {
   }
 
   private case class HeaderAndDataFile(headerFile: ParsedHeaderFile, dataFile: Path)
-  private case class ParsedHeaderFile(fileType: FileType.Value, propertyByColumnIndex: Map[Int, CsvColumnDef])
-  private case class CsvColumnDef(name: Option[String], valueType: ColumnType.Value, isArray: Boolean = false)
+  private case class ParsedHeaderFile(fileType: FileType.Value, propertyByColumnIndex: Map[Int, ColumnDef])
+  private case class ColumnDef(name: Option[String], valueType: ColumnType.Value, isArray: Boolean = false)
   private case class ParsedProperty(name: String, value: Any)
   private case class ParsedNodeRowData(id: Int, label: String, properties: Seq[ParsedProperty])
   private case class ParsedEdgeRowData(startId: Int, endId: Int, label: String, properties: Seq[ParsedProperty])
