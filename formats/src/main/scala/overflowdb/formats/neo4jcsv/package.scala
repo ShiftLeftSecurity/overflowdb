@@ -11,6 +11,7 @@ package object neo4jcsv {
     // defining 'stable' string so we can pattern match on them
     val LabelMarker = ":LABEL"
     val TypeMarker = ":TYPE"
+    val ArrayMarker = "[]"
 
     // special types for nodes
     val Id = Value(":ID")
