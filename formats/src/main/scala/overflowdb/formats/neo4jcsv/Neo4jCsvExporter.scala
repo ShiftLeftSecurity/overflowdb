@@ -6,6 +6,7 @@ import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.jdk.OptionConverters.RichOptional
@@ -19,20 +20,19 @@ object Neo4jCsvExporter extends Exporter {
     }.toSeq
 
     labelsWithNodes.flatMap { label =>
-      val propertyNames = mutable.Set.empty[String]
-      graph.nodes(label).forEachRemaining { node =>
-        node.propertyKeys().forEach(propertyNames.add)
-      }
-      val propertyNamesOrdered = propertyNames.toSeq.sorted
-
-      val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
       val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
+      val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
 
-      Using(CSVWriter.open(headerFile, append = false)) { writer =>
-        writer.writeRow(
-          Seq(ColumnType.Id, ColumnType.Label) ++ propertyNamesOrdered
-        )
-      }
+      /** we first write the data file and collect all property names and their types (derived from their runtime types)
+       *  which are in use */
+      var nextColumnIndex = new AtomicInteger(2) // reserving 0 for ID and 1 for LABEL
+//      val usedPropertyNames = mutable.Set.empty[String]
+      val propertyIndexByName = mutable.Map.empty[String, Int]
+      val propertyTypeByName = mutable.Map.empty[String, ColumnType.Value]
+//      graph.nodes(label).forEachRemaining { node =>
+//        node.propertyKeys().forEach(propertyNames.add)
+//      }
+//      val propertyNamesOrdered = propertyNames.toSeq.sorted
 
       Using(CSVWriter.open(dataFile, append = false)) { writer =>
         Traversal(graph.nodes(label)).foreach { node =>
@@ -42,16 +42,35 @@ object Neo4jCsvExporter extends Exporter {
           rowBuilder.addOne(node.id.toString)
           rowBuilder.addOne(node.label)
 
-          propertyNamesOrdered.foreach { propertyName =>
-            rowBuilder.addOne(node.propertyOption(propertyName).toScala.map(_.toString).getOrElse(""))
+          node.propertiesMap().forEach { (name, value) =>
+            val propertyIndex = propertyIndexByName.getOrElseUpdate(name, nextColumnIndex.getAndIncrement())
+
+            // note: this ignores the edge case that there may be different runtime types for the same property
+            val tpe = propertyTypeByName.getOrElseUpdate(name, deriveNeo4jType(value.getClass))
+
+            
           }
+
+//          propertyNamesOrdered.foreach { propertyName =>
+//            rowBuilder.addOne(node.propertyOption(propertyName).toScala.map(_.toString).getOrElse(""))
+//          }
 
           writer.writeRow(rowBuilder.result)
         }
       }
 
+      Using(CSVWriter.open(headerFile, append = false)) { writer =>
+        writer.writeRow(
+          Seq(ColumnType.Id, ColumnType.Label) ++ propertyNamesOrdered
+        )
+      }
+
       Seq(headerFile.toPath, dataFile.toPath)
     }
+  }
+
+  private def deriveNeo4jType(value: Class[_]): ColumnType.Value = {
+    ???
   }
 
 }
