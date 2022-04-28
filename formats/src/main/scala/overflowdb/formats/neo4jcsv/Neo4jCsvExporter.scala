@@ -7,7 +7,7 @@ import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
@@ -28,7 +28,7 @@ object Neo4jCsvExporter extends Exporter {
        * know which ones are actually in use *after* traversing all nodes.
        *  */
       val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
-      val propertyTypeByName = mutable.Map.empty[String, ColumnType.Value]
+      val propertyTypeByName = mutable.Map.empty[String, ColumnDef]
 
       Using(CSVWriter.open(dataFile, append = false)) { writer =>
         Traversal(graph.nodes(label)).foreach { node =>
@@ -44,21 +44,33 @@ object Neo4jCsvExporter extends Exporter {
               case Some(value) =>
                 // update property types as we go based on the runtime types
                 // note: this ignores the edge case that there may be different runtime types for the same property
-                if (!propertyTypeByName.contains(propertyName))
-                  deriveNeo4jType(value.getClass)
+                if (!propertyTypeByName.contains(propertyName)) {
+                  deriveNeo4jType(value).foreach { columnDef =>
+                    propertyTypeByName.update(propertyName, columnDef)
+                  }
+                }
 
                 value.toString
             }
             rowBuilder.addOne(entry)
           }
-
           writer.writeRow(rowBuilder.result)
         }
       }.get
 
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
+        val propertiesWithTypes = propertyNamesOrdered.map { name =>
+          propertyTypeByName.get(name) match {
+            case Some(columnDef) if columnDef.isScalarValue =>
+              s"$name:${columnDef.valueType}"
+            case Some(columnDef) =>
+              s"$name:${columnDef.valueType}[]"
+            case None =>
+              name
+          }
+        }
         writer.writeRow(
-          Seq(ColumnType.Id, ColumnType.Label) ++ propertyNamesOrdered
+          Seq(ColumnType.Id, ColumnType.Label) ++ propertiesWithTypes
         )
       }.get
 
@@ -66,7 +78,20 @@ object Neo4jCsvExporter extends Exporter {
     }
   }
 
-  private def deriveNeo4jType(tpe: Class[_]): ColumnType.Value = {
+  private def deriveNeo4jType(value: Any): Option[ColumnDef] = {
+    value match {
+      case iter: IterableOnce[_] =>
+        iter.iterator.nextOption.map(value => ColumnDef(deriveNeo4jTypeForScalarValue(value.getClass), isArray = true))
+      case iter: java.lang.Iterable[_] =>
+        deriveNeo4jType(iter.iterator().asScala: IterableOnce[_])
+      case array: Array[_] =>
+        deriveNeo4jType(array: IterableOnce[_])
+      case scalarValue =>
+        Option(ColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass), isArray = false))
+    }
+  }
+
+  private def deriveNeo4jTypeForScalarValue(tpe: Class[_]): ColumnType.Value = {
     if (tpe.isAssignableFrom(classOf[String]))
       ColumnType.String
     else if (tpe.isAssignableFrom(classOf[Int]) || tpe.isAssignableFrom(classOf[Integer]))
@@ -89,4 +114,7 @@ object Neo4jCsvExporter extends Exporter {
       throw new NotImplementedError(s"unable to derive a Neo4j type for given runtime type $tpe")
   }
 
+  private case class ColumnDef(valueType: ColumnType.Value, isArray: Boolean) {
+    def isScalarValue = !isArray
+  }
 }
