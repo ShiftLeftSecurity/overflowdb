@@ -7,7 +7,7 @@ import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
@@ -28,7 +28,7 @@ object Neo4jCsvExporter extends Exporter {
        * know which ones are actually in use *after* traversing all nodes.
        *  */
       val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
-      val propertyTypeByName = mutable.Map.empty[String, ColumnDef]
+      val columnDefByName = mutable.Map.empty[String, ColumnDef]
 
       Using(CSVWriter.open(dataFile, append = false)) { writer =>
         Traversal(graph.nodes(label)).foreach { node =>
@@ -44,11 +44,28 @@ object Neo4jCsvExporter extends Exporter {
               case Some(value) =>
                 // update property types as we go based on the runtime types
                 // note: this ignores the edge case that there may be different runtime types for the same property
-                if (!propertyTypeByName.contains(propertyName)) {
+                val iteratorAccessorXXXXXXXX = columnDefByName.getOrElseUpdate(propertyName, {
+                  deriveNeo4jType(value).get
+                  /* TODO drop the `Option` around return type here?
+                   * context: property may be an array, but because it's empty we cannot yet determine it's value type...
+                   * maybe we need somethihng like
+                   * ```
+                     private sealed trait ColumnDef
+                     private case class ScalarColumnDef(valueType: ColumnType.Value)
+                     private case class ArrayColumnDef(valueType: Option[ColumnType.Value], iterator: Any => Iterable[_])
+
+                   * ```
+                   * and invoke columnDefByName.updated()
+
+                   */
+                })
+                if (!columnDefByName.contains(propertyName)) {
                   deriveNeo4jType(value).foreach { columnDef =>
-                    propertyTypeByName.update(propertyName, columnDef)
+                    columnDefByName.update(propertyName, columnDef)
                   }
                 }
+
+                // TODO properly write values for arrays etc... using columnDef.iterAccessor
 
                 value.toString
             }
@@ -60,7 +77,7 @@ object Neo4jCsvExporter extends Exporter {
 
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
         val propertiesWithTypes = propertyNamesOrdered.map { name =>
-          propertyTypeByName.get(name) match {
+          columnDefByName.get(name) match {
             case Some(columnDef) if columnDef.isScalarValue =>
               s"$name:${columnDef.valueType}"
             case Some(columnDef) =>
@@ -80,14 +97,21 @@ object Neo4jCsvExporter extends Exporter {
 
   private def deriveNeo4jType(value: Any): Option[ColumnDef] = {
     value match {
+      case iter: Iterable[_] => // Iterable is immutable, so we can safely to get it's first element
+        iter.iterator.nextOption().map(value =>
+          ColumnDef(
+            deriveNeo4jTypeForScalarValue(value.getClass),
+            Some(iter)
+          )
+        )
       case iter: IterableOnce[_] =>
-        iter.iterator.nextOption.map(value => ColumnDef(deriveNeo4jTypeForScalarValue(value.getClass), isArray = true))
+        deriveNeo4jType(iter.iterator.toSeq: Iterable[_])
       case iter: java.lang.Iterable[_] =>
-        deriveNeo4jType(iter.iterator().asScala: IterableOnce[_])
+        deriveNeo4jType(iter.asScala: Iterable[_])
       case array: Array[_] =>
-        deriveNeo4jType(array: IterableOnce[_])
+      deriveNeo4jType(array: Iterable[_])
       case scalarValue =>
-        Option(ColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass), isArray = false))
+        Option(ColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass), arrayIterator = None))
     }
   }
 
@@ -114,7 +138,7 @@ object Neo4jCsvExporter extends Exporter {
       throw new NotImplementedError(s"unable to derive a Neo4j type for given runtime type $tpe")
   }
 
-  private case class ColumnDef(valueType: ColumnType.Value, isArray: Boolean) {
-    def isScalarValue = !isArray
+  private case class ColumnDef(valueType: ColumnType.Value, arrayIterator: Option[Iterable[_]]) {
+    def isScalarValue = arrayIterator.isEmpty
   }
 }
