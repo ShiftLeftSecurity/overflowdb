@@ -103,9 +103,7 @@ class Neo4jCsvTests extends AnyWordSpec {
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
       }.get.contentAsString.trim shouldBe
-        """
-          |TODO
-          |""".stripMargin
+        """3,testNode,,,13,,DEFAULT_STRING_VALUE""".stripMargin
 
       // TODO use difftool for round trip of conversion?
     }
