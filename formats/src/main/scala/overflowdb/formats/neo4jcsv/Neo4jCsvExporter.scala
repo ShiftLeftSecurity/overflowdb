@@ -42,32 +42,20 @@ object Neo4jCsvExporter extends Exporter {
             val entry = node.propertyOption(propertyName).toScala match {
               case None => ""
               case Some(value) =>
-                // update property types as we go based on the runtime types
-                // note: this ignores the edge case that there may be different runtime types for the same property
-                val iteratorAccessorXXXXXXXX = columnDefByName.getOrElseUpdate(propertyName, {
-                  deriveNeo4jType(value).get
-                  /* TODO drop the `Option` around return type here?
-                   * context: property may be an array, but because it's empty we cannot yet determine it's value type...
-                   * maybe we need somethihng like
-                   * ```
-                     private sealed trait ColumnDef
-                     private case class ScalarColumnDef(valueType: ColumnType.Value)
-                     private case class ArrayColumnDef(valueType: Option[ColumnType.Value], iterator: Any => Iterable[_])
-
-                   * ```
-                   * and invoke columnDefByName.updated()
-
-                   */
-                })
-                if (!columnDefByName.contains(propertyName)) {
-                  deriveNeo4jType(value).foreach { columnDef =>
-                    columnDefByName.update(propertyName, columnDef)
-                  }
+                columnDefByName.updateWith(propertyName) {
+                  case None =>
+                    // we didn't see this property before - try to derive it's type from the runtime class
+                    Option(deriveNeo4jType(value))
+                  case Some(ArrayColumnDef(None, _)) =>
+                    // value is an array that we've seen before, but we don't have the valueType yet, most likely because previous occurrences were empty arrays
+                    Option(deriveNeo4jType(value))
+                  case completeDef =>
+                    completeDef // we already have the valueType, no need to change anything
+                }.get match {
+                  case ScalarColumnDef(_) => value.toString
+                  case ArrayColumnDef(_, iteratorAccessor) =>
+                    iteratorAccessor(value).mkString(";")
                 }
-
-                // TODO properly write values for arrays etc... using columnDef.iterAccessor
-
-                value.toString
             }
             rowBuilder.addOne(entry)
           }
@@ -78,11 +66,11 @@ object Neo4jCsvExporter extends Exporter {
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
         val propertiesWithTypes = propertyNamesOrdered.map { name =>
           columnDefByName.get(name) match {
-            case Some(columnDef) if columnDef.isScalarValue =>
-              s"$name:${columnDef.valueType}"
-            case Some(columnDef) =>
-              s"$name:${columnDef.valueType}[]"
-            case None =>
+            case Some(ScalarColumnDef(valueType)) =>
+              s"$name:$valueType"
+            case Some(ArrayColumnDef(Some(valueType), _)) =>
+              s"$name:$valueType[]"
+            case _ =>
               name
           }
         }
@@ -95,23 +83,28 @@ object Neo4jCsvExporter extends Exporter {
     }
   }
 
-  private def deriveNeo4jType(value: Any): Option[ColumnDef] = {
+  /**
+   * derive property types based on the runtime class
+   * note: this ignores the edge case that there may be different runtime types for the same property
+   *  */
+  private def deriveNeo4jType(value: Any): ColumnDef = {
+    def deriveNeo4jTypeForArray(iteratorAccessor: Any => Iterable[_]): ArrayColumnDef = {
+      // Iterable is immutable, so we can safely (try to) get it's first element
+      val valueTypeMaybe = iteratorAccessor(value).iterator.nextOption().map(_.getClass).map(deriveNeo4jTypeForScalarValue)
+      ArrayColumnDef(valueTypeMaybe, iteratorAccessor)
+    }
+
     value match {
-      case iter: Iterable[_] => // Iterable is immutable, so we can safely to get it's first element
-        iter.iterator.nextOption().map(value =>
-          ColumnDef(
-            deriveNeo4jTypeForScalarValue(value.getClass),
-            Some(iter)
-          )
-        )
-      case iter: IterableOnce[_] =>
-        deriveNeo4jType(iter.iterator.toSeq: Iterable[_])
-      case iter: java.lang.Iterable[_] =>
-        deriveNeo4jType(iter.asScala: Iterable[_])
+      case _: Iterable[_] =>
+        deriveNeo4jTypeForArray(_.asInstanceOf[Iterable[_]])
+      case _: IterableOnce[_] =>
+        deriveNeo4jTypeForArray(_.asInstanceOf[IterableOnce[_]].iterator.toSeq)
+      case _: java.lang.Iterable[_] =>
+        deriveNeo4jTypeForArray(_.asInstanceOf[java.lang.Iterable[_]].asScala)
       case array: Array[_] =>
       deriveNeo4jType(array: Iterable[_])
       case scalarValue =>
-        Option(ColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass), arrayIterator = None))
+        ScalarColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass))
     }
   }
 
@@ -138,7 +131,7 @@ object Neo4jCsvExporter extends Exporter {
       throw new NotImplementedError(s"unable to derive a Neo4j type for given runtime type $tpe")
   }
 
-  private case class ColumnDef(valueType: ColumnType.Value, arrayIterator: Option[Iterable[_]]) {
-    def isScalarValue = arrayIterator.isEmpty
-  }
+  private sealed trait ColumnDef
+  private case class ScalarColumnDef(valueType: ColumnType.Value) extends ColumnDef
+  private case class ArrayColumnDef(valueType: Option[ColumnType.Value], iteratorAccessor: Any => Iterable[_]) extends ColumnDef
 }
