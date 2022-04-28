@@ -8,7 +8,7 @@ lazy val core        = project.in(file("core"))
 lazy val testdomains = project.in(file("testdomains")).dependsOn(core)
 lazy val traversal   = project.in(file("traversal"  )).dependsOn(core)
 lazy val formats     = project.in(file("formats"    )).dependsOn(traversal, testdomains % Test)
-lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats)
+lazy val coreTests   = project.in(file("core-tests" )).dependsOn(formats, testdomains)
 lazy val traversalTests = project.in(file("traversal-tests"  )).dependsOn(formats)
 
 ThisBuild/libraryDependencies ++= Seq(
