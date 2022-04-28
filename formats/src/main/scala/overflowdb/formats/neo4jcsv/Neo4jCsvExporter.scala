@@ -67,16 +67,26 @@ object Neo4jCsvExporter extends Exporter {
   }
 
   private def deriveNeo4jType(tpe: Class[_]): ColumnType.Value = {
-//    if (tpe.isAssignableFrom(classOf[String]))
-//      ColumnType.String
-//    else if (tpe.isAssignableFrom(classOf[Integer]))
-//      ColumnType.Int
-//    else
+    if (tpe.isAssignableFrom(classOf[String]))
+      ColumnType.String
+    else if (tpe.isAssignableFrom(classOf[Int]) || tpe.isAssignableFrom(classOf[Integer]))
+      ColumnType.Int
+    else if (tpe.isAssignableFrom(classOf[Long]) || tpe.isAssignableFrom(classOf[java.lang.Long]))
+      ColumnType.Long
+    else if (tpe.isAssignableFrom(classOf[Float]) || tpe.isAssignableFrom(classOf[java.lang.Float]))
+      ColumnType.Float
+    else if (tpe.isAssignableFrom(classOf[Double]) || tpe.isAssignableFrom(classOf[java.lang.Double]))
+      ColumnType.Double
+    else if (tpe.isAssignableFrom(classOf[Boolean]) || tpe.isAssignableFrom(classOf[java.lang.Boolean]))
+      ColumnType.Boolean
+    else if (tpe.isAssignableFrom(classOf[Byte]) || tpe.isAssignableFrom(classOf[java.lang.Byte]))
+      ColumnType.Byte
+    else if (tpe.isAssignableFrom(classOf[Short]) || tpe.isAssignableFrom(classOf[java.lang.Short]))
+      ColumnType.Short
+    else if (tpe.isAssignableFrom(classOf[Char]))
+      ColumnType.Char
+    else
       throw new NotImplementedError(s"unable to derive a Neo4j type for given runtime type $tpe")
-//    val String = classOf[String]
-//    tpe match {
-//      case String => ColumnType.String
-//    }
   }
 
 }
