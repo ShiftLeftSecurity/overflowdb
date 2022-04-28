@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.testdomains.simple.{SimpleDomain, TestEdge, TestNode}
+import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
 import testutils.ProjectRoot
 
 import java.nio.file.Paths
@@ -66,17 +66,22 @@ class Neo4jCsvTests extends AnyWordSpec {
   "Exporter should export valid csv" in {
     val graph = SimpleDomain.newGraph()
 
-//    val node1 = graph.addNode(1, TestNode.LABEL,
-//      TestNode.INT_PROPERTY, 11,
-//      TestNode.STRING_PROPERTY, "stringProp1",
-//      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
-//      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
-//    )
+    graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
+    graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
 
-    val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
-    val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
+    // only allows values defined in FunkyList.funkyWords
+    val funkyList = new FunkyList()
+    funkyList.add("apoplectic")
+    funkyList.add("bucolic")
+    graph.addNode(1, TestNode.LABEL,
+      TestNode.INT_PROPERTY, 11,
+      TestNode.STRING_PROPERTY, "stringProp1",
+      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
+      TestNode.FUNKY_LIST_PROPERTY, funkyList,
+      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
+    )
 
-//    graph.edgeCount shouldBe 2
+    //    graph.edgeCount shouldBe 2
 //    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
 //    edge1.longProperty shouldBe Long.MaxValue
 //    edge1.inNode shouldBe node2
@@ -94,15 +99,16 @@ class Neo4jCsvTests extends AnyWordSpec {
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && relevantPart.endsWith("_header")
       }.get.contentAsString.trim shouldBe
-        ":ID,:LABEL,FunkyListProperty,IntListProperty,IntProperty:int,StringListProperty,StringProperty:string"
+        ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty:string"
 
       val dataFileLines = exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
       }.get.lines().toSeq
-      dataFileLines.size shouldBe 2
+      dataFileLines.size shouldBe 3
       dataFileLines should contain("2,testNode,,,,,stringProp2")
       dataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
+      dataFileLines should contain("1,testNode,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1")
 
 
       // TODO use difftool for round trip of conversion?

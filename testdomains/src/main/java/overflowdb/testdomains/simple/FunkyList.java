@@ -1,14 +1,11 @@
 package overflowdb.testdomains.simple;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 /** a funky list that supports only funky entries.. to test `NodeSerializer.convertPropertyForPersistence` */
-public class FunkyList {
+public class FunkyList extends AbstractCollection<String> {
+
   private List<String> entries = new ArrayList();
 
   private static Set<String> funkyWords = new HashSet<String>() {{
@@ -20,10 +17,10 @@ public class FunkyList {
     add("bucolic");
   }};
 
-  public FunkyList add(String value) {
+  public boolean add(String value) {
     if (funkyWords.contains(value)) {
       entries.add(value);
-      return this;
+      return true;
     } else throw new RuntimeException("not funky enough!");
   }
 
@@ -46,5 +43,15 @@ public class FunkyList {
 
   public static Function<FunkyList, String[]> toStorageType =
       funkyList -> funkyList.entries.toArray(new String[funkyList.entries.size()]);
+
+  @Override
+  public Iterator<String> iterator() {
+    return entries.iterator();
+  }
+
+  @Override
+  public int size() {
+    return entries.size();
+  }
 
 }
