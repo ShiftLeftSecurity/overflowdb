@@ -73,10 +73,7 @@ class Neo4jCsvTests extends AnyWordSpec {
 //      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
 //    )
 
-//    val node2 = graph.addNode(2, TestNode.LABEL,
-//      TestNode.STRING_PROPERTY, "stringProp2",
-//    )
-
+    val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
     val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
 
 //    graph.edgeCount shouldBe 2
@@ -99,11 +96,14 @@ class Neo4jCsvTests extends AnyWordSpec {
       }.get.contentAsString.trim shouldBe
         ":ID,:LABEL,FunkyListProperty,IntListProperty,IntProperty:int,StringListProperty,StringProperty:string"
 
-    exportedFiles.find { file =>
+      val dataFileLines = exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
-      }.get.contentAsString.trim shouldBe
-        """3,testNode,,,13,,DEFAULT_STRING_VALUE""".stripMargin
+      }.get.lines().toSeq
+      dataFileLines.size shouldBe 2
+      dataFileLines should contain("2,testNode,,,,,stringProp2")
+      dataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
+
 
       // TODO use difftool for round trip of conversion?
     }
