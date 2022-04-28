@@ -7,6 +7,8 @@ package object neo4jcsv {
     val Relationships = Value
   }
 
+  val HeaderFileSuffix = "_header"
+
   object ColumnType extends Enumeration {
     // defining 'stable' string so we can pattern match on them
     val LabelMarker = ":LABEL"

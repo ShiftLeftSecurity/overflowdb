@@ -25,8 +25,8 @@ object Neo4jCsvExporter extends Exporter {
       }
       val propertyNamesOrdered = propertyNames.toSeq.sorted
 
-      val headerFile = outputRootDirectory.resolve(s"${label}_header.csv").toFile
-      val dataFile   = outputRootDirectory.resolve(s"${label}.csv").toFile
+      val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
+      val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
 
       Using(CSVWriter.open(headerFile, append = false)) { writer =>
         writer.writeRow(

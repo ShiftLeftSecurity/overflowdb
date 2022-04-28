@@ -58,12 +58,12 @@ object Neo4jCsvImporter extends Importer {
     assert(nonCsvFiles.isEmpty,
       s"input files must all have `.csv` extension, which is not the case for ${nonCsvFiles.mkString(",")}")
 
-    val (headerFiles, dataFiles) = inputFiles.partition(_.getFileName.toString.endsWith("_header.csv"))
+    val (headerFiles, dataFiles) = inputFiles.partition(_.getFileName.toString.endsWith(s"$HeaderFileSuffix.csv"))
     assert(headerFiles.size == dataFiles.size,
-      s"number of header files (`xyz_header.csv`) must equal the number of data files (`xyz.csv`)")
+      s"number of header files (`xyz$HeaderFileSuffix.csv`) must equal the number of data files (`xyz.csv`)")
 
     headerFiles.map { headerFile =>
-      val wantedBodyFilename = headerFile.getFileName.toString.replaceAll("_header", "")
+      val wantedBodyFilename = headerFile.getFileName.toString.replaceAll(HeaderFileSuffix, "")
       dataFiles.find(_.getFileName.toString == wantedBodyFilename) match {
         case Some(dataFile) =>
           HeaderAndDataFile(parseHeaderFile(headerFile), dataFile)
