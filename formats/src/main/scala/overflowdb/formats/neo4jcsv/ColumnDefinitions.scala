@@ -8,13 +8,15 @@ sealed trait ColumnDef
 case class ScalarColumnDef(valueType: ColumnType.Value) extends ColumnDef
 case class ArrayColumnDef(valueType: Option[ColumnType.Value], iteratorAccessor: Any => Iterable[_]) extends ColumnDef
 
-class ColumnDefByName {
-  private val underlying = mutable.Map.empty[String, ColumnDef]
+class ColumnDefinitions(propertyNames: Iterable[String]) {
+  val propertyNamesOrdered = propertyNames.toSeq.sorted
 
-  def get(name: String): Option[ColumnDef] = underlying.get(name)
+  private val _columnDefByPropertyName = mutable.Map.empty[String, ColumnDef]
+
+  def columnDefByPropertyName(name: String): Option[ColumnDef] = _columnDefByPropertyName.get(name)
 
   def updateWith(propertyName: String, value: Any): ColumnDef = {
-    underlying.updateWith(propertyName) {
+    _columnDefByPropertyName.updateWith(propertyName) {
       case None =>
         // we didn't see this property before - try to derive it's type from the runtime class
         Option(deriveNeo4jType(value))
@@ -24,6 +26,19 @@ class ColumnDefByName {
       case completeDef =>
         completeDef // we already have everything we need, no need to change anything
     }.get
+  }
+
+  def propertiesWithTypes: Seq[String] = {
+    propertyNamesOrdered.map { name =>
+      columnDefByPropertyName(name) match {
+        case Some(ScalarColumnDef(valueType)) =>
+          s"$name:$valueType"
+        case Some(ArrayColumnDef(Some(valueType), _)) =>
+          s"$name:$valueType[]"
+        case _ =>
+          name
+      }
+    }
   }
 
   /**
