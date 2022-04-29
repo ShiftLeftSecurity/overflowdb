@@ -6,6 +6,7 @@ import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
@@ -90,7 +91,11 @@ object Neo4jCsvExporter extends Exporter {
   private def deriveNeo4jType(value: Any): ColumnDef = {
     def deriveNeo4jTypeForArray(iteratorAccessor: Any => Iterable[_]): ArrayColumnDef = {
       // Iterable is immutable, so we can safely (try to) get it's first element
-      val valueTypeMaybe = iteratorAccessor(value).iterator.nextOption().map(_.getClass).map(deriveNeo4jTypeForScalarValue)
+      val valueTypeMaybe = iteratorAccessor(value)
+        .iterator
+        .nextOption()
+        .map(_.getClass)
+        .map(deriveNeo4jTypeForScalarValue)
       ArrayColumnDef(valueTypeMaybe, iteratorAccessor)
     }
 
@@ -101,8 +106,8 @@ object Neo4jCsvExporter extends Exporter {
         deriveNeo4jTypeForArray(_.asInstanceOf[IterableOnce[_]].iterator.toSeq)
       case _: java.lang.Iterable[_] =>
         deriveNeo4jTypeForArray(_.asInstanceOf[java.lang.Iterable[_]].asScala)
-      case array: Array[_] =>
-      deriveNeo4jType(array: Iterable[_])
+      case _: Array[_] =>
+        deriveNeo4jTypeForArray(x => ArraySeq.unsafeWrapArray(x.asInstanceOf[Array[_]]))
       case scalarValue =>
         ScalarColumnDef(deriveNeo4jTypeForScalarValue(scalarValue.getClass))
     }
