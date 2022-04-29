@@ -34,8 +34,7 @@ object Neo4jCsvExporter extends Exporter {
   private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
     val dataFile   = outputRootDirectory.resolve(s"$label.csv")
     val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
-    val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
-    val columnDefByName = new ColumnDefByName
+    val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
 
     Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
       Traversal(graph.nodes(label)).foreach { node =>
@@ -45,11 +44,11 @@ object Neo4jCsvExporter extends Exporter {
         rowBuilder.addOne(node.id.toString)
         rowBuilder.addOne(node.label)
 
-        propertyNamesOrdered.foreach { propertyName =>
+        columnDefinitions.propertyNamesOrdered.foreach { propertyName =>
           val entry = node.propertyOption(propertyName).toScala match {
             case None => ""
             case Some(value) =>
-              columnDefByName.updateWith(propertyName, value) match {
+              columnDefinitions.updateWith(propertyName, value) match {
                 case ScalarColumnDef(_) => value.toString
                 case ArrayColumnDef(_, iteratorAccessor) =>
                   /**
@@ -67,18 +66,8 @@ object Neo4jCsvExporter extends Exporter {
     }.get
 
     Using(CSVWriter.open(headerFile.toFile, append = false)) { writer =>
-      val propertiesWithTypes = propertyNamesOrdered.map { name =>
-        columnDefByName.get(name) match {
-          case Some(ScalarColumnDef(valueType)) =>
-            s"$name:$valueType"
-          case Some(ArrayColumnDef(Some(valueType), _)) =>
-            s"$name:$valueType[]"
-          case _ =>
-            name
-        }
-      }
       writer.writeRow(
-        Seq(ColumnType.Id, ColumnType.Label) ++ propertiesWithTypes
+        Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes
       )
     }.get
 
@@ -95,15 +84,15 @@ object Neo4jCsvExporter extends Exporter {
         val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
         val dataFile   = outputRootDirectory.resolve(s"$label.csv")
         val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
-        val propertyNamesOrdered = edge.propertyKeys().asScala.toSeq.sorted
-        EdgeFilesContext(headerFile, dataFile, dataFileWriter, propertyNamesOrdered, new ColumnDefByName)
+        val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
+        EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
       })
 
       // TODO write edge as row, update columnDefs as we go
     }
 
     edgeFilesContextByLabel.values.flatMap {
-      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, _, columnDefByName) =>
+      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefByName) =>
         Using(CSVWriter.open(headerFile.toFile)) { writer =>
           // TODO write row
 //          writer.writeRow()
@@ -119,6 +108,5 @@ object Neo4jCsvExporter extends Exporter {
   private case class EdgeFilesContext(headerFile: Path,
                                       dataFile: Path,
                                       dataFileWriter: CSVWriter,
-                                      propertyNamesOrdered: Seq[String],
-                                      columnDefByName: ColumnDefByName)
+                                      columnDefinitions: ColumnDefinitions)
 }
