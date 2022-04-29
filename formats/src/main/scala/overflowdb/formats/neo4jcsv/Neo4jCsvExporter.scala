@@ -14,6 +14,14 @@ import scala.util.Using
 
 object Neo4jCsvExporter extends Exporter {
 
+  /**
+   * Exports OverflowDB Graph to neo4j csv files
+   * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
+   *
+   * For both nodes and relationships, we first write the data file and to derive the property types from their
+   * runtime types. We will write columns for all declared properties, because we only know which ones are
+   * actually in use *after* traversing all elements.
+   * */
   override def runExport(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
     val labelsWithNodes = graph.nodeCountByLabel.asScala.collect {
       case (label, count) if count > 0 => label
@@ -28,11 +36,6 @@ object Neo4jCsvExporter extends Exporter {
     val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
     val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
 
-    /**
-     * We first write the data file and to derive the property types from their runtime types.
-     * We will write columns for all declared properties, because we only
-     * know which ones are actually in use *after* traversing all nodes.
-     *  */
     val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
     val columnDefByName = new ColumnDefByName
 
@@ -89,8 +92,11 @@ object Neo4jCsvExporter extends Exporter {
     graph.edges().forEachRemaining { edge =>
       val writer = edgeFilesContextByLabel.getOrElseUpdate(edge.label(), {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
+        // TODO
         ???
       })
+
+      // TODO write row
     }
 
     edgeFilesContextByLabel.values.flatMap { case EdgeFilesContext(headerFile, dataFile, writer) =>
