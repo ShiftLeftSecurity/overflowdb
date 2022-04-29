@@ -38,30 +38,9 @@ object Neo4jCsvExporter extends Exporter {
 
     Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
       Traversal(graph.nodes(label)).foreach { node =>
-        val rowBuilder = Seq.newBuilder[String]
-
-        // first the 'special' columns ID and LABEL
-        rowBuilder.addOne(node.id.toString)
-        rowBuilder.addOne(node.label)
-
-        columnDefinitions.propertyNamesOrdered.foreach { propertyName =>
-          val entry = node.propertyOption(propertyName).toScala match {
-            case None => ""
-            case Some(value) =>
-              columnDefinitions.updateWith(propertyName, value) match {
-                case ScalarColumnDef(_) => value.toString
-                case ArrayColumnDef(_, iteratorAccessor) =>
-                  /**
-                   * Note: if all instances of this array property type are empty, we will not have
-                   * the valueType (because it's derived from the runtime class). At the same time, it doesn't matter
-                   * for serialization, because the csv entry is always empty for all empty arrays.
-                   */
-                  iteratorAccessor(value).mkString(";")
-              }
-          }
-          rowBuilder.addOne(entry)
-        }
-        writer.writeRow(rowBuilder.result)
+        val specialColumns = Seq(node.id.toString, node.label)
+        val propertyValueColumns = columnDefinitions.propertyValues(node.propertyOption(_).toScala)
+        writer.writeRow(specialColumns ++ propertyValueColumns)
       }
     }.get
 
@@ -85,9 +64,9 @@ object Neo4jCsvExporter extends Exporter {
         EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
       })
 
-      // write edge as row, update columnDefs as we go
-      context.columnDefinitions.updateWith()
-      context.dataFileWriter.writeRow()
+      // TODO write edge as row, update columnDefs as we go
+//      context.columnDefinitions.updateWith()
+//      context.dataFileWriter.writeRow()
 
 
     }

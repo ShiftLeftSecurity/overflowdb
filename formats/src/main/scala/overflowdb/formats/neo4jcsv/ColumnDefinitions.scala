@@ -9,8 +9,7 @@ case class ScalarColumnDef(valueType: ColumnType.Value) extends ColumnDef
 case class ArrayColumnDef(valueType: Option[ColumnType.Value], iteratorAccessor: Any => Iterable[_]) extends ColumnDef
 
 class ColumnDefinitions(propertyNames: Iterable[String]) {
-  val propertyNamesOrdered = propertyNames.toSeq.sorted
-
+  private val propertyNamesOrdered = propertyNames.toSeq.sorted
   private val _columnDefByPropertyName = mutable.Map.empty[String, ColumnDef]
 
   def columnDefByPropertyName(name: String): Option[ColumnDef] = _columnDefByPropertyName.get(name)
@@ -28,6 +27,7 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     }.get
   }
 
+  /** for header file */
   def propertiesWithTypes: Seq[String] = {
     propertyNamesOrdered.map { name =>
       columnDefByPropertyName(name) match {
@@ -37,6 +37,30 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
           s"$name:$valueType[]"
         case _ =>
           name
+      }
+    }
+  }
+
+  /** for data file */
+  def propertyValues(byNameAccessor: String => Option[_]): Seq[String] = {
+    propertyNamesOrdered.map { propertyName =>
+      byNameAccessor(propertyName) match {
+        case None =>
+          "" // property value empty for this element
+        case Some(value) =>
+          updateWith(propertyName, value) match {
+            case ScalarColumnDef(_) =>
+              value.toString // scalar property value
+            case ArrayColumnDef(_, iteratorAccessor) =>
+              /**
+               * Array property value - separated by `;` according to the spec
+               *
+               * Note: if all instances of this array property type are empty, we will not have
+               * the valueType (because it's derived from the runtime class). At the same time, it doesn't matter
+               * for serialization, because the csv entry is always empty for all empty arrays.
+               */
+              iteratorAccessor(value).mkString(";")
+          }
       }
     }
   }
