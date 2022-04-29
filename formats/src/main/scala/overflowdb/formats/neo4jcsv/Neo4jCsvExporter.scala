@@ -5,6 +5,7 @@ import overflowdb.Graph
 import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
+import java.io.File
 import java.nio.file.Path
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
@@ -93,7 +94,21 @@ object Neo4jCsvExporter extends Exporter {
     Seq(headerFile.toPath, dataFile.toPath)
   }
 
-  private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = ???
+  private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
+    val edgeFilesContextByLabel = mutable.Map.empty[String, EdgeFilesContext]
+    graph.edges().forEachRemaining { edge =>
+      val writer = edgeFilesContextByLabel.getOrElseUpdate(edge.label(), {
+        // first time we encounter an edge of this type - create the columnMapping and write the header file
+        ???
+      })
+    }
+
+    edgeFilesContextByLabel.values.flatMap { case EdgeFilesContext(headerFile, dataFile, writer) =>
+      writer.flush()
+      writer.close()
+      Seq(headerFile, dataFile).map(_.toPath)
+    }.toSeq
+  }
 
   /**
    * derive property types based on the runtime class
@@ -150,4 +165,6 @@ object Neo4jCsvExporter extends Exporter {
   private sealed trait ColumnDef
   private case class ScalarColumnDef(valueType: ColumnType.Value) extends ColumnDef
   private case class ArrayColumnDef(valueType: Option[ColumnType.Value], iteratorAccessor: Any => Iterable[_]) extends ColumnDef
+
+  private case class EdgeFilesContext(headerFile: File, dataFile: File, writer: CSVWriter)
 }
