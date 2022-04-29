@@ -117,9 +117,8 @@ class Neo4jCsvTests extends AnyWordSpec {
         relevantPart.contains(TestEdge.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
       }.get.lines().toSeq
       edgeDataFileLines.size shouldBe 2
-      edgeDataFileLines should contain("1,2,testEdge,9223372036854775807")
-      edgeDataFileLines should contain("2,3,testEdge,")
-
+      edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
+      edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
 
       // TODO use difftool for round trip of conversion?
     }

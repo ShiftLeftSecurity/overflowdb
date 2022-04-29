@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv.CSVWriter
 import overflowdb.Graph
-import overflowdb.formats.{Exporter, neo4jcsv}
+import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
@@ -54,7 +54,6 @@ object Neo4jCsvExporter extends Exporter {
 
     graph.edges().forEachRemaining { edge =>
       val label = edge.label
-//      val EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions) = edgeFilesContextByLabel.getOrElseUpdate(label, {
       val context = edgeFilesContextByLabel.getOrElseUpdate(label, {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
         val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
@@ -64,11 +63,9 @@ object Neo4jCsvExporter extends Exporter {
         EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
       })
 
-      // TODO write edge as row, update columnDefs as we go
-//      context.columnDefinitions.updateWith()
-//      context.dataFileWriter.writeRow()
-
-
+      val specialColumns = Seq(edge.outNode.id.toString, edge.inNode.id.toString, edge.label)
+      val propertyValueColumns = context.columnDefinitions.propertyValues(edge.propertyOption(_).toScala)
+      context.dataFileWriter.writeRow(specialColumns ++ propertyValueColumns)
     }
 
     edgeFilesContextByLabel.values.flatMap {
