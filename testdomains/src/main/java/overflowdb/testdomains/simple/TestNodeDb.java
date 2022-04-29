@@ -81,10 +81,10 @@ public class TestNodeDb extends NodeDb {
       this._intProperty = (Integer) value;
     } else if (TestNode.INT_LIST_PROPERTY.equals(key)) {
       if (value instanceof Collection) {
-        Collection valueAsList = (Collection) value;
+        Collection<Integer> valueAsList = (Collection) value;
         this._intListProperty = new int[valueAsList.size()];
         int idx = 0;
-        for (Integer i : _intListProperty) _intListProperty[idx++] = i;
+        for (Integer i : valueAsList) _intListProperty[idx++] = i;
       } else if (value instanceof int[]) {
         this._intListProperty = (int[]) value;
       } else if (value instanceof Object[]) {
