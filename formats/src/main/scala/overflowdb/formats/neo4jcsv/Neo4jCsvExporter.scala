@@ -8,7 +8,7 @@ import overflowdb.traversal.Traversal
 import java.nio.file.Path
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
@@ -51,10 +51,15 @@ object Neo4jCsvExporter extends Exporter {
                     // value is an array that we've seen before, but we don't have the valueType yet, most likely because previous occurrences were empty arrays
                     Option(deriveNeo4jType(value))
                   case completeDef =>
-                    completeDef // we already have the valueType, no need to change anything
+                    completeDef // we already have everything we need, no need to change anything
                 }.get match {
                   case ScalarColumnDef(_) => value.toString
                   case ArrayColumnDef(_, iteratorAccessor) =>
+                    /**
+                     * Note: if all instances of this array property type are empty, we will not have
+                     * the valueType (because it's derived from the runtime class). At the same time, it doesn't matter
+                     * for serialization, because the csv entry is always empty for all empty arrays.
+                     */
                     iteratorAccessor(value).mkString(";")
                 }
             }
