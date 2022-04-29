@@ -19,75 +19,81 @@ object Neo4jCsvExporter extends Exporter {
       case (label, count) if count > 0 => label
     }.toSeq
 
-    labelsWithNodes.flatMap { label =>
-      val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
-      val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
-
-      /**
-       * We first write the data file and to derive the property types from their runtime types.
-       * We will write columns for all declared properties, because we only
-       * know which ones are actually in use *after* traversing all nodes.
-       *  */
-      val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
-      val columnDefByName = mutable.Map.empty[String, ColumnDef]
-
-      Using(CSVWriter.open(dataFile, append = false)) { writer =>
-        Traversal(graph.nodes(label)).foreach { node =>
-          val rowBuilder = Seq.newBuilder[String]
-
-          // first the 'special' columns ID and LABEL
-          rowBuilder.addOne(node.id.toString)
-          rowBuilder.addOne(node.label)
-
-          propertyNamesOrdered.foreach { propertyName =>
-            val entry = node.propertyOption(propertyName).toScala match {
-              case None => ""
-              case Some(value) =>
-                columnDefByName.updateWith(propertyName) {
-                  case None =>
-                    // we didn't see this property before - try to derive it's type from the runtime class
-                    Option(deriveNeo4jType(value))
-                  case Some(ArrayColumnDef(None, _)) =>
-                    // value is an array that we've seen before, but we don't have the valueType yet, most likely because previous occurrences were empty arrays
-                    Option(deriveNeo4jType(value))
-                  case completeDef =>
-                    completeDef // we already have everything we need, no need to change anything
-                }.get match {
-                  case ScalarColumnDef(_) => value.toString
-                  case ArrayColumnDef(_, iteratorAccessor) =>
-                    /**
-                     * Note: if all instances of this array property type are empty, we will not have
-                     * the valueType (because it's derived from the runtime class). At the same time, it doesn't matter
-                     * for serialization, because the csv entry is always empty for all empty arrays.
-                     */
-                    iteratorAccessor(value).mkString(";")
-                }
-            }
-            rowBuilder.addOne(entry)
-          }
-          writer.writeRow(rowBuilder.result)
-        }
-      }.get
-
-      Using(CSVWriter.open(headerFile, append = false)) { writer =>
-        val propertiesWithTypes = propertyNamesOrdered.map { name =>
-          columnDefByName.get(name) match {
-            case Some(ScalarColumnDef(valueType)) =>
-              s"$name:$valueType"
-            case Some(ArrayColumnDef(Some(valueType), _)) =>
-              s"$name:$valueType[]"
-            case _ =>
-              name
-          }
-        }
-        writer.writeRow(
-          Seq(ColumnType.Id, ColumnType.Label) ++ propertiesWithTypes
-        )
-      }.get
-
-      Seq(headerFile.toPath, dataFile.toPath)
-    }
+    val nodeFiles = labelsWithNodes.flatMap(exportNodes(graph, _, outputRootDirectory))
+    val edgeFiles = exportEdges(graph, outputRootDirectory)
+    nodeFiles ++ edgeFiles
   }
+
+  private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
+    val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
+    val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
+
+    /**
+     * We first write the data file and to derive the property types from their runtime types.
+     * We will write columns for all declared properties, because we only
+     * know which ones are actually in use *after* traversing all nodes.
+     *  */
+    val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
+    val columnDefByName = mutable.Map.empty[String, ColumnDef]
+
+    Using(CSVWriter.open(dataFile, append = false)) { writer =>
+      Traversal(graph.nodes(label)).foreach { node =>
+        val rowBuilder = Seq.newBuilder[String]
+
+        // first the 'special' columns ID and LABEL
+        rowBuilder.addOne(node.id.toString)
+        rowBuilder.addOne(node.label)
+
+        propertyNamesOrdered.foreach { propertyName =>
+          val entry = node.propertyOption(propertyName).toScala match {
+            case None => ""
+            case Some(value) =>
+              columnDefByName.updateWith(propertyName) {
+                case None =>
+                  // we didn't see this property before - try to derive it's type from the runtime class
+                  Option(deriveNeo4jType(value))
+                case Some(ArrayColumnDef(None, _)) =>
+                  // value is an array that we've seen before, but we don't have the valueType yet, most likely because previous occurrences were empty arrays
+                  Option(deriveNeo4jType(value))
+                case completeDef =>
+                  completeDef // we already have everything we need, no need to change anything
+              }.get match {
+                case ScalarColumnDef(_) => value.toString
+                case ArrayColumnDef(_, iteratorAccessor) =>
+                  /**
+                   * Note: if all instances of this array property type are empty, we will not have
+                   * the valueType (because it's derived from the runtime class). At the same time, it doesn't matter
+                   * for serialization, because the csv entry is always empty for all empty arrays.
+                   */
+                  iteratorAccessor(value).mkString(";")
+              }
+          }
+          rowBuilder.addOne(entry)
+        }
+        writer.writeRow(rowBuilder.result)
+      }
+    }.get
+
+    Using(CSVWriter.open(headerFile, append = false)) { writer =>
+      val propertiesWithTypes = propertyNamesOrdered.map { name =>
+        columnDefByName.get(name) match {
+          case Some(ScalarColumnDef(valueType)) =>
+            s"$name:$valueType"
+          case Some(ArrayColumnDef(Some(valueType), _)) =>
+            s"$name:$valueType[]"
+          case _ =>
+            name
+        }
+      }
+      writer.writeRow(
+        Seq(ColumnType.Id, ColumnType.Label) ++ propertiesWithTypes
+      )
+    }.get
+
+    Seq(headerFile.toPath, dataFile.toPath)
+  }
+
+  private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = ???
 
   /**
    * derive property types based on the runtime class
