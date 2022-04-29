@@ -9,6 +9,8 @@ import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
 
+import java.util
+
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
   val neo4jcsvRoot = Paths.get(subprojectRoot, "src/test/resources/neo4jcsv")
@@ -82,12 +84,12 @@ class Neo4jCsvTests extends AnyWordSpec {
     )
 
     //    graph.edgeCount shouldBe 2
-//    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
-//    edge1.longProperty shouldBe Long.MaxValue
-//    edge1.inNode shouldBe node2
-//
-//    val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
-//    edge2.outNode shouldBe node2
+    //    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
+    //    edge1.longProperty shouldBe Long.MaxValue
+    //    edge1.inNode shouldBe node2
+    //
+    //    val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
+    //    edge2.outNode shouldBe node2
 
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
       val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
@@ -114,5 +116,5 @@ class Neo4jCsvTests extends AnyWordSpec {
       // TODO use difftool for round trip of conversion?
     }
   }
-
+  
 }
