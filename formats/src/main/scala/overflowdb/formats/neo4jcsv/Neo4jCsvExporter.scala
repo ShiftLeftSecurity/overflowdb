@@ -72,8 +72,10 @@ object Neo4jCsvExporter extends Exporter {
   /** write edges of all labels */
   private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
     val edgeFilesContextByLabel = mutable.Map.empty[String, EdgeFilesContext]
+
     graph.edges().forEachRemaining { edge =>
       val label = edge.label
+//      val EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions) = edgeFilesContextByLabel.getOrElseUpdate(label, {
       val context = edgeFilesContextByLabel.getOrElseUpdate(label, {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
         val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
@@ -83,7 +85,11 @@ object Neo4jCsvExporter extends Exporter {
         EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
       })
 
-      // TODO write edge as row, update columnDefs as we go
+      // write edge as row, update columnDefs as we go
+      context.columnDefinitions.updateWith()
+      context.dataFileWriter.writeRow()
+
+
     }
 
     edgeFilesContextByLabel.values.flatMap {
