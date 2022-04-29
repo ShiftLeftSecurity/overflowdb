@@ -41,7 +41,9 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     }
   }
 
-  /** for data file */
+  /** for data file
+   * updates our internal `_columnDefByPropertyName` model with type information based on runtime values, so that
+   * we later have all metadata required for the header file */
   def propertyValues(byNameAccessor: String => Option[_]): Seq[String] = {
     propertyNamesOrdered.map { propertyName =>
       byNameAccessor(propertyName) match {
