@@ -81,15 +81,8 @@ class Neo4jCsvTests extends AnyWordSpec {
       TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
     )
 
+    node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)
     node2.addEdge(TestEdge.LABEL, node3)
-//          val edge2 = node3.inE("testEdge").next().asInstanceOf[TestEdge]
-      //    edge2.outNode shouldBe node2
-
-    //    val edge1 = node1.outE("testEdge").next().asInstanceOf[TestEdge]
-    //    edge1.longProperty shouldBe Long.MaxValue
-    //    edge1.inNode shouldBe node2
-    //
-      //    graph.edgeCount shouldBe 2
 
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
       val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
@@ -117,16 +110,16 @@ class Neo4jCsvTests extends AnyWordSpec {
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestEdge.LABEL.toLowerCase) && relevantPart.endsWith("_header")
       }.get
-      edgeHeaderFile.contentAsString.trim shouldBe ":START_ID,:END_ID,:LABEL,longProperty:long"
+      edgeHeaderFile.contentAsString.trim shouldBe ":START_ID,:END_ID,:TYPE,longProperty:long"
 
       val edgeDataFileLines = exportedFiles.find { file =>
         val relevantPart = file.nameWithoutExtension.toLowerCase
         relevantPart.contains(TestEdge.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
       }.get.lines().toSeq
-      edgeDataFileLines.size shouldBe 1
+      edgeDataFileLines.size shouldBe 2
+      edgeDataFileLines should contain("1,2,testEdge,9223372036854775807")
       edgeDataFileLines should contain("2,3,testEdge,")
-      edgeDataFileLines.size shouldBe 2 //TODO
-      edgeDataFileLines should contain("2,3,testEdge,TODO")
+
 
       // TODO use difftool for round trip of conversion?
     }
