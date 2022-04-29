@@ -5,7 +5,6 @@ import overflowdb.Graph
 import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
 
-import java.io.File
 import java.nio.file.Path
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
@@ -33,13 +32,12 @@ object Neo4jCsvExporter extends Exporter {
   }
 
   private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
-    val dataFile   = outputRootDirectory.resolve(s"$label.csv").toFile
-    val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv").toFile
-
+    val dataFile   = outputRootDirectory.resolve(s"$label.csv")
+    val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
     val propertyNamesOrdered = graph.nodes(label).next.propertyKeys().asScala.toSeq.sorted
     val columnDefByName = new ColumnDefByName
 
-    Using(CSVWriter.open(dataFile, append = false)) { writer =>
+    Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
       Traversal(graph.nodes(label)).foreach { node =>
         val rowBuilder = Seq.newBuilder[String]
 
@@ -68,7 +66,7 @@ object Neo4jCsvExporter extends Exporter {
       }
     }.get
 
-    Using(CSVWriter.open(headerFile, append = false)) { writer =>
+    Using(CSVWriter.open(headerFile.toFile, append = false)) { writer =>
       val propertiesWithTypes = propertyNamesOrdered.map { name =>
         columnDefByName.get(name) match {
           case Some(ScalarColumnDef(valueType)) =>
@@ -84,28 +82,43 @@ object Neo4jCsvExporter extends Exporter {
       )
     }.get
 
-    Seq(headerFile.toPath, dataFile.toPath)
+    Seq(headerFile, dataFile)
   }
 
+  /** write edges of all labels */
   private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
     val edgeFilesContextByLabel = mutable.Map.empty[String, EdgeFilesContext]
     graph.edges().forEachRemaining { edge =>
-      val writer = edgeFilesContextByLabel.getOrElseUpdate(edge.label(), {
+      val label = edge.label
+      val context = edgeFilesContextByLabel.getOrElseUpdate(label, {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
-        // TODO
-        ???
+        val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
+        val dataFile   = outputRootDirectory.resolve(s"$label.csv")
+        val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
+        val propertyNamesOrdered = edge.propertyKeys().asScala.toSeq.sorted
+        EdgeFilesContext(headerFile, dataFile, dataFileWriter, propertyNamesOrdered, new ColumnDefByName)
       })
 
-      // TODO write row
+      // TODO write edge as row, update columnDefs as we go
     }
 
-    edgeFilesContextByLabel.values.flatMap { case EdgeFilesContext(headerFile, dataFile, writer) =>
-      writer.flush()
-      writer.close()
-      Seq(headerFile, dataFile).map(_.toPath)
+    edgeFilesContextByLabel.values.flatMap {
+      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, _, columnDefByName) =>
+        Using(CSVWriter.open(headerFile.toFile)) { writer =>
+          // TODO write row
+//          writer.writeRow()
+        }
+
+        // TODO write headerFile
+        dataFileWriter.flush()
+        dataFileWriter.close()
+        Seq(headerFile, dataFile)
     }.toSeq
   }
 
-
-  private case class EdgeFilesContext(headerFile: File, dataFile: File, writer: CSVWriter)
+  private case class EdgeFilesContext(headerFile: Path,
+                                      dataFile: Path,
+                                      dataFileWriter: CSVWriter,
+                                      propertyNamesOrdered: Seq[String],
+                                      columnDefByName: ColumnDefByName)
 }
