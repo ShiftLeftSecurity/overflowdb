@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv.CSVWriter
 import overflowdb.Graph
-import overflowdb.formats.Exporter
+import overflowdb.formats.{Exporter, neo4jcsv}
 import overflowdb.traversal.Traversal
 
 import java.nio.file.Path
@@ -65,12 +65,7 @@ object Neo4jCsvExporter extends Exporter {
       }
     }.get
 
-    Using(CSVWriter.open(headerFile.toFile, append = false)) { writer =>
-      writer.writeRow(
-        Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes
-      )
-    }.get
-
+    writeSingleLineCsv(headerFile, Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes)
     Seq(headerFile, dataFile)
   }
 
@@ -92,17 +87,20 @@ object Neo4jCsvExporter extends Exporter {
     }
 
     edgeFilesContextByLabel.values.flatMap {
-      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefByName) =>
-        Using(CSVWriter.open(headerFile.toFile)) { writer =>
-          // TODO write row
-//          writer.writeRow()
-        }
+      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions) =>
+        writeSingleLineCsv(headerFile,
+          Seq(ColumnType.StartId, ColumnType.EndId, ColumnType.Type) ++ columnDefinitions.propertiesWithTypes)
 
-        // TODO write headerFile
         dataFileWriter.flush()
         dataFileWriter.close()
         Seq(headerFile, dataFile)
     }.toSeq
+  }
+
+  private def writeSingleLineCsv(outputFile: Path, entries: Seq[Any]): Unit = {
+    Using(CSVWriter.open(outputFile.toFile, append = false)) { writer =>
+      writer.writeRow(entries)
+    }.get
   }
 
   private case class EdgeFilesContext(headerFile: Path,
