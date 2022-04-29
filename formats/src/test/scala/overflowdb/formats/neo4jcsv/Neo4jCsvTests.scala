@@ -112,9 +112,8 @@ class Neo4jCsvTests extends AnyWordSpec {
       dataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
       dataFileLines should contain("1,testNode,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1")
 
-
       // TODO use difftool for round trip of conversion?
     }
   }
-  
+
 }
