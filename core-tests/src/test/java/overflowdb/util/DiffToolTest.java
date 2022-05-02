@@ -7,6 +7,7 @@ import overflowdb.testdomains.simple.SimpleDomain;
 import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -17,7 +18,9 @@ public class DiffToolTest {
     public void returnEmptyListForTheSameGraph() {
         Graph graph0 = SimpleDomain.newGraph();
         Node g0n0 = graph0.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 0);
-        Node g0n1 = graph0.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 1);
+        Node g0n1 = graph0.addNode(TestNode.LABEL,
+                TestNode.INT_PROPERTY, 1,
+                TestNode.INT_LIST_PROPERTY, Arrays.asList(5, 6));
         g0n0.addEdge(TestEdge.LABEL, g0n1, TestEdge.LONG_PROPERTY, 1l);
 
         List<String> diffRes = DiffTool.compare(graph0, graph0);
@@ -29,12 +32,16 @@ public class DiffToolTest {
     public void returnEmptyListForTheCopyOfTheGraph() {
         Graph graph0 = SimpleDomain.newGraph();
         Node g0n0 = graph0.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 0);
-        Node g0n1 = graph0.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 1);
+        Node g0n1 = graph0.addNode(TestNode.LABEL,
+                TestNode.INT_PROPERTY, 1,
+                TestNode.INT_LIST_PROPERTY, Arrays.asList(5, 6));
         g0n0.addEdge(TestEdge.LABEL, g0n1, TestEdge.LONG_PROPERTY, 1l);
 
         Graph graph1 = SimpleDomain.newGraph();
         Node g1n0 = graph1.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 0);
-        Node g1n1 = graph1.addNode(TestNode.LABEL, TestNode.INT_PROPERTY, 1);
+        Node g1n1 = graph1.addNode(TestNode.LABEL,
+                TestNode.INT_PROPERTY, 1,
+                TestNode.INT_LIST_PROPERTY, Arrays.asList(5, 6));
         g1n0.addEdge(TestEdge.LABEL, g1n1, TestEdge.LONG_PROPERTY, 1l);
 
         List<String> diffRes = DiffTool.compare(graph0, graph1);
