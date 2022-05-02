@@ -91,32 +91,20 @@ class Neo4jCsvTests extends AnyWordSpec {
       exportedFiles.size shouldBe 4
 
       // assert csv file contents
-      val nodeHeaderFile = exportedFiles.find { file =>
-        val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestNode.LABEL.toLowerCase) && relevantPart.endsWith("_header")
-      }.get
+      val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, headerFileWanted = true)
       nodeHeaderFile.contentAsString.trim shouldBe
         ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty:string"
 
-      val nodeDataFileLines = exportedFiles.find { file =>
-        val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestNode.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
-      }.get.lines().toSeq
+      val nodeDataFileLines = fuzzyFindFile(exportedFiles, TestNode.LABEL, headerFileWanted = false).lines.toSeq
       nodeDataFileLines.size shouldBe 3
       nodeDataFileLines should contain("2,testNode,,,,,stringProp2")
       nodeDataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
       nodeDataFileLines should contain("1,testNode,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1")
 
-      val edgeHeaderFile = exportedFiles.find { file =>
-        val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestEdge.LABEL.toLowerCase) && relevantPart.endsWith("_header")
-      }.get
+      val edgeHeaderFile = fuzzyFindFile(exportedFiles, TestEdge.LABEL, headerFileWanted = true)
       edgeHeaderFile.contentAsString.trim shouldBe ":START_ID,:END_ID,:TYPE,longProperty:long"
 
-      val edgeDataFileLines = exportedFiles.find { file =>
-        val relevantPart = file.nameWithoutExtension.toLowerCase
-        relevantPart.contains(TestEdge.LABEL.toLowerCase) && !relevantPart.endsWith("_header")
-      }.get.lines().toSeq
+      val edgeDataFileLines = fuzzyFindFile(exportedFiles, TestEdge.LABEL, headerFileWanted = false).lines.toSeq
       edgeDataFileLines.size shouldBe 2
       edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
       edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
@@ -132,5 +120,16 @@ class Neo4jCsvTests extends AnyWordSpec {
       }
     }
   }
+
+  private def fuzzyFindFile(files: Seq[File], label: String, headerFileWanted: Boolean): File = {
+    files.find { file =>
+      val relevantPart = file.nameWithoutExtension.toLowerCase
+      val isHeaderFile = relevantPart.endsWith("_header")
+      relevantPart.contains(label.toLowerCase) && (
+        (headerFileWanted && isHeaderFile) || (!headerFileWanted && !isHeaderFile)
+      )
+    }.get
+  }
+
 
 }
