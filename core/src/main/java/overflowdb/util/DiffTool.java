@@ -4,14 +4,7 @@ import overflowdb.Edge;
 import overflowdb.Graph;
 import overflowdb.Node;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class DiffTool {
 
@@ -56,14 +49,55 @@ public class DiffTool {
     propertyKeys.addAll(properties2.keySet());
 
     propertyKeys.forEach(key -> {
-      final Object value1 = properties1.get(key);
-      final Object value2 = properties2.get(key);
+      Object value1 = properties1.get(key);
+      Object value2 = properties2.get(key);
 
-      if (value1 == null) diff.add(String.format("%s; property '%s' -> '%s' only exists in graph2", context, key, value2));
-      else if (value2 == null) diff.add(String.format("%s; property '%s' -> '%s' only exists in graph1", context, key, value1));
-      else if (!value1.equals(value2)) diff.add(String.format("%s; property '%s' has different values: graph1='%s', graph2='%s'", context, key, value1, value2));
+      if (value1 == null) {
+        diff.add(String.format("%s; property '%s' -> '%s' only exists in graph2", context, key, value2));
+      } else if (value2 == null) {
+        diff.add(String.format("%s; property '%s' -> '%s' only exists in graph1", context, key, value1));
+      } else { // both values are not null
+        if (value1.getClass().isArray() && value2.getClass().isArray()) { // both values are arrays
+          if (!arraysEqual(value1, value2)) {
+            diff.add(String.format("%s; array property '%s' has different values: graph1='%s', graph2='%s'", context, key, value1, value2));
+          }
+        } else if (!value1.equals(value2)) { // not both values are arrays
+          diff.add(String.format("%s; property '%s' has different values: graph1='%s', graph2='%s'", context, key, value1, value2));
+        }
+      }
     });
+  }
 
+
+  /**
+   * Compare given objects, assuming they are both arrays of the same type.
+   * This is required because arrays don't support `.equals`, and is quite lengthy because java has one array type for each data type
+   */
+  public static boolean arraysEqual(Object value1, Object value2) {
+    // need to check all array types unfortunately
+    if (value1 instanceof Object[] && value2 instanceof Object[]) {
+      return Arrays.deepEquals((Object[]) value1, (Object[]) value2);
+    } else if (value1 instanceof boolean[] && value2 instanceof int[]) {
+      return Arrays.equals((boolean[]) value1, (boolean[]) value2);
+    } else if (value1 instanceof byte[] && value2 instanceof byte[]) {
+      return Arrays.equals((byte[]) value1, (byte[]) value2);
+    } else if (value1 instanceof char[] && value2 instanceof char[]) {
+      return Arrays.equals((char[]) value1, (char[]) value2);
+    } else if (value1 instanceof short[] && value2 instanceof short[]) {
+      return Arrays.equals((short[]) value1, (short[]) value2);
+    } else if (value1 instanceof int[] && value2 instanceof int[]) {
+      return Arrays.equals((int[]) value1, (int[]) value2);
+    } else if (value1 instanceof long[] && value2 instanceof long[]) {
+      return Arrays.equals((long[]) value1, (long[]) value2);
+    } else if (value1 instanceof float[] && value2 instanceof float[]) {
+      return Arrays.equals((float[]) value1, (float[]) value2);
+    } else if (value1 instanceof double[] && value2 instanceof double[]) {
+      return Arrays.equals((double[]) value1, (double[]) value2);
+    } else {
+      throw new AssertionError(String.format(
+        "unable to compare given objects (%s of type %s; %s of type %s)",
+        value1, value1.getClass(), value2, value2.getClass()));
+    }
   }
 
   private static void compareEdges(Iterator<Edge> edges1, Iterator<Edge> edges2, List<String> diff, String context) {
