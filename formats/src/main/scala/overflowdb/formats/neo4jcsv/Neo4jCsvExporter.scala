@@ -1,6 +1,6 @@
 package overflowdb.formats.neo4jcsv
 
-import com.github.tototoshi.csv.CSVWriter
+import com.github.tototoshi.csv._
 import overflowdb.Graph
 import overflowdb.formats.Exporter
 import overflowdb.traversal.Traversal
