@@ -8,6 +8,7 @@ import testutils.ProjectRoot
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
+import overflowdb.util.DiffTool
 
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
@@ -120,7 +121,15 @@ class Neo4jCsvTests extends AnyWordSpec {
       edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
       edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
 
-      // TODO use difftool for round trip of conversion?
+      // import csv into new graph, use difftool for round trip of conversion
+      val graphFromCsv = SimpleDomain.newGraph()
+      Neo4jCsvImporter.runImport(graphFromCsv, exportedFiles.map(_.toJava.toPath))
+      val diff = DiffTool.compare(graph, graphFromCsv)
+      withClue(s"original graph and reimport from csv should be completely equal, but there are differences:\n" +
+        diff.asScala.mkString("\n") +
+        "\n") {
+        diff.size shouldBe 0
+      }
     }
   }
 
