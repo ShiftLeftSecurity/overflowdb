@@ -32,8 +32,8 @@ object Neo4jCsvExporter extends Exporter {
   }
 
   private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
-    val dataFile   = outputRootDirectory.resolve(s"$label.csv")
-    val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
+    val dataFile   = outputRootDirectory.resolve(s"nodes_$label.csv")
+    val headerFile = outputRootDirectory.resolve(s"nodes_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
     val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
 
     Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
@@ -56,8 +56,8 @@ object Neo4jCsvExporter extends Exporter {
       val label = edge.label
       val context = edgeFilesContextByLabel.getOrElseUpdate(label, {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
-        val headerFile = outputRootDirectory.resolve(s"$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
-        val dataFile   = outputRootDirectory.resolve(s"$label.csv")
+        val headerFile = outputRootDirectory.resolve(s"edges_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
+        val dataFile   = outputRootDirectory.resolve(s"edges_$label.csv")
         val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
         val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
         EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
