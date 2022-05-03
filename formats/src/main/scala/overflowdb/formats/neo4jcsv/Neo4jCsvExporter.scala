@@ -37,7 +37,7 @@ object Neo4jCsvExporter extends Exporter {
     val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
 
     Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
-      Traversal(graph.nodes(label)).foreach { node =>
+      graph.nodes(label).forEachRemaining { node =>
         val specialColumns = Seq(node.id.toString, node.label)
         val propertyValueColumns = columnDefinitions.propertyValues(node.propertyOption(_).toScala)
         writer.writeRow(specialColumns ++ propertyValueColumns)
