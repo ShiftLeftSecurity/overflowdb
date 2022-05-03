@@ -24,7 +24,7 @@ object Neo4jCsvImporter extends Importer {
       .foreach { case HeaderAndDataFile(ParsedHeaderFile(fileType, columnDefs), dataFile) =>
         Using(CSVReader.open(dataFile.toFile)) { dataReader =>
           dataReader.iterator.zipWithIndex.foreach { case (columnsRaw, idx) =>
-            assert(columnsRaw.size == columnDefs.size, s"datafile row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
+            assert(columnsRaw.size == columnDefs.size, s"datafile ${dataFile.toAbsolutePath} row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
             val lineNo = idx + 1
             fileType match {
               case FileType.Nodes =>
