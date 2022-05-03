@@ -146,7 +146,7 @@ object Neo4jCsvImporter extends Importer {
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
         case ColumnDef(_, ColumnType.Id, _) =>
-          id = entry.toInt
+          parseInt(entry, ColumnType.Id, lineNo)
         case ColumnDef(_, ColumnType.Label, _) =>
           label = entry
         case ColumnDef(Some(name), valueType, false) =>
@@ -154,7 +154,7 @@ object Neo4jCsvImporter extends Importer {
         case ColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
         case other =>
-          throw new MatchError(s"unhandled case $other")
+          throw new MatchError(s"unhandled case $other in line $lineNo")
       }
     }
     assert(id != null, s"no ID column found in line $lineNo")
@@ -174,9 +174,9 @@ object Neo4jCsvImporter extends Importer {
       assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
       columnDefs(idx) match {
         case ColumnDef(_, ColumnType.StartId, _) =>
-          startId = entry.toInt
+          startId = parseInt(entry, ColumnType.StartId, lineNo)
         case ColumnDef(_, ColumnType.EndId, _) =>
-          endId = entry.toInt
+          endId = parseInt(entry, ColumnType.EndId, lineNo)
         case ColumnDef(_, ColumnType.Type, _) =>
           label = entry
         case ColumnDef(Some(name), valueType, false) =>
@@ -231,6 +231,12 @@ object Neo4jCsvImporter extends Importer {
       case ColumnType.LocalDateTime => ???
       case ColumnType.DateTime => ???
       case ColumnType.Duration => ???
+    }
+  }
+
+  private def parseInt(entry: String, columnType: ColumnType.Value, lineNo: Int): Int = {
+    try entry.toInt catch {
+      case err => throw new AssertionError(s"$columnType is not an Int ($lineNo): $entry: $err", err)
     }
   }
 
