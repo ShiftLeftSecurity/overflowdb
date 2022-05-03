@@ -28,14 +28,14 @@ object Neo4jCsvImporter extends Importer {
             val lineNo = idx + 1
             fileType match {
               case FileType.Nodes =>
-                parseNodeRowData(columnsRaw, lineNo, columnDefs) match {
+                parseNodeRowData(columnsRaw, columnDefs, dataFile, lineNo) match {
                   case ParsedNodeRowData(id, label, properties) =>
                     val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
                     graph.addNode(id, label, propertiesAsKeyValues: _*)
                     importedNodeCount += 1
                 }
               case FileType.Relationships =>
-                parseEdgeRowData(columnsRaw, lineNo, columnDefs) match {
+                parseEdgeRowData(columnsRaw, columnDefs, dataFile, lineNo) match {
                   case ParsedEdgeRowData(startId, endId, label, properties) =>
                     val startNode = graph.node(startId)
                     val endNode = graph.node(endId)
@@ -138,23 +138,21 @@ object Neo4jCsvImporter extends Importer {
     }
   }
 
-  private def parseNodeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, ColumnDef]): ParsedNodeRowData = {
+  private def parseNodeRowData(columnsRaw: Seq[String], columnDefs: Map[Int, ColumnDef], inputFile: Path, lineNo: Int): ParsedNodeRowData = {
     var id: Integer = null
     var label: String = null
     val properties = Seq.newBuilder[ParsedProperty]
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
-      assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
-      columnDefs(idx) match {
+      val columnDef = columnDefs.getOrElse(idx, throw new AssertionError(s"column with index=$idx not found in column definitions derived from headerFile"))
+      parseEntry(entry, columnDef, inputFile, lineNo) {
         case ColumnDef(_, ColumnType.Id, _) =>
-          parseInt(entry, ColumnType.Id, lineNo)
+          id = parseInt(entry, ColumnType.Id, lineNo)
         case ColumnDef(_, ColumnType.Label, _) =>
           label = entry
         case ColumnDef(Some(name), valueType, false) =>
           parseProperty(entry, name, valueType).foreach(properties.addOne)
         case ColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
-        case other =>
-          throw new MatchError(s"unhandled case $other in line $lineNo")
       }
     }
     assert(id != null, s"no ID column found in line $lineNo")
@@ -165,14 +163,14 @@ object Neo4jCsvImporter extends Importer {
     ret
   }
 
-  private def parseEdgeRowData(columnsRaw: Seq[String], lineNo: Int, columnDefs: Map[Int, ColumnDef]): ParsedEdgeRowData = {
+  private def parseEdgeRowData(columnsRaw: Seq[String], columnDefs: Map[Int, ColumnDef], inputFile: Path, lineNo: Int): ParsedEdgeRowData = {
     var startId: Integer = null
     var endId: Integer = null
     var label: String = null
     val properties = Seq.newBuilder[ParsedProperty]
     columnsRaw.zipWithIndex.foreach { case (entry, idx) =>
-      assert(columnDefs.contains(idx), s"column with index=$idx not found in column definitions derived from headerFile")
-      columnDefs(idx) match {
+      val columnDef = columnDefs.getOrElse(idx, throw new AssertionError(s"column with index=$idx not found in column definitions derived from headerFile"))
+      parseEntry(entry, columnDef, inputFile, lineNo) {
         case ColumnDef(_, ColumnType.StartId, _) =>
           startId = parseInt(entry, ColumnType.StartId, lineNo)
         case ColumnDef(_, ColumnType.EndId, _) =>
@@ -183,8 +181,6 @@ object Neo4jCsvImporter extends Importer {
           parseProperty(entry, name, valueType).foreach(properties.addOne)
         case ColumnDef(Some(name), valueType, true) =>
           parseArrayProperty(entry, name, valueType).foreach(properties.addOne)
-        case other =>
-          throw new MatchError(s"unhandled case $other")
       }
     }
     assert(startId != null, s"no START_ID column found in line $lineNo")
@@ -194,6 +190,16 @@ object Neo4jCsvImporter extends Importer {
     val ret = ParsedEdgeRowData(startId, endId, label, properties.result())
     logger.debug("parsed line {}: {}", lineNo, ret)
     ret
+  }
+
+  private def parseEntry(rawValue: String, columnDef: ColumnDef, inputFile: Path, lineNo: Int)(handleColumn: PartialFunction[ColumnDef, _]): Unit = {
+    try {
+      handleColumn.applyOrElse(columnDef,
+        { (_: ColumnDef) => throw new MatchError(s"unhandled case $columnDef for rawValue=$rawValue in ${inputFile.getFileName} line $lineNo")})
+    } catch {
+      case err: Exception =>
+        throw new RuntimeException(s"error while parsing input value '$rawValue' of valueType=${columnDef.valueType} in ${inputFile.getFileName} line $lineNo", err)
+    }
   }
 
   private def parseProperty(rawValue: String, name: String, valueType: ColumnType.Value): Option[ParsedProperty] = {
@@ -237,7 +243,7 @@ object Neo4jCsvImporter extends Importer {
 
   private def parseInt(entry: String, columnType: ColumnType.Value, lineNo: Int): Int = {
     try entry.toInt catch {
-      case err => throw new AssertionError(s"$columnType is not an Int ($lineNo): $entry: $err", err)
+      case err: Exception => throw new AssertionError(s"$columnType is not an Int ($lineNo): $entry: $err", err)
     }
   }
 
@@ -247,5 +253,4 @@ object Neo4jCsvImporter extends Importer {
   private case class ParsedProperty(name: String, value: Any)
   private case class ParsedNodeRowData(id: Int, label: String, properties: Seq[ParsedProperty])
   private case class ParsedEdgeRowData(startId: Int, endId: Int, label: String, properties: Seq[ParsedProperty])
-
 }

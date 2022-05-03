@@ -10,6 +10,8 @@ import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
 import overflowdb.util.DiffTool
 
+import java.io.FileNotFoundException
+
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
   val neo4jcsvRoot = Paths.get(subprojectRoot, "src/test/resources/neo4jcsv")
@@ -61,6 +63,30 @@ class Neo4jCsvTests extends AnyWordSpec {
       intercept[NotImplementedError] {
         Neo4jCsvImporter.runImport(graph, csvInputFiles)
       }.getMessage should include("multiple :LABEL columns found")
+    }
+
+    "fail if input file doesn't exist" in {
+      val csvInputFiles = Seq(
+        "does_not_exist_header.csv",
+        "does_not_exist.csv",
+      ).map(neo4jcsvRoot.resolve)
+
+      val graph = SimpleDomain.newGraph()
+      intercept[FileNotFoundException] {
+        Neo4jCsvImporter.runImport(graph, csvInputFiles)
+      }
+    }
+
+    "fail with context information (line number etc.) for invalid input" in {
+      val csvInputFiles = Seq(
+        "invalid_column_content_header.csv",
+        "invalid_column_content.csv",
+      ).map(neo4jcsvRoot.resolve)
+
+      val graph = SimpleDomain.newGraph()
+      intercept[RuntimeException] {
+        Neo4jCsvImporter.runImport(graph, csvInputFiles)
+      }.getMessage should include("invalid_column_content.csv line 3")
     }
   }
 

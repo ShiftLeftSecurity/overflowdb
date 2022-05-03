@@ -1,0 +1,3 @@
+1,stringProp1,11,testNode,stringListProp1a;stringListProp1b,21;31;41
+2,stringProp2,,testNode,,
+3,,NOT_AN_INT,testNode,,
