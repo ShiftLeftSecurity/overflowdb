@@ -12,6 +12,7 @@ import java.util.HashSet;
 public class TestEdge extends Edge {
   public static final String LABEL = "testEdge";
   public static final String LONG_PROPERTY = "longProperty";
+  public static final long LONG_PROPERTY_DEFAULT = -99L;
   public static final HashSet<String> PROPERTY_KEYS = new HashSet<>(Arrays.asList(LONG_PROPERTY));
 
   public TestEdge(Graph graph, NodeRef outVertex, NodeRef inVertex) {
@@ -25,7 +26,7 @@ public class TestEdge extends Edge {
   @Override
   public Object propertyDefaultValue(String propertyKey) {
     if (LONG_PROPERTY.equals(propertyKey))
-      return -99l;
+      return LONG_PROPERTY_DEFAULT;
     else
       return super.propertyDefaultValue(propertyKey);
   }

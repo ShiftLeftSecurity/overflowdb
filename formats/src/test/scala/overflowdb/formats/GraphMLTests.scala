@@ -4,13 +4,15 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.testdomains.gratefuldead.GratefulDead
 
+import java.nio.file.Paths
+
 class GraphMLTests extends AnyWordSpec {
 
   "import minified gratefuldead graph" in {
     val graph = GratefulDead.newGraph()
     graph.nodeCount() shouldBe 0
 
-    GraphML.insert("src/test/resources/graphml-small.xml", graph)
+    GraphMLImport.runImport(graph, Paths.get("src/test/resources/graphml-small.xml"))
     graph.nodeCount() shouldBe 3
     graph.edgeCount() shouldBe 2
 

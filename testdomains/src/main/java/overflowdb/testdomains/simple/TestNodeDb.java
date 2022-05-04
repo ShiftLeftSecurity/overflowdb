@@ -4,12 +4,7 @@ import overflowdb.NodeLayoutInformation;
 import overflowdb.NodeRef;
 import overflowdb.NodeDb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TestNodeDb extends NodeDb {
@@ -74,8 +69,8 @@ public class TestNodeDb extends NodeDb {
     if (TestNode.STRING_PROPERTY.equals(key)) {
       this._stringProperty = (String) value;
     } else if (TestNode.STRING_LIST_PROPERTY.equals(key)) {
-      if (value instanceof List) {
-        this._stringListProperty = (List) value;
+      if (value instanceof Collection) {
+        this._stringListProperty = new ArrayList<>((Collection) value);
       } else if (value instanceof Object[]) {
         this._stringListProperty = Arrays.stream((Object[]) value).map(s -> (String) s).collect(Collectors.toList());
       } else {
@@ -85,13 +80,18 @@ public class TestNodeDb extends NodeDb {
     } else if (TestNode.INT_PROPERTY.equals(key)) {
       this._intProperty = (Integer) value;
     } else if (TestNode.INT_LIST_PROPERTY.equals(key)) {
-      if (value instanceof List) {
-        List valueAsList = (List) value;
+      if (value instanceof Collection) {
+        Collection<Integer> valueAsList = (Collection) value;
         this._intListProperty = new int[valueAsList.size()];
         int idx = 0;
-        for (Integer i : _intListProperty) _intListProperty[idx++] = i;
+        for (Integer i : valueAsList) _intListProperty[idx++] = i;
       } else if (value instanceof int[]) {
         this._intListProperty = (int[]) value;
+      } else if (value instanceof Object[]) {
+        Object[] value1 = (Object[]) value;
+        this._intListProperty = new int[value1.length];
+        for (int i = 0; i < value1.length; i++)
+          this._intListProperty[i] = (int) value1[i];
       } else {
         throw new RuntimeException("not implemented... " + value.getClass());
       }
