@@ -1,19 +1,17 @@
 package overflowdb.formats.neo4jcsv
 
+import better.files._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
+import overflowdb.formats.{ExporterMainBase, ImporterMainBase}
 import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
+import overflowdb.traversal._
+import overflowdb.util.DiffTool
 import testutils.ProjectRoot
 
+import java.io.FileNotFoundException
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
-import better.files._
-import overflowdb.{EdgeFactory, NodeFactory}
-import overflowdb.formats.{ExporterMainBase, ImporterMainBase}
-import overflowdb.traversal.toElementTraversalViaAdditionalImplicit
-import overflowdb.util.DiffTool
-
-import java.io.FileNotFoundException
 
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")

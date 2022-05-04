@@ -30,16 +30,16 @@ abstract class ImporterMainBase extends App {
       programName("odb-import"),
       help("help").text("prints this usage text"),
       opt[String]('f', "format")
-        .required
+        .required()
         .action((x, c) => c.copy(format = Format.byNameLowercase(x)))
         .text(s"import format, one of [${Format.valuesAsStringLowercase.mkString("|")}]"),
       opt[File]('o', "out") // will be able to read a `Path` with scopt 4.0.2+ (once released)
-        .required
+        .required()
         .action((x, c) => c.copy(outputFile = x.toPath))
         .text("output file for overflowdb binary, e.g. out.odb"),
       arg[File]("inputFiles")
-        .required
-        .unbounded
+        .required()
+        .unbounded()
         .action((x, c) => c.copy(inputFiles = c.inputFiles :+ x.toPath))
         .text("input files - must exist and be readable"),
     )
