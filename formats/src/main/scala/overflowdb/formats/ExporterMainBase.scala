@@ -1,5 +1,6 @@
 package overflowdb.formats
 
+import org.slf4j.LoggerFactory
 import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import overflowdb.formats.neo4jcsv.Neo4jCsvExporter
 
@@ -20,6 +21,8 @@ abstract class ExporterMainBase extends App {
   // abstract members
   def nodeFactories: Seq[NodeFactory[_]]
   def edgeFactories: Seq[EdgeFactory[_]]
+
+  val logger = LoggerFactory.getLogger(getClass)
 
   val builder = OParser.builder[Config]
   val parser = {
@@ -59,7 +62,9 @@ abstract class ExporterMainBase extends App {
       }
       val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)
       Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+        logger.info(s"starting export of graph in $inputFile to storagePath=$outputFile in format=$format")
         exporter.runExport(graph, outputFile)
+        logger.info(s"export completed successfully")
       }
   }
 

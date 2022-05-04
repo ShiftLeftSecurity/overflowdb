@@ -1,5 +1,6 @@
 package overflowdb.formats
 
+import org.slf4j.LoggerFactory
 import overflowdb.formats.neo4jcsv.Neo4jCsvImporter
 import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser
@@ -19,6 +20,8 @@ abstract class ImporterMainBase extends App {
   // abstract members
   def nodeFactories: Seq[NodeFactory[_]]
   def edgeFactories: Seq[EdgeFactory[_]]
+
+  val logger = LoggerFactory.getLogger(getClass)
 
   val builder = OParser.builder[Config]
   val parser = {
@@ -56,7 +59,9 @@ abstract class ImporterMainBase extends App {
       }
       val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
       Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+        logger.info(s"starting import of ${inputFiles.size} files in format=$format into a new overflowdb instance with storagePath=$outputFile")
         importer.runImport(graph, inputFiles)
+        logger.info(s"import completed successfully")
       }
   }
 
