@@ -8,6 +8,8 @@ import testutils.ProjectRoot
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
+import overflowdb.{EdgeFactory, NodeFactory}
+import overflowdb.formats.ExporterMainBase
 import overflowdb.util.DiffTool
 
 import java.io.FileNotFoundException
@@ -148,7 +150,23 @@ class Neo4jCsvTests extends AnyWordSpec {
   }
 
   "main apps for cli export/import" in {
-    ???
+    File.usingTemporaryDirectory(getClass.getName) { tmpDir =>
+      val graphPath = tmpDir/"original.odb"
+      val exportPath = tmpDir/"export"
+      val graph = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(graphPath.toJava.toPath))
+      val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
+      val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
+      node2.addEdge(TestEdge.LABEL, node3)
+      graph.close()
+
+      val exporterMain = new ExporterMainBase {
+        override def nodeFactories: Seq[NodeFactory[_]] = Seq(TestNode.factory)
+        override def edgeFactories: Seq[EdgeFactory[_]] = Seq(TestEdge.factory)
+      }
+      exporterMain.main(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
+      exportPath.list.size shouldBe 4
+      // TODO use importer for round trip, make assertions
+    }
   }
 
   private def fuzzyFindFile(files: Seq[File], label: String, headerFileWanted: Boolean): File = {
