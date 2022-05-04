@@ -8,6 +8,7 @@ import scopt.OParser
 
 import java.io.File
 import scala.jdk.CollectionConverters.SeqHasAsJava
+import scala.util.Using
 
 /**
  * Main class to export a given OverflowDB graph to various export formats.
@@ -55,14 +56,14 @@ abstract class ExporterMainBase extends App {
         Files.createDirectories(outputFile)
       }
 
-
       val exporter: Exporter = format match {
         case Format.Neo4jCsv => Neo4jCsvExporter
         case Format.GraphMl => ???
       }
       val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)
-      val graph = Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)
-      exporter.runExport(graph, outputFile)
+      Using(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+        exporter.runExport(graph, outputFile)
+      }.get
   }
 
   case class Config(inputFile: Path, format: Format.Value, outputFile: Path)

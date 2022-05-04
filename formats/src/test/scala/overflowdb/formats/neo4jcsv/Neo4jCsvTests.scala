@@ -9,7 +9,8 @@ import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 import better.files._
 import overflowdb.{EdgeFactory, NodeFactory}
-import overflowdb.formats.ExporterMainBase
+import overflowdb.formats.{ExporterMainBase, ImporterMainBase}
+import overflowdb.traversal.toElementTraversalViaAdditionalImplicit
 import overflowdb.util.DiffTool
 
 import java.io.FileNotFoundException
@@ -164,8 +165,19 @@ class Neo4jCsvTests extends AnyWordSpec {
         override def edgeFactories: Seq[EdgeFactory[_]] = Seq(TestEdge.factory)
       }
       exporterMain.main(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
-      exportPath.list.size shouldBe 4
-      // TODO use importer for round trip, make assertions
+      val exportedFiles = exportPath.list.toArray
+      exportedFiles.size shouldBe 4
+
+      // use importer for round trip
+      val importerMain = new ImporterMainBase {
+        override def nodeFactories: Seq[NodeFactory[_]] = Seq(TestNode.factory)
+        override def edgeFactories: Seq[EdgeFactory[_]] = Seq(TestEdge.factory)
+      }
+      val reimportPath = tmpDir/"reimported.odb"
+      importerMain.main(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
+      val graphReimported = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(reimportPath.toJava.toPath))
+      graphReimported.nodeCount shouldBe 2
+      graphReimported.node(2).out(TestEdge.LABEL).property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
     }
   }
 
