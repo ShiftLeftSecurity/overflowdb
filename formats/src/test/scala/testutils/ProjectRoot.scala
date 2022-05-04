@@ -26,7 +26,7 @@ object ProjectRoot {
     for (depth <- 0 to SEARCH_DEPTH) {
       val pathPrefix = "./" + "../" * depth
 
-      if (Path.of(s"$pathPrefix$fileThatOnlyExistsInRoot").toFile.exists) {
+      if (Files.exists(Path.of(s"$pathPrefix$fileThatOnlyExistsInRoot"))) {
         return pathPrefix
       }
     }

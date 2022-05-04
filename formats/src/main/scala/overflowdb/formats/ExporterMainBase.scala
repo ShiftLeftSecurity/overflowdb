@@ -44,10 +44,10 @@ abstract class ExporterMainBase extends App {
 
   OParser.parse(parser, args, Config(Path.of("/dev/null"), null, Path.of("/dev/null")))
     .map { case Config(inputFile, format, outputFile) =>
-      if (!inputFile.toFile.exists)
+      if (Files.notExists(inputFile))
         throw new AssertionError(s"given input file $inputFile does not exist")
-      if (outputFile.toFile.exists) {
-        if (!outputFile.toFile.isDirectory)
+      if (Files.exists(outputFile)) {
+        if (Files.isRegularFile(outputFile))
           throw new AssertionError(s"output file $outputFile already exists and is not a directory")
       } else {
         Files.createDirectories(outputFile)
