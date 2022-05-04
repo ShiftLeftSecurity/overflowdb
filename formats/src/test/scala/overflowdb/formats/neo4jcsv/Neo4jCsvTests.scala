@@ -161,8 +161,8 @@ class Neo4jCsvTests extends AnyWordSpec {
       graph.close()
 
       val exporterMain = new ExporterMainBase {
-        override def nodeFactories: Seq[NodeFactory[_]] = Seq(TestNode.factory)
-        override def edgeFactories: Seq[EdgeFactory[_]] = Seq(TestEdge.factory)
+        def nodeFactories = Seq(TestNode.factory)
+        def edgeFactories = Seq(TestEdge.factory)
       }
       exporterMain.main(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
       val exportedFiles = exportPath.list.toArray
@@ -170,8 +170,8 @@ class Neo4jCsvTests extends AnyWordSpec {
 
       // use importer for round trip
       val importerMain = new ImporterMainBase {
-        override def nodeFactories: Seq[NodeFactory[_]] = Seq(TestNode.factory)
-        override def edgeFactories: Seq[EdgeFactory[_]] = Seq(TestEdge.factory)
+        def nodeFactories = Seq(TestNode.factory)
+        def edgeFactories = Seq(TestEdge.factory)
       }
       val reimportPath = tmpDir/"reimported.odb"
       importerMain.main(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
