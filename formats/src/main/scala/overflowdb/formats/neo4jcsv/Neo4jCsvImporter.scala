@@ -22,7 +22,7 @@ object Neo4jCsvImporter extends Importer {
     groupInputFiles(inputFiles)
       .sortBy(nodeFilesFirst)
       .foreach { case HeaderAndDataFile(ParsedHeaderFile(fileType, columnDefs), dataFile) =>
-        Using(CSVReader.open(dataFile.toFile)) { dataReader =>
+        Using.resource(CSVReader.open(dataFile.toFile)) { dataReader =>
           dataReader.iterator.zipWithIndex.foreach { case (columnsRaw, idx) =>
             assert(columnsRaw.size == columnDefs.size, s"datafile ${dataFile.toAbsolutePath} row must have the same column count as the headerfile (${columnDefs.size}) - instead found ${columnsRaw.size} for row=${columnsRaw.mkString(",")}")
             val lineNo = idx + 1
@@ -48,7 +48,7 @@ object Neo4jCsvImporter extends Importer {
                 }
             }
           }
-        }.get
+        }
       }
     logger.info(s"imported $importedNodeCount nodes")
   }
@@ -82,10 +82,10 @@ object Neo4jCsvImporter extends Importer {
   }
 
   private def parseHeaderFile(headerFile: Path): ParsedHeaderFile = {
-    val columnDefs = Using(CSVReader.open(headerFile.toFile)) { headerReader =>
+    val columnDefs = Using.resource(CSVReader.open(headerFile.toFile)) { headerReader =>
       headerReader.all().headOption.getOrElse(
         throw new AssertionError(s"header file $headerFile is empty"))
-    }.get
+    }
 
     val propertyDefs = Map.newBuilder[Int, ColumnDef]
     var labelColumnFound = false

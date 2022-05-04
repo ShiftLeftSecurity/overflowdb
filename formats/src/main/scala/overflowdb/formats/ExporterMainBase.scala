@@ -58,9 +58,9 @@ abstract class ExporterMainBase extends App {
         case Format.GraphMl => ???
       }
       val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)
-      Using(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+      Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
         exporter.runExport(graph, outputFile)
-      }.get
+      }
   }
 
   case class Config(inputFile: Path, format: Format.Value, outputFile: Path)
