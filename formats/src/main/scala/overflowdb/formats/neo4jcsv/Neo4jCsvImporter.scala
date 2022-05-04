@@ -203,11 +203,10 @@ object Neo4jCsvImporter extends Importer {
   }
 
   private def parseProperty(rawValue: String, name: String, valueType: ColumnType.Value): Option[ParsedProperty] = {
-    // an empty string is only a valid value if the valueType is String - otherwise it simply indicates an unset property
-    if (rawValue != "" || valueType == ColumnType.String)
-      Some(ParsedProperty(name, parsePropertyValue(rawValue, valueType)))
-    else
-      None
+    // an empty string in a csv is equivalent to `value not set`
+    Option(rawValue).filter(_.nonEmpty).map { value =>
+      ParsedProperty(name, parsePropertyValue(value, valueType))
+    }
   }
 
   private def parseArrayProperty(rawValue: String, name: String, valueType: ColumnType.Value): Option[ParsedProperty] = {

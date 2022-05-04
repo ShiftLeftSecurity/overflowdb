@@ -58,9 +58,9 @@ abstract class ImporterMainBase extends App {
         case Format.GraphMl => GraphMLImport
       }
       val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
-      Using(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+      Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
         importer.runImport(graph, inputFiles)
-      }.get
+      }
   }
 
   case class Config(inputFiles: Seq[Path], format: Format.Value, outputFile: Path)

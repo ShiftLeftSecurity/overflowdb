@@ -102,6 +102,9 @@ public class TestNodeDb extends NodeDb {
         for (Object entry : values) {
           _funkyList.add((String) entry);
         }
+      } else if (value instanceof String) {
+        this._funkyList = new FunkyList();
+        _funkyList.add((String) value);
       } else {
         this._funkyList = (FunkyList) value;
       }
