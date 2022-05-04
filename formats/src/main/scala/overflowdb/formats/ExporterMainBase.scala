@@ -21,9 +21,6 @@ abstract class ExporterMainBase extends App {
   def nodeFactories: Seq[NodeFactory[_]]
   def edgeFactories: Seq[EdgeFactory[_]]
 
-  val formatsByNameLowercase: Map[String, Format.Value] =
-    Format.values.map(format => (format.toString.toLowerCase, format)).toMap
-
   val builder = OParser.builder[Config]
   val parser = {
     import builder._
@@ -32,9 +29,9 @@ abstract class ExporterMainBase extends App {
       help("help").text("prints this usage text"),
       opt[String]('f', "format")
         .required
-        .action((x, c) => c.copy(format = formatsByNameLowercase(x)))
-        .text(s"export format, one of [${formatsByNameLowercase.keys.toSeq.sorted.mkString("|")}]"),
-      opt[File]('o', "out") // will be able to read a `Path` with scopt 4.0.2+ (once released)
+        .action((x, c) => c.copy(format = Format.byNameLowercase(x)))
+        .text(s"export format, one of [${Format.valuesAsStringLowercase.mkString("|")}]"),
+    opt[File]('o', "out") // will be able to read a `Path` with scopt 4.0.2+ (once released)
         .required
         .action((x, c) => c.copy(outputFile = x.toPath))
         .text("output file or directory - must exist and be writable"),
