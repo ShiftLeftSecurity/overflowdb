@@ -36,13 +36,13 @@ object Neo4jCsvExporter extends Exporter {
     val headerFile = outputRootDirectory.resolve(s"nodes_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
     val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
 
-    Using(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
+    Using.resource(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
       graph.nodes(label).forEachRemaining { node =>
         val specialColumns = Seq(node.id.toString, node.label)
         val propertyValueColumns = columnDefinitions.propertyValues(node.propertyOption(_).toScala)
         writer.writeRow(specialColumns ++ propertyValueColumns)
       }
-    }.get
+    }
 
     writeSingleLineCsv(headerFile, Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes)
     Seq(headerFile, dataFile)
@@ -80,9 +80,9 @@ object Neo4jCsvExporter extends Exporter {
   }
 
   private def writeSingleLineCsv(outputFile: Path, entries: Seq[Any]): Unit = {
-    Using(CSVWriter.open(outputFile.toFile, append = false)) { writer =>
+    Using.resource(CSVWriter.open(outputFile.toFile, append = false)) { writer =>
       writer.writeRow(entries)
-    }.get
+    }
   }
 
   private case class EdgeFilesContext(headerFile: Path,

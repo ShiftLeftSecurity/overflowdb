@@ -21,7 +21,7 @@ public class FunkyList extends AbstractCollection<String> {
     if (funkyWords.contains(value)) {
       entries.add(value);
       return true;
-    } else throw new RuntimeException("not funky enough!");
+    } else throw new RuntimeException(String.format("value `%s` is not funky enough, really!", value));
   }
 
   public List<String> getEntries() {

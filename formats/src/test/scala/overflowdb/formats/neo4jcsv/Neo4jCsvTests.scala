@@ -1,16 +1,17 @@
 package overflowdb.formats.neo4jcsv
 
+import better.files._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
+import overflowdb.formats.{ExporterMain, ImporterMain}
 import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
+import overflowdb.traversal._
+import overflowdb.util.DiffTool
 import testutils.ProjectRoot
 
+import java.io.FileNotFoundException
 import java.nio.file.Paths
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
-import better.files._
-import overflowdb.util.DiffTool
-
-import java.io.FileNotFoundException
 
 class Neo4jCsvTests extends AnyWordSpec {
   val subprojectRoot = ProjectRoot.relativise("formats")
@@ -147,6 +148,31 @@ class Neo4jCsvTests extends AnyWordSpec {
     }
   }
 
+  "main apps for cli export/import" in {
+    File.usingTemporaryDirectory(getClass.getName) { tmpDir =>
+      val graphPath = tmpDir/"original.odb"
+      val exportPath = tmpDir/"export"
+      val graph = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(graphPath.toJava.toPath))
+      val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
+      val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
+      node2.addEdge(TestEdge.LABEL, node3)
+      graph.close()
+
+      val exporterMain = ExporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
+      exporterMain(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
+      val exportedFiles = exportPath.list.toArray
+      exportedFiles.size shouldBe 4
+
+      // use importer for round trip
+      val importerMain = ImporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
+      val reimportPath = tmpDir/"reimported.odb"
+      importerMain(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
+      val graphReimported = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(reimportPath.toJava.toPath))
+      graphReimported.nodeCount shouldBe 2
+      graphReimported.node(2).out(TestEdge.LABEL).property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
+    }
+  }
+
   private def fuzzyFindFile(files: Seq[File], label: String, headerFileWanted: Boolean): File = {
     files.find { file =>
       val relevantPart = file.nameWithoutExtension.toLowerCase
@@ -156,6 +182,5 @@ class Neo4jCsvTests extends AnyWordSpec {
       )
     }.get
   }
-
 
 }
