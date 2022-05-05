@@ -3,7 +3,7 @@ package overflowdb.formats.neo4jcsv
 import better.files._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.formats.{ExporterMainBase, ImporterMainBase}
+import overflowdb.formats.{ExporterMain, ImporterMain}
 import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
 import overflowdb.traversal._
 import overflowdb.util.DiffTool
@@ -158,21 +158,15 @@ class Neo4jCsvTests extends AnyWordSpec {
       node2.addEdge(TestEdge.LABEL, node3)
       graph.close()
 
-      val exporterMain = new ExporterMainBase {
-        def nodeFactories = Seq(TestNode.factory)
-        def edgeFactories = Seq(TestEdge.factory)
-      }
-      exporterMain.main(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
+      val exporterMain = ExporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
+      exporterMain(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
       val exportedFiles = exportPath.list.toArray
       exportedFiles.size shouldBe 4
 
       // use importer for round trip
-      val importerMain = new ImporterMainBase {
-        def nodeFactories = Seq(TestNode.factory)
-        def edgeFactories = Seq(TestEdge.factory)
-      }
+      val importerMain = ImporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
       val reimportPath = tmpDir/"reimported.odb"
-      importerMain.main(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
+      importerMain(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
       val graphReimported = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(reimportPath.toJava.toPath))
       graphReimported.nodeCount shouldBe 2
       graphReimported.node(2).out(TestEdge.LABEL).property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
