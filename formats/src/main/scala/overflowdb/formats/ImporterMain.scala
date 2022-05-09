@@ -7,6 +7,7 @@ import scopt.OParser
 
 import java.io.File
 import java.nio.file.{Files, Path}
+import java.util.function
 import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.util.Using
 
@@ -19,7 +20,9 @@ import scala.util.Using
 object ImporterMain extends App {
   lazy val logger = LoggerFactory.getLogger(getClass)
 
-  def apply(nodeFactories: Seq[NodeFactory[_]], edgeFactories: Seq[EdgeFactory[_]]): Array[String] => Unit = {
+  def apply(nodeFactories: Seq[NodeFactory[_]],
+            edgeFactories: Seq[EdgeFactory[_]],
+            convertPropertyForPersistence: Any => Any = identity): Array[String] => Unit = {
     args =>
       OParser.parse(parser, args, Config(Nil, null, Path.of("/dev/null")))
         .map { case Config(inputFiles, format, outputFile) =>
@@ -34,7 +37,10 @@ object ImporterMain extends App {
             case Format.GraphMl => GraphMLImport
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
-          Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
+          val convertPropertyForPersistenceJava = new function.Function[Object, Object] {
+            override def apply(o: Object) = convertPropertyForPersistence(o).asInstanceOf[Object]
+          }
+          Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava, convertPropertyForPersistenceJava)) { graph =>
             logger.info(s"starting import of ${inputFiles.size} files in format=$format into a new overflowdb instance with storagePath=$outputFile")
             importer.runImport(graph, inputFiles)
             logger.info(s"import completed successfully")
