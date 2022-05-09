@@ -8,6 +8,7 @@ package object neo4jcsv {
   }
 
   val HeaderFileSuffix = "_header"
+  val DataFileSuffix   = "_data"
 
   object ColumnType extends Enumeration {
     // defining 'stable' string so we can pattern match on them
