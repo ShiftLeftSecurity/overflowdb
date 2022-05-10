@@ -3,12 +3,12 @@ package overflowdb.formats
 package object neo4jcsv {
 
   private[neo4jcsv] object FileType extends Enumeration {
-    val Nodes = Value
-    val Relationships = Value
+    val Nodes, Relationships = Value
   }
 
   val HeaderFileSuffix = "_header"
   val DataFileSuffix   = "_data"
+  val CypherFileSuffix = "_cypher"
 
   object ColumnType extends Enumeration {
     // defining 'stable' string so we can pattern match on them
