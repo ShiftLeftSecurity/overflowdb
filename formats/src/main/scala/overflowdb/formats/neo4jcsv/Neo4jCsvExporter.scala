@@ -3,9 +3,8 @@ package overflowdb.formats.neo4jcsv
 import com.github.tototoshi.csv._
 import overflowdb.Graph
 import overflowdb.formats.Exporter
-import overflowdb.traversal.Traversal
 
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
 import scala.jdk.OptionConverters.RichOptional
@@ -34,6 +33,7 @@ object Neo4jCsvExporter extends Exporter {
   private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
     val dataFile   = outputRootDirectory.resolve(s"nodes_$label$DataFileSuffix.csv")
     val headerFile = outputRootDirectory.resolve(s"nodes_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
+    val cypherFile = outputRootDirectory.resolve(s"nodes_$label$CypherFileSuffix.csv")
     val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
 
     Using.resource(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
@@ -45,7 +45,30 @@ object Neo4jCsvExporter extends Exporter {
     }
 
     writeSingleLineCsv(headerFile, Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes)
-    Seq(headerFile, dataFile)
+
+    // TODO refactor/extract for reuse with edges?
+    // write cypher file for import
+    // starting with index=2, because 0|1 are taken by 'special' columns Id|Label
+    val cypherPropertyMappings = columnDefinitions.propertiesMappingsForCypher(startIndex = 2).mkString(",\n")
+    val cypherQuery =
+      s"""CREATE (:$label {
+         |id: line[0],
+         |$cypherPropertyMappings
+         |});
+         |""".stripMargin
+    /*
+    CREATE (:LITERAL {
+  id: line[0],
+  code: toStringList(line[2]),
+  columnNumber: toInteger(line[3]),
+  order: toInteger(line[5]),
+  typeFullName: line[6]
+});
+     */
+    println(cypherQuery)
+    Files.writeString(cypherFile, cypherQuery)
+
+    Seq(headerFile, dataFile, cypherFile)
   }
 
   /** write edges of all labels */
@@ -58,6 +81,7 @@ object Neo4jCsvExporter extends Exporter {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
         val headerFile = outputRootDirectory.resolve(s"edges_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
         val dataFile   = outputRootDirectory.resolve(s"edges_$label$DataFileSuffix.csv")
+//        val cypherFile   = outputRootDirectory.resolve(s"edges_$label$CypherFileSuffix.csv")
         val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
         val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
         EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
@@ -75,7 +99,7 @@ object Neo4jCsvExporter extends Exporter {
 
         dataFileWriter.flush()
         dataFileWriter.close()
-        Seq(headerFile, dataFile)
+        Seq(headerFile, dataFile)//, cypherFile)
     }.toSeq
   }
 

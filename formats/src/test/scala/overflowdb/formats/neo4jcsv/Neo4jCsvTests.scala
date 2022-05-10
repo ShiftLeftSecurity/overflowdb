@@ -115,7 +115,7 @@ class Neo4jCsvTests extends AnyWordSpec {
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
       val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
       exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
-      exportedFiles.size shouldBe 4
+      exportedFiles.size shouldBe 5
 
       // assert csv file contents
       val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, HeaderFileSuffix)
@@ -135,6 +135,21 @@ class Neo4jCsvTests extends AnyWordSpec {
       edgeDataFileLines.size shouldBe 2
       edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
       edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
+
+      val cypherFileContent = fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString
+      cypherFileContent shouldBe
+        """CREATE (:testNode {
+          |id: line[0],
+          |FunkyListProperty: split(line[2]),
+          |IntListProperty: split(line[3]),
+          |IntProperty: line[4],
+          |StringListProperty: split(line[5]),
+          |StringProperty: line[6]
+          |});
+          |""".stripMargin
+
+      // TODO same for TestEdge.LABEL/cypher
+      ???
 
       // import csv into new graph, use difftool for round trip of conversion
       val graphFromCsv = SimpleDomain.newGraph()

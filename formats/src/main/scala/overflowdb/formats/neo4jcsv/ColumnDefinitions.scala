@@ -67,6 +67,27 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     }
   }
 
+  /** for cypher file
+   * <rant> why does neo4j have 4 different ways to import a CSV, out of which only one works, and really the only
+   * help we get is a csv file reader, and we need to specify exactly how each column needs to be parsed and mapped...?
+   * </rant>
+   */
+  def propertiesMappingsForCypher(startIndex: Int): Seq[String] = {
+    var idx = startIndex - 1
+    propertyNamesOrdered.map { name =>
+      idx += 1
+      columnDefByPropertyName(name) match {
+        case Some(ScalarColumnDef(valueType)) =>
+          s"$name: line[$idx]"
+        case Some(ArrayColumnDef(Some(valueType), _)) =>
+          s"$name: split(line[$idx])"
+        case _ =>
+//          name
+        ???
+      }
+    }
+  }
+
   /**
    * derive property types based on the runtime class
    * note: this ignores the edge case that there may be different runtime types for the same property
