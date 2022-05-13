@@ -46,8 +46,7 @@ object Neo4jCsvExporter extends Exporter {
 
     writeSingleLineCsv(headerFile, Seq(ColumnType.Id, ColumnType.Label) ++ columnDefinitions.propertiesWithTypes)
 
-    // TODO refactor/extract for reuse with edges?
-    // write cypher file for import
+    // write cypher file for import into neo4j
     // starting with index=2, because 0|1 are taken by 'special' columns Id|Label
     val cypherPropertyMappings = columnDefinitions.propertiesMappingsForCypher(startIndex = 2).mkString(",\n")
     val cypherQuery =
@@ -72,10 +71,10 @@ object Neo4jCsvExporter extends Exporter {
         // first time we encounter an edge of this type - create the columnMapping and write the header file
         val headerFile = outputRootDirectory.resolve(s"edges_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
         val dataFile   = outputRootDirectory.resolve(s"edges_$label$DataFileSuffix.csv")
-//        val cypherFile   = outputRootDirectory.resolve(s"edges_$label$CypherFileSuffix.csv")
+        val cypherFile   = outputRootDirectory.resolve(s"edges_$label$CypherFileSuffix.csv")
         val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
         val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
-        EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions)
+        EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions)
       })
 
       val specialColumns = Seq(edge.outNode.id.toString, edge.inNode.id.toString, edge.label)
@@ -84,13 +83,25 @@ object Neo4jCsvExporter extends Exporter {
     }
 
     edgeFilesContextByLabel.values.flatMap {
-      case EdgeFilesContext(headerFile, dataFile, dataFileWriter, columnDefinitions) =>
+      case EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions) =>
         writeSingleLineCsv(headerFile,
           Seq(ColumnType.StartId, ColumnType.EndId, ColumnType.Type) ++ columnDefinitions.propertiesWithTypes)
 
         dataFileWriter.flush()
         dataFileWriter.close()
-        Seq(headerFile, dataFile)//, cypherFile)
+
+        // write cypher file for import into neo4j
+        // starting with index=3, because 0|1|2 are taken by 'special' columns StartId|EndId|Type
+        val cypherPropertyMappings = columnDefinitions.propertiesMappingsForCypher(startIndex = 3).mkString(",\n")
+        val cypherQuery =
+          s"""LOAD CSV FROM 'file:/edges_${label}_data.csv' AS line
+             |MATCH (a), (b)
+             |WHERE a.id = toInteger(line[0]) AND b.id = toInteger(line[1])
+             |CREATE (a)-[r:$label {$cypherPropertyMappings}]->(b);
+             |""".stripMargin
+        Files.writeString(cypherFile, cypherQuery)
+
+        Seq(headerFile, dataFile, cypherFile)
     }.toSeq
   }
 
@@ -100,8 +111,10 @@ object Neo4jCsvExporter extends Exporter {
     }
   }
 
-  private case class EdgeFilesContext(headerFile: Path,
+  private case class EdgeFilesContext(label: String,
+                                      headerFile: Path,
                                       dataFile: Path,
+                                      cypherFile: Path,
                                       dataFileWriter: CSVWriter,
                                       columnDefinitions: ColumnDefinitions)
 }

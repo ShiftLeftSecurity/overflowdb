@@ -115,7 +115,7 @@ class Neo4jCsvTests extends AnyWordSpec {
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
       val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
       exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
-      exportedFiles.size shouldBe 5
+      exportedFiles.size shouldBe 6
 
       // assert csv file contents
       val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, HeaderFileSuffix)
@@ -136,8 +136,7 @@ class Neo4jCsvTests extends AnyWordSpec {
       edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
       edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
 
-      val cypherFileContent = fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString
-      cypherFileContent shouldBe
+      fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString shouldBe
         """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
           |CREATE (:testNode {
           |id: toInteger(line[0]),
@@ -148,7 +147,18 @@ class Neo4jCsvTests extends AnyWordSpec {
           |StringProperty: line[6]
           |});
           |""".stripMargin
-      // TODO same for TestEdge.LABEL/cypher
+
+      fuzzyFindFile(exportedFiles, TestEdge.LABEL, CypherFileSuffix).contentAsString shouldBe
+        """LOAD CSV FROM 'file:/edges_testEdge_data.csv' AS line
+          |MATCH (a), (b)
+          |WHERE a.id = toInteger(line[0]) AND b.id = toInteger(line[1])
+          |CREATE (a)-[r:testEdge {longProperty: toInteger(line[3])}]->(b);
+          |""".stripMargin
+
+      /** example cypher queries to run manually in your neo4j instance:
+       * MATCH (a) return a;
+       * MATCH (a)-[r]->(b) RETURN a.id, type(r), b.id;
+       * */
 
       // import csv into new graph, use difftool for round trip of conversion
       val graphFromCsv = SimpleDomain.newGraph()
