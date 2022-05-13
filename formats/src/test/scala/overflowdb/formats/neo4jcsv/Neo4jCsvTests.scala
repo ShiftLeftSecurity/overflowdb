@@ -138,7 +138,8 @@ class Neo4jCsvTests extends AnyWordSpec {
 
       val cypherFileContent = fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString
       cypherFileContent shouldBe
-        """CREATE (:testNode {
+        """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
+          |CREATE (:testNode {
           |id: line[0],
           |FunkyListProperty: split(line[2]),
           |IntListProperty: split(line[3]),

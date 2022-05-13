@@ -51,7 +51,8 @@ object Neo4jCsvExporter extends Exporter {
     // starting with index=2, because 0|1 are taken by 'special' columns Id|Label
     val cypherPropertyMappings = columnDefinitions.propertiesMappingsForCypher(startIndex = 2).mkString(",\n")
     val cypherQuery =
-      s"""CREATE (:$label {
+      s"""LOAD CSV FROM 'file:/nodes_${label}_data.csv' AS line
+         |CREATE (:$label {
          |id: line[0],
          |$cypherPropertyMappings
          |});
@@ -65,7 +66,7 @@ object Neo4jCsvExporter extends Exporter {
   typeFullName: line[6]
 });
      */
-    println(cypherQuery)
+    println(cypherQuery) // TODO drop println
     Files.writeString(cypherFile, cypherQuery)
 
     Seq(headerFile, dataFile, cypherFile)

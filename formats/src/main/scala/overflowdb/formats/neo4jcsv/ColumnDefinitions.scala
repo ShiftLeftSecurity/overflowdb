@@ -89,6 +89,22 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
   }
 
   /**
+   * maybe choose one of https://neo4j.com/docs/cypher-manual/current/functions/scalar/, depending on the columnType
+   */
+  private def cypherConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
+    columnType match {
+      case ColumnType.Id | ColumnType.Int => Some("toInteger")
+      case ColumnType.Long => ???
+      case ColumnType.Float => ???
+      case ColumnType.Double => ???
+      case ColumnType.Boolean => ???
+      case ColumnType.Byte => ???
+      case ColumnType.Short => ???
+      case _ => None
+    }
+  }
+
+  /**
    * derive property types based on the runtime class
    * note: this ignores the edge case that there may be different runtime types for the same property
    * */
