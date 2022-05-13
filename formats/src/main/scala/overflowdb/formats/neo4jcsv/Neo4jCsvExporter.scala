@@ -53,20 +53,10 @@ object Neo4jCsvExporter extends Exporter {
     val cypherQuery =
       s"""LOAD CSV FROM 'file:/nodes_${label}_data.csv' AS line
          |CREATE (:$label {
-         |id: line[0],
+         |id: toInteger(line[0]),
          |$cypherPropertyMappings
          |});
          |""".stripMargin
-    /*
-    CREATE (:LITERAL {
-  id: line[0],
-  code: toStringList(line[2]),
-  columnNumber: toInteger(line[3]),
-  order: toInteger(line[5]),
-  typeFullName: line[6]
-});
-     */
-    println(cypherQuery) // TODO drop println
     Files.writeString(cypherFile, cypherQuery)
 
     Seq(headerFile, dataFile, cypherFile)

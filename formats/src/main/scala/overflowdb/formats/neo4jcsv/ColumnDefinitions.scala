@@ -76,20 +76,22 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     var idx = startIndex - 1
     propertyNamesOrdered.map { name =>
       idx += 1
-      def adaptedAccessor(columnType: Option[ColumnType.Value]) = {
-        val accessor = s"line[$idx]"
-        columnType
-          .flatMap(cypherConversionFunctionMaybe)
-          .map { cypherConversionFunction =>
-            s"$cypherConversionFunction($accessor)"
-          }.getOrElse(accessor)
-      }
-
       columnDefByPropertyName(name) match {
         case Some(ScalarColumnDef(columnType)) =>
-          s"$name: ${adaptedAccessor(Some(columnType))}"
+          val accessor = s"line[$idx]"
+          val adaptedAccessor =
+            cypherScalarConversionFunctionMaybe(columnType)
+              .map(f => s"$f($accessor)")
+              .getOrElse(accessor)
+          s"$name: $adaptedAccessor"
         case Some(ArrayColumnDef(columnType, _)) =>
-          s"$name: split(${adaptedAccessor(columnType)}, \";\")"
+          val accessor = s"""split(line[$idx], ";")"""
+          val adaptedAccessor =
+            columnType
+              .flatMap(cypherListConversionFunctionMaybe)
+              .map(f => s"$f($accessor)")
+              .getOrElse(accessor)
+          s"$name: $adaptedAccessor"
         case None =>
           throw new AssertionError(s"unknown column with name=$name")
       }
@@ -97,9 +99,9 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
   }
 
   /**
-   * maybe choose one of https://neo4j.com/docs/cypher-manual/current/functions/scalar/, depending on the columnType
+   * optionally choose one of https://neo4j.com/docs/cypher-manual/current/functions/scalar/, depending on the columnType
    */
-  private def cypherConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
+  private def cypherScalarConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
     columnType match {
       case ColumnType.Id | ColumnType.Int | ColumnType.Long | ColumnType.Byte | ColumnType.Short =>
         Some("toInteger")
@@ -107,6 +109,23 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
         Some("toFloat")
       case ColumnType.Boolean =>
         Some("toBoolean")
+      case _ => None
+    }
+  }
+
+  /**
+   * optionally choose one of https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-tobooleanlist, depending on the columnType
+   */
+  private def cypherListConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
+    columnType match {
+      case ColumnType.Id | ColumnType.Int | ColumnType.Long | ColumnType.Byte | ColumnType.Short =>
+        Some("toIntegerList")
+      case ColumnType.Float | ColumnType.Double =>
+        Some("toFloatList")
+      case ColumnType.Boolean =>
+        Some("toBooleanList")
+      case ColumnType.String =>
+        Some("toStringList")
       case _ => None
     }
   }
