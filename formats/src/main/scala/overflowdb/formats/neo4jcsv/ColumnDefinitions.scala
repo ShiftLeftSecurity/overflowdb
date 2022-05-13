@@ -76,14 +76,21 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     var idx = startIndex - 1
     propertyNamesOrdered.map { name =>
       idx += 1
+      val accessor = s"line[$idx]"
+      def adaptedAccessor(columnType: ColumnType.Value) =
+        cypherConversionFunctionMaybe(accessor, columnType)
+
       columnDefByPropertyName(name) match {
-        case Some(ScalarColumnDef(valueType)) =>
-          s"$name: line[$idx]"
-        case Some(ArrayColumnDef(Some(valueType), _)) =>
-          s"$name: split(line[$idx], \";\")"
-        case _ =>
-//          name
-        ???
+        case Some(ScalarColumnDef(columnType)) =>
+          s"$name: ${adaptedAccessor(columnType)}"
+        case Some(ArrayColumnDef(None, _)) =>
+          s"$name: split($accessor, \";\")"
+        case Some(ArrayColumnDef(Some(columnType), _)) =>
+          s"$name: split(${adaptedAccessor(columnType)}, \";\")"
+        case None =>
+          throw new AssertionError(s"unknown column with name=$name")
+        case other =>
+          throw new AssertionError(s"unhandled column mapping: $other")
       }
     }
   }
@@ -91,17 +98,19 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
   /**
    * maybe choose one of https://neo4j.com/docs/cypher-manual/current/functions/scalar/, depending on the columnType
    */
-  private def cypherConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
-    columnType match {
-      case ColumnType.Id | ColumnType.Int => Some("toInteger")
-      case ColumnType.Long => ???
-      case ColumnType.Float => ???
-      case ColumnType.Double => ???
-      case ColumnType.Boolean => ???
-      case ColumnType.Byte => ???
-      case ColumnType.Short => ???
-      case _ => None
-    }
+  private def cypherConversionFunctionMaybe(accessorSrc: String, columnType: ColumnType.Value): String = {
+    val cypherFunctionMaybe: Option[String] =
+      columnType match {
+        case ColumnType.Id | ColumnType.Int | ColumnType.Long | ColumnType.Byte | ColumnType.Short =>
+          Some("toInteger")
+        case ColumnType.Float | ColumnType.Double =>
+          Some("toFloat")
+        case ColumnType.Boolean =>
+          Some("toBoolean")
+        case _ => None
+      }
+
+    cypherFunctionMaybe.map(f => s"$f($accessorSrc)").getOrElse(accessorSrc)
   }
 
   /**
