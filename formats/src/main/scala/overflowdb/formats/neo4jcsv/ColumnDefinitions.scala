@@ -76,9 +76,9 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     var idx = startIndex - 1
     propertyNamesOrdered.map { name =>
       idx += 1
+      val accessor = s"line[$idx]"
       columnDefByPropertyName(name) match {
         case Some(ScalarColumnDef(columnType)) =>
-          val accessor = s"line[$idx]"
           val adaptedAccessor =
             cypherScalarConversionFunctionMaybe(columnType)
               .map(f => s"$f($accessor)")
@@ -93,7 +93,7 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
               .getOrElse(accessor)
           s"$name: $adaptedAccessor"
         case None =>
-          throw new AssertionError(s"unknown column with name=$name")
+          s"$name: $accessor"
       }
     }
   }
