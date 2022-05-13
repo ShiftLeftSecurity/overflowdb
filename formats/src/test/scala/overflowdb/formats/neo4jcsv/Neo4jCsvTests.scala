@@ -141,15 +141,16 @@ class Neo4jCsvTests extends AnyWordSpec {
         """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
           |CREATE (:testNode {
           |id: line[0],
-          |FunkyListProperty: split(line[2]),
-          |IntListProperty: split(line[3]),
+          |FunkyListProperty: split(line[2], ";"),
+          |IntListProperty: split(line[3], ";"),
           |IntProperty: line[4],
-          |StringListProperty: split(line[5]),
+          |StringListProperty: split(line[5], ";"),
           |StringProperty: line[6]
           |});
           |""".stripMargin
 
       // TODO same for TestEdge.LABEL/cypher
+      println(nodeDataFileLines.mkString("\n"))
       ???
 
       // import csv into new graph, use difftool for round trip of conversion

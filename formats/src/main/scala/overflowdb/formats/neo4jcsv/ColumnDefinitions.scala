@@ -80,7 +80,7 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
         case Some(ScalarColumnDef(valueType)) =>
           s"$name: line[$idx]"
         case Some(ArrayColumnDef(Some(valueType), _)) =>
-          s"$name: split(line[$idx])"
+          s"$name: split(line[$idx], \";\")"
         case _ =>
 //          name
         ???
