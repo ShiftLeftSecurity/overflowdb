@@ -137,26 +137,22 @@ class Neo4jCsvTests extends AnyWordSpec {
       edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
 
       val cypherFileContent = fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString
-      println(cypherFileContent) // TODO drop println
       cypherFileContent shouldBe
         """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
           |CREATE (:testNode {
-          |id: line[0],
-          |FunkyListProperty: split(line[2], ";"),
-          |IntListProperty: toIntegerList(split(line[3]), ";"),
+          |id: toInteger(line[0]),
+          |FunkyListProperty: toStringList(split(line[2], ";")),
+          |IntListProperty: toIntegerList(split(line[3], ";")),
           |IntProperty: toInteger(line[4]),
-          |StringListProperty: split(line[5], ";"),
+          |StringListProperty: toStringList(split(line[5], ";")),
           |StringProperty: line[6]
           |});
           |""".stripMargin
-      println(nodeDataFileLines.mkString("\n"))
-
       // TODO same for TestEdge.LABEL/cypher
-      ???
 
       // import csv into new graph, use difftool for round trip of conversion
       val graphFromCsv = SimpleDomain.newGraph()
-      Neo4jCsvImporter.runImport(graphFromCsv, exportedFiles.map(_.toJava.toPath))
+      Neo4jCsvImporter.runImport(graphFromCsv, exportedFiles.filterNot(_.name.contains(CypherFileSuffix)).map(_.toJava.toPath))
       val diff = DiffTool.compare(graph, graphFromCsv)
       withClue(s"original graph and reimport from csv should be completely equal, but there are differences:\n" +
         diff.asScala.mkString("\n") +
