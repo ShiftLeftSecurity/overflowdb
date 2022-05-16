@@ -37,10 +37,12 @@ object ImporterMain extends App {
             case Format.GraphMl => GraphMLImport
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
-          val convertPropertyForPersistenceJava = new function.Function[Object, Object] {
-            override def apply(o: Object) = convertPropertyForPersistence(o).asInstanceOf[Object]
-          }
-          Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava, convertPropertyForPersistenceJava)) { graph =>
+          Using.resource(
+            Graph.open(
+              odbConfig,
+              nodeFactories.asJava,
+              edgeFactories.asJava,
+              convertPropertyForPersistence(_).asInstanceOf[Object])) { graph =>
             logger.info(s"starting import of ${inputFiles.size} files in format=$format into a new overflowdb instance with storagePath=$outputFile")
             importer.runImport(graph, inputFiles)
             logger.info(s"import completed successfully")
