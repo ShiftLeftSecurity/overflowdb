@@ -22,9 +22,9 @@ class Neo4jCsvTests extends AnyWordSpec {
     "import valid csv" in {
       val csvInputFiles = Seq(
         "testedges_header.csv",
-        "testedges.csv",
+        "testedges_data.csv",
         "testnodes_header.csv",
-        "testnodes.csv",
+        "testnodes_data.csv",
       ).map(neo4jcsvRoot.resolve)
 
       val graph = SimpleDomain.newGraph()
