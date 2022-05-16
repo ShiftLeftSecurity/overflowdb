@@ -40,8 +40,9 @@ object ExporterMain {
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)
           Using.resource(Graph.open(odbConfig, nodeFactories.asJava, edgeFactories.asJava)) { graph =>
             logger.info(s"starting export of graph in $inputFile to storagePath=$outputFile in format=$format")
-            exporter.runExport(graph, outputFile)
-            logger.info(s"export completed successfully")
+            val ExportResult(nodeCount, edgeCount, files, additionalInfo) = exporter.runExport(graph, outputFile)
+            logger.info(s"export completed successfully: $nodeCount nodes, $edgeCount edges in ${files.size} files")
+            logger.info(additionalInfo)
           }
         }
     }

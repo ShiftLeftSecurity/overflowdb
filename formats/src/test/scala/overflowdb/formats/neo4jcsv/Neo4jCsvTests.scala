@@ -3,7 +3,7 @@ package overflowdb.formats.neo4jcsv
 import better.files._
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
-import overflowdb.formats.{ExporterMain, ImporterMain}
+import overflowdb.formats.{ExportResult, ExporterMain, ImporterMain}
 import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
 import overflowdb.traversal._
 import overflowdb.util.DiffTool
@@ -113,9 +113,12 @@ class Neo4jCsvTests extends AnyWordSpec {
     node2.addEdge(TestEdge.LABEL, node3)
 
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
-      val exportedFiles = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString).map(_.toFile.toScala)
-      exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
+      val ExportResult(nodeCount, edgeCount, exportedFiles0, additionalInfo) = Neo4jCsvExporter.runExport(graph, exportRootDirectory.pathAsString)
+      nodeCount shouldBe 3
+      edgeCount shouldBe 2
+      val exportedFiles = exportedFiles0.map(_.toFile.toScala)
       exportedFiles.size shouldBe 6
+      exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
 
       // assert csv file contents
       val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, HeaderFileSuffix)

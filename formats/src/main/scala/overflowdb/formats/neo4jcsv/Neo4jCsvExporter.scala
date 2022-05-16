@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.Exporter
+import overflowdb.formats.{CountAndFiles, ExportResult, Exporter}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -11,7 +11,6 @@ import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
 object Neo4jCsvExporter extends Exporter {
-
   /**
    * Exports OverflowDB Graph to neo4j csv files
    * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
@@ -20,27 +19,44 @@ object Neo4jCsvExporter extends Exporter {
    * runtime types. We will write columns for all declared properties, because we only know which ones are
    * actually in use *after* traversing all elements.
    * */
-  override def runExport(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
+  override def runExport(graph: Graph, outputRootDirectory: Path) = {
     val labelsWithNodes = graph.nodeCountByLabel.asScala.collect {
       case (label, count) if count > 0 => label
     }.toSeq
 
-    val nodeFiles = labelsWithNodes.flatMap(exportNodes(graph, _, outputRootDirectory))
-    val edgeFiles = exportEdges(graph, outputRootDirectory)
-    nodeFiles ++ edgeFiles
+    val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes.map { label =>
+      exportNodes(graph, label, outputRootDirectory)
+    }.reduce(_.plus(_))
+    val CountAndFiles(edgeCount, edgeFiles) = exportEdges(graph, outputRootDirectory)
+
+    ExportResult(
+      nodeCount,
+      edgeCount,
+      files = nodeFiles ++ edgeFiles,
+      s"""instructions on how to import the exported files into neo4j:
+         |```
+         |cp $outputRootDirectory/*$DataFileSuffix.csv <neo4j_root>/import
+         |cd <neo4j_root>
+         |find $outputRootDirectory -name 'nodes_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
+         |find $outputRootDirectory -name 'edges_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
+         |```
+         |""".stripMargin
+    )
   }
 
-  private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): Seq[Path] = {
+  private def exportNodes(graph: Graph, label: String, outputRootDirectory: Path): CountAndFiles = {
     val dataFile   = outputRootDirectory.resolve(s"nodes_$label$DataFileSuffix.csv")
     val headerFile = outputRootDirectory.resolve(s"nodes_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
     val cypherFile = outputRootDirectory.resolve(s"nodes_$label$CypherFileSuffix.csv")
     val columnDefinitions = new ColumnDefinitions(graph.nodes(label).next.propertyKeys.asScala)
+    var nodeCount = 0
 
     Using.resource(CSVWriter.open(dataFile.toFile, append = false)) { writer =>
       graph.nodes(label).forEachRemaining { node =>
         val specialColumns = Seq(node.id.toString, node.label)
         val propertyValueColumns = columnDefinitions.propertyValues(node.propertyOption(_).toScala)
         writer.writeRow(specialColumns ++ propertyValueColumns)
+        nodeCount += 1
       }
     }
 
@@ -58,12 +74,13 @@ object Neo4jCsvExporter extends Exporter {
          |""".stripMargin
     Files.writeString(cypherFile, cypherQuery)
 
-    Seq(headerFile, dataFile, cypherFile)
+    CountAndFiles(nodeCount, Seq(headerFile, dataFile, cypherFile))
   }
 
   /** write edges of all labels */
-  private def exportEdges(graph: Graph, outputRootDirectory: Path): Seq[Path] = {
+  private def exportEdges(graph: Graph, outputRootDirectory: Path): CountAndFiles = {
     val edgeFilesContextByLabel = mutable.Map.empty[String, EdgeFilesContext]
+    var count = 0
 
     graph.edges().forEachRemaining { edge =>
       val label = edge.label
@@ -80,9 +97,10 @@ object Neo4jCsvExporter extends Exporter {
       val specialColumns = Seq(edge.outNode.id.toString, edge.inNode.id.toString, edge.label)
       val propertyValueColumns = context.columnDefinitions.propertyValues(edge.propertyOption(_).toScala)
       context.dataFileWriter.writeRow(specialColumns ++ propertyValueColumns)
+      count += 1
     }
 
-    edgeFilesContextByLabel.values.flatMap {
+    val files = edgeFilesContextByLabel.values.flatMap {
       case EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions) =>
         writeSingleLineCsv(headerFile,
           Seq(ColumnType.StartId, ColumnType.EndId, ColumnType.Type) ++ columnDefinitions.propertiesWithTypes)
@@ -103,6 +121,8 @@ object Neo4jCsvExporter extends Exporter {
 
         Seq(headerFile, dataFile, cypherFile)
     }.toSeq
+
+    CountAndFiles(count, files)
   }
 
   private def writeSingleLineCsv(outputFile: Path, entries: Seq[Any]): Unit = {
