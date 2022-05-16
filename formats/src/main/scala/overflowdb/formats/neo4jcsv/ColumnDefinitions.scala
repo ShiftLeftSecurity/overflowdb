@@ -67,6 +67,69 @@ class ColumnDefinitions(propertyNames: Iterable[String]) {
     }
   }
 
+  /** for cypher file
+   * <rant> why does neo4j have 4 different ways to import a CSV, out of which only one works, and really the only
+   * help we get is a csv file reader, and we need to specify exactly how each column needs to be parsed and mapped...?
+   * </rant>
+   */
+  def propertiesMappingsForCypher(startIndex: Int): Seq[String] = {
+    var idx = startIndex - 1
+    propertyNamesOrdered.map { name =>
+      idx += 1
+      val accessor = s"line[$idx]"
+      columnDefByPropertyName(name) match {
+        case Some(ScalarColumnDef(columnType)) =>
+          val adaptedAccessor =
+            cypherScalarConversionFunctionMaybe(columnType)
+              .map(f => s"$f($accessor)")
+              .getOrElse(accessor)
+          s"$name: $adaptedAccessor"
+        case Some(ArrayColumnDef(columnType, _)) =>
+          val accessor = s"""split(line[$idx], ";")"""
+          val adaptedAccessor =
+            columnType
+              .flatMap(cypherListConversionFunctionMaybe)
+              .map(f => s"$f($accessor)")
+              .getOrElse(accessor)
+          s"$name: $adaptedAccessor"
+        case None =>
+          s"$name: $accessor"
+      }
+    }
+  }
+
+  /**
+   * optionally choose one of https://neo4j.com/docs/cypher-manual/current/functions/scalar/, depending on the columnType
+   */
+  private def cypherScalarConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
+    columnType match {
+      case ColumnType.Id | ColumnType.Int | ColumnType.Long | ColumnType.Byte | ColumnType.Short =>
+        Some("toInteger")
+      case ColumnType.Float | ColumnType.Double =>
+        Some("toFloat")
+      case ColumnType.Boolean =>
+        Some("toBoolean")
+      case _ => None
+    }
+  }
+
+  /**
+   * optionally choose one of https://neo4j.com/docs/cypher-manual/current/functions/list/#functions-tobooleanlist, depending on the columnType
+   */
+  private def cypherListConversionFunctionMaybe(columnType: ColumnType.Value): Option[String] = {
+    columnType match {
+      case ColumnType.Id | ColumnType.Int | ColumnType.Long | ColumnType.Byte | ColumnType.Short =>
+        Some("toIntegerList")
+      case ColumnType.Float | ColumnType.Double =>
+        Some("toFloatList")
+      case ColumnType.Boolean =>
+        Some("toBooleanList")
+      case ColumnType.String =>
+        Some("toStringList")
+      case _ => None
+    }
+  }
+
   /**
    * derive property types based on the runtime class
    * note: this ignores the edge case that there may be different runtime types for the same property

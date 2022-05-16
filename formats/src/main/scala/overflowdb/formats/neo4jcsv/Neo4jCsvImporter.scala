@@ -63,7 +63,7 @@ object Neo4jCsvImporter extends Importer {
       s"number of header files (`xyz$HeaderFileSuffix.csv`) must equal the number of data files (`xyz.csv`)")
 
     headerFiles.map { headerFile =>
-      val wantedBodyFilename = headerFile.getFileName.toString.replaceAll(HeaderFileSuffix, "")
+      val wantedBodyFilename = headerFile.getFileName.toString.replaceAll(HeaderFileSuffix, DataFileSuffix)
       dataFiles.find(_.getFileName.toString == wantedBodyFilename) match {
         case Some(dataFile) =>
           HeaderAndDataFile(parseHeaderFile(headerFile), dataFile)
