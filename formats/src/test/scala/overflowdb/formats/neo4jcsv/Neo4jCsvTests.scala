@@ -57,7 +57,7 @@ class Neo4jCsvTests extends AnyWordSpec {
     "fail if multiple labels are used (unsupported by overflowdb)" in {
       val csvInputFiles = Seq(
         "unsupported_multiple_labels_header.csv",
-        "unsupported_multiple_labels.csv",
+        "unsupported_multiple_labels_data.csv",
       ).map(neo4jcsvRoot.resolve)
 
       val graph = SimpleDomain.newGraph()
@@ -69,7 +69,7 @@ class Neo4jCsvTests extends AnyWordSpec {
     "fail if input file doesn't exist" in {
       val csvInputFiles = Seq(
         "does_not_exist_header.csv",
-        "does_not_exist.csv",
+        "does_not_exist_data.csv",
       ).map(neo4jcsvRoot.resolve)
 
       val graph = SimpleDomain.newGraph()
@@ -81,13 +81,13 @@ class Neo4jCsvTests extends AnyWordSpec {
     "fail with context information (line number etc.) for invalid input" in {
       val csvInputFiles = Seq(
         "invalid_column_content_header.csv",
-        "invalid_column_content.csv",
+        "invalid_column_content_data.csv",
       ).map(neo4jcsvRoot.resolve)
 
       val graph = SimpleDomain.newGraph()
       intercept[RuntimeException] {
         Neo4jCsvImporter.runImport(graph, csvInputFiles)
-      }.getMessage should include("invalid_column_content.csv line 3")
+      }.getMessage should include("invalid_column_content_data.csv line 3")
     }
   }
 
@@ -188,12 +188,13 @@ class Neo4jCsvTests extends AnyWordSpec {
       val exporterMain = ExporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
       exporterMain(Array("--format=neo4jcsv", s"--out=${exportPath.pathAsString}", graphPath.pathAsString))
       val exportedFiles = exportPath.list.toArray
-      exportedFiles.size shouldBe 4
+      exportedFiles.size shouldBe 6
 
       // use importer for round trip
       val importerMain = ImporterMain(Seq(TestNode.factory), Seq(TestEdge.factory))
       val reimportPath = tmpDir/"reimported.odb"
-      importerMain(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ exportedFiles.map(_.pathAsString))
+      val relevantInputFiles = exportedFiles.filterNot(_.name.contains(CypherFileSuffix)).map(_.pathAsString)
+      importerMain(Array("--format=neo4jcsv", s"--out=${reimportPath.pathAsString}") ++ relevantInputFiles)
       val graphReimported = SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(reimportPath.toJava.toPath))
       graphReimported.nodeCount shouldBe 2
       graphReimported.node(2).out(TestEdge.LABEL).property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
