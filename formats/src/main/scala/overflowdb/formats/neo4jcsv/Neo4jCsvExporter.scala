@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.{CountAndFiles, ExportResult, Exporter, labelsWithNodes}
+import overflowdb.formats.{CountAndFiles, ExportResult, Exporter}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -30,14 +30,14 @@ object Neo4jCsvExporter extends Exporter {
       nodeCount,
       edgeCount,
       files = nodeFiles ++ edgeFiles,
-      s"""instructions on how to import the exported files into neo4j:
+      Option(s"""instructions on how to import the exported files into neo4j:
          |```
          |cp $outputRootDirectory/*$DataFileSuffix.csv <neo4j_root>/import
          |cd <neo4j_root>
          |find $outputRootDirectory -name 'nodes_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
          |find $outputRootDirectory -name 'edges_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
          |```
-         |""".stripMargin
+         |""".stripMargin)
     )
   }
 
@@ -120,6 +120,12 @@ object Neo4jCsvExporter extends Exporter {
     }.toSeq
 
     CountAndFiles(count, files)
+  }
+
+  private def labelsWithNodes(graph: Graph): Seq[String] = {
+    graph.nodeCountByLabel.asScala.collect {
+      case (label, count) if count > 0 => label
+    }.toSeq
   }
 
   private def writeSingleLineCsv(outputFile: Path, entries: Seq[Any]): Unit = {
