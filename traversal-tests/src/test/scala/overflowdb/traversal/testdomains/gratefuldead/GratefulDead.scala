@@ -1,7 +1,6 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
-import overflowdb.formats.GraphMLImport
-
+import overflowdb.formats.graphml.GraphMLImport
 import java.util
 import overflowdb.traversal.{Traversal, TraversalSource}
 import overflowdb.{Config, Graph}

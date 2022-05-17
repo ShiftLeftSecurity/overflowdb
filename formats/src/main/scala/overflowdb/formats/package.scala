@@ -1,6 +1,7 @@
 package overflowdb
 
 import java.nio.file.Path
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 package object formats {
   object Format extends Enumeration {
@@ -18,4 +19,9 @@ package object formats {
       CountAndFiles(count + other.count, files ++ other.files)
   }
 
+  def labelsWithNodes(graph: Graph): Seq[String] = {
+    graph.nodeCountByLabel.asScala.collect {
+      case (label, count) if count > 0 => label
+    }.toSeq
+  }
 }

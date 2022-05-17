@@ -1,6 +1,7 @@
-package overflowdb.formats
+package overflowdb.formats.graphml
 
 import overflowdb.Graph
+import overflowdb.formats.Importer
 
 import java.nio.file.Path
 import scala.xml.XML

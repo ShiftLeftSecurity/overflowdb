@@ -1,6 +1,7 @@
 package overflowdb.formats
 
 import org.slf4j.LoggerFactory
+import overflowdb.formats.graphml.GraphMLImport
 import overflowdb.formats.neo4jcsv.Neo4jCsvImporter
 import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser

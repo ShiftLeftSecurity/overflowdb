@@ -2,7 +2,7 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.{CountAndFiles, ExportResult, Exporter}
+import overflowdb.formats.{CountAndFiles, ExportResult, Exporter, labelsWithNodes}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -11,6 +11,7 @@ import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
 object Neo4jCsvExporter extends Exporter {
+
   /**
    * Exports OverflowDB Graph to neo4j csv files
    * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
@@ -20,11 +21,7 @@ object Neo4jCsvExporter extends Exporter {
    * actually in use *after* traversing all elements.
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
-    val labelsWithNodes = graph.nodeCountByLabel.asScala.collect {
-      case (label, count) if count > 0 => label
-    }.toSeq
-
-    val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes.map { label =>
+    val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes(graph).map { label =>
       exportNodes(graph, label, outputRootDirectory)
     }.reduce(_.plus(_))
     val CountAndFiles(edgeCount, edgeFiles) = exportEdges(graph, outputRootDirectory)
