@@ -11,15 +11,15 @@ import scala.xml.XML
 object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
-    inputFiles.foreach { inputFile =>
-      val doc = XML.loadFile(inputFile.toFile)
-      val graphXml = doc \ "graph"
-      for (node <- graphXml \ "node") {
-        addNode(graph, node)
-      }
-      for (edge <- graphXml \ "edge") {
-        addEdge(graph, edge)
-      }
+    assert(inputFiles.size == 1, s"input must be exactly one file, but got ${inputFiles.size}")
+    val doc = XML.loadFile(inputFiles.head.toFile)
+    val graphXml = doc \ "graph"
+
+    for (node <- graphXml \ "node") {
+      addNode(graph, node)
+    }
+    for (edge <- graphXml \ "edge") {
+      addEdge(graph, edge)
     }
   }
 
