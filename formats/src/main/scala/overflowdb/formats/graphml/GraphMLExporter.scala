@@ -1,9 +1,9 @@
 package overflowdb.formats.graphml
 
-import overflowdb.{Element, Graph, Node}
 import overflowdb.formats.{ExportResult, Exporter}
+import overflowdb.{Element, Graph}
 
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{IteratorHasAsScala, MapHasAsScala}
 
@@ -17,6 +17,7 @@ object GraphMLExporter extends Exporter {
    * http://graphml.graphdrawing.org/primer/graphml-primer.html
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
+    val outFile = resolveOutputFile(outputRootDirectory)
     val nodePropertyTypeByName = mutable.Map.empty[String, Type.Value]
     val edgePropertyTypeByName = mutable.Map.empty[String, Type.Value]
 
@@ -59,11 +60,7 @@ object GraphMLExporter extends Exporter {
        |</graphml>
        |""".stripMargin
 
-    if (!outputRootDirectory.toFile.exists)
-//    val outFile = outputRootDirectory
-
-
-    // TODO write to output dir/file
+    Files.writeString(outFile, xml)
 
     ExportResult(
       nodeEntries.size,
@@ -73,7 +70,17 @@ object GraphMLExporter extends Exporter {
     )
   }
 
-  /** warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
+  private def resolveOutputFile(outputRootDirectory: Path): Path = {
+    if (Files.exists(outputRootDirectory)) {
+      assert(Files.isDirectory(outputRootDirectory), s"given output directory `$outputRootDirectory` must be a directory, but isn't...")
+    } else {
+      Files.createDirectories(outputRootDirectory)
+    }
+    outputRootDirectory.resolve("export.graphml")
+  }
+
+  /**
+   * warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
    */
   private def dataEntries(
       prefix: String,
@@ -97,15 +104,15 @@ object GraphMLExporter extends Exporter {
     val String = Value("string")
 
     def fromRuntimeClass(clazz: Class[_]): Type.Value = {
-      if (clazz.isAssignableFrom(classOf[Boolean]))
+      if (clazz.isAssignableFrom(classOf[Boolean]) || clazz.isAssignableFrom(classOf[java.lang.Boolean]))
         Type.Boolean
-      else if (clazz.isAssignableFrom(classOf[Int]))
+      else if (clazz.isAssignableFrom(classOf[Int]) || clazz.isAssignableFrom(classOf[Integer]))
         Type.Int
-      else if (clazz.isAssignableFrom(classOf[Long]))
+      else if (clazz.isAssignableFrom(classOf[Long]) || clazz.isAssignableFrom(classOf[java.lang.Long]))
         Type.Long
-      else if (clazz.isAssignableFrom(classOf[Float]))
+      else if (clazz.isAssignableFrom(classOf[Float]) || clazz.isAssignableFrom(classOf[java.lang.Float]))
         Type.Float
-      else if (clazz.isAssignableFrom(classOf[Double]))
+      else if (clazz.isAssignableFrom(classOf[Double]) || clazz.isAssignableFrom(classOf[java.lang.Double]))
         Type.Double
       else if (clazz.isAssignableFrom(classOf[String]))
         Type.String

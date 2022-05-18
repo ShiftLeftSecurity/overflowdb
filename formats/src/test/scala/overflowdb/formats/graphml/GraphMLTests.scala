@@ -52,62 +52,23 @@ class GraphMLTests extends AnyWordSpec {
     val node1 = graph.addNode(1, TestNode.LABEL,
       TestNode.INT_PROPERTY, 11,
       TestNode.STRING_PROPERTY, "stringProp1",
-      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
-      TestNode.FUNKY_LIST_PROPERTY, funkyList,
-      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
+      // TODO add lists back in
+//      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
+//      TestNode.FUNKY_LIST_PROPERTY, funkyList,
+//      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
     )
 
     node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)
     node2.addEdge(TestEdge.LABEL, node3)
 
     File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
-      val ExportResult(nodeCount, edgeCount, exportedFiles0, additionalInfo) = GraphMLExporter.runExport(graph, exportRootDirectory.pathAsString)
-      nodeCount shouldBe 3
-      edgeCount shouldBe 2
-      fail("continue here")
-//      val exportedFiles = exportedFiles0.map(_.toFile.toScala)
-//      exportedFiles.size shouldBe 6
-//      exportedFiles.foreach(_.parent shouldBe exportRootDirectory)
-//
-//      // assert csv file contents
-//      val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, HeaderFileSuffix)
-//      nodeHeaderFile.contentAsString.trim shouldBe
-//        ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty:string"
-//
-//      val nodeDataFileLines = fuzzyFindFile(exportedFiles, TestNode.LABEL, DataFileSuffix).lines.toSeq
-//      nodeDataFileLines.size shouldBe 3
-//      nodeDataFileLines should contain("2,testNode,,,,,stringProp2")
-//      nodeDataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
-//      nodeDataFileLines should contain("1,testNode,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1")
-//
-//      val edgeHeaderFile = fuzzyFindFile(exportedFiles, TestEdge.LABEL, HeaderFileSuffix)
-//      edgeHeaderFile.contentAsString.trim shouldBe ":START_ID,:END_ID,:TYPE,longProperty:long"
-//
-//      val edgeDataFileLines = fuzzyFindFile(exportedFiles, TestEdge.LABEL, DataFileSuffix).lines.toSeq
-//      edgeDataFileLines.size shouldBe 2
-//      edgeDataFileLines should contain(s"1,2,testEdge,${Long.MaxValue}")
-//      edgeDataFileLines should contain(s"2,3,testEdge,${TestEdge.LONG_PROPERTY_DEFAULT}")
-//
-//      fuzzyFindFile(exportedFiles, TestNode.LABEL, CypherFileSuffix).contentAsString shouldBe
-//        """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
-//          |CREATE (:testNode {
-//          |id: toInteger(line[0]),
-//          |FunkyListProperty: toStringList(split(line[2], ";")),
-//          |IntListProperty: toIntegerList(split(line[3], ";")),
-//          |IntProperty: toInteger(line[4]),
-//          |StringListProperty: toStringList(split(line[5], ";")),
-//          |StringProperty: line[6]
-//          |});
-//          |""".stripMargin
-//
-//      fuzzyFindFile(exportedFiles, TestEdge.LABEL, CypherFileSuffix).contentAsString shouldBe
-//        """LOAD CSV FROM 'file:/edges_testEdge_data.csv' AS line
-//          |MATCH (a), (b)
-//          |WHERE a.id = toInteger(line[0]) AND b.id = toInteger(line[1])
-//          |CREATE (a)-[r:testEdge {longProperty: toInteger(line[3])}]->(b);
-//          |""".stripMargin
-//
-//      // import csv into new graph, use difftool for round trip of conversion
+      val exportResult = GraphMLExporter.runExport(graph, exportRootDirectory.pathAsString)
+      exportResult.nodeCount shouldBe 3
+      exportResult.edgeCount shouldBe 2
+      val graphMLFile = Seq(exportResult.files)
+
+      // import graphml into new graph, use difftool for round trip of conversion
+      // TODO
 //      val graphFromCsv = SimpleDomain.newGraph()
 //      Neo4jCsvImporter.runImport(graphFromCsv, exportedFiles.filterNot(_.name.contains(CypherFileSuffix)).map(_.toJava.toPath))
 //      val diff = DiffTool.compare(graph, graphFromCsv)
