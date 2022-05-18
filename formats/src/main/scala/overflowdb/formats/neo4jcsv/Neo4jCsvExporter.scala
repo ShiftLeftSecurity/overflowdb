@@ -2,11 +2,11 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.{CountAndFiles, ExportResult, Exporter}
+import overflowdb.formats.{ExportResult, Exporter, labelsWithNodes}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
@@ -122,12 +122,6 @@ object Neo4jCsvExporter extends Exporter {
     CountAndFiles(count, files)
   }
 
-  private def labelsWithNodes(graph: Graph): Seq[String] = {
-    graph.nodeCountByLabel.asScala.collect {
-      case (label, count) if count > 0 => label
-    }.toSeq
-  }
-
   private def writeSingleLineCsv(outputFile: Path, entries: Seq[Any]): Unit = {
     Using.resource(CSVWriter.open(outputFile.toFile, append = false)) { writer =>
       writer.writeRow(entries)
@@ -140,4 +134,10 @@ object Neo4jCsvExporter extends Exporter {
                                       cypherFile: Path,
                                       dataFileWriter: CSVWriter,
                                       columnDefinitions: ColumnDefinitions)
+
+  case class CountAndFiles(count: Int, files: Seq[Path]) {
+    def plus(other: CountAndFiles): CountAndFiles =
+      CountAndFiles(count + other.count, files ++ other.files)
+  }
+
 }

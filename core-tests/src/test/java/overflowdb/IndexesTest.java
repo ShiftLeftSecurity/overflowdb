@@ -1,9 +1,8 @@
 package overflowdb;
 
-import overflowdb.formats.GraphMLImport;
-import overflowdb.testdomains.gratefuldead.GratefulDead;
-
 import org.junit.Test;
+import overflowdb.formats.graphml.GraphMLImporter;
+import overflowdb.testdomains.gratefuldead.GratefulDead;
 
 import java.io.File;
 import java.io.IOException;
@@ -132,7 +131,7 @@ public class IndexesTest {
 
   public static Graph openAndLoadSampleData(String path) {
     Graph graph = GratefulDead.newGraph(Config.withDefaults().withStorageLocation(path));
-    GraphMLImport.runImport(graph, "src/test/resources/grateful-dead.xml");
+    GraphMLImporter.runImport(graph, "src/test/resources/grateful-dead.xml");
     return graph;
   }
 

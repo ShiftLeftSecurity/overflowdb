@@ -8,7 +8,7 @@ import scala.xml.XML
 
 /** primitive GraphML importer which doesn't support much from the spec...
  *  only enough to get us covered for some standard test cases, really */
-object GraphMLImport extends Importer {
+object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     inputFiles.foreach { inputFile =>
