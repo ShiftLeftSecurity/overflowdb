@@ -9,7 +9,7 @@ import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNod
 import overflowdb.util.DiffTool
 
 import java.nio.file.Paths
-import scala.jdk.CollectionConverters.IterableHasAsJava
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IterableHasAsJava}
 
 class GraphMLTests extends AnyWordSpec {
 
@@ -65,18 +65,17 @@ class GraphMLTests extends AnyWordSpec {
       val exportResult = GraphMLExporter.runExport(graph, exportRootDirectory.pathAsString)
       exportResult.nodeCount shouldBe 3
       exportResult.edgeCount shouldBe 2
-      val graphMLFile = Seq(exportResult.files)
+      val Seq(graphMLFile) = exportResult.files
 
       // import graphml into new graph, use difftool for round trip of conversion
-      // TODO
-//      val graphFromCsv = SimpleDomain.newGraph()
-//      Neo4jCsvImporter.runImport(graphFromCsv, exportedFiles.filterNot(_.name.contains(CypherFileSuffix)).map(_.toJava.toPath))
-//      val diff = DiffTool.compare(graph, graphFromCsv)
-//      withClue(s"original graph and reimport from csv should be completely equal, but there are differences:\n" +
-//        diff.asScala.mkString("\n") +
-//        "\n") {
-//        diff.size shouldBe 0
-//      }
+      val reimported = SimpleDomain.newGraph()
+      GraphMLImporter.runImport(reimported, graphMLFile)
+      val diff = DiffTool.compare(graph, reimported)
+      withClue(s"original graph and reimport from csv should be completely equal, but there are differences:\n" +
+        diff.asScala.mkString("\n") +
+        "\n") {
+        diff.size shouldBe 0
+      }
     }
   }
 

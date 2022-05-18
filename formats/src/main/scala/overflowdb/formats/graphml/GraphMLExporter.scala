@@ -18,13 +18,13 @@ object GraphMLExporter extends Exporter {
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
     val outFile = resolveOutputFile(outputRootDirectory)
-    val nodePropertyTypeByName = mutable.Map.empty[String, Type.Value]
-    val edgePropertyTypeByName = mutable.Map.empty[String, Type.Value]
+    val nodePropertyContextById = mutable.Map.empty[String, PropertyContext]
+    val edgePropertyContextById = mutable.Map.empty[String, PropertyContext]
 
     val nodeEntries = graph.nodes().asScala.map { node =>
       s"""<node id="${node.id}">
          |    <data key="$KeyForNodeLabel">${node.label}</data>
-         |    ${dataEntries("node", node, nodePropertyTypeByName)}
+         |    ${dataEntries("node", node, nodePropertyContextById)}
          |</node>
          |""".stripMargin
     }.toSeq
@@ -32,16 +32,16 @@ object GraphMLExporter extends Exporter {
     val edgeEntries = graph.edges().asScala.map { edge =>
       s"""<edge source="${edge.inNode.id}" target="${edge.outNode.id}">
          |    <data key="$KeyForEdgeLabel">${edge.label}</data>
-         |    ${dataEntries("edge", edge, edgePropertyTypeByName)}
+         |    ${dataEntries("edge", edge, edgePropertyContextById)}
          |</edge>
          |""".stripMargin
     }.toSeq
 
-    val nodePropertyKeyEntries = nodePropertyTypeByName.map { case (key, tpe) =>
-      s"""<key id="$key" for="node" attr.name="$key" attr.type="$tpe"></key>"""
+    val nodePropertyKeyEntries = nodePropertyContextById.map { case (key, PropertyContext(name, tpe)) =>
+      s"""<key id="$key" for="node" attr.name="$name" attr.type="$tpe"></key>"""
     }.mkString("\n")
-    val edgePropertyKeyEntries = edgePropertyTypeByName.map { case (key, tpe) =>
-      s"""<key id="$key" for="edge" attr.name="$key" attr.type="$tpe"></key>"""
+    val edgePropertyKeyEntries = edgePropertyContextById.map { case (key, PropertyContext(name, tpe)) =>
+      s"""<key id="$key" for="edge" attr.name="$name" attr.type="$tpe"></key>"""
     }.mkString("\n")
 
     val xml = s"""
@@ -58,7 +58,7 @@ object GraphMLExporter extends Exporter {
        |      ${edgeEntries.mkString("\n")}
        |    </graph>
        |</graphml>
-       |""".stripMargin
+       |""".stripMargin.strip
 
     Files.writeString(outFile, xml)
 
@@ -82,16 +82,17 @@ object GraphMLExporter extends Exporter {
   /**
    * warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
    */
-  private def dataEntries(
-      prefix: String,
-      element: Element,
-      propertyTypeByName: mutable.Map[String, Type.Value]): String = {
+  private def dataEntries(prefix: String,
+                          element: Element,
+                          propertyContextById: mutable.Map[String, PropertyContext]): String = {
     element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
+      val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
       // update type information based on runtime instances
-      if (!propertyTypeByName.contains(propertyName)) {
-        propertyTypeByName.update(propertyName, Type.fromRuntimeClass(propertyValue.getClass))
+      if (!propertyContextById.contains(encodedPropertyName)) {
+        propertyContextById.update(encodedPropertyName,
+          PropertyContext(propertyName, Type.fromRuntimeClass(propertyValue.getClass)))
       }
-      s"""<data key="${prefix}__${element.label}__$propertyName">$propertyValue</data>"""
+      s"""<data key="$encodedPropertyName">$propertyValue</data>"""
     }.mkString("\n")
   }
 
@@ -120,4 +121,6 @@ object GraphMLExporter extends Exporter {
         throw new AssertionError(s"unsupported runtime class `$clazz` - only ${Type.values.mkString("|")} are supported...}")
     }
   }
+
+  private case class PropertyContext(name: String, tpe: Type.Value)
 }
