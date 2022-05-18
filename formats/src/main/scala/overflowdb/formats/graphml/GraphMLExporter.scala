@@ -17,31 +17,60 @@ object GraphMLExporter extends Exporter {
    * http://graphml.graphdrawing.org/primer/graphml-primer.html
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
-    val propertyTypeByName = mutable.Map.empty[String, Type.Value]
+    val nodePropertyTypeByName = mutable.Map.empty[String, Type.Value]
+    val edgePropertyTypeByName = mutable.Map.empty[String, Type.Value]
 
     val nodeEntries = graph.nodes().asScala.map { node =>
       s"""<node id="${node.id}">
          |    <data key="$KeyForNodeLabel">${node.label}</data>
-         |    ${dataEntries("node", node, propertyTypeByName)}
+         |    ${dataEntries("node", node, nodePropertyTypeByName)}
          |</node>
          |""".stripMargin
-    }
+    }.toSeq
 
     val edgeEntries = graph.edges().asScala.map { edge =>
-      s"""<edge id="${edge.id}">
-         |    <data key="$KeyForNodeLabel">${edge.label}</data>
-         |    ${dataEntries("edge", edge, propertyTypeByName)}
+      s"""<edge source="${edge.inNode.id}" target="${edge.outNode.id}">
+         |    <data key="$KeyForEdgeLabel">${edge.label}</data>
+         |    ${dataEntries("edge", edge, edgePropertyTypeByName)}
          |</edge>
          |""".stripMargin
-    }
+    }.toSeq
+
+    val nodePropertyKeyEntries = nodePropertyTypeByName.map { case (key, tpe) =>
+      s"""<key id="$key" for="node" attr.name="$key" attr.type="$tpe"></key>"""
+    }.mkString("\n")
+    val edgePropertyKeyEntries = edgePropertyTypeByName.map { case (key, tpe) =>
+      s"""<key id="$key" for="edge" attr.name="$key" attr.type="$tpe"></key>"""
+    }.mkString("\n")
+
+    val xml = s"""
+       |<?xml version="1.0" encoding="UTF-8"?>
+       |<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+       |  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       |  xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+       |    <key id="$KeyForNodeLabel" for="node" attr.name="$KeyForNodeLabel" attr.type="string"></key>
+       |    <key id="$KeyForEdgeLabel" for="edge" attr.name="$KeyForEdgeLabel" attr.type="string"></key>
+       |    $nodePropertyKeyEntries
+       |    $edgePropertyKeyEntries
+       |    <graph id="G" edgedefault="directed">
+       |      ${nodeEntries.mkString("\n")}
+       |      ${edgeEntries.mkString("\n")}
+       |    </graph>
+       |</graphml>
+       |""".stripMargin
+
+    if (!outputRootDirectory.toFile.exists)
+//    val outFile = outputRootDirectory
+
 
     // TODO write to output dir/file
-        ExportResult(
-          nodes.size,
-          -1,
-          files = Nil,
-          None
-        )
+
+    ExportResult(
+      nodeEntries.size,
+      edgeEntries.size,
+      files = Seq(outFile),
+      None
+    )
   }
 
   /** warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
@@ -58,17 +87,6 @@ object GraphMLExporter extends Exporter {
       s"""<data key="${prefix}__${element.label}__$propertyName">$propertyValue</data>"""
     }.mkString("\n")
   }
-
-  private def xmlDocument(body: String) =
-    s"""
-      |<?xml version="1.0" encoding="UTF-8"?>
-      |<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
-      |    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      |    xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
-      |     http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-      |$body
-      |</graphml>
-      |""".stripMargin
 
   object Type extends Enumeration {
     val Boolean = Value("boolean")
