@@ -1,6 +1,6 @@
 package overflowdb.formats.graphml
 
-import overflowdb.Graph
+import overflowdb.{Element, Graph, Node}
 import overflowdb.formats.{ExportResult, Exporter}
 
 import java.nio.file.Path
@@ -19,29 +19,21 @@ object GraphMLExporter extends Exporter {
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
     val propertyTypeByName = mutable.Map.empty[String, Type.Value]
 
-    val nodes = graph.nodes().asScala.map { node =>
-      val keyEntries = {
-        node.propertiesMap().asScala.map { case (key, value) =>
-          // update type information based on runtime instances
-          if (!propertyTypeByName.contains(key)) {
-            propertyTypeByName.update(key, Type.fromRuntimeClass(value.getClass))
-          }
-          s"""<data key="$key">$value</data>"""
-        }
-      }.mkString("\n")
-
+    val nodeEntries = graph.nodes().asScala.map { node =>
       s"""<node id="${node.id}">
          |    <data key="$KeyForNodeLabel">${node.label}</data>
-         |    $keyEntries
+         |    ${dataEntries("node", node, propertyTypeByName)}
          |</node>
          |""".stripMargin
     }
 
-    // TODO propertyTypeByName needs to be grouped by label... properties could have different types for different labels...
-
-    //    graph.edges().forEachRemaining { edge =>
-//
-//    }
+    val edgeEntries = graph.edges().asScala.map { edge =>
+      s"""<edge id="${edge.id}">
+         |    <data key="$KeyForNodeLabel">${edge.label}</data>
+         |    ${dataEntries("edge", edge, propertyTypeByName)}
+         |</edge>
+         |""".stripMargin
+    }
 
     // TODO write to output dir/file
         ExportResult(
@@ -50,6 +42,21 @@ object GraphMLExporter extends Exporter {
           files = Nil,
           None
         )
+  }
+
+  /** warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
+   */
+  private def dataEntries(
+      prefix: String,
+      element: Element,
+      propertyTypeByName: mutable.Map[String, Type.Value]): String = {
+    element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
+      // update type information based on runtime instances
+      if (!propertyTypeByName.contains(propertyName)) {
+        propertyTypeByName.update(propertyName, Type.fromRuntimeClass(propertyValue.getClass))
+      }
+      s"""<data key="${prefix}__${element.label}__$propertyName">$propertyValue</data>"""
+    }.mkString("\n")
   }
 
   private def xmlDocument(body: String) =
