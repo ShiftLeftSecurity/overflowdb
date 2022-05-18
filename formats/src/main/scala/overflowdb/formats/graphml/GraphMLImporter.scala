@@ -6,8 +6,13 @@ import overflowdb.formats.Importer
 import java.nio.file.Path
 import scala.xml.XML
 
-/** primitive GraphML importer which doesn't support much from the spec...
- *  only enough to get us covered for some standard test cases, really */
+/**
+ * Imports GraphML into OverflowDB
+ * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
+ *
+ * https://en.wikipedia.org/wiki/GraphML
+ * http://graphml.graphdrawing.org/primer/graphml-primer.html
+ * */
 object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {

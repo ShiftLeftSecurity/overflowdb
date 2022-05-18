@@ -7,15 +7,17 @@ import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{IteratorHasAsScala, MapHasAsScala}
 
+/**
+ * Exports OverflowDB Graph to GraphML
+ * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
+ *
+ * https://en.wikipedia.org/wiki/GraphML
+ * http://graphml.graphdrawing.org/primer/graphml-primer.html
+ * */
 object GraphMLExporter extends Exporter {
   val KeyForNodeLabel = "labelV"
   val KeyForEdgeLabel = "labelE"
 
-  /**
-   * Exports OverflowDB Graph to graphml
-   * https://en.wikipedia.org/wiki/GraphML
-   * http://graphml.graphdrawing.org/primer/graphml-primer.html
-   * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
     val outFile = resolveOutputFile(outputRootDirectory)
     val nodePropertyContextById = mutable.Map.empty[String, PropertyContext]
