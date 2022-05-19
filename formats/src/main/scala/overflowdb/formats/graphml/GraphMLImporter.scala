@@ -1,7 +1,7 @@
 package overflowdb.formats.graphml
 
 import overflowdb.Graph
-import overflowdb.formats.{Importer, graphml}
+import overflowdb.formats.Importer
 
 import java.nio.file.Path
 import scala.collection.immutable.ArraySeq
@@ -103,7 +103,22 @@ object GraphMLImporter extends Importer {
     } source.addEdge(label, target, keyValuePairs.result: _*)
   }
 
-  private def convertValue(stringValue: String, tpe: graphml.Type.Value, context: scala.xml.Node): Any = {
+  private def convertValue(stringValue: String, tpe: Type.Value, context: scala.xml.Node): Any = {
+    tryConvertScalarValue(stringValue, tpe)
+      .orElse(Try {
+        val values = stringValue.split(';').map(value =>
+          tryConvertScalarValue(value, tpe).get // if parsing fails, we do want to escalate
+        )
+        ArraySeq.unsafeWrapArray(values).asJava
+      })
+    match {
+      case Success(value) => value
+      case Failure(e) => throw new AssertionError(
+        s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
+    }
+  }
+
+  private def tryConvertScalarValue(stringValue: String, tpe: Type.Value): Try[Any] = {
     Try {
       tpe match {
         case Type.Boolean => stringValue.toBoolean
@@ -112,15 +127,7 @@ object GraphMLImporter extends Importer {
         case Type.Float => stringValue.toLong
         case Type.Double => stringValue.toDouble
         case Type.String => stringValue
-        case Type.List => deencodeListValue(stringValue)
       }
-    } match {
-      case Success(value) => value
-      case Failure(e) => throw new AssertionError(
-        s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
     }
   }
-
-  def deencodeListValue(value: String): java.lang.Iterable[String] =
-    ArraySeq.unsafeWrapArray(value.split(';')).asJava
 }
