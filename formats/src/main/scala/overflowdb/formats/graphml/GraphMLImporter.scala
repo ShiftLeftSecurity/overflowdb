@@ -110,6 +110,7 @@ object GraphMLImporter extends Importer {
         case Type.Float => stringValue.toLong
         case Type.Double => stringValue.toDouble
         case Type.String => stringValue
+        case Type.List => ???
       }
     } match {
       case Success(value) => value

@@ -5,7 +5,7 @@ import overflowdb.{Element, Graph}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
 
 /**
  * Exports OverflowDB Graph to GraphML
@@ -87,12 +87,32 @@ object GraphMLExporter extends Exporter {
                           propertyContextById: mutable.Map[String, PropertyContext]): String = {
     element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
       val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
+      val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
       // update type information based on runtime instances
       if (!propertyContextById.contains(encodedPropertyName)) {
         propertyContextById.update(encodedPropertyName,
-          PropertyContext(propertyName, Type.fromRuntimeClass(propertyValue.getClass)))
+          PropertyContext(propertyName, graphMLTpe))
       }
-      s"""<data key="$encodedPropertyName">$propertyValue</data>"""
+
+      val valueEncodedMaybe = graphMLTpe match {
+        case Type.List => encodeListValue(propertyValue)
+        case _ => propertyValue
+      }
+      s"""<data key="$encodedPropertyName">$valueEncodedMaybe</data>"""
     }.mkString("\n")
+  }
+
+  private def encodeListValue(value: AnyRef): String = {
+    value match {
+      case value: Iterable[_] =>
+        value.mkString(";")
+      case value: IterableOnce[_] =>
+        value.iterator.mkString(";")
+      case value: java.lang.Iterable[_] =>
+        value.asScala.mkString(";")
+      case value: Array[_] =>
+        value.mkString(";")
+      case _ => value.toString
+    }
   }
 }
