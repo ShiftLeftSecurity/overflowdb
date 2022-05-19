@@ -4,6 +4,8 @@ import overflowdb.Graph
 import overflowdb.formats.{Importer, graphml}
 
 import java.nio.file.Path
+import scala.collection.immutable.ArraySeq
+import scala.jdk.CollectionConverters.IterableHasAsJava
 import scala.util.{Failure, Success, Try}
 import scala.xml.{NodeSeq, XML}
 
@@ -110,13 +112,15 @@ object GraphMLImporter extends Importer {
         case Type.Float => stringValue.toLong
         case Type.Double => stringValue.toDouble
         case Type.String => stringValue
-        case Type.List => ???
+        case Type.List => deencodeListValue(stringValue)
       }
     } match {
       case Success(value) => value
       case Failure(e) => throw new AssertionError(
-        s"unable to parse stringValue=`$stringValue` of tpe=$tpe. context: $context", e)
+        s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
     }
   }
 
+  def deencodeListValue(value: String): java.lang.Iterable[String] =
+    ArraySeq.unsafeWrapArray(value.split(';')).asJava
 }
