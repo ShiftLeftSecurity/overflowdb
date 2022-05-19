@@ -90,20 +90,20 @@ object GraphMLExporter extends Exporter {
       val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
 
       /* update type information based on runtime instances */
-      def updatePropertyContext(graphMLTpe: => Option[Type.Value]) = {
+      def updatePropertyContext(valueTpe: Type.Value) = {
         if (!propertyContextById.contains(encodedPropertyName)) {
-          graphMLTpe.map { valueTpe =>
-            propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, valueTpe))
-          }
+          propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, valueTpe))
         }
       }
 
       if (graphMLTpe == Type.List) {
-        updatePropertyContext(tryDeriveListValueType(propertyValue))
-        val valueEncoded = encodeListValue(propertyValue)
-        s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
+        tryDeriveListValueType(propertyValue).map { valueTpe =>
+          updatePropertyContext(valueTpe)
+          val valueEncoded = encodeListValue(propertyValue)
+          s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
+        }.getOrElse("") // if list is empty, don't even create a data entry
       } else { // scalar value
-        updatePropertyContext(Option(graphMLTpe))
+        updatePropertyContext(graphMLTpe)
         s"""<data key="$encodedPropertyName">$propertyValue</data>"""
       }
     }.mkString("\n")
