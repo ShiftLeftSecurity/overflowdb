@@ -30,7 +30,7 @@ object GraphMLExporter extends Exporter {
     }.toSeq
 
     val edgeEntries = graph.edges().asScala.map { edge =>
-      s"""<edge source="${edge.inNode.id}" target="${edge.outNode.id}">
+      s"""<edge source="${edge.outNode.id}" target="${edge.inNode.id}">
          |    <data key="$KeyForEdgeLabel">${edge.label}</data>
          |    ${dataEntries("edge", edge, edgePropertyContextById)}
          |</edge>

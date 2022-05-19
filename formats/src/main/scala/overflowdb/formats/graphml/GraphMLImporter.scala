@@ -1,9 +1,10 @@
 package overflowdb.formats.graphml
 
 import overflowdb.Graph
-import overflowdb.formats.Importer
+import overflowdb.formats.{Importer, graphml}
 
 import java.nio.file.Path
+import scala.util.{Failure, Success, Try}
 import scala.xml.{NodeSeq, XML}
 
 /**
@@ -53,13 +54,17 @@ object GraphMLImporter extends Importer {
   private def addNode(graph: Graph, node: scala.xml.Node, propertyContextById: Map[String, PropertyContext]): Unit = {
     val id = node \@ "id"
     var label: Option[String] = None
-    val keyValuePairs = Seq.newBuilder[String]
+    val keyValuePairs = Seq.newBuilder[Any]
 
     for (entry <- node \ "data") {
       val value = entry.text
       entry \@ "key" match {
         case KeyForNodeLabel => label = Option(value)
-        case propertyName => keyValuePairs.addAll(Seq(propertyName, value))
+        case key =>
+          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
+              throw new AssertionError(s"key $key not found in propertyContext..."))
+          val convertedValue = convertValue(value, tpe, context = node)
+          keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
 
@@ -73,13 +78,17 @@ object GraphMLImporter extends Importer {
     val sourceId = edge \@ "source"
     val targetId = edge \@ "target"
     var label: Option[String] = None
-    val keyValuePairs = Seq.newBuilder[String]
+    val keyValuePairs = Seq.newBuilder[Any]
 
     for (entry <- edge \ "data") {
       val value = entry.text
       entry \@ "key" match {
         case KeyForEdgeLabel => label = Option(value)
-        case propertyName => keyValuePairs.addAll(Seq(propertyName, value))
+        case key =>
+          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
+            throw new AssertionError(s"key $key not found in propertyContext..."))
+          val convertedValue = convertValue(value, tpe, context = edge)
+          keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
 
@@ -91,4 +100,22 @@ object GraphMLImporter extends Importer {
       label <- label
     } source.addEdge(label, target, keyValuePairs.result: _*)
   }
+
+  private def convertValue(stringValue: String, tpe: graphml.Type.Value, context: scala.xml.Node): Any = {
+    Try {
+      tpe match {
+        case Type.Boolean => stringValue.toBoolean
+        case Type.Int => stringValue.toInt
+        case Type.Long => stringValue.toLong
+        case Type.Float => stringValue.toLong
+        case Type.Double => stringValue.toDouble
+        case Type.String => stringValue
+      }
+    } match {
+      case Success(value) => value
+      case Failure(e) => throw new AssertionError(
+        s"unable to parse stringValue=`$stringValue` of tpe=$tpe. context: $context", e)
+    }
+  }
+
 }
