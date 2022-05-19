@@ -37,10 +37,16 @@ object GraphMLExporter extends Exporter {
          |""".stripMargin
     }.toSeq
 
-    val nodePropertyKeyEntries = nodePropertyContextById.map { case (key, PropertyContext(name, tpe)) =>
-      s"""<key id="$key" for="node" attr.name="$name" attr.type="$tpe"></key>"""
+    val nodePropertyKeyEntries = nodePropertyContextById.map { case (key, PropertyContext(name, tpe, isList)) =>
+      val tpe0 =
+        if (isList) s"$tpe[]"
+        else tpe
+      s"""<key id="$key" for="node" attr.name="$name" attr.type="$tpe0"></key>"""
     }.mkString("\n")
-    val edgePropertyKeyEntries = edgePropertyContextById.map { case (key, PropertyContext(name, tpe)) =>
+    val edgePropertyKeyEntries = edgePropertyContextById.map { case (key, PropertyContext(name, tpe, isList)) =>
+      val tpe0 =
+        if (isList) s"$tpe[]"
+        else tpe
       s"""<key id="$key" for="edge" attr.name="$name" attr.type="$tpe"></key>"""
     }.mkString("\n")
 
@@ -90,20 +96,20 @@ object GraphMLExporter extends Exporter {
       val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
 
       /* update type information based on runtime instances */
-      def updatePropertyContext(valueTpe: Type.Value) = {
+      def updatePropertyContext(valueTpe: Type.Value, isList: Boolean) = {
         if (!propertyContextById.contains(encodedPropertyName)) {
-          propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, valueTpe))
+          propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, valueTpe, isList))
         }
       }
 
       if (graphMLTpe == Type.List) {
         tryDeriveListValueType(propertyValue).map { valueTpe =>
-          updatePropertyContext(valueTpe)
+          updatePropertyContext(valueTpe, true)
           val valueEncoded = encodeListValue(propertyValue)
           s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
         }.getOrElse("") // if list is empty, don't even create a data entry
       } else { // scalar value
-        updatePropertyContext(graphMLTpe)
+        updatePropertyContext(graphMLTpe, false)
         s"""<data key="$encodedPropertyName">$propertyValue</data>"""
       }
     }.mkString("\n")

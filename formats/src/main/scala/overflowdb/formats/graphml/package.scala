@@ -38,6 +38,6 @@ package object graphml {
     }
   }
 
-  private[graphml] case class PropertyContext(name: String, tpe: Type.Value)
+  private[graphml] case class PropertyContext(name: String, tpe: Type.Value, isList: Boolean)
 
 }
