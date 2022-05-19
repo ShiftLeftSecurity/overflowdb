@@ -13,6 +13,11 @@ package object graphml {
     val Double = Value("double")
     val String = Value("string")
 
+    /** Warning: list properties are not natively supported by graphml...
+     *  For our purposes we fake it by encoding it as a `;` separated string - if you import this into a different database, you'll need to parse that separately.
+     *  In comparison, Tinkerpop just bails out if you try to export a list property to graphml. */
+    val List = Value("list")
+
     def fromRuntimeClass(clazz: Class[_]): Type.Value = {
       if (clazz.isAssignableFrom(classOf[Boolean]) || clazz.isAssignableFrom(classOf[java.lang.Boolean]))
         Type.Boolean
@@ -26,6 +31,8 @@ package object graphml {
         Type.Double
       else if (clazz.isAssignableFrom(classOf[String]))
         Type.String
+      else if (clazz.isArray || classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) || classOf[IterableOnce[_]].isAssignableFrom(clazz))
+        Type.List
       else
         throw new AssertionError(s"unsupported runtime class `$clazz` - only ${Type.values.mkString("|")} are supported...}")
     }

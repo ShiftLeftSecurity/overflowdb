@@ -53,7 +53,7 @@ class GraphMLTests extends AnyWordSpec {
       TestNode.INT_PROPERTY, 11,
       TestNode.STRING_PROPERTY, "stringProp1",
       // TODO add lists back in
-//      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
+      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
 //      TestNode.FUNKY_LIST_PROPERTY, funkyList,
 //      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
     )
