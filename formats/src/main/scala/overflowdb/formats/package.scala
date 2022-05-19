@@ -18,4 +18,13 @@ package object formats {
       case (label, count) if count > 0 => label
     }.toSeq
   }
+
+  /**
+   * @return true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
+   */
+  def isList(clazz: Class[_]): Boolean = {
+    clazz.isArray ||
+      classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) ||
+      classOf[IterableOnce[_]].isAssignableFrom(clazz)
+  }
 }

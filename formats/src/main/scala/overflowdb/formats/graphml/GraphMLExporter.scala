@@ -1,6 +1,6 @@
 package overflowdb.formats.graphml
 
-import overflowdb.formats.{ExportResult, Exporter}
+import overflowdb.formats.{ExportResult, Exporter, isList}
 import overflowdb.{Element, Graph}
 
 import java.nio.file.{Files, Path}
@@ -93,7 +93,6 @@ object GraphMLExporter extends Exporter {
                           propertyContextById: mutable.Map[String, PropertyContext]): String = {
     element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
       val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
-      val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
 
       /* update type information based on runtime instances */
       def updatePropertyContext(valueTpe: Type.Value, isList: Boolean) = {
@@ -102,13 +101,14 @@ object GraphMLExporter extends Exporter {
         }
       }
 
-      if (graphMLTpe == Type.List) {
+      if (isList(propertyValue.getClass)) {
         tryDeriveListValueType(propertyValue).map { valueTpe =>
           updatePropertyContext(valueTpe, true)
           val valueEncoded = encodeListValue(propertyValue)
           s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
         }.getOrElse("") // if list is empty, don't even create a data entry
       } else { // scalar value
+        val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
         updatePropertyContext(graphMLTpe, false)
         s"""<data key="$encodedPropertyName">$propertyValue</data>"""
       }
