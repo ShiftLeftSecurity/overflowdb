@@ -9,7 +9,10 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, M
 
 /**
  * Exports OverflowDB Graph to GraphML
+ *
  * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
+ * If you import this into a different database, you'll need to parse that separately.
+ * In comparison, Tinkerpop just bails out if you try to export a list property to graphml.
  *
  * https://en.wikipedia.org/wiki/GraphML
  * http://graphml.graphdrawing.org/primer/graphml-primer.html

@@ -11,7 +11,6 @@ import scala.xml.{NodeSeq, XML}
 
 /**
  * Imports GraphML into OverflowDB
- * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
  *
  * https://en.wikipedia.org/wiki/GraphML
  * http://graphml.graphdrawing.org/primer/graphml-primer.html
