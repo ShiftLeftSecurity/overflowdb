@@ -47,7 +47,7 @@ object GraphMLImporter extends Importer {
         val name = node \@ "attr.name"
         val graphmlType = node \@ "attr.type"
 
-        // warning: this is derivating from the graphml spec - we do want to support list properties...
+        // warning: this is deviating from the graphml spec - we do want to support list properties...
         val isList = graphmlType.endsWith("[]")
         val tpe =
           if (isList) Type.withName(graphmlType.dropRight(2))

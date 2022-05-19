@@ -3,6 +3,7 @@ package overflowdb.formats.graphml
 import overflowdb.formats.{ExportResult, Exporter, isList}
 import overflowdb.{Element, Graph}
 
+import java.lang.System.lineSeparator
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
@@ -40,18 +41,16 @@ object GraphMLExporter extends Exporter {
          |""".stripMargin
     }.toSeq
 
-    val nodePropertyKeyEntries = nodePropertyContextById.map { case (key, PropertyContext(name, tpe, isList)) =>
-      val tpe0 =
-        if (isList) s"$tpe[]"
-        else tpe
-      s"""<key id="$key" for="node" attr.name="$name" attr.type="$tpe0"></key>"""
-    }.mkString("\n")
-    val edgePropertyKeyEntries = edgePropertyContextById.map { case (key, PropertyContext(name, tpe, isList)) =>
-      val tpe0 =
-        if (isList) s"$tpe[]"
-        else tpe
-      s"""<key id="$key" for="edge" attr.name="$name" attr.type="$tpe"></key>"""
-    }.mkString("\n")
+    def propertyKeyXml(forAttr: String, propsMap: mutable.Map[String, PropertyContext]): String = {
+      propsMap.map { case (key, PropertyContext(name, tpe, isList)) =>
+        val tpe0 =
+          if (isList) s"$tpe[]"
+          else tpe
+        s"""<key id="$key" for="$forAttr" attr.name="$name" attr.type="$tpe0"></key>"""
+      }.mkString(lineSeparator)
+    }
+    val nodePropertyKeyEntries = propertyKeyXml("node", nodePropertyContextById)
+    val edgePropertyKeyEntries = propertyKeyXml("edge", edgePropertyContextById)
 
     val xml = s"""
        |<?xml version="1.0" encoding="UTF-8"?>
@@ -63,8 +62,8 @@ object GraphMLExporter extends Exporter {
        |    $nodePropertyKeyEntries
        |    $edgePropertyKeyEntries
        |    <graph id="G" edgedefault="directed">
-       |      ${nodeEntries.mkString("\n")}
-       |      ${edgeEntries.mkString("\n")}
+       |      ${nodeEntries.mkString(lineSeparator)}
+       |      ${edgeEntries.mkString(lineSeparator)}
        |    </graph>
        |</graphml>
        |""".stripMargin.strip
@@ -72,10 +71,10 @@ object GraphMLExporter extends Exporter {
     Files.writeString(outFile, xml)
 
     ExportResult(
-      nodeEntries.size,
-      edgeEntries.size,
+      nodeCount = nodeEntries.size,
+      edgeCount = edgeEntries.size,
       files = Seq(outFile),
-      None
+      additionalInfo = None
     )
   }
 
@@ -115,7 +114,7 @@ object GraphMLExporter extends Exporter {
         updatePropertyContext(graphMLTpe, false)
         s"""<data key="$encodedPropertyName">$propertyValue</data>"""
       }
-    }.mkString("\n")
+    }.mkString(lineSeparator)
   }
 
   private def tryDeriveListValueType(value: AnyRef): Option[Type.Value] = {

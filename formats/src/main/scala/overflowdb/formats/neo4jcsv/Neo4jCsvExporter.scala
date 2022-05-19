@@ -31,10 +31,10 @@ object Neo4jCsvExporter extends Exporter {
     val CountAndFiles(edgeCount, edgeFiles) = exportEdges(graph, outputRootDirectory)
 
     ExportResult(
-      nodeCount,
-      edgeCount,
+      nodeCount = nodeCount,
+      edgeCount = edgeCount,
       files = nodeFiles ++ edgeFiles,
-      Option(s"""instructions on how to import the exported files into neo4j:
+      additionalInfo = Option(s"""instructions on how to import the exported files into neo4j:
          |```
          |cp $outputRootDirectory/*$DataFileSuffix.csv <neo4j_root>/import
          |cd <neo4j_root>
