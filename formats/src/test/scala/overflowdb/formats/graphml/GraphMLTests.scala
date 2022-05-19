@@ -55,7 +55,7 @@ class GraphMLTests extends AnyWordSpec {
       // TODO add lists back in
       TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
 //      TestNode.FUNKY_LIST_PROPERTY, funkyList,
-//      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
+      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
     )
 
     node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)

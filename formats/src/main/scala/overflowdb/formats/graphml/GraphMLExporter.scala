@@ -88,18 +88,42 @@ object GraphMLExporter extends Exporter {
     element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
       val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
       val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
-      // update type information based on runtime instances
-      if (!propertyContextById.contains(encodedPropertyName)) {
-        propertyContextById.update(encodedPropertyName,
-          PropertyContext(propertyName, graphMLTpe))
+
+      /* update type information based on runtime instances */
+      def updatePropertyContext(graphMLTpe: => Option[Type.Value]) = {
+        if (!propertyContextById.contains(encodedPropertyName)) {
+          graphMLTpe.map { valueTpe =>
+            propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, valueTpe))
+          }
+        }
       }
 
-      val valueEncodedMaybe = graphMLTpe match {
-        case Type.List => encodeListValue(propertyValue)
-        case _ => propertyValue
+      if (graphMLTpe == Type.List) {
+        updatePropertyContext(tryDeriveListValueType(propertyValue))
+        val valueEncoded = encodeListValue(propertyValue)
+        s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
+      } else { // scalar value
+        updatePropertyContext(Option(graphMLTpe))
+        s"""<data key="$encodedPropertyName">$propertyValue</data>"""
       }
-      s"""<data key="$encodedPropertyName">$valueEncodedMaybe</data>"""
     }.mkString("\n")
+  }
+
+  private def tryDeriveListValueType(value: AnyRef): Option[Type.Value] = {
+    val headOption =
+      value match {
+        case value: Iterable[_] =>
+          value.headOption
+        case value: IterableOnce[_] =>
+          value.iterator.nextOption()
+        case value: java.lang.Iterable[_] =>
+          value.asScala.headOption
+        case value: Array[_] =>
+          value.headOption
+        case _ => None
+      }
+
+    headOption.map(value => Type.fromRuntimeClass(value.getClass))
   }
 
   private def encodeListValue(value: AnyRef): String = {
