@@ -20,9 +20,6 @@ object Neo4jCsvExporter extends Exporter {
    * runtime types. We will write columns for all declared properties, because we only know which ones are
    * actually in use *after* traversing all elements.
    *
-   * Warning: list properties are not natively supported by graphml...
-   * For our purposes we fake it by encoding it as a `;` separated string - if you import this into a different database, you'll need to parse that separately.
-   * In comparison, Tinkerpop just bails out if you try to export a list property to graphml.
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
     val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes(graph).map { label =>
