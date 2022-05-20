@@ -8,5 +8,5 @@ libraryDependencies ++= Seq(
 )
 
 /* it's a java-only build */
-autoScalaLibrary := false
-crossPaths := false
+//autoScalaLibrary := false
+//crossPaths := false
