@@ -7,6 +7,7 @@ import java.lang.System.lineSeparator
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
+import scala.xml.{PrettyPrinter, XML}
 
 /**
  * Exports OverflowDB Graph to GraphML
@@ -67,8 +68,8 @@ object GraphMLExporter extends Exporter {
        |    </graph>
        |</graphml>
        |""".stripMargin.strip
-
     Files.writeString(outFile, xml)
+    xmlFormatInPlace(outFile)
 
     ExportResult(
       nodeCount = nodeEntries.size,
@@ -149,4 +150,12 @@ object GraphMLExporter extends Exporter {
       case _ => value.toString
     }
   }
+
+  private def xmlFormatInPlace(xmlFile: Path): Unit = {
+    val xml = XML.loadFile(xmlFile.toFile)
+    val prettyPrinter = new PrettyPrinter(120, 2)
+    val formatted = prettyPrinter.format(xml)
+    Files.writeString(xmlFile, formatted)
+  }
+
 }
