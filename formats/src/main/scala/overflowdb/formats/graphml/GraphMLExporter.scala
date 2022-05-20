@@ -106,13 +106,15 @@ object GraphMLExporter extends Exporter {
       if (isList(propertyValue.getClass)) {
         tryDeriveListValueType(propertyValue).map { valueTpe =>
           updatePropertyContext(valueTpe, true)
-          val valueEncoded = encodeListValue(propertyValue)
-          s"""<data key="$encodedPropertyName">$valueEncoded</data>"""
+          val listEncoded = encodeListValue(propertyValue)
+          val xmlEncoded = xml.Utility.escape(listEncoded)
+          s"""<data key="$encodedPropertyName">$xmlEncoded</data>"""
         }.getOrElse("") // if list is empty, don't even create a data entry
       } else { // scalar value
         val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
         updatePropertyContext(graphMLTpe, false)
-        s"""<data key="$encodedPropertyName">$propertyValue</data>"""
+        val xmlEncoded = xml.Utility.escape(propertyValue.toString)
+        s"""<data key="$encodedPropertyName">$xmlEncoded</data>"""
       }
     }.mkString(lineSeparator)
   }
