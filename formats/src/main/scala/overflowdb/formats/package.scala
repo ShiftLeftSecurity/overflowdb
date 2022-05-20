@@ -1,6 +1,6 @@
 package overflowdb
 
-import java.nio.file.Path
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 package object formats {
   object Format extends Enumeration {
@@ -13,9 +13,18 @@ package object formats {
       byNameLowercase.values.toSeq.map(_.toString.toLowerCase).sorted
   }
 
-  private [formats] case class CountAndFiles(count: Int, files: Seq[Path]) {
-    def plus(other: CountAndFiles): CountAndFiles =
-      CountAndFiles(count + other.count, files ++ other.files)
+  private[formats] def labelsWithNodes(graph: Graph): Seq[String] = {
+    graph.nodeCountByLabel.asScala.collect {
+      case (label, count) if count > 0 => label
+    }.toSeq
   }
 
+  /**
+   * @return true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
+   */
+  def isList(clazz: Class[_]): Boolean = {
+    clazz.isArray ||
+      classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) ||
+      classOf[IterableOnce[_]].isAssignableFrom(clazz)
+  }
 }

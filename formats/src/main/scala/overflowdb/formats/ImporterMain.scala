@@ -1,6 +1,7 @@
 package overflowdb.formats
 
 import org.slf4j.LoggerFactory
+import overflowdb.formats.graphml.GraphMLImporter
 import overflowdb.formats.neo4jcsv.Neo4jCsvImporter
 import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser
@@ -34,7 +35,7 @@ object ImporterMain extends App {
 
           val importer: Importer = format match {
             case Format.Neo4jCsv => Neo4jCsvImporter
-            case Format.GraphMl => GraphMLImport
+            case Format.GraphMl => GraphMLImporter
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
           Using.resource(

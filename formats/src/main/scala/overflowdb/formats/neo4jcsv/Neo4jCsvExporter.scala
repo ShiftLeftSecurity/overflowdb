@@ -2,15 +2,16 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.{CountAndFiles, ExportResult, Exporter}
+import overflowdb.formats.{ExportResult, Exporter, labelsWithNodes}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.jdk.OptionConverters.RichOptional
 import scala.util.Using
 
 object Neo4jCsvExporter extends Exporter {
+
   /**
    * Exports OverflowDB Graph to neo4j csv files
    * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
@@ -18,29 +19,29 @@ object Neo4jCsvExporter extends Exporter {
    * For both nodes and relationships, we first write the data file and to derive the property types from their
    * runtime types. We will write columns for all declared properties, because we only know which ones are
    * actually in use *after* traversing all elements.
+   *
+   * Warning: list properties are not natively supported by graphml...
+   * For our purposes we fake it by encoding it as a `;` separated string - if you import this into a different database, you'll need to parse that separately.
+   * In comparison, Tinkerpop just bails out if you try to export a list property to graphml.
    * */
   override def runExport(graph: Graph, outputRootDirectory: Path) = {
-    val labelsWithNodes = graph.nodeCountByLabel.asScala.collect {
-      case (label, count) if count > 0 => label
-    }.toSeq
-
-    val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes.map { label =>
+    val CountAndFiles(nodeCount, nodeFiles) = labelsWithNodes(graph).map { label =>
       exportNodes(graph, label, outputRootDirectory)
     }.reduce(_.plus(_))
     val CountAndFiles(edgeCount, edgeFiles) = exportEdges(graph, outputRootDirectory)
 
     ExportResult(
-      nodeCount,
-      edgeCount,
+      nodeCount = nodeCount,
+      edgeCount = edgeCount,
       files = nodeFiles ++ edgeFiles,
-      s"""instructions on how to import the exported files into neo4j:
+      additionalInfo = Option(s"""instructions on how to import the exported files into neo4j:
          |```
          |cp $outputRootDirectory/*$DataFileSuffix.csv <neo4j_root>/import
          |cd <neo4j_root>
          |find $outputRootDirectory -name 'nodes_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
          |find $outputRootDirectory -name 'edges_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
          |```
-         |""".stripMargin
+         |""".stripMargin)
     )
   }
 
@@ -137,4 +138,10 @@ object Neo4jCsvExporter extends Exporter {
                                       cypherFile: Path,
                                       dataFileWriter: CSVWriter,
                                       columnDefinitions: ColumnDefinitions)
+
+  case class CountAndFiles(count: Int, files: Seq[Path]) {
+    def plus(other: CountAndFiles): CountAndFiles =
+      CountAndFiles(count + other.count, files ++ other.files)
+  }
+
 }

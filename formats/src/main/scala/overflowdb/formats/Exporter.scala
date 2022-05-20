@@ -10,4 +10,4 @@ trait Exporter {
     runExport(graph, Path.of(outputFile))
 }
 
-case class ExportResult(nodeCount: Int, edgeCount: Int, files: Seq[Path], additionalInfo: String)
+case class ExportResult(nodeCount: Int, edgeCount: Int, files: Seq[Path], additionalInfo: Option[String])
