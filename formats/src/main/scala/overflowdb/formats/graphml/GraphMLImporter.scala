@@ -4,8 +4,6 @@ import overflowdb.Graph
 import overflowdb.formats.Importer
 
 import java.nio.file.Path
-import scala.collection.immutable.ArraySeq
-import scala.jdk.CollectionConverters.IterableHasAsJava
 import scala.util.{Failure, Success, Try}
 import scala.xml.{NodeSeq, XML}
 
@@ -46,13 +44,7 @@ object GraphMLImporter extends Importer {
         val id = node \@ "id"
         val name = node \@ "attr.name"
         val graphmlType = node \@ "attr.type"
-
-        // warning: this is deviating from the graphml spec - we do want to support list properties...
-        val isList = graphmlType.endsWith("[]")
-        val tpe =
-          if (isList) Type.withName(graphmlType.dropRight(2))
-          else Type.withName(graphmlType)
-        (id, PropertyContext(name, tpe, isList))
+        (id, PropertyContext(name, Type.withName(graphmlType)))
       }
       .toMap
   }
@@ -67,9 +59,9 @@ object GraphMLImporter extends Importer {
       entry \@ "key" match {
         case KeyForNodeLabel => label = Option(value)
         case key =>
-          val PropertyContext(name, tpe, isList) = propertyContextById.get(key).getOrElse(
+          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
               throw new AssertionError(s"key $key not found in propertyContext..."))
-          val convertedValue = convertValue(value, tpe, isList, context = node)
+          val convertedValue = convertValue(value, tpe, context = node)
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
@@ -91,9 +83,9 @@ object GraphMLImporter extends Importer {
       entry \@ "key" match {
         case KeyForEdgeLabel => label = Option(value)
         case key =>
-          val PropertyContext(name, tpe, isList) = propertyContextById.get(key).getOrElse(
+          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
             throw new AssertionError(s"key $key not found in propertyContext..."))
-          val convertedValue = convertValue(value, tpe, isList, context = edge)
+          val convertedValue = convertValue(value, tpe, context = edge)
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
@@ -107,15 +99,8 @@ object GraphMLImporter extends Importer {
     } source.addEdge(label, target, keyValuePairs.result: _*)
   }
 
-  private def convertValue(stringValue: String, tpe: Type.Value, isList: Boolean, context: scala.xml.Node): Any = {
-    if (isList) {
-      val values = stringValue.split(';').map(value =>
-        tryConvertScalarValue(value, tpe).get // if parsing fails, we do want to escalate
-      )
-      ArraySeq.unsafeWrapArray(values).asJava
-    } else {
-      tryConvertScalarValue(stringValue, tpe)
-    } match {
+  private def convertValue(stringValue: String, tpe: Type.Value, context: scala.xml.Node): Any = {
+    tryConvertScalarValue(stringValue, tpe) match {
       case Success(value) => value
       case Failure(e) => throw new AssertionError(
         s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
