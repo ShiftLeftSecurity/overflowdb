@@ -38,12 +38,17 @@ class DotTests extends AnyWordSpec {
       exportResult.edgeCount shouldBe 2
       val Seq(exportedFile) = exportResult.files
 
-      better.files.File(exportedFile).contentAsString.trim shouldBe
-        s"""digraph {
-           |  2 [label=testNode StringProperty="stringProp2"]
-           |  3 [label=testNode StringProperty="DEFAULT_STRING_VALUE" IntProperty=13]
-           |  1 [label=testNode FunkyListProperty="apoplectic;bucolic" StringProperty="<stringProp1>" StringListProperty="stringListProp1a;stringListProp1b" IntProperty=11 IntListProperty="21;31;41"]
-           |}""".stripMargin.trim
+      val result = better.files.File(exportedFile).contentAsString.trim
+      withClue(s"actual result was: `$result`") {
+        result shouldBe
+          s"""digraph {
+             |  2 [label=testNode StringProperty="stringProp2"]
+             |  3 [label=testNode StringProperty="DEFAULT_STRING_VALUE" IntProperty=13]
+             |  1 [label=testNode FunkyListProperty="apoplectic;bucolic" StringProperty="<stringProp1>" StringListProperty="stringListProp1a;stringListProp1b" IntProperty=11 IntListProperty="21;31;41"]
+             |  2 -> 3 [label=testEdge longProperty=-99]
+             |  1 -> 2 [label=testEdge longProperty=9223372036854775807]
+             |}""".stripMargin.trim
+      }
     }
   }
 

@@ -1,14 +1,11 @@
 package overflowdb.formats.dot
 
-import overflowdb.formats.{ExportResult, Exporter, isList, iterableForList}
-import overflowdb.{Element, Graph, Node}
+import overflowdb.formats.{ExportResult, Exporter, iterableForList}
+import overflowdb.{Edge, Graph, Node}
 
-import java.lang.System.lineSeparator
 import java.nio.file.{Files, Path}
-import scala.collection.mutable
-import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 import scala.util.Using
-import scala.xml.{PrettyPrinter, XML}
 
 /**
  * Exports OverflowDB Graph to graphviz dot/gv file
@@ -42,6 +39,7 @@ object DotExporter extends Exporter {
 
       graph.edges().forEachRemaining { edge =>
         edgeCount += 1
+        writeLine(edge2Dot(edge))
       }
 
       writeLine("}")
@@ -59,6 +57,10 @@ object DotExporter extends Exporter {
 
   private def node2Dot(node: Node): String = {
     s"  ${node.id} [label=${node.label} ${properties2Dot(node.propertiesMap)}]"
+  }
+
+  private def edge2Dot(edge: Edge): String = {
+    s"  ${edge.outNode.id} -> ${edge.inNode.id} [label=${edge.label} ${properties2Dot(edge.propertiesMap)}]"
   }
 
   private def properties2Dot(properties: java.util.Map[String, Object]): String = {
