@@ -38,18 +38,12 @@ class DotTests extends AnyWordSpec {
       exportResult.edgeCount shouldBe 2
       val Seq(exportedFile) = exportResult.files
 
-      better.files.File(exportedFile).contentAsString shouldBe
+      better.files.File(exportedFile).contentAsString.trim shouldBe
         s"""digraph {
            |  2 [label=testNode StringProperty="stringProp2"]
            |  3 [label=testNode StringProperty="DEFAULT_STRING_VALUE" IntProperty=13]
-           |  1 [label=testNode FunkyListProperty="apoplectic;bucolic" StringProperty="<stringProp1>" StringListProperty="stringListProp1a;stringListProp1b" IntProperty=11 IntListProperty="21;31;41"
-           |}""".stripMargin
-
-      /** We don't have a dot importer yet (mostly because handling types and lists is difficult and requires
-       * some work in the codegen. For now, we only validate that it's a valid dot file by calling the system
-       * `dot` process. If it's not available, we only issue a warning, i.e. we don't mark the test as failed.
-       **/
-      // TODO warn if `dot` is not available
+           |  1 [label=testNode FunkyListProperty="apoplectic;bucolic" StringProperty="<stringProp1>" StringListProperty="stringListProp1a;stringListProp1b" IntProperty=11 IntListProperty="21;31;41"]
+           |}""".stripMargin.trim
     }
   }
 

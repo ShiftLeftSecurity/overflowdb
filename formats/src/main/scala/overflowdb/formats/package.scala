@@ -1,6 +1,7 @@
 package overflowdb
 
-import scala.jdk.CollectionConverters.MapHasAsScala
+import scala.collection.immutable.ArraySeq
+import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 
 package object formats {
   object Format extends Enumeration {
@@ -26,5 +27,12 @@ package object formats {
     clazz.isArray ||
       classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) ||
       classOf[IterableOnce[_]].isAssignableFrom(clazz)
+  }
+
+  val iterableForList: PartialFunction[Any, Iterable[_]] = {
+    case it: Iterable[_]           => it
+    case it: IterableOnce[_]       => it.iterator.toSeq
+    case it: java.lang.Iterable[_] => it.asScala
+    case arr: Array[_]             => ArraySeq.unsafeWrapArray(arr)
   }
 }

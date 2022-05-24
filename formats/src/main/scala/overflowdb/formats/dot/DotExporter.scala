@@ -1,6 +1,6 @@
 package overflowdb.formats.dot
 
-import overflowdb.formats.{ExportResult, Exporter, isList}
+import overflowdb.formats.{ExportResult, Exporter, isList, iterableForList}
 import overflowdb.{Element, Graph, Node}
 
 import java.lang.System.lineSeparator
@@ -42,9 +42,7 @@ object DotExporter extends Exporter {
 
       graph.edges().forEachRemaining { edge =>
         edgeCount += 1
-
       }
-
 
       writeLine("}")
       writer.flush()
@@ -72,8 +70,9 @@ object DotExporter extends Exporter {
   private def encodePropertyValue(value: Object): String = {
     value match {
       case value: String => s"\"$value\""
-      // TODO other skalar types
-      // TODO all list types
+      case list if iterableForList.isDefinedAt(list) =>
+        val values = iterableForList(list).mkString(";")
+        s"\"$values\""
       case value => value.toString
     }
   }
