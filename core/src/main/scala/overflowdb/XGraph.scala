@@ -13,6 +13,29 @@ class BatchupdateApplier {
   val nDelOutEdges: Array[Int] = null
   val nDelInEdges: Array[Int] = null
 
+  /*join edge:
+  old qty
+  old values
+  newedge
+  delEdge
+  delNode
+  */
+
+  /*join prop:
+  old qty
+  old values
+  setProp
+  delNode
+  newNode
+   */
+
+
+  def edgeJoin(oldQty: Array[Int], oldVal: Array[Object], newVal:Array[Object], newQty:Array[Int], newEdges: Array[BatchedUpdate.CreateEdge]): Unit ={
+    var newEdge_i = 0
+    var old_i = 0
+    
+
+  }
 }
 
 object FormalQty extends Enumeration {
@@ -39,7 +62,6 @@ class OdbSchema {
   def getNEdges: Short = ???
   def getEdgeFactoryByEdgeId(id: Short): (XNode, XNode, Int) => Edge = ???
 
-  def getPropertyIdsAtKind(kindId: Short): Array[Short] = ???
   def getOutEdgeIdsAtKind(kindId: Short): Array[Short] = ???
   def getInEdgeIdsAtKind(kindId: Short): Array[Short] = ???
 
@@ -147,19 +169,39 @@ class XNode(protected val g: XGraph, protected val kindId: Short, protected val 
 
   override def property(key: String): AnyRef = {
     val eid = g.schema.getPropertyIdByLabel(eid)
+    val pos = (g.schema.getNKinds * eid + kindId) * 2
+    val resItems = g.getStuffMulti(pos, seqId, g._properties)
+    //if there is formally NONE, ONE or MAYBE items then we need to unwrap
     g.schema.getFormalQtyAtKindAndProperty(kindId, eid) match {
-      case FormalQty.NONE
+      case FormalQty.MANY => resItems
+      case FormalQty.NONE => null
+      case FormalQty.ONE => resItems.head
+      case FormalQty.MAYBE => resItems.headOption.getOrElse(null)
     }
-
   }
 
-  override def property[A](key: PropertyKey[A]): A = ???
+  override def property[A](key: PropertyKey[A]): A = property(key.name).asInstanceOf[A]
 
-  override def propertyOption[A](key: PropertyKey[A]): Optional[A] = ???
+  override def propertyOption[A](key: PropertyKey[A]): Optional[A] = propertyOption(key.name).asInstanceOf[Optional[A]]
 
-  override def propertyOption(key: String): Optional[AnyRef] = ???
+  override def propertyOption(key: String): Optional[AnyRef] = Optional.ofNullable(property(key))
 
-  override def propertiesMap(): util.Map[String, AnyRef] = ???
+  override def propertiesMap(): util.Map[String, AnyRef] = {
+    val res = new java.util.HashMap[String, Any]()
+    for(eid <- g.schema.getPropertiesAtKind()){
+      val key = g.schema.getLabelByPropertyId(eid)
+      val pos = ( eid * g.schema.getNKinds + kindId) * 2
+      val resItems = g.getStuffMulti(pos, seqId, g._properties)
+      val value = g.schema.getFormalQtyAtKindAndProperty(kindId, eid) match {
+        case FormalQty.MANY => resItems
+        case FormalQty.NONE => null
+        case FormalQty.ONE => resItems.head
+        case FormalQty.MAYBE => resItems.headOption.getOrElse(null)
+      }
+      if(value != null) res.put(key, value)
+    }
+    res
+  }
 
   override protected def setPropertyImpl(key: String, value: Any): Unit = ???
 
@@ -171,10 +213,9 @@ class XNode(protected val g: XGraph, protected val kindId: Short, protected val 
 
   override protected def removeImpl(): Unit = ???
 }
-object QtyOne
+
 
 object ISeq {
-
   val empty = new ISeq(new Array[Nothing](0), 0, 0)
 
   def from(arr: Object, start: Int, end: Int): ISeq[Any] = {
@@ -198,6 +239,8 @@ class ISeq[@specialized +T](underlying: Array[T], start: Int, end: Int)
   override def apply(idx: Int): T = underlying.apply(idx + start)
 }
 
+
+
 class XGraph(val schema: OdbSchema) {
   val _nodes: Array[Array[XNode]] = new Array(schema.getNKinds)
   val _properties: Array[Object] = new Array(2 * schema.getNKinds * schema.getNProperties)
@@ -209,7 +252,7 @@ class XGraph(val schema: OdbSchema) {
       case null                  => (0, 0)
       case maybe: Array[Boolean] => if (maybe(seq)) (seq, 1) else (seq, 0)
       case range: Array[Int]     => (range(seq), range(seq + 1) - range(seq))
-      case QtyOne                => (seq, 1)
+      case FormalQty.ONE                => (seq, 1)
     }
   }
 
