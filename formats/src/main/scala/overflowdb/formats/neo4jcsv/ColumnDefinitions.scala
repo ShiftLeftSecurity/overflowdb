@@ -1,5 +1,7 @@
 package overflowdb.formats.neo4jcsv
 
+import overflowdb.formats.iterableForList
+
 import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.IterableHasAsScala
