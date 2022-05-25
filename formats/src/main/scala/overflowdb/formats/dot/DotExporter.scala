@@ -43,8 +43,6 @@ object DotExporter extends Exporter {
       }
 
       writeLine("}")
-      writer.flush()
-      writer.close()
     }
 
     ExportResult(
@@ -87,19 +85,4 @@ object DotExporter extends Exporter {
     }
     outputRootDirectory.resolve("export.dot")
   }
-
-  private def encodeListValue(value: AnyRef): String = {
-    value match {
-      case value: Iterable[_] =>
-        value.mkString(";")
-      case value: IterableOnce[_] =>
-        value.iterator.mkString(";")
-      case value: java.lang.Iterable[_] =>
-        value.asScala.mkString(";")
-      case value: Array[_] =>
-        value.mkString(";")
-      case _ => value.toString
-    }
-  }
-
 }
