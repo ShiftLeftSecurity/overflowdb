@@ -1,6 +1,6 @@
 package overflowdb.formats.graphml
 
-import overflowdb.formats.{ExportResult, Exporter, isList}
+import overflowdb.formats.{ExportResult, Exporter, isList, writeFile}
 import overflowdb.{Element, Graph}
 
 import java.lang.System.lineSeparator
@@ -66,8 +66,8 @@ object GraphMLExporter extends Exporter {
        |      ${edgeEntries.mkString(lineSeparator)}
        |    </graph>
        |</graphml>
-       |""".stripMargin.strip
-    Files.writeString(outFile, xml)
+       |""".stripMargin.trim
+    writeFile(outFile, xml)
     xmlFormatInPlace(outFile)
 
     val additionalInfo =
@@ -124,7 +124,7 @@ object GraphMLExporter extends Exporter {
     val xml = XML.loadFile(xmlFile.toFile)
     val prettyPrinter = new PrettyPrinter(120, 2)
     val formatted = prettyPrinter.format(xml)
-    Files.writeString(xmlFile, formatted)
+    writeFile(xmlFile, formatted)
   }
 
 }
