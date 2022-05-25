@@ -14,7 +14,7 @@ class DotTests extends AnyWordSpec {
   "Exporter should export valid dot" in {
     val graph = SimpleDomain.newGraph()
 
-    val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "stringProp2")
+    val node2 = graph.addNode(2, TestNode.LABEL, TestNode.STRING_PROPERTY, "string\"Prop2")
     val node3 = graph.addNode(3, TestNode.LABEL, TestNode.INT_PROPERTY, 13)
 
     // only allows values defined in FunkyList.funkyWords
@@ -41,8 +41,8 @@ class DotTests extends AnyWordSpec {
       val result = better.files.File(exportedFile).contentAsString.trim
       withClue(s"actual result was: `$result`") {
         result shouldBe
-          s"""digraph {
-             |  2 [label=testNode StringProperty="stringProp2"]
+          """digraph {
+             |  2 [label=testNode StringProperty="string\"Prop2"]
              |  3 [label=testNode StringProperty="DEFAULT_STRING_VALUE" IntProperty=13]
              |  1 [label=testNode FunkyListProperty="apoplectic;bucolic" StringProperty="<stringProp1>" StringListProperty="stringListProp1a;stringListProp1b" IntProperty=11 IntListProperty="21;31;41"]
              |  2 -> 3 [label=testEdge longProperty=-99]
