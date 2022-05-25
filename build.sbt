@@ -27,7 +27,7 @@ ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
   }
 )
 
-ThisBuild / javacOptions ++= Seq(
+ThisBuild / compile / javacOptions ++= Seq(
   "-g", //debug symbols
   "--release=8"
 )
