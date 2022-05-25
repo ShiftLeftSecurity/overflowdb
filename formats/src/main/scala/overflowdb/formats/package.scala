@@ -1,5 +1,7 @@
 package overflowdb
 
+import java.nio.charset.Charset
+import java.nio.file.{Files, Path}
 import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 
@@ -35,4 +37,7 @@ package object formats {
     case it: java.lang.Iterable[_] => it.asScala
     case arr: Array[_]             => ArraySeq.unsafeWrapArray(arr)
   }
+
+  def writeFile(file: Path, content: String): Unit =
+    Files.write(file, content.getBytes(Charset.forName("UTF-8")))
 }

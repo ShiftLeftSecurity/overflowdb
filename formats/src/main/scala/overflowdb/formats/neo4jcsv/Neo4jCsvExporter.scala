@@ -2,9 +2,9 @@ package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
 import overflowdb.Graph
-import overflowdb.formats.{ExportResult, Exporter, labelsWithNodes}
+import overflowdb.formats.{ExportResult, Exporter, labelsWithNodes, writeFile}
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import scala.jdk.OptionConverters.RichOptional
@@ -70,7 +70,7 @@ object Neo4jCsvExporter extends Exporter {
          |$cypherPropertyMappings
          |});
          |""".stripMargin
-    Files.writeString(cypherFile, cypherQuery)
+    writeFile(cypherFile, cypherQuery)
 
     CountAndFiles(nodeCount, Seq(headerFile, dataFile, cypherFile))
   }
@@ -115,7 +115,7 @@ object Neo4jCsvExporter extends Exporter {
              |WHERE a.id = toInteger(line[0]) AND b.id = toInteger(line[1])
              |CREATE (a)-[r:$label {$cypherPropertyMappings}]->(b);
              |""".stripMargin
-        Files.writeString(cypherFile, cypherQuery)
+        writeFile(cypherFile, cypherQuery)
 
         Seq(headerFile, dataFile, cypherFile)
     }.toSeq

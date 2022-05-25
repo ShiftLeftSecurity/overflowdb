@@ -1,6 +1,6 @@
 package testutils
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Paths}
 
 /** Finds the relative location of the project root.
  *
@@ -26,7 +26,7 @@ object ProjectRoot {
     for (depth <- 0 to SEARCH_DEPTH) {
       val pathPrefix = "./" + "../" * depth
 
-      if (Files.exists(Path.of(s"$pathPrefix$fileThatOnlyExistsInRoot"))) {
+      if (Files.exists(Paths.get(s"$pathPrefix$fileThatOnlyExistsInRoot"))) {
         return pathPrefix
       }
     }

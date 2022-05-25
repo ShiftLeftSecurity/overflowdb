@@ -3,13 +3,12 @@ package overflowdb.formats
 import org.slf4j.LoggerFactory
 import overflowdb.formats.dot.DotExporter
 import overflowdb.formats.graphml.GraphMLExporter
-import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import overflowdb.formats.neo4jcsv.Neo4jCsvExporter
-
-import java.nio.file.{Files, Path}
+import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser
 
 import java.io.File
+import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.util.Using
 
@@ -24,7 +23,7 @@ object ExporterMain {
 
   def apply(nodeFactories: Seq[NodeFactory[_]], edgeFactories: Seq[EdgeFactory[_]]): Array[String] => Unit = {
     args =>
-      OParser.parse(parser, args, Config(Path.of("/dev/null"), null, Path.of("/dev/null")))
+      OParser.parse(parser, args, Config(Paths.get("/dev/null"), null, Paths.get("/dev/null")))
         .map { case Config(inputFile, format, outputFile) =>
           if (Files.notExists(inputFile))
             throw new AssertionError(s"given input file $inputFile does not exist")

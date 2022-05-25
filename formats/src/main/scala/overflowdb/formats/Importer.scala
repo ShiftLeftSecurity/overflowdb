@@ -3,7 +3,7 @@ package overflowdb.formats
 import org.slf4j.LoggerFactory
 import overflowdb.Graph
 
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 trait Importer {
   protected val logger = LoggerFactory.getLogger(getClass)
@@ -14,5 +14,5 @@ trait Importer {
     runImport(graph, Seq(inputFile))
 
   def runImport(graph: Graph, inputFile: String): Unit =
-    runImport(graph, Path.of(inputFile))
+    runImport(graph, Paths.get(inputFile))
 }

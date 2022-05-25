@@ -7,8 +7,7 @@ import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser
 
 import java.io.File
-import java.nio.file.{Files, Path}
-import java.util.function
+import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters.SeqHasAsJava
 import scala.util.Using
 
@@ -25,7 +24,7 @@ object ImporterMain extends App {
             edgeFactories: Seq[EdgeFactory[_]],
             convertPropertyForPersistence: Any => Any = identity): Array[String] => Unit = {
     args =>
-      OParser.parse(parser, args, Config(Nil, null, Path.of("/dev/null")))
+      OParser.parse(parser, args, Config(Nil, null, Paths.get("/dev/null")))
         .map { case Config(inputFiles, format, outputFile) =>
           val nonExistent = inputFiles.filterNot(Files.exists(_))
           if (nonExistent.nonEmpty)
