@@ -69,7 +69,10 @@ object DotExporter extends Exporter {
 
   private def encodePropertyValue(value: Object): String = {
     value match {
-      case value: String => s"\"$value\""
+      case value: String =>
+        // escape double quotes, because we use them to enclose strings
+        val escaped = value.replace("\"", "\\\"")
+        s"\"$escaped\""
       case list if iterableForList.isDefinedAt(list) =>
         val values = iterableForList(list).mkString(";")
         s"\"$values\""
