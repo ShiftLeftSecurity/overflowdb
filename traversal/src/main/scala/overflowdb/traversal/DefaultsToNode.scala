@@ -13,7 +13,7 @@ object DefaultsToNode {
   implicit def overrideDefault[A]: DefaultsToNode[A] =
     new DefaultsToNode[A]
 
-  implicit def default: DefaultsToNode[Node] =
+  implicit val default: DefaultsToNode[Node] =
     new DefaultsToNode[Node]
 
 }
