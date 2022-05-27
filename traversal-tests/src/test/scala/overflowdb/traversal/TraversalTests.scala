@@ -123,6 +123,16 @@ class TraversalTests extends AnyWordSpec {
     traversal.l shouldBe Seq(artist1, artist2)
   }
 
+  ".union step allows to aggregate multiple steps into one traversal" in {
+    def unionTrav = Traversal.fromSingle(center).out.union(_.out, _.in)
+    unionTrav.toSet shouldBe Set(l2, center, r2)
+    unionTrav.l.sortBy(_.property(Thing.Properties.Name)) shouldBe List(center, center, l2, r2)
+
+    // ensure that types are being preserved...
+    val verifyIsNodeTraversal: Traversal[Node] = unionTrav
+    val verifyIsThingTraversal: Traversal[Thing] = Traversal.fromSingle(center).union(_.followedBy, _.followedBy)
+  }
+
   ".aggregate step stores all objects at this point into a given collection" in {
      val buffer = mutable.ArrayBuffer.empty[Thing]
      center.start.followedBy.aggregate(buffer).followedBy.iterate()

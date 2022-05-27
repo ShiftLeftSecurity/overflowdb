@@ -129,12 +129,13 @@ class Traversal[+A](elements: IterableOnce[A])
    *       _.has("someProperty"))
    * }}} */
   @Doc(info = "only preserves elements for which _at least one of_ the given traversals has at least one result")
-  def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
+  def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
     filter { (a: A) =>
       traversals.exists { trav =>
         trav(Traversal.fromSingle(a)).hasNext
       }
     }
+  }
 
   /** only preserves elements for which _all of_ the given traversals have at least one result
    * Works for arbitrary amount of 'AND' traversals.
@@ -143,12 +144,28 @@ class Traversal[+A](elements: IterableOnce[A])
    *        _.has("someProperty"))
    * }}} */
   @Doc(info = "only preserves elements for which _all of_ the given traversals have at least one result")
-  def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] =
+  def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
     filter { (a: A) =>
       traversals.forall { trav =>
         trav(Traversal.fromSingle(a)).hasNext
       }
     }
+  }
+
+  /**
+   * union step from the current point
+   *
+   * @param traversals to be executed from here, results are being aggregated/summed/unioned
+   * @example {{{
+   *   .union(_.out, _.in)
+   * }}}
+   */
+  @Doc(info = "union/sum/aggregate given traversals from the current point")
+  def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
+    flatMap { (a: A) =>
+      traversals.flatMap(_.apply(Traversal.fromSingle(a)))
+    }
+  }
 
   /** Repeat the given traversal
    *
