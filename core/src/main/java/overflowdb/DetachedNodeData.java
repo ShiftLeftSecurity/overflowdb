@@ -1,8 +1,5 @@
 package overflowdb;
 
-import overflowdb.BatchedUpdate;
-import overflowdb.Node;
-
 public interface DetachedNodeData extends BatchedUpdate.Change, NodeOrDetachedNode {
         public String label();
         /** RefOrId is initially null, and can be a Long if a specific id is required,
