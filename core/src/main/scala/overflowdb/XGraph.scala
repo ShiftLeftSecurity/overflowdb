@@ -5,6 +5,43 @@ import java.util.Optional
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.{IterableHasAsJava, IteratorHasAsJava, IteratorHasAsScala}
 
+/*
+abstract trait SortingAlg {
+  protected def compareItemAtIdx(i:Int, j:Int):Int
+  protected def swap(i:Int, j:Int):Unit
+  protected def length:Int
+  protected def sortInternal:Unit = {
+    //fancy insertion sort
+    val len = length
+    var i = 1
+    while(i < len){
+      var j = i
+      while(j > 0 && compareItemAtIdx(j-1, j) > 0){
+        swap(j-1, j)
+        j -= 1
+      }
+    }
+    i += 1
+  }
+  def sort:Unit
+}
+
+final class SortByKey(keys:Array[Int], values:Array[Object]) extends SortingAlg {
+  assert(keys.length ==values.length)
+  override def swap(i: Int, j: Int): Unit = {
+    val tmpkey = keys(i)
+    val tmpval = values(i)
+    keys(i) = keys(j)
+    values(i)= values(j)
+    keys(j) = tmpkey
+    values(j) = tmpval
+  }
+  override def length: Int = keys.length
+  override def compareItemAtIdx(i: Int, j: Int): Int = keys(i).compareTo(keys(j))
+  override def sort:Unit = (sortInternal: @inline)
+}
+ */
+
 class BatchupdateApplier {
   var newNodes: Array[mutable.ArrayBuffer[Object]] = null
   var outEdges: Array[mutable.ArrayBuffer[Object]] = null
@@ -19,7 +56,7 @@ class BatchupdateApplier {
   newedge
   delEdge
   delNode
-  */
+   */
 
   /*join prop:
   old qty
@@ -29,12 +66,68 @@ class BatchupdateApplier {
   newNode
    */
 
+  class ItemCopier[@specialized T] {
 
-  def edgeJoin(oldQty: Array[Int], oldVal: Array[Object], newVal:Array[Object], newQty:Array[Int], newEdges: Array[BatchedUpdate.CreateEdge]): Unit ={
-    var newEdge_i = 0
-    var old_i = 0
-    
+    /*Copies multi-valued objects
+     * FIXME: Handle case where source-array is incomplete*/
+    def itemCopyMultiMulti(oldQty: Array[Int],
+                           oldVal: Object,
+                           newVal: Object,
+                           newQty: Array[Int],
+                           fromInclusive: Int,
+                           toExclusive: Int): Unit = {
+      val start = oldQty(fromInclusive)
+      val end = oldQty(toExclusive)
+      val dstStart = newQty(fromInclusive)
+      System.arraycopy(oldVal, start, newVal, dstStart, end - start)
+      System.arraycopy(oldQty,
+                       fromInclusive + 1,
+                       newQty,
+                       fromInclusive + 1,
+                       toExclusive - fromInclusive)
+      if (dstStart != start) {
+        var i = fromInclusive + 1
+        while (i <= toExclusive) {
+          newQty(i) = newQty(i) + dstStart - start
+          i += 1
+        }
+      }
+    }
 
+    /*Copies opt-valued objects
+     * FIXME: Handle case where source-array is incomplete*/
+    def itemCopyMaybeMaybe(oldQty: Array[Boolean],
+                           oldVal: Object,
+                           newVal: Object,
+                           newQty: Array[Boolean],
+                           fromInclusive: Int,
+                           toExclusive: Int): Unit = {
+      System.arraycopy(oldVal, fromInclusive, newVal, fromInclusive, toExclusive - fromInclusive)
+      if (oldQty != null && newQty != null)
+        System.arraycopy(oldQty, fromInclusive, newQty, fromInclusive, toExclusive - fromInclusive)
+    }
+
+    /*Copies opt-valued objects into multi-valued
+     * FIXME: Handle case where source-array is incomplete
+     *  FIXME: Use specialization*/
+    def itemCopyMaybeMulti(oldQty: Array[Boolean],
+                           oldVal: Array[T],
+                           newVal: Array[T],
+                           newQty: Array[Int],
+                           fromInclusive: Int,
+                           toExclusive: Int): Unit = {
+      var i = fromInclusive
+      val start = newQty(fromInclusive)
+      var tot = 0
+      while (i < toExclusive) {
+        if (oldQty(i)) {
+          newVal(start + tot) = oldVal(i)
+          tot += 1
+        }
+        newQty(i + 1) = start + tot
+        i += 1
+      }
+    }
   }
 }
 
@@ -167,38 +260,39 @@ class XNode(protected val g: XGraph, protected val kindId: Short, protected val 
 
   override def propertyKeys(): util.Set[String] = g.schema.getPropertyKeysAtKind(kindId)
 
-  override def property(key: String): AnyRef = {
-    val eid = g.schema.getPropertyIdByLabel(eid)
+  override def property(key: String): Object = {
+    val eid = g.schema.getPropertyIdByLabel(key)
     val pos = (g.schema.getNKinds * eid + kindId) * 2
     val resItems = g.getStuffMulti(pos, seqId, g._properties)
     //if there is formally NONE, ONE or MAYBE items then we need to unwrap
-    g.schema.getFormalQtyAtKindAndProperty(kindId, eid) match {
-      case FormalQty.MANY => resItems
-      case FormalQty.NONE => null
-      case FormalQty.ONE => resItems.head
+    (g.schema.getFormalQtyAtKindAndProperty(kindId, eid) match {
+      case FormalQty.MANY  => resItems
+      case FormalQty.NONE  => null
+      case FormalQty.ONE   => resItems.head
       case FormalQty.MAYBE => resItems.headOption.getOrElse(null)
-    }
+    }).asInstanceOf[Object]
   }
 
   override def property[A](key: PropertyKey[A]): A = property(key.name).asInstanceOf[A]
 
-  override def propertyOption[A](key: PropertyKey[A]): Optional[A] = propertyOption(key.name).asInstanceOf[Optional[A]]
+  override def propertyOption[A](key: PropertyKey[A]): Optional[A] =
+    propertyOption(key.name).asInstanceOf[Optional[A]]
 
   override def propertyOption(key: String): Optional[AnyRef] = Optional.ofNullable(property(key))
 
-  override def propertiesMap(): util.Map[String, AnyRef] = {
-    val res = new java.util.HashMap[String, Any]()
-    for(eid <- g.schema.getPropertiesAtKind()){
+  override def propertiesMap(): util.Map[String, Object] = {
+    val res = new java.util.HashMap[String, Object]()
+    for (eid <- g.schema.getPropertiesAtKind(kindId)) {
       val key = g.schema.getLabelByPropertyId(eid)
-      val pos = ( eid * g.schema.getNKinds + kindId) * 2
+      val pos = (eid * g.schema.getNKinds + kindId) * 2
       val resItems = g.getStuffMulti(pos, seqId, g._properties)
       val value = g.schema.getFormalQtyAtKindAndProperty(kindId, eid) match {
-        case FormalQty.MANY => resItems
-        case FormalQty.NONE => null
-        case FormalQty.ONE => resItems.head
+        case FormalQty.MANY  => resItems
+        case FormalQty.NONE  => null
+        case FormalQty.ONE   => resItems.head
         case FormalQty.MAYBE => resItems.headOption.getOrElse(null)
       }
-      if(value != null) res.put(key, value)
+      if (value != null) res.put(key, value.asInstanceOf[Object])
     }
     res
   }
@@ -213,7 +307,6 @@ class XNode(protected val g: XGraph, protected val kindId: Short, protected val 
 
   override protected def removeImpl(): Unit = ???
 }
-
 
 object ISeq {
   val empty = new ISeq(new Array[Nothing](0), 0, 0)
@@ -239,8 +332,6 @@ class ISeq[@specialized +T](underlying: Array[T], start: Int, end: Int)
   override def apply(idx: Int): T = underlying.apply(idx + start)
 }
 
-
-
 class XGraph(val schema: OdbSchema) {
   val _nodes: Array[Array[XNode]] = new Array(schema.getNKinds)
   val _properties: Array[Object] = new Array(2 * schema.getNKinds * schema.getNProperties)
@@ -252,7 +343,7 @@ class XGraph(val schema: OdbSchema) {
       case null                  => (0, 0)
       case maybe: Array[Boolean] => if (maybe(seq)) (seq, 1) else (seq, 0)
       case range: Array[Int]     => (range(seq), range(seq + 1) - range(seq))
-      case FormalQty.ONE                => (seq, 1)
+      case FormalQty.ONE         => (seq, 1)
     }
   }
 
