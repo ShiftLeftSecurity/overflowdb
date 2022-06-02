@@ -110,8 +110,18 @@ public class BatchedUpdate {
         }
 
         public DiffGraphBuilder addNode(String label, Object... keyvalues) {
-            _buffer.addLast(new DetachedNodeGeneric(label, keyvalues));
-            return this;
+            return addNode(new DetachedNodeGeneric(label, keyvalues));
+        }
+
+        /**
+         * @return the new node (so that the user can e.g. add edges)
+         * This doesn't follow the fluid builder pattern that's used elsewhere here, but it is necessary
+         * for some use cases.
+         */
+        public DetachedNodeData addAndReturnNode(String label, Object... keyvalues) {
+            DetachedNodeGeneric node = new DetachedNodeGeneric(label, keyvalues);
+            addNode(node);
+            return node;
         }
 
         public DiffGraphBuilder addEdge(NodeOrDetachedNode src, NodeOrDetachedNode dst, String label) {
