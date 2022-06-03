@@ -217,11 +217,13 @@ public class BatchedUpdate {
         public NodeOrDetachedNode dst;
         public Object[] propertiesAndKeys;
 
+        private static Object[] emptyList = new Object[0];
+
         public CreateEdge(String label, NodeOrDetachedNode src, NodeOrDetachedNode dst, Object[] propertiesAndKeys) {
             this.label = label;
             this.src = src;
             this.dst = dst;
-            this.propertiesAndKeys = propertiesAndKeys;
+            this.propertiesAndKeys = propertiesAndKeys != null ? propertiesAndKeys : emptyList;
         }
     }
 
