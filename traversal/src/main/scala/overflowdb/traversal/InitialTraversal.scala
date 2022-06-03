@@ -18,11 +18,13 @@ class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
 }
 
 object InitialTraversal {
-  def from[A](graph: Graph, label: String): InitialTraversal[A] = {
-    new InitialTraversal(
-      graph,
-      label,
-      new ArrayListIter[A](graph.nodes.nodesByLabel(label).asInstanceOf[java.util.ArrayList[A]]))
+  def from[A <: overflowdb.Node](graph: Graph, label: String): InitialTraversal[A] = {
+    val tmp = overflowdb.Misc
+      .extractNodesList(graph)
+      .nodesByLabel(label)
+      .asInstanceOf[java.util.ArrayList[A]]
+    val tmp2 = new ArrayListIter(tmp)
+    new InitialTraversal(graph, label, tmp2)
   }
 }
 private[overflowdb] class ArrayListIter[+T](arr: java.util.ArrayList[T]) extends Iterator[T] {
