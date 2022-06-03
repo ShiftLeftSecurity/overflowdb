@@ -11,7 +11,7 @@ class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
     // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index
     if (iter.idx == 0 && graph.indexManager.isIndexed(key)) {
       val nodes = graph.indexManager.lookup(key, value)
-      Traversal.from(nodes.iterator()).cast[A]
+      Traversal.from(nodes.iterator()).label(label).cast[A]
     } else {
       null
     }
