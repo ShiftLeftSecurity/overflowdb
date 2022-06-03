@@ -8,6 +8,7 @@ class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
     extends Traversal[A](iter) {
 
   def getByIndex(key: String, value: Any): Traversal[A] = {
+    // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index
     if (iter.idx == 0 && graph.indexManager.isIndexed(key)) {
       val nodes = graph.indexManager.lookup(key, value)
       Traversal.from(nodes.iterator()).asInstanceOf[Traversal[A]]
