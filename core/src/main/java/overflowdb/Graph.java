@@ -21,7 +21,7 @@ public final class Graph implements AutoCloseable {
   private static final Logger logger = LoggerFactory.getLogger(Graph.class);
 
   protected final AtomicLong currentId = new AtomicLong(-1L);
-  protected final NodesList nodes = new NodesList();
+  final NodesList nodes = new NodesList();
   public final IndexManager indexManager = new IndexManager(this);
   private final Config config;
   private boolean closed = false;
