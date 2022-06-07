@@ -7,13 +7,13 @@ class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
                                                        iter: ArrayListIter[A])
     extends Traversal[A](iter) {
 
-  def getByIndex(key: String, value: Any): Traversal[A] = {
+  def getByIndex(key: String, value: Any): Option[Traversal[A]] = {
     // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index
     if (iter.idx == 0 && graph.indexManager.isIndexed(key)) {
       val nodes = graph.indexManager.lookup(key, value)
-      Traversal.from(nodes.iterator()).label(label).cast[A]
+      Some(Traversal.from(nodes.iterator()).label(label).cast[A])
     } else {
-      null
+      None
     }
   }
 }
@@ -28,6 +28,11 @@ object InitialTraversal {
     new InitialTraversal(graph, label, tmp2)
   }
 }
+
+//This is almost equivalent to the standard ArrayList iterator, except that:
+//  1. We can access idx in order to check whether the iterator is still virgin
+//  2. We don't attempt to check for concurrent modifications
+//  3. It is a scala iterator instead of a java iterator, so we don't need to wrap it
 private[overflowdb] class ArrayListIter[+T](arr: java.util.ArrayList[T]) extends Iterator[T] {
   private[overflowdb] var idx = 0
 
