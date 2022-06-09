@@ -49,7 +49,6 @@ public class ElementTest {
       Node n2 = (Node)n2D.getRefOrId();
       Edge e = n1.outE().next();
 
-
       //  verify that we can cast to our domain-specific nodes/edges
       TestNode node1 = (TestNode) n1;
       assertEquals("node 1", node1.stringProperty());
@@ -58,6 +57,8 @@ public class ElementTest {
       assertEquals(Optional.of("node 1"), node1.propertyOption(TestNode.STRING_PROPERTY));
       assertEquals(Optional.of("node 1"), node1.propertyOption(new PropertyKey<>(TestNode.STRING_PROPERTY)));
       assertEquals(Integer.valueOf(42), node1.intProperty());
+      assertEquals(Arrays.asList("stringOne", "stringTwo"), node1.stringListProperty());
+      assertEquals(Arrays.asList(42, 43), node1.intListProperty());
 
       TestEdge testEdge = (TestEdge) e;
       assertEquals(Long.valueOf(99), testEdge.longProperty());

@@ -8,7 +8,7 @@
 * work with simple classes, rather than abstracting over some generic model <!-- and using a query language a la sql/gremlin/cql/cypher/... -->
 * enforces strict schema
 * can save/load to/from disk
-* [built on JDK11](https://github.com/ShiftLeftSecurity/overflowdb/blob/master/.github/workflows/release.yml) but runs on JRE > 1.8
+* [built on JDK11](https://github.com/ShiftLeftSecurity/overflowdb/blob/master/.github/workflows/release.yml) but with release target=8, i.e. runs on JRE >= 1.8
 
 ### Table of contents
 <!--  

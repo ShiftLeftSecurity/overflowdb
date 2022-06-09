@@ -1,11 +1,11 @@
 package overflowdb.storage;
 
 import org.junit.Test;
-import overflowdb.Node;
 import overflowdb.Config;
 import overflowdb.Edge;
 import overflowdb.Graph;
-import overflowdb.formats.GraphML;
+import overflowdb.Node;
+import overflowdb.formats.graphml.GraphMLImporter;
 import overflowdb.testdomains.gratefuldead.FollowedBy;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
@@ -185,7 +185,7 @@ public class GraphSaveRestoreTest {
   }
 
   private void loadGraphMl(Graph graph) {
-    GraphML.insert("src/test/resources/grateful-dead.xml", graph);
+    GraphMLImporter.runImport(graph, "src/test/resources/grateful-dead.xml");
   }
 
   private Iterator<Node> getSongs(Graph graph, String songName) {

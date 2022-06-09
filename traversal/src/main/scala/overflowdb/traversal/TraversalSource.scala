@@ -7,14 +7,11 @@ class TraversalSource(graph: Graph) {
   def all: Traversal[Node] =
     Traversal(graph.nodes())
 
-  def id(id: Long): Traversal[Node] =
-    Traversal(graph.node(id))
+  def id[NodeType : DefaultsToNode](id: Long): Traversal[NodeType] =
+    Traversal(graph.node(id)).cast[NodeType]
 
-  def idTyped[A <: Node](id: Long): Traversal[A] =
-    Traversal(graph.node(id)).cast[A]
-
-  def ids(ids: Long*): Traversal[Node] =
-    Traversal(graph.nodes(ids: _*))
+  def ids[NodeType : DefaultsToNode](ids: Long*): Traversal[NodeType] =
+    Traversal(graph.nodes(ids: _*)).cast[NodeType]
 
   def label(label: String): Traversal[Node] =
     Traversal(graph.nodes(label))

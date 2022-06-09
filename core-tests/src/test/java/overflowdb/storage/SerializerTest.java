@@ -72,9 +72,12 @@ public class SerializerTest {
       };
       NodeSerializer serializer = new NodeSerializer(false, graph.getStorage(), convertPropertyForPersistence);
       NodeDeserializer deserializer = newDeserializer(graph);
+      FunkyList funkyList = new FunkyList();
+      funkyList.add("anthropomorphic");
+      funkyList.add("boondoggle");
       TestNode testNode = (TestNode) graph.addNode(
           TestNode.LABEL,
-          TestNode.FUNKY_LIST_PROPERTY, new FunkyList().add("anthropomorphic").add("boondoggle")
+          TestNode.FUNKY_LIST_PROPERTY, funkyList
       );
 
       TestNodeDb testNodeDb = testNode.get();
