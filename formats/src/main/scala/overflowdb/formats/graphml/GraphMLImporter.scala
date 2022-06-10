@@ -16,12 +16,7 @@ import scala.xml.{NodeSeq, XML}
  * */
 object GraphMLImporter extends Importer {
 
-  override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
-    val diffGraph = createDiffGraph(inputFiles)
-    BatchedUpdate.applyDiff(graph, diffGraph)
-  }
-
-  def createDiffGraph(inputFiles: Seq[Path]): DiffGraph = {
+  override def createDiffGraph(inputFiles: Seq[Path]): DiffGraph = {
     assert(inputFiles.size == 1, s"input must be exactly one file, but got ${inputFiles.size}")
     val doc = XML.loadFile(inputFiles.head.toFile)
     val diffGraph = new DiffGraphBuilder
