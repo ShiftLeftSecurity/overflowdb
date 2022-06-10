@@ -3,12 +3,12 @@ package overflowdb;
 public class DetachedNodeGeneric implements DetachedNodeData {
     private final String label;
     private Object ref;
-    public Object[] keyvalues;
+    private Object[] propertiesAsKeyValues;
     private static Object[] emptyList = new Object[0];
 
-    public DetachedNodeGeneric(String label, Object... keyvalues) {
+    public DetachedNodeGeneric(String label, Object... propertiesAsKeyValues) {
         this.label = label;
-        this.keyvalues = keyvalues.length > 0 ? keyvalues : emptyList;
+        this.propertiesAsKeyValues = propertiesAsKeyValues.length > 0 ? propertiesAsKeyValues : emptyList;
     }
 
     public String label(){
@@ -21,5 +21,10 @@ public class DetachedNodeGeneric implements DetachedNodeData {
 
     public void setRefOrId(Object ref){
         this.ref = ref;
+    }
+
+    @Override
+    public Object[] getPropertiesAsKeyValues() {
+        return propertiesAsKeyValues;
     }
 }

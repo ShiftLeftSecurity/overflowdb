@@ -97,7 +97,7 @@ object GraphMLImporter extends Importer {
       targetId <- targetId.toLongOption
     } {
       Seq(sourceId, targetId).foreach { id =>
-        assert(nodesById.contains(id), s"node with id=$sourceId not found in `nodesById` - available ids are: ${nodesById.keys.toSeq.sorted}")
+        assert(nodesById.contains(id), s"node with id=$id not found in `nodesById` - available ids are: ${nodesById.keys.toSeq.sorted}")
       }
       val source = nodesById(sourceId)
       val destination = nodesById(targetId)

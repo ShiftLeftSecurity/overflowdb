@@ -91,7 +91,7 @@ public abstract class Node extends Element implements NodeOrDetachedNode {
   /*Allows fast initialization from detached node data; available as static instead of instance method, because we need to keep the REPL clean*/
   static void initializeFromDetached(Node node, DetachedNodeData data, Function<DetachedNodeData, Node> refMapper){
     if(data instanceof DetachedNodeGeneric){
-      PropertyHelper.attachProperties(node,((DetachedNodeGeneric) data).keyvalues);
+      PropertyHelper.attachProperties(node, data.getPropertiesAsKeyValues());
     } else node._initializeFromDetached(data, refMapper);
   }
 }

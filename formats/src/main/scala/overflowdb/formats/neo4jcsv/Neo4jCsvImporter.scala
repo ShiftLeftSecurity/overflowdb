@@ -1,11 +1,12 @@
 package overflowdb.formats.neo4jcsv
 
 import com.github.tototoshi.csv._
-import overflowdb.Graph
+import overflowdb.BatchedUpdate.DiffGraphBuilder
 import overflowdb.formats.Importer
+import overflowdb.{BatchedUpdate, DetachedNodeData}
 
 import java.nio.file.Path
-import java.util
+import scala.collection.mutable
 import scala.util.Using
 
 /**
@@ -15,9 +16,13 @@ import scala.util.Using
 object Neo4jCsvImporter extends Importer {
   val Neo4jAdminDoc = "https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import"
 
-  override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
+  override def createDiffGraph(inputFiles: Seq[Path]): BatchedUpdate.DiffGraph = {
+    val diffGraph = new DiffGraphBuilder
+
     var importedNodeCount = 0
     var importedEdgeCount = 0
+
+    val nodesById = mutable.Map.empty[Long, DetachedNodeData]
 
     groupInputFiles(inputFiles)
       .sortBy(nodeFilesFirst)
@@ -30,20 +35,27 @@ object Neo4jCsvImporter extends Importer {
               case FileType.Nodes =>
                 parseNodeRowData(columnsRaw, columnDefs, dataFile, lineNo) match {
                   case ParsedNodeRowData(id, label, properties) =>
-                    val propertiesAsKeyValues = properties.flatMap(parsedProperty => Seq(parsedProperty.name, parsedProperty.value))
-                    graph.addNode(id, label, propertiesAsKeyValues: _*)
+                    val propertiesAsKeyValues = properties.flatMap { case ParsedProperty(name, value) =>
+                      Seq(name, value.asInstanceOf[Object])
+                    }
+                    val node = diffGraph.addAndReturnNode(label, propertiesAsKeyValues: _*)
+                    val idLong = id: Long
+                    node.setRefOrId(idLong)
+                    nodesById.addOne(idLong -> node)
                     importedNodeCount += 1
                 }
               case FileType.Relationships =>
                 parseEdgeRowData(columnsRaw, columnDefs, dataFile, lineNo) match {
                   case ParsedEdgeRowData(startId, endId, label, properties) =>
-                    val startNode = graph.node(startId)
-                    val endNode = graph.node(endId)
-                    val propertiesMap = new util.HashMap[String, Object]
-                    properties.foreach { case ParsedProperty(name, value) =>
-                      propertiesMap.put(name, value.asInstanceOf[Object])
+                    Seq(startId, endId).foreach { id =>
+                      assert(nodesById.contains(id), s"node with id=$id not found in `nodesById` - available ids are: ${nodesById.keys.toSeq.sorted}")
                     }
-                    startNode.addEdge(label, endNode, propertiesMap)
+                    val startNode = nodesById(startId)
+                    val endNode = nodesById(endId)
+                    val propertiesAsKeyValues = properties.flatMap { case ParsedProperty(name, value) =>
+                      Seq(name, value.asInstanceOf[Object])
+                    }
+                    diffGraph.addEdge(startNode, endNode, label, propertiesAsKeyValues: _*)
                     importedEdgeCount += 1
                 }
             }
@@ -51,6 +63,7 @@ object Neo4jCsvImporter extends Importer {
         }
       }
     logger.info(s"imported $importedNodeCount nodes")
+    diffGraph.build()
   }
 
   private def groupInputFiles(inputFiles: Seq[Path]): Seq[HeaderAndDataFile] = {
