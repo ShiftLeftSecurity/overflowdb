@@ -7,6 +7,4 @@ public interface DetachedNodeData extends BatchedUpdate.Change, NodeOrDetachedNo
          * */
         Object getRefOrId();
         void setRefOrId(Object refOrId);
-
-        Object[] getPropertiesAsKeyValues();
 }
