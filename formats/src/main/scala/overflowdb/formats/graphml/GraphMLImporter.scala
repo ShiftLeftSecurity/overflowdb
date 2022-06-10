@@ -1,7 +1,7 @@
 package overflowdb.formats.graphml
 
 import overflowdb.BatchedUpdate.{DiffGraph, DiffGraphBuilder}
-import overflowdb.{DetachedNodeData, Graph}
+import overflowdb.{BatchedUpdate, DetachedNodeData, Graph}
 import overflowdb.formats.Importer
 
 import java.nio.file.Path
@@ -17,8 +17,8 @@ import scala.xml.{NodeSeq, XML}
 object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
-    // TODO
-    ???
+    val diffGraph = createDiffGraph(inputFiles)
+    BatchedUpdate.applyDiff(graph, diffGraph)
   }
 
   def createDiffGraph(inputFiles: Seq[Path]): DiffGraph = {

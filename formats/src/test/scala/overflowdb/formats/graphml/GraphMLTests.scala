@@ -6,6 +6,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.testdomains.gratefuldead.GratefulDead
 import overflowdb.testdomains.simple.{FunkyList, SimpleDomain, TestEdge, TestNode}
 import overflowdb.util.DiffTool
+import testutils.ProjectRoot
 
 import java.lang.System.lineSeparator
 import java.nio.file.Paths
@@ -17,7 +18,8 @@ class GraphMLTests extends AnyWordSpec {
     val graph = GratefulDead.newGraph()
     graph.nodeCount() shouldBe 0
 
-    GraphMLImporter.runImport(graph, Paths.get("src/test/resources/graphml-small.xml"))
+    val testFilePath = ProjectRoot.relativise("formats/src/test/resources/graphml-small.xml")
+    GraphMLImporter.runImport(graph, Paths.get(testFilePath))
     graph.nodeCount() shouldBe 3
     graph.edgeCount() shouldBe 2
 
