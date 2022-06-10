@@ -1,6 +1,7 @@
 package overflowdb.formats.graphml
 
-import overflowdb.Graph
+import overflowdb.BatchedUpdate.{DiffGraph, DiffGraphBuilder}
+import overflowdb.{DetachedNodeData, Graph}
 import overflowdb.formats.Importer
 
 import java.nio.file.Path
@@ -8,7 +9,7 @@ import scala.util.{Failure, Success, Try}
 import scala.xml.{NodeSeq, XML}
 
 /**
- * Imports GraphML into OverflowDB
+ * Imports GraphML into OverflowDB (via a DiffGraph)
  *
  * https://en.wikipedia.org/wiki/GraphML
  * http://graphml.graphdrawing.org/primer/graphml-primer.html
@@ -16,25 +17,29 @@ import scala.xml.{NodeSeq, XML}
 object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
+    // TODO
+    ???
+  }
+
+  def createDiffGraph(inputFiles: Seq[Path]): DiffGraph = {
     assert(inputFiles.size == 1, s"input must be exactly one file, but got ${inputFiles.size}")
     val doc = XML.loadFile(inputFiles.head.toFile)
+    val diffGraph = new DiffGraphBuilder
 
     val keyEntries = doc \ "key"
     val graphXml = doc \ "graph"
 
-    { // nodes
-      val nodePropertyContextById = parsePropertyEntries("node", keyEntries)
-      for (node <- graphXml \ "node") {
-        addNode(graph, node, nodePropertyContextById)
-      }
+    val nodePropertyContextById = parsePropertyEntries("node", keyEntries)
+    val nodesById = (graphXml \ "node").map { node =>
+      addNode(diffGraph, node, nodePropertyContextById)
+    }.toMap
+
+    val edgePropertyContextById = parsePropertyEntries("edge", keyEntries)
+    for (edge <- graphXml \ "edge") {
+      addEdge(diffGraph, edge, edgePropertyContextById, nodesById)
     }
 
-    { // edges
-      val edgePropertyContextById = parsePropertyEntries("edge", keyEntries)
-      for (edge <- graphXml \ "edge") {
-        addEdge(graph, edge, edgePropertyContextById)
-      }
-    }
+    diffGraph.build()
   }
 
   private def parsePropertyEntries(forElementType: String, keyEntries: NodeSeq): Map[String, PropertyContext] = {
@@ -49,8 +54,9 @@ object GraphMLImporter extends Importer {
       .toMap
   }
 
-  private def addNode(graph: Graph, node: scala.xml.Node, propertyContextById: Map[String, PropertyContext]): Unit = {
+  private def addNode(diffGraph: DiffGraphBuilder, node: scala.xml.Node, propertyContextById: Map[String, PropertyContext]): (Long, DetachedNodeData) = {
     val id = node \@ "id"
+    val idLong = id.toLongOption.getOrElse(throw new AssertionError(s"id expected but not set on $node"))
     var label: Option[String] = None
     val keyValuePairs = Seq.newBuilder[Any]
 
@@ -60,19 +66,19 @@ object GraphMLImporter extends Importer {
         case KeyForNodeLabel => label = Option(value)
         case key =>
           val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
-              throw new AssertionError(s"key $key not found in propertyContext..."))
+            throw new AssertionError(s"key $key not found in propertyContext..."))
           val convertedValue = convertValue(value, tpe, context = node)
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
 
-    for {
-      id <- id.toLongOption
-      label <- label
-    } graph.addNode(id, label, keyValuePairs.result: _*)
+    assert(label.isDefined, s"label not found in $node")
+    val newNode = diffGraph.addAndReturnNode(label.get, keyValuePairs.result: _*)
+    newNode.setRefOrId(idLong)
+    (idLong, newNode)
   }
 
-  private def addEdge(graph: Graph, edge: scala.xml.Node, propertyContextById: Map[String, PropertyContext]): Unit = {
+  private def addEdge(diffGraph: DiffGraphBuilder, edge: scala.xml.Node, propertyContextById: Map[String, PropertyContext], nodesById: Map[Long, DetachedNodeData]): Unit = {
     val sourceId = edge \@ "source"
     val targetId = edge \@ "target"
     var label: Option[String] = None
@@ -89,14 +95,19 @@ object GraphMLImporter extends Importer {
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
     }
+    assert(label.isDefined, s"label not found in $edge")
 
     for {
       sourceId <- sourceId.toLongOption
-      source <- Option(graph.node(sourceId))
       targetId <- targetId.toLongOption
-      target <- Option(graph.node(targetId))
-      label <- label
-    } source.addEdge(label, target, keyValuePairs.result: _*)
+    } {
+      Seq(sourceId, targetId).foreach { id =>
+        assert(nodesById.contains(id), s"node with id=$sourceId not found in `nodesById` - available ids are: ${nodesById.keys.toSeq.sorted}")
+      }
+      val source = nodesById(sourceId)
+      val destination = nodesById(targetId)
+      diffGraph.addEdge(source, destination, label.get, keyValuePairs.result: _*)
+    }
   }
 
   private def convertValue(stringValue: String, tpe: Type.Value, context: scala.xml.Node): Any = {
