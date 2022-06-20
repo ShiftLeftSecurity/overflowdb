@@ -38,16 +38,21 @@ public class GraphTest {
     assertEquals(4, graph.nodeCount());
     assertEquals(4, graph.edgeCount());
 
+    Map<String, Integer> edgeCountByLabel = graph.edgeCountByLabel();
+    assertEquals(2, edgeCountByLabel.size());
+    assertEquals(Integer.valueOf(2), edgeCountByLabel.get(WrittenBy.LABEL));
+    assertEquals(Integer.valueOf(2), edgeCountByLabel.get(FollowedBy.LABEL));
+
     // should still work after element removal
 
     song2.remove();
     assertEquals(3, graph.nodeCount());
     assertEquals(1, graph.edgeCount());
 
-    Map<String, Integer> countByLabel = graph.nodeCountByLabel();
-    assertEquals(2, countByLabel.size());
-    assertEquals(Integer.valueOf(2), countByLabel.get(Artist.label));
-    assertEquals(Integer.valueOf(1), countByLabel.get(Song.label));
+    Map<String, Integer> nodeCountByLabel = graph.nodeCountByLabel();
+    assertEquals(2, nodeCountByLabel.size());
+    assertEquals(Integer.valueOf(2), nodeCountByLabel.get(Artist.label));
+    assertEquals(Integer.valueOf(1), nodeCountByLabel.get(Song.label));
   }
 
   @Test

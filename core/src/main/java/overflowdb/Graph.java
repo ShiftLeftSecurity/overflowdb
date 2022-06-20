@@ -1,5 +1,7 @@
 package overflowdb;
 
+import gnu.trove.iterator.TObjectIntIterator;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import overflowdb.storage.NodeDeserializer;
@@ -273,6 +275,22 @@ public final class Graph implements AutoCloseable {
       edgeCount += node.outEdgeCount();
     }
     return edgeCount;
+  }
+
+  /** number of edges grouped by label */
+  public Map<String, Integer> edgeCountByLabel() {
+    TObjectIntHashMap<String> counts = new TObjectIntHashMap<>();
+    edges().forEachRemaining(edge ->
+      counts.adjustOrPutValue(edge.label(), 1, 1)
+    );
+
+    Map<String, Integer> ret = new HashMap<>(counts.size());
+    TObjectIntIterator<String> iterator = counts.iterator();
+    while (iterator.hasNext()) {
+      iterator.advance();
+      ret.put(iterator.key(), iterator.value());
+    }
+    return ret;
   }
 
   /** Iterator over all edges - alias for `edges` */
