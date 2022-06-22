@@ -27,18 +27,32 @@ object Neo4jCsvExporter extends Exporter {
     }.reduce(_.plus(_))
     val CountAndFiles(edgeCount, edgeFiles) = exportEdges(graph, outputRootDirectory)
 
+    val outputRootAbsolute = outputRootDirectory.toAbsolutePath
+
     ExportResult(
       nodeCount = nodeCount,
       edgeCount = edgeCount,
       files = nodeFiles ++ edgeFiles,
-      additionalInfo = Option(s"""instructions on how to import the exported files into neo4j:
-         |```
-         |cp $outputRootDirectory/*$DataFileSuffix.csv <neo4j_root>/import
-         |cd <neo4j_root>
-         |find $outputRootDirectory -name 'nodes_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
-         |find $outputRootDirectory -name 'edges_*_cypher.csv' -exec bin/cypher-shell -u <neo4j_user> -p <password> --file {} \\;
-         |```
-         |""".stripMargin)
+      additionalInfo = Option(
+        s"""Instructions on how to import the exported files into neo4j:
+           |Prerequisite: ensure you have neo4j community server running (enterprise and desktop may work too)
+           |e.g. download from https://neo4j.com/download-center/#community and start via `bin/neo4j console`
+           |
+           |Then, in a new terminal:
+           |```
+           |cd <neo4j_root>
+           |
+           |# if you have a fresh instance, you must first change the initial password
+           |bin/cypher-shell -u neo4j -p neo4j
+           |# exit the cypher shell
+           |
+           |# copy the data files to the `import` directory, where neo4j will find them
+           |cp $outputRootAbsolute/*$DataFileSuffix.csv import
+           |
+           |find $outputRootAbsolute -name 'nodes_*_cypher.csv' -exec bin/cypher-shell -u neo4j -p <password> --file {} \\;
+           |find $outputRootAbsolute -name 'edges_*_cypher.csv' -exec bin/cypher-shell -u neo4j -p <password> --file {} \\;
+           |```
+           |""".stripMargin)
     )
   }
 
