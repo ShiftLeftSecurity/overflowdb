@@ -92,6 +92,8 @@ object StringPropertyFilter {
           accessor(node).exists { value =>
             // Creating and accessing HashSets is expensive, so just sequentially scan needles for the first iteration.
             // (A max of 1 iteration happens regularly with .where/.whereNot clauses.)
+            // Note: .contains is faster even for very small sets (if it's called often enough) so we DON'T want a lower
+            // bound of needles.size on this condition
             if (iteration >= 2 && needleSet == null)
               needleSet = needles.to(mutable.HashSet)
 
