@@ -7,9 +7,11 @@ class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
                                                        iter: ArrayListIter[A])
     extends Traversal[A](iter) {
 
+  // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index
+  def canUseIndex(key: String): Boolean = iter.idx == 0 && graph.indexManager.isIndexed(key)
+
   def getByIndex(key: String, value: Any): Option[Traversal[A]] = {
-    // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index
-    if (iter.idx == 0 && graph.indexManager.isIndexed(key)) {
+    if (canUseIndex(key)) {
       val nodes = graph.indexManager.lookup(key, value)
       Some(Traversal.from(nodes.iterator()).label(label).cast[A])
     } else {
