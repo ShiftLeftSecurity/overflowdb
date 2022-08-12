@@ -94,6 +94,16 @@ public class NodesList {
     return size;
   }
 
+  private TMap<String, ArrayList<Node>> getNodesByLabel() {
+    TMap<String, ArrayList<Node>> nodesByLabel = this.nodesByLabel;
+    if (nodesByLabel != null) {
+      return nodesByLabel;
+    } else {
+      initialiseNodesByLabel();
+      return getNodesByLabel();
+    }
+  }
+
   private synchronized void initialiseNodesByLabel(){
     if (nodesByLabel == null) {
       TMap<String, ArrayList<Node>> tmp = new THashMap<>();
@@ -112,7 +122,7 @@ public class NodesList {
   }
 
   public ArrayList<Node> nodesByLabel(String label) {
-    if (nodesByLabel == null) initialiseNodesByLabel();
+    TMap<String, ArrayList<Node>> nodesByLabel = getNodesByLabel();
     ArrayList<Node> nodelist = nodesByLabel.get(label);
     if (nodelist == null){
       nodelist = new ArrayList<>();
@@ -122,7 +132,7 @@ public class NodesList {
   }
 
   public Set<String> nodeLabels() {
-    if (nodesByLabel == null) initialiseNodesByLabel();
+    TMap<String, ArrayList<Node>> nodesByLabel = getNodesByLabel();
     Set<String> ret = new HashSet<>(nodesByLabel.size());
     nodesByLabel.entrySet().forEach(entry -> {
       if (!entry.getValue().isEmpty()) {
@@ -210,6 +220,7 @@ public class NodesList {
 
   /** cardinality of nodes for given label */
   public int cardinality(String label) {
+    TMap<String, ArrayList<Node>> nodesByLabel = getNodesByLabel();
     if (nodesByLabel.containsKey(label))
       return nodesByLabel.get(label).size();
     else
