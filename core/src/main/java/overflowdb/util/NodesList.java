@@ -142,7 +142,7 @@ public class NodesList {
     return ret;
   }
 
-  public Iterator<Node> iterator() {
+  public synchronized Iterator<Node> iterator() {
     return new NodesIterator(Arrays.copyOf(nodes, nodes.length));
   }
 
@@ -159,8 +159,8 @@ public class NodesList {
     }
   }
 
-  /** trims down internal collections to just about the necessary size, in order to allow the remainder to be
-   * garbage collected */
+  /** Trims down internal collections to just about the necessary size, in order to allow the remainder to be
+   * garbage collected. Creates a new `nodes` array which contains all existing nodes.  */
   synchronized void compact() {
     final ArrayList<Node> newNodes = new ArrayList<>(size);
     Iterator<Node> iter = iterator();
