@@ -26,7 +26,7 @@ public final class Graph implements AutoCloseable {
   final NodesList nodes = new NodesList();
   public final IndexManager indexManager = new IndexManager(this);
   private final Config config;
-  private boolean closed = false;
+  private volatile boolean closed = false;
 
   protected final Map<String, NodeFactory> nodeFactoryByLabel;
   protected final Map<String, EdgeFactory> edgeFactoryByLabel;
@@ -151,7 +151,7 @@ public final class Graph implements AutoCloseable {
 
   private Node addNodeInternal(long id, String label, Object... keyValues) {
     if (isClosed()) {
-      throw new IllegalStateException("cannot add more elements, graph is closed");
+      throw new AssertionError("graph is closed - no more mutation allowed");
     }
     final NodeRef node = createNode(id, label, keyValues);
     nodes.add(node);
@@ -167,7 +167,7 @@ public final class Graph implements AutoCloseable {
   }
 
   private NodeRef createNode(final long idValue, final String label, final Object... keyValues) {
-    if (closed) {
+    if (isClosed()) {
       throw new AssertionError("graph is closed - no more mutation allowed");
     }
     if (!nodeFactoryByLabel.containsKey(label)) {
