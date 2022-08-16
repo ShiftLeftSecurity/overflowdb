@@ -84,6 +84,11 @@ public class NodesList {
     nodes[index] = null;
     emptySlots.set(index);
 
+    /** We drop the entire `nodesByLabel` index and will rebuild it on the next index lookup...
+      * Context: we don't know the exact position of this node in the `nodesByLabel` index, and
+      * searching it is O(n).
+      * We considered using a separate TLongIntMap for the Id->Index mapping, but that would
+      * consume 12-20b per node */
     this.nodesByLabel = null;
 
     size--;
