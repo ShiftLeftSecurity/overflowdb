@@ -27,7 +27,7 @@ public class NodeSerializer extends BookKeeper {
   }
 
   public NodeSerializer(boolean statsEnabled, OdbStorage storage) {
-    this(statsEnabled, storage, Function.identity());
+    this(statsEnabled, storage, null);
   }
 
   public byte[] serialize(NodeDb node) throws IOException {
@@ -59,7 +59,8 @@ public class NodeSerializer extends BookKeeper {
     for (Map.Entry<String, Object> property : properties.entrySet()) {
       int propertyKeyId = storage.lookupOrCreateStringToIntMapping(property.getKey());
       packer.packInt(propertyKeyId);
-      Object valueMaybeConverted = convertPropertyForPersistence.apply(property.getValue());
+      Object value = property.getValue();
+      Object valueMaybeConverted = convertPropertyForPersistence == null ? value : convertPropertyForPersistence.apply(value);
       packTypedValue(packer, valueMaybeConverted);
     }
   }
@@ -228,7 +229,13 @@ public class NodeSerializer extends BookKeeper {
       packer.packArrayHeader(array.length);
       for (boolean b : array) packer.packBoolean(b);
     } else {
-      throw new UnsupportedOperationException("id type `" + value.getClass());
+      String baseMessage = String.format("value of type %s not supported for serialization - ", value.getClass());
+      String extendedMessage =
+        convertPropertyForPersistence == null ?
+        "there is no `convertPropertyForPersistence` function defined, you might want to do so during graph initialisation..." :
+        "there is a `convertPropertyForPersistence`, but it doesn't convert the given type to one of the supported types";
+      String fullMessage = String.format("%s - %s", baseMessage, extendedMessage);
+      throw new UnsupportedOperationException(fullMessage);
     }
   }
 }
