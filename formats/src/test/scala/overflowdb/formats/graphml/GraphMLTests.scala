@@ -17,7 +17,7 @@ class GraphMLTests extends AnyWordSpec {
     val graph = GratefulDead.newGraph()
     graph.nodeCount() shouldBe 0
 
-    GraphMLImporter.runImport(graph, Paths.get(getClass.getResource("graphml-small.xml").toURI))
+    GraphMLImporter.runImport(graph, Paths.get(getClass.getResource("/graphml-small.xml").toURI))
     graph.nodeCount() shouldBe 3
     graph.edgeCount() shouldBe 2
 
