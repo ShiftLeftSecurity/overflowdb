@@ -50,7 +50,7 @@ package object graphson {
 
   case class Vertex(id: LongValue,
                     label: String,
-                    properties: Map[String, VertexProperty],
+                    properties: Map[String, Property],
                     `@type`: String = "g:Vertex")
 
   case class Edge(id: LongValue,
@@ -90,7 +90,4 @@ package object graphson {
 
   case class Property(id: LongValue, `@value`: PropertyValue, `@type`: String = "g:Property")
 
-  case class VertexProperty(id: LongValue,
-                            `@value`: PropertyValue,
-                            `@type`: String = "g:VertexProperty")
 }

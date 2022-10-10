@@ -11,6 +11,11 @@ import spray.json._
 
 import java.util
 
+/**
+  * Exports OverflowDB graph to GraphSON 3.0
+  *
+  * https://tinkerpop.apache.org/docs/3.4.1/dev/io/#graphson-3d0
+  */
 object GraphSONExporter extends Exporter {
 
   override def runExport(graph: Graph, outputRootDirectory: Path): ExportResult = {
@@ -23,7 +28,13 @@ object GraphSONExporter extends Exporter {
     val nodeEntries = graph
       .nodes()
       .asScala
-      .map(node => Vertex(LongValue(node.id), node.label, vertexProperties(node, propertyId)))
+      .map(
+        node =>
+          Vertex(
+            LongValue(node.id),
+            node.label,
+            propertyEntry(node, propertyId, "g:VertexProperty")
+        ))
       .toSeq
     val edgeEntries = graph
       .edges()
@@ -31,13 +42,15 @@ object GraphSONExporter extends Exporter {
       .map { edge =>
         val inNode = edge.inNode()
         val outNode = edge.outNode()
-        Edge(LongValue(edgeId.getAndIncrement),
-             edge.label,
-             inNode.label,
-             outNode.label,
-             LongValue(inNode.id),
-             LongValue(outNode.id),
-             edgeProperties(edge, propertyId))
+        Edge(
+          LongValue(edgeId.getAndIncrement),
+          edge.label,
+          inNode.label,
+          outNode.label,
+          LongValue(inNode.id),
+          LongValue(outNode.id),
+          propertyEntry(edge, propertyId, "g:Property")
+        )
       }
       .toSeq
     val graphSON = GraphSON(GraphSONElements(nodeEntries, edgeEntries))
@@ -52,38 +65,30 @@ object GraphSONExporter extends Exporter {
     )
   }
 
-  def vertexProperties(
+  def propertyEntry(
       element: Element,
-      propertyId: AtomicInteger
-  ): Map[String, VertexProperty] = {
-    element.propertiesMap.asScala.map {
-      case (propertyName, propertyValue) =>
-        propertyName -> VertexProperty(LongValue(propertyId.getAndIncrement()),
-                                       valueEntry(propertyValue))
-    }.toMap
-  }
-
-  def edgeProperties(
-      element: Element,
-      propertyId: AtomicInteger
+      propertyId: AtomicInteger,
+      propertyType: String
   ): Map[String, Property] = {
     element.propertiesMap.asScala.map {
       case (propertyName, propertyValue) =>
-        propertyName -> Property(LongValue(propertyId.getAndIncrement()), valueEntry(propertyValue))
+        propertyName -> Property(LongValue(propertyId.getAndIncrement()),
+                                 valueEntry(propertyValue),
+                                 propertyType)
     }.toMap
   }
 
   def valueEntry(propertyValue: Any): PropertyValue = {
     // Other types require explicit type definitions to be interpreted other than string or bool
     propertyValue match {
-      case x: Array[_]  => ListValue(x.map(valueEntry))
+      case x: Array[_]     => ListValue(x.map(valueEntry))
       case x: util.List[_] => ListValue(x.asScala.map(valueEntry).toArray)
-      case x: Boolean => BooleanValue(x)
-      case x: String  => StringValue(x)
-      case x: Double  => DoubleValue(x)
-      case x: Float   => FloatValue(x)
-      case x: Int     => IntValue(x)
-      case x: Long    => LongValue(x)
+      case x: Boolean      => BooleanValue(x)
+      case x: String       => StringValue(x)
+      case x: Double       => DoubleValue(x)
+      case x: Float        => FloatValue(x)
+      case x: Int          => IntValue(x)
+      case x: Long         => LongValue(x)
     }
   }
 

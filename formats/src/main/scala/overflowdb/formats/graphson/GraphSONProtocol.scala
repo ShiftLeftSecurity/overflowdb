@@ -78,8 +78,6 @@ object GraphSONProtocol extends DefaultJsonProtocol {
 
   implicit val propertyFormat: RootJsonFormat[Property] = jsonFormat3(Property)
 
-  implicit val vertexPropertyFormat: RootJsonFormat[VertexProperty] = jsonFormat3(VertexProperty)
-
   implicit val vertexFormat: RootJsonFormat[Vertex] = jsonFormat4(Vertex)
 
   implicit val edgeFormat: RootJsonFormat[Edge] = jsonFormat8(Edge)
