@@ -23,16 +23,26 @@ object GraphSONImporter extends Importer {
   }
 
   private def unboxVertexProperties(m: Map[String, VertexProperty]): Array[_] = {
-    m.flatMap { case (k, v) => Seq(k, v.`@value`) }.toArray
+    m.flatMap {
+      case (k, v) => v.`@value` match {
+        case x: ListValue => Seq(k, x.`@value`.map(_.`@value`))
+        case x => Seq(k, x.`@value`)
+      }
+    }.toArray
   }
 
   private def unboxEdgeProperties(m: Map[String, Property]): Array[_] = {
-    m.flatMap { case (k, v) => Seq(k, v.`@value`) }.toArray
+    m.flatMap {
+      case (k, v) => v.`@value` match {
+        case x: ListValue => Seq(k, x.`@value`.map(_.`@value`))
+        case x => Seq(k, x.`@value`)
+      }
+    }.toArray
   }
 
   private def addEdge(e: Edge, graph: Graph): Unit = {
-    val src = graph.node(e.inV.`@value`)
-    val tgt = graph.node(e.outV.`@value`)
-    src.addEdge(e.label, tgt, unboxEdgeProperties(e.properties))
+    val src = graph.node(e.outV.`@value`)
+    val tgt = graph.node(e.inV.`@value`)
+    src.addEdge(e.label, tgt, unboxEdgeProperties(e.properties): _*)
   }
 }

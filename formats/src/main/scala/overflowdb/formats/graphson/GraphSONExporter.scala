@@ -5,9 +5,11 @@ import overflowdb.{Element, Graph}
 
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.jdk.CollectionConverters.{IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsScala}
 import overflowdb.formats.graphson.GraphSONProtocol._
 import spray.json._
+
+import java.util
 
 object GraphSONExporter extends Exporter {
 
@@ -74,7 +76,8 @@ object GraphSONExporter extends Exporter {
   def valueEntry(propertyValue: Any): PropertyValue = {
     // Other types require explicit type definitions to be interpreted other than string or bool
     propertyValue match {
-      case x: Seq[_]  => ListValue(x.map(valueEntry))
+      case x: Array[_]  => ListValue(x.map(valueEntry))
+      case x: util.List[_] => ListValue(x.asScala.map(valueEntry).toArray)
       case x: Boolean => BooleanValue(x)
       case x: String  => StringValue(x)
       case x: Double  => DoubleValue(x)

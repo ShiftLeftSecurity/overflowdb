@@ -85,7 +85,7 @@ package object graphson {
   case class FloatValue(override val `@value`: Float, `@type`: String = Type.Float.typ)
       extends PropertyValue
 
-  case class ListValue(override val `@value`: Seq[PropertyValue], `@type`: String = Type.List.typ)
+  case class ListValue(override val `@value`: Array[PropertyValue], `@type`: String = Type.List.typ)
       extends PropertyValue
 
   case class Property(id: LongValue, `@value`: PropertyValue, `@type`: String = "g:Property")
