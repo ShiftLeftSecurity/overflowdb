@@ -37,8 +37,8 @@ object ExporterMain {
 
           val exporter: Exporter = format match {
             case Format.Neo4jCsv => Neo4jCsvExporter
-            case Format.GraphMl => GraphMLExporter
-            case Format.GraphSon => GraphSONExporter
+            case Format.GraphML => GraphMLExporter
+            case Format.GraphSON => GraphSONExporter
             case Format.Dot => DotExporter
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)
