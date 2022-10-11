@@ -35,8 +35,8 @@ object ImporterMain extends App {
 
           val importer: Importer = format match {
             case Format.Neo4jCsv => Neo4jCsvImporter
-            case Format.GraphMl => GraphMLImporter
-            case Format.GraphSon => GraphSONImporter
+            case Format.GraphML => GraphMLImporter
+            case Format.GraphSON => GraphSONImporter
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(outputFile)
           Using.resource(
