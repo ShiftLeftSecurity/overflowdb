@@ -19,7 +19,7 @@ object GraphSONImporter extends Importer {
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     assert(inputFiles.size == 1, s"input must be exactly one file, but got ${inputFiles.size}")
     Using.resource(fromFile(inputFiles.head.toFile)) { source =>
-      val graphSON = try source.mkString.parseJson.convertTo[GraphSON]
+      val graphSON = source.mkString.parseJson.convertTo[GraphSON]
       graphSON.`@value`.vertices.foreach(n => addNode(n, graph))
       graphSON.`@value`.edges.foreach(e => addEdge(e, graph))
     }
