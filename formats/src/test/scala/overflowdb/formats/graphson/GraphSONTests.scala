@@ -83,7 +83,7 @@ class GraphSONTests extends AnyWordSpec {
     "using list properties" in {
       val graph = SimpleDomain.newGraph()
 
-      // will not discard the list properties
+      // should not discard the list properties
       graph.addNode(
         1,
         TestNode.LABEL,
