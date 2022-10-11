@@ -1,15 +1,13 @@
 package overflowdb.formats.graphson
 
 import overflowdb.formats._
+import overflowdb.formats.graphson.GraphSONProtocol._
 import overflowdb.{Element, Graph}
+import spray.json._
 
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala, MapHasAsScala}
-import overflowdb.formats.graphson.GraphSONProtocol._
-import spray.json._
-
-import java.util
+import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
 
 /**
   * Exports OverflowDB graph to GraphSON 3.0
@@ -80,14 +78,16 @@ object GraphSONExporter extends Exporter {
   def valueEntry(propertyValue: Any): PropertyValue = {
     // Other types require explicit type definitions to be interpreted other than string or bool
     propertyValue match {
-      case x: Array[_]     => ListValue(x.map(valueEntry))
-      case x: util.List[_] => ListValue(x.asScala.map(valueEntry).toArray)
-      case x: Boolean      => BooleanValue(x)
-      case x: String       => StringValue(x)
-      case x: Double       => DoubleValue(x)
-      case x: Float        => FloatValue(x)
-      case x: Int          => IntValue(x)
-      case x: Long         => LongValue(x)
+      case x: Array[_]              => ListValue(x.map(valueEntry))
+      case x: Iterable[_]           => ListValue(x.map(valueEntry).toArray)
+      case x: IterableOnce[_]       => ListValue(x.iterator.map(valueEntry).toArray)
+      case x: java.lang.Iterable[_] => ListValue(x.asScala.map(valueEntry).toArray)
+      case x: Boolean               => BooleanValue(x)
+      case x: String                => StringValue(x)
+      case x: Double                => DoubleValue(x)
+      case x: Float                 => FloatValue(x)
+      case x: Int                   => IntValue(x)
+      case x: Long                  => LongValue(x)
     }
   }
 
