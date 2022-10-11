@@ -7,6 +7,7 @@ import spray.json._
 
 import java.nio.file.Path
 import scala.io.Source.fromFile
+import scala.util.Using
 
 /**
  * Imports OverflowDB graph to GraphSON 3.0
@@ -17,11 +18,11 @@ object GraphSONImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
     assert(inputFiles.size == 1, s"input must be exactly one file, but got ${inputFiles.size}")
-    val source = fromFile(inputFiles.head.toFile)
-    val graphSON = try source.mkString.parseJson.convertTo[GraphSON]
-    finally source.close()
-    graphSON.`@value`.vertices.foreach(n => addNode(n, graph))
-    graphSON.`@value`.edges.foreach(e => addEdge(e, graph))
+    Using.resource(fromFile(inputFiles.head.toFile)) { source =>
+      val graphSON = try source.mkString.parseJson.convertTo[GraphSON]
+      graphSON.`@value`.vertices.foreach(n => addNode(n, graph))
+      graphSON.`@value`.edges.foreach(e => addEdge(e, graph))
+    }
   }
 
   private def addNode(n: Vertex, graph: Graph): Unit = {
