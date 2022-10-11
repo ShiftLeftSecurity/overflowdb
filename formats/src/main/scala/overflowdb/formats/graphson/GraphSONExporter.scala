@@ -28,13 +28,12 @@ object GraphSONExporter extends Exporter {
     val nodeEntries = graph
       .nodes()
       .asScala
-      .map(
-        node =>
-          Vertex(
-            LongValue(node.id),
-            node.label,
-            propertyEntry(node, propertyId, "g:VertexProperty")
-        ))
+      .map(node =>
+        Vertex(
+          LongValue(node.id),
+          node.label,
+          propertyEntry(node, propertyId, "g:VertexProperty")
+      ))
       .toSeq
     val edgeEntries = graph
       .edges()
