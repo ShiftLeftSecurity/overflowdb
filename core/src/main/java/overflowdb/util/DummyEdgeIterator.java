@@ -2,6 +2,7 @@ package overflowdb.util;
 
 import overflowdb.Direction;
 import overflowdb.Edge;
+import overflowdb.EdgeImpl;
 import overflowdb.NodeRef;
 
 import java.util.Iterator;
@@ -63,7 +64,7 @@ public class DummyEdgeIterator implements Iterator<Edge> {
 
   private Edge readNext() {
     NodeRef otherRef = (NodeRef) array[current];
-    Edge dummyEdge;
+    EdgeImpl dummyEdge;
     if (direction == Direction.OUT) {
       dummyEdge = thisRef.get().instantiateDummyEdge(label, thisRef, otherRef);
       dummyEdge.setOutBlockOffset(current - begin);

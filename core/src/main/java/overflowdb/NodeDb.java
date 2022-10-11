@@ -170,7 +170,7 @@ public abstract class NodeDb extends Node {
     final List<Edge> edges = new ArrayList<>();
     bothE().forEachRemaining(edges::add);
     for (Edge edge : edges) {
-      if (!edge.isRemoved()) {
+      if (!((EdgeImpl) edge).isRemoved()) {
         edge.remove();
       }
     }
@@ -303,7 +303,7 @@ public abstract class NodeDb extends Node {
     int outBlockOffset = storeAdjacentNode(Direction.OUT, label, inNodeRef, keyValues);
     int inBlockOffset = inNodeRef.get().storeAdjacentNode(Direction.IN, label, thisNodeRef, keyValues);
 
-    Edge dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
+    EdgeImpl dummyEdge = instantiateDummyEdge(label, thisNodeRef, inNodeRef);
     dummyEdge.setOutBlockOffset(outBlockOffset);
     dummyEdge.setInBlockOffset(inBlockOffset);
 
@@ -727,11 +727,11 @@ public abstract class NodeDb extends Node {
   /**
    * instantiate and return a dummy edge, which doesn't really exist in the graph
    */
-  public final Edge instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
+  public final EdgeImpl instantiateDummyEdge(String label, NodeRef outNode, NodeRef inNode) {
     final EdgeFactory edgeFactory = ref.graph.edgeFactoryByLabel.get(label);
     if (edgeFactory == null)
       throw new IllegalArgumentException("specializedEdgeFactory for label=" + label + " not found - please register on startup!");
-    return edgeFactory.createEdge(ref.graph, outNode, inNode);
+    return (EdgeImpl) edgeFactory.createEdge(ref.graph, outNode, inNode);
   }
 
   /**

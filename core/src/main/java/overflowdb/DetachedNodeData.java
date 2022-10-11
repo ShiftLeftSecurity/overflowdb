@@ -10,4 +10,8 @@ public interface DetachedNodeData extends BatchedUpdate.Change, NodeOrDetachedNo
          * */
         public Object getRefOrId();
         public void setRefOrId(Object refOrId);
+
+        default public void recurseFields(BatchupdateApplier applier){
+
+        }
 }

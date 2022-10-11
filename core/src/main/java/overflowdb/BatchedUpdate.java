@@ -175,7 +175,7 @@ public class BatchedUpdate {
         }
     }
 
-    private static class RemoveEdge implements Change {
+    public static class RemoveEdge implements Change {
         public Edge edge;
 
         public RemoveEdge(Edge edge) {
