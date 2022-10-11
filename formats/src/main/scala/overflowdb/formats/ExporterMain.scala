@@ -3,6 +3,7 @@ package overflowdb.formats
 import org.slf4j.LoggerFactory
 import overflowdb.formats.dot.DotExporter
 import overflowdb.formats.graphml.GraphMLExporter
+import overflowdb.formats.graphson.GraphSONExporter
 import overflowdb.formats.neo4jcsv.Neo4jCsvExporter
 import overflowdb.{EdgeFactory, Graph, NodeFactory}
 import scopt.OParser
@@ -36,7 +37,8 @@ object ExporterMain {
 
           val exporter: Exporter = format match {
             case Format.Neo4jCsv => Neo4jCsvExporter
-            case Format.GraphMl => GraphMLExporter
+            case Format.GraphML => GraphMLExporter
+            case Format.GraphSON => GraphSONExporter
             case Format.Dot => DotExporter
           }
           val odbConfig = overflowdb.Config.withoutOverflow.withStorageLocation(inputFile)

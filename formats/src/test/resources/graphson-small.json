@@ -1,0 +1,106 @@
+{
+  "@type": "tinker:graph",
+  "@value": {
+    "edges": [{
+      "@type": "g:Edge",
+      "id": {
+        "@type": "g:Int64",
+        "@value": 0
+      },
+      "inV": {
+        "@type": "g:Int64",
+        "@value": 340
+      },
+      "inVLabel": "artist",
+      "label": "sungBy",
+      "outV": {
+        "@type": "g:Int64",
+        "@value": 1
+      },
+      "outVLabel": "song",
+      "properties": {
+
+      }
+    }, {
+      "@type": "g:Edge",
+      "id": {
+        "@type": "g:Int64",
+        "@value": 1
+      },
+      "inV": {
+        "@type": "g:Int64",
+        "@value": 527
+      },
+      "inVLabel": "artist",
+      "label": "writtenBy",
+      "outV": {
+        "@type": "g:Int64",
+        "@value": 1
+      },
+      "outVLabel": "song",
+      "properties": {
+
+      }
+    }],
+    "vertices": [{
+      "@type": "g:Vertex",
+      "id": {
+        "@type": "g:Int64",
+        "@value": 1
+      },
+      "label": "song",
+      "properties": {
+        "name": {
+          "@type": "g:VertexProperty",
+          "@value": "HEY BO DIDDLEY",
+          "id": {
+            "@type": "g:Int64",
+            "@value": 0
+          }
+        },
+        "songType": {
+          "@type": "g:VertexProperty",
+          "@value": "cover",
+          "id": {
+            "@type": "g:Int64",
+            "@value": 1
+          }
+        }
+      }
+    }, {
+      "@type": "g:Vertex",
+      "id": {
+        "@type": "g:Int64",
+        "@value": 340
+      },
+      "label": "artist",
+      "properties": {
+        "name": {
+          "@type": "g:VertexProperty",
+          "@value": "Garcia",
+          "id": {
+            "@type": "g:Int64",
+            "@value": 2
+          }
+        }
+      }
+    }, {
+      "@type": "g:Vertex",
+      "id": {
+        "@type": "g:Int64",
+        "@value": 527
+      },
+      "label": "artist",
+      "properties": {
+        "name": {
+          "@type": "g:VertexProperty",
+          "@value": "Bo_Diddley",
+          "id": {
+            "@type": "g:Int64",
+            "@value": 3
+          }
+        }
+      }
+    }]
+  }
+}
