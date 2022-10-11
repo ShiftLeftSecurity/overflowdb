@@ -110,9 +110,7 @@ class GraphSONTests extends AnyWordSpec {
         val diff = DiffTool.compare(graph, reimported)
         val diffString = diff.asScala.mkString(lineSeparator)
         withClue(
-          "despite the original graph containing two list properties, these are preserved in GraphSON" +
-            diffString +
-            lineSeparator) {
+          s"original graph contained two list properties, these should also be present in reimported graph $diffString $lineSeparator") {
           diff.size shouldBe 0
         }
       }
