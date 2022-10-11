@@ -8,13 +8,13 @@ package object graphson {
     // Boolean and String do not require type specification
     // strings are simply in quotes and booleans are not
     // We use the following as placeholders
-    val Boolean = Val(1, "g:Boolean")
-    val String = Val(2, "g:String")
-    val Int = Val(3, "g:Int32")
-    val Long = Val(4, "g:Int64")
-    val Float = Val(5, "g:Float")
-    val Double = Val(6, "g:Double")
-    val List = Val(7, "g:List")
+    val Boolean = GraphSONVal(1, "g:Boolean")
+    val String = GraphSONVal(2, "g:String")
+    val Int = GraphSONVal(3, "g:Int32")
+    val Long = GraphSONVal(4, "g:Int64")
+    val Float = GraphSONVal(5, "g:Float")
+    val Double = GraphSONVal(6, "g:Double")
+    val List = GraphSONVal(7, "g:List")
 
     def fromRuntimeClass(clazz: Class[_]): Type.Value = {
       if (clazz.isAssignableFrom(classOf[Boolean]) || clazz.isAssignableFrom(
@@ -40,8 +40,8 @@ package object graphson {
           s"unsupported runtime class `$clazz` - only ${Type.values.mkString("|")} are supported...}")
     }
 
-    protected case class Val(num: Int, typ: String) extends super.Val
-    implicit def name(x: Val): String = x.typ
+    protected case class GraphSONVal(num: Int, typ: String) extends super.Val
+    implicit def name(x: GraphSONVal): String = x.typ
   }
 
   case class GraphSON(`@value`: GraphSONElements, `@type`: String = "tinker:graph")

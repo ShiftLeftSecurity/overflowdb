@@ -41,16 +41,12 @@ object GraphSONProtocol extends DefaultJsonProtocol {
       value match {
         case JsString(v)  => return StringValue(v)
         case JsBoolean(v) => return BooleanValue(v)
-        case _ =>
+        case _            =>
       }
       value.asJsObject.getFields("@value", "@type") match {
-        case Seq(JsArray(v), JsString(_)) =>
-          ListValue(v.map({
-            case lx: JsValue => read(lx)
-            case _           => deserializationError("PropertyValue within list expected")
-          }).toArray)
-        case x: Seq[_] => readNonList(x)
-        case _         => deserializationError("PropertyValue expected")
+        case Seq(JsArray(v), JsString(_)) => ListValue(v.map(read).toArray)
+        case x: Seq[_]                    => readNonList(x)
+        case null                         => deserializationError("PropertyValue expected")
       }
     }
 
@@ -70,20 +66,25 @@ object GraphSONProtocol extends DefaultJsonProtocol {
 
     def read(value: JsValue): LongValue with Product =
       value.asJsObject.getFields("@value", "@type") match {
-      case Seq(JsNumber(v), JsString(typ)) if typ.equals(Type.Long.typ) =>
-        LongValue(v.toLongExact)
-      case _ => deserializationError("LongValue expected")
-    }
+        case Seq(JsNumber(v), JsString(typ)) if typ.equals(Type.Long.typ) =>
+          LongValue(v.toLongExact)
+        case _ => deserializationError("LongValue expected")
+      }
   }
 
-  implicit val propertyFormat: RootJsonFormat[Property] = jsonFormat3(Property)
+  implicit val propertyFormat: RootJsonFormat[Property] =
+    jsonFormat3(Property.apply)
 
-  implicit val vertexFormat: RootJsonFormat[Vertex] = jsonFormat4(Vertex)
+  implicit val vertexFormat: RootJsonFormat[Vertex] =
+    jsonFormat4(Vertex.apply)
 
-  implicit val edgeFormat: RootJsonFormat[Edge] = jsonFormat8(Edge)
+  implicit val edgeFormat: RootJsonFormat[Edge] =
+    jsonFormat8(Edge.apply)
 
-  implicit val graphSONElementsFormat: RootJsonFormat[GraphSONElements] = jsonFormat2(GraphSONElements)
+  implicit val graphSONElementsFormat: RootJsonFormat[GraphSONElements] =
+    jsonFormat2(GraphSONElements.apply)
 
-  implicit val graphSONFormat: RootJsonFormat[GraphSON] = jsonFormat2(GraphSON)
+  implicit val graphSONFormat: RootJsonFormat[GraphSON] =
+    jsonFormat2(GraphSON.apply)
 
 }
