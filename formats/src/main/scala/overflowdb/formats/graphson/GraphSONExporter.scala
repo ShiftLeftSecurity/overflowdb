@@ -16,8 +16,8 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
   */
 object GraphSONExporter extends Exporter {
 
-  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputRootDirectory: Path): ExportResult = {
-    val outFile = resolveOutputFile(outputRootDirectory)
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputFile: Path): ExportResult = {
+    val outFile = resolveOutputFile(outputFile)
     // OverflowDB only stores IDs on nodes. GraphSON requires IDs on properties and edges too
     // so we add them synthetically
     val propertyId = new AtomicInteger(0)
@@ -44,7 +44,7 @@ object GraphSONExporter extends Exporter {
         propertyEntry(edge, propertyId, "g:Property")
       )
     }.toSeq
-    
+
     val graphSON = GraphSON(GraphSONElements(nodeEntries, edgeEntries))
     val json = graphSON.toJson
     writeFile(outFile, json.prettyPrint)
@@ -86,14 +86,13 @@ object GraphSONExporter extends Exporter {
     }
   }
 
-  private def resolveOutputFile(outputRootDirectory: Path): Path = {
-    if (Files.exists(outputRootDirectory)) {
-      assert(Files.isDirectory(outputRootDirectory),
-             s"given output directory `$outputRootDirectory` must be a directory, but isn't...")
+  private def resolveOutputFile(outputFile: Path): Path = {
+    if (Files.exists(outputFile) && Files.isDirectory(outputFile)) {
+      outputFile.resolve("export.graphson")
     } else {
-      Files.createDirectories(outputRootDirectory)
+      Files.createDirectories(outputFile.getParent)
+      outputFile
     }
-    outputRootDirectory.resolve("export.graphson")
   }
 
 }
