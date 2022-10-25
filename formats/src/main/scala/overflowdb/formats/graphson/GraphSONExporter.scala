@@ -2,12 +2,12 @@ package overflowdb.formats.graphson
 
 import overflowdb.formats._
 import overflowdb.formats.graphson.GraphSONProtocol._
-import overflowdb.{Element, Graph}
+import overflowdb.{Element, Node}
 import spray.json._
 
 import java.nio.file.{Files, Path}
 import java.util.concurrent.atomic.AtomicInteger
-import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 
 /**
   * Exports OverflowDB graph to GraphSON 3.0
@@ -16,40 +16,35 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, IteratorHasAsScala, M
   */
 object GraphSONExporter extends Exporter {
 
-  override def runExport(graph: Graph, outputRootDirectory: Path): ExportResult = {
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputRootDirectory: Path): ExportResult = {
     val outFile = resolveOutputFile(outputRootDirectory)
     // OverflowDB only stores IDs on nodes. GraphSON requires IDs on properties and edges too
     // so we add them synthetically
     val propertyId = new AtomicInteger(0)
     val edgeId = new AtomicInteger(0)
 
-    val nodeEntries = graph
-      .nodes()
-      .asScala
-      .map(node =>
-        Vertex(
-          LongValue(node.id),
-          node.label,
-          propertyEntry(node, propertyId, "g:VertexProperty")
-      ))
-      .toSeq
-    val edgeEntries = graph
-      .edges()
-      .asScala
-      .map { edge =>
-        val inNode = edge.inNode()
-        val outNode = edge.outNode()
-        Edge(
-          LongValue(edgeId.getAndIncrement),
-          edge.label,
-          inNode.label,
-          outNode.label,
-          LongValue(inNode.id),
-          LongValue(outNode.id),
-          propertyEntry(edge, propertyId, "g:Property")
-        )
-      }
-      .toSeq
+    val nodeEntries = nodes.iterator.map(node =>
+      Vertex(
+        LongValue(node.id),
+        node.label,
+        propertyEntry(node, propertyId, "g:VertexProperty")
+      )
+    ).toSeq
+
+    val edgeEntries = edges.iterator.map { edge =>
+      val inNode = edge.inNode()
+      val outNode = edge.outNode()
+      Edge(
+        LongValue(edgeId.getAndIncrement),
+        edge.label,
+        inNode.label,
+        outNode.label,
+        LongValue(inNode.id),
+        LongValue(outNode.id),
+        propertyEntry(edge, propertyId, "g:Property")
+      )
+    }.toSeq
+    
     val graphSON = GraphSON(GraphSONElements(nodeEntries, edgeEntries))
     val json = graphSON.toJson
     writeFile(outFile, json.prettyPrint)
