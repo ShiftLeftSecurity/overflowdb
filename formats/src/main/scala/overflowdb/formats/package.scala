@@ -32,6 +32,18 @@ package object formats {
     case arr: Array[_]             => ArraySeq.unsafeWrapArray(arr)
   }
 
+  /** If given outputFile is a directory: export into a new file in that directory
+   * Otherwise: use the given outputFile as is, and create all parent directories (if not there already)
+   */
+  def resolveOutputFileSingle(outputFile: Path, defaultName: String): Path = {
+    if (Files.exists(outputFile) && Files.isDirectory(outputFile)) {
+      outputFile.resolve(defaultName)
+    } else {
+      Files.createDirectories(outputFile.getParent)
+      outputFile
+    }
+  }
+
   def writeFile(file: Path, content: String): Unit =
     Files.write(file, content.getBytes(Charset.forName("UTF-8")))
 }

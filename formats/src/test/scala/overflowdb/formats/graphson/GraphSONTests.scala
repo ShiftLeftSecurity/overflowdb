@@ -66,6 +66,7 @@ class GraphSONTests extends AnyWordSpec {
         exportResult.nodeCount shouldBe 3
         exportResult.edgeCount shouldBe 2
         val Seq(graphMLFile) = exportResult.files
+        println(graphMLFile)
 
         // import graphml into new graph, use difftool for round trip of conversion
         val reimported = SimpleDomain.newGraph()

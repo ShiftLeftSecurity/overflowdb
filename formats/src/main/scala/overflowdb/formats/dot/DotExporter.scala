@@ -1,6 +1,6 @@
 package overflowdb.formats.dot
 
-import overflowdb.formats.{ExportResult, Exporter, iterableForList}
+import overflowdb.formats.{ExportResult, Exporter, iterableForList, resolveOutputFileSingle}
 import overflowdb.{Edge, Node}
 
 import java.nio.file.{Files, Path}
@@ -20,8 +20,8 @@ import scala.util.Using
  * */
 object DotExporter extends Exporter {
 
-  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputRootDirectory: Path) = {
-    val outFile = resolveOutputFile(outputRootDirectory)
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path) = {
+    val outFile = resolveOutputFileSingle(outputFile, "export.dot")
     var nodeCount, edgeCount = 0
 
     Using.resource(Files.newBufferedWriter(outFile)) { writer =>
@@ -80,12 +80,4 @@ object DotExporter extends Exporter {
     }
   }
 
-  private def resolveOutputFile(outputRootDirectory: Path): Path = {
-    if (Files.exists(outputRootDirectory)) {
-      assert(Files.isDirectory(outputRootDirectory), s"given output directory `$outputRootDirectory` must be a directory, but isn't...")
-    } else {
-      Files.createDirectories(outputRootDirectory)
-    }
-    outputRootDirectory.resolve("export.dot")
-  }
 }
