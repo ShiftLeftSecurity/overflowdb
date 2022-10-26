@@ -1,10 +1,10 @@
 package overflowdb.formats.graphml
 
-import overflowdb.formats.{ExportResult, Exporter, isList, writeFile}
+import overflowdb.formats.{ExportResult, Exporter, isList, resolveOutputFileSingle, writeFile}
 import overflowdb.{Edge, Element, Node}
 
 import java.lang.System.lineSeparator
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.MapHasAsScala
@@ -22,8 +22,10 @@ import scala.xml.{PrettyPrinter, XML}
  * */
 object GraphMLExporter extends Exporter {
 
-  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputRootDirectory: Path) = {
-    val outFile = resolveOutputFile(outputRootDirectory)
+  override def defaultFileExtension = "xml"
+
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path) = {
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     val nodePropertyContextById = mutable.Map.empty[String, PropertyContext]
     val edgePropertyContextById = mutable.Map.empty[String, PropertyContext]
     val discardedListPropertyCount = new AtomicInteger(0)
@@ -83,15 +85,6 @@ object GraphMLExporter extends Exporter {
       files = Seq(outFile),
       additionalInfo
     )
-  }
-
-  private def resolveOutputFile(outputRootDirectory: Path): Path = {
-    if (Files.exists(outputRootDirectory)) {
-      assert(Files.isDirectory(outputRootDirectory), s"given output directory `$outputRootDirectory` must be a directory, but isn't...")
-    } else {
-      Files.createDirectories(outputRootDirectory)
-    }
-    outputRootDirectory.resolve("export.graphml")
   }
 
   /**

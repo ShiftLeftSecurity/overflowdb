@@ -5,7 +5,7 @@ import overflowdb.formats.graphson.GraphSONProtocol._
 import overflowdb.{Element, Node}
 import spray.json._
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 
@@ -16,8 +16,10 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
   */
 object GraphSONExporter extends Exporter {
 
+  override def defaultFileExtension = "json"
+
   override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputFile: Path): ExportResult = {
-    val outFile = resolveOutputFile(outputFile)
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     // OverflowDB only stores IDs on nodes. GraphSON requires IDs on properties and edges too
     // so we add them synthetically
     val propertyId = new AtomicInteger(0)
@@ -83,15 +85,6 @@ object GraphSONExporter extends Exporter {
       case x: Float                 => FloatValue(x)
       case x: Int                   => IntValue(x)
       case x: Long                  => LongValue(x)
-    }
-  }
-
-  private def resolveOutputFile(outputFile: Path): Path = {
-    if (Files.exists(outputFile) && Files.isDirectory(outputFile)) {
-      outputFile.resolve("export.graphson")
-    } else {
-      Files.createDirectories(outputFile.getParent)
-      outputFile
     }
   }
 

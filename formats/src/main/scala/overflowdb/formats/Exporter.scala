@@ -7,6 +7,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 trait Exporter {
 
+  def defaultFileExtension: String
+
   def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path): ExportResult
 
   def runExport(graph: Graph, outputFile: Path): ExportResult =
