@@ -22,8 +22,10 @@ import scala.xml.{PrettyPrinter, XML}
  * */
 object GraphMLExporter extends Exporter {
 
+  override def defaultFileExtension = "xml"
+
   override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path) = {
-    val outFile = resolveOutputFileSingle(outputFile, "export.xml")
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     val nodePropertyContextById = mutable.Map.empty[String, PropertyContext]
     val edgePropertyContextById = mutable.Map.empty[String, PropertyContext]
     val discardedListPropertyCount = new AtomicInteger(0)

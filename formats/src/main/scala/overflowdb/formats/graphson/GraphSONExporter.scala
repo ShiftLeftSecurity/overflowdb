@@ -16,8 +16,10 @@ import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
   */
 object GraphSONExporter extends Exporter {
 
+  override def defaultFileExtension = "json"
+
   override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputFile: Path): ExportResult = {
-    val outFile = resolveOutputFileSingle(outputFile, "export.json")
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     // OverflowDB only stores IDs on nodes. GraphSON requires IDs on properties and edges too
     // so we add them synthetically
     val propertyId = new AtomicInteger(0)

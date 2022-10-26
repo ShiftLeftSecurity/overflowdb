@@ -12,6 +12,8 @@ import scala.util.Using
 
 object Neo4jCsvExporter extends Exporter {
 
+  override def defaultFileExtension = "csv"
+
   /**
    * Exports OverflowDB Graph to neo4j csv files
    * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/

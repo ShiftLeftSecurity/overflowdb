@@ -19,9 +19,10 @@ import scala.util.Using
  * https://www.slideshare.net/albazo/graphiz-using-the-dot-language
  * */
 object DotExporter extends Exporter {
+  override def defaultFileExtension = "dot"
 
   override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path) = {
-    val outFile = resolveOutputFileSingle(outputFile, "export.dot")
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     var nodeCount, edgeCount = 0
 
     Using.resource(Files.newBufferedWriter(outFile)) { writer =>
@@ -79,5 +80,4 @@ object DotExporter extends Exporter {
       case value => value.toString
     }
   }
-
 }
