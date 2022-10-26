@@ -1,10 +1,10 @@
 package overflowdb.formats.dot
 
 import overflowdb.formats.{ExportResult, Exporter, iterableForList}
-import overflowdb.{Edge, Graph, Node}
+import overflowdb.{Edge, Node}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.util.Using
 
 /**
@@ -20,7 +20,7 @@ import scala.util.Using
  * */
 object DotExporter extends Exporter {
 
-  override def runExport(graph: Graph, outputRootDirectory: Path) = {
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputRootDirectory: Path) = {
     val outFile = resolveOutputFile(outputRootDirectory)
     var nodeCount, edgeCount = 0
 
@@ -32,12 +32,12 @@ object DotExporter extends Exporter {
 
       writeLine("digraph {")
 
-      graph.nodes().forEachRemaining { node =>
+      nodes.iterator.foreach { node =>
         nodeCount += 1
         writeLine(node2Dot(node))
       }
 
-      graph.edges().forEachRemaining { edge =>
+      edges.iterator.foreach { edge =>
         edgeCount += 1
         writeLine(edge2Dot(edge))
       }

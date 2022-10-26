@@ -16,12 +16,6 @@ package object formats {
       byNameLowercase.values.toSeq.map(_.toString.toLowerCase).sorted
   }
 
-  private[formats] def labelsWithNodes(graph: Graph): Seq[String] = {
-    graph.nodeCountByLabel.asScala.collect {
-      case (label, count) if count > 0 => label
-    }.toSeq
-  }
-
   /**
    * @return true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
    */
