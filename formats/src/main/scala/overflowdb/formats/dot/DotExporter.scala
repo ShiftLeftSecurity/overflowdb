@@ -1,10 +1,10 @@
 package overflowdb.formats.dot
 
-import overflowdb.formats.{ExportResult, Exporter, iterableForList}
-import overflowdb.{Edge, Graph, Node}
+import overflowdb.formats.{ExportResult, Exporter, iterableForList, resolveOutputFileSingle}
+import overflowdb.{Edge, Node}
 
 import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
+import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.util.Using
 
 /**
@@ -19,9 +19,10 @@ import scala.util.Using
  * https://www.slideshare.net/albazo/graphiz-using-the-dot-language
  * */
 object DotExporter extends Exporter {
+  override def defaultFileExtension = "dot"
 
-  override def runExport(graph: Graph, outputRootDirectory: Path) = {
-    val outFile = resolveOutputFile(outputRootDirectory)
+  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path) = {
+    val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     var nodeCount, edgeCount = 0
 
     Using.resource(Files.newBufferedWriter(outFile)) { writer =>
@@ -32,12 +33,12 @@ object DotExporter extends Exporter {
 
       writeLine("digraph {")
 
-      graph.nodes().forEachRemaining { node =>
+      nodes.iterator.foreach { node =>
         nodeCount += 1
         writeLine(node2Dot(node))
       }
 
-      graph.edges().forEachRemaining { edge =>
+      edges.iterator.foreach { edge =>
         edgeCount += 1
         writeLine(edge2Dot(edge))
       }
@@ -78,14 +79,5 @@ object DotExporter extends Exporter {
         s"\"$values\""
       case value => value.toString
     }
-  }
-
-  private def resolveOutputFile(outputRootDirectory: Path): Path = {
-    if (Files.exists(outputRootDirectory)) {
-      assert(Files.isDirectory(outputRootDirectory), s"given output directory `$outputRootDirectory` must be a directory, but isn't...")
-    } else {
-      Files.createDirectories(outputRootDirectory)
-    }
-    outputRootDirectory.resolve("export.dot")
   }
 }

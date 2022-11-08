@@ -16,12 +16,6 @@ package object formats {
       byNameLowercase.values.toSeq.map(_.toString.toLowerCase).sorted
   }
 
-  private[formats] def labelsWithNodes(graph: Graph): Seq[String] = {
-    graph.nodeCountByLabel.asScala.collect {
-      case (label, count) if count > 0 => label
-    }.toSeq
-  }
-
   /**
    * @return true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
    */
@@ -36,6 +30,18 @@ package object formats {
     case it: IterableOnce[_]       => it.iterator.toSeq
     case it: java.lang.Iterable[_] => it.asScala
     case arr: Array[_]             => ArraySeq.unsafeWrapArray(arr)
+  }
+
+  /** If given outputFile is a directory: export into a new file in that directory
+   * Otherwise: use the given outputFile as is, and create all parent directories (if not there already)
+   */
+  def resolveOutputFileSingle(outputFile: Path, defaultName: String): Path = {
+    if (Files.exists(outputFile) && Files.isDirectory(outputFile)) {
+      outputFile.resolve(defaultName)
+    } else {
+      Files.createDirectories(outputFile.getParent)
+      outputFile
+    }
   }
 
   def writeFile(file: Path, content: String): Unit =

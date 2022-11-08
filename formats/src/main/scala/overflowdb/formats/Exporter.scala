@@ -1,11 +1,18 @@
 package overflowdb.formats
 
-import overflowdb.Graph
-
 import java.nio.file.{Path, Paths}
+import overflowdb.{Edge, Graph, Node}
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+
 
 trait Exporter {
-  def runExport(graph: Graph, outputFile: Path): ExportResult
+
+  def defaultFileExtension: String
+
+  def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputFile: Path): ExportResult
+
+  def runExport(graph: Graph, outputFile: Path): ExportResult =
+    runExport(graph.nodes().asScala, graph.edges().asScala, outputFile)
 
   def runExport(graph: Graph, outputFile: String): ExportResult =
     runExport(graph, Paths.get(outputFile))
