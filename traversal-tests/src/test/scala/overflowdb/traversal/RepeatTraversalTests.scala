@@ -167,7 +167,7 @@ class RepeatTraversalTests extends AnyWordSpec with ExampleGraphSetup {
     }
   }
 
-  ".dedup should apply to all repeat iterations" when {
+  ".dedup should apply to all repeat iterations - e.g. to avoid cycles" when {
     "path tracking is not enabled" in {
       centerTrav.repeat(_.both)(_.maxDepth(2).dedup).toSetMutable shouldBe Set(l2, r2)
       centerTrav.repeat(_.both)(_.maxDepth(3).dedup).toSetMutable shouldBe Set(l3, r3)
