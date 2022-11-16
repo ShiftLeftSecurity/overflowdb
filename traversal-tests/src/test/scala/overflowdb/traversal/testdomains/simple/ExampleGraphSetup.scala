@@ -4,9 +4,9 @@ import overflowdb._
 import overflowdb.traversal.Traversal
 
 /* simple example graph:
- * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4
+ * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
  * */
-object ExampleGraphSetup {
+trait ExampleGraphSetup {
   val nonExistingLabel = "this label does not exist"
   val nonExistingPropertyKey = new PropertyKey[String]("this property key does not exist")
   val graph = SimpleDomain.newGraph

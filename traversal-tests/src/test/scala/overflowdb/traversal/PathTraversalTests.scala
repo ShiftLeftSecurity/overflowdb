@@ -9,8 +9,7 @@ import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing, ThingT
 import scala.collection.mutable
 
 
-class PathTraversalTests extends AnyWordSpec {
-  import ExampleGraphSetup._
+class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
   ".path step" should {
     "not be enabled by default" in {

@@ -7,12 +7,11 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
 import scala.collection.mutable
 
-class RepeatTraversalTests extends AnyWordSpec {
-  import ExampleGraphSetup._
+class RepeatTraversalTests extends AnyWordSpec with ExampleGraphSetup {
+
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */
-
   "typical case for both domain-specific steps" in {
     centerTrav.repeat(_.followedBy)(_.times(2)).name.toSetMutable shouldBe Set("L2", "R2")
   }
@@ -233,6 +232,7 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "traverses all nodes to outer limits exactly once, emitting and returning nothing, by default" in {
     val traversedNodes = mutable.ListBuffer.empty[Any]
+
     def test(traverse: => Iterable[_]) = {
       traversedNodes.clear()
       val results = traverse
@@ -247,18 +247,18 @@ class RepeatTraversalTests extends AnyWordSpec {
     test(centerTrav.repeat(_.sideEffect(traversedNodes.addOne).out)(_.breadthFirstSearch).l)
 
     // for reference: this is the equivalent in tinkerpop - this doesn't compile any more because we dropped that dependency
-//    withClue("for reference: this behaviour is adapted from tinkerpop") {
-//      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-//      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
-//      import org.apache.tinkerpop.gremlin.structure.Vertex
-//      test {
-//        val centerTp3: Vertex = NodeTp3.wrap(center)
-//        __(centerTp3).repeat(
-//          __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
-//            .out().asInstanceOf[TPTraversal[_, Vertex]]
-//        ).toList.asScala
-//      }
-//    }
+    //    withClue("for reference: this behaviour is adapted from tinkerpop") {
+    //      import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+    //      import org.apache.tinkerpop.gremlin.process.traversal.{Traverser, Traversal => TPTraversal}
+    //      import org.apache.tinkerpop.gremlin.structure.Vertex
+    //      test {
+    //        val centerTp3: Vertex = NodeTp3.wrap(center)
+    //        __(centerTp3).repeat(
+    //          __().sideEffect { x: Traverser[Vertex] => traversedNodes += x.get }
+    //            .out().asInstanceOf[TPTraversal[_, Vertex]]
+    //        ).toList.asScala
+    //      }
+    //    }
   }
 
   "uses DFS (depth first search) by default" in {
@@ -320,10 +320,10 @@ class RepeatTraversalTests extends AnyWordSpec {
 
     // for reference: tinkerpop becomes very slow with large iteration counts:
     // on my machine this didn't terminate within 5mins, hence commenting out
-//    import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
-//    __(a).repeat(
-//      __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
-//    ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
+    //    import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__.__
+    //    __(a).repeat(
+    //      __().out().asInstanceOf[org.apache.tinkerpop.gremlin.process.traversal.Traversal[_, Node]]
+    //    ).times(repeatCount).values[String](Name.name).next() shouldBe "b"
   }
 
   "support .path step" when {
@@ -371,4 +371,5 @@ class RepeatTraversalTests extends AnyWordSpec {
       r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
     }
   }
+
 }
