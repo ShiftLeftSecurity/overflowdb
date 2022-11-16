@@ -5,6 +5,7 @@ import PathFinder._
 import overflowdb.Direction._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import overflowdb.Direction
 
 class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
   /* most tests work with this simple graph:
@@ -25,6 +26,10 @@ class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
         center, r1
       ))
     )
+
+    path.head.withEdges shouldBe PathWithEdges(Seq(
+      NodeEntry(center), EdgeEntry(Direction.OUT, Connection.Label), NodeEntry(r1)
+    ))
   }
 
 }
