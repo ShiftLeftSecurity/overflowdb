@@ -3,6 +3,8 @@ package overflowdb.algorithm
 import overflowdb.traversal.Traversal
 import overflowdb.{Direction, Edge, Node}
 
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+
 object PathFinder {
   def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
@@ -22,14 +24,14 @@ object PathFinder {
       // TODO use for comprehension?
       PathWithEdges(
         nodes.sliding(2).flatMap { case Seq(nodeA, nodeB) =>
-          val edgesBetween0: PathEntry = edgesBetween(nodeA, nodeB) match {
+          val edgesBetweenAsPathEntry: PathEntry = edgesBetween(nodeA, nodeB) match {
             case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
             case Seq(edgeEntry) => edgeEntry
             case multipleEdges => EdgeEntries(multipleEdges)
           }
           Seq(
             NodeEntry(nodeA),
-            edgesBetween0,
+            edgesBetweenAsPathEntry,
             NodeEntry (nodeB),
           )
         }.to(Seq)
@@ -38,7 +40,9 @@ object PathFinder {
   }
 
   private def edgesBetween(nodeA: Node, nodeB: Node): Seq[EdgeEntry] = {
-    ???
+    val outEdges = nodeA.outE.asScala.filter(_.inNode == nodeB).map(edge => EdgeEntry(Direction.OUT, edge.label))
+    val inEdges  = nodeA.inE.asScala.filter(_.outNode == nodeB).map(edge => EdgeEntry(Direction.IN, edge.label))
+    outEdges.to(Seq) ++ inEdges.to(Seq)
   }
 
   case class PathWithEdges(elements: Seq[PathEntry])
