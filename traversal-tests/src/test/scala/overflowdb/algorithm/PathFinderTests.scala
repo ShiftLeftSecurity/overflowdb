@@ -6,12 +6,10 @@ import overflowdb.Direction._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 
-class PathFinderTests extends AnyWordSpec {
-  import ExampleGraphSetup._
+class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */
-
   "identity" in {
     PathFinder(center, center) shouldBe Seq(
       Path(Seq(
@@ -27,7 +25,6 @@ class PathFinderTests extends AnyWordSpec {
         center, r1
       ))
     )
-    path.head.withEdges shouldBe "TODO"
   }
 
 }

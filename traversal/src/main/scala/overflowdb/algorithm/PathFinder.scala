@@ -1,7 +1,7 @@
 package overflowdb.algorithm
 
 import overflowdb.traversal.Traversal
-import overflowdb.{Direction, Edge, Node}
+import overflowdb.{Direction, Node}
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
@@ -9,27 +9,17 @@ object PathFinder {
   def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
-      println("XXX0")
       Traversal.fromSingle(nodeA)
         .enablePathTracking
-//        .repeat(_.both)(_.emit(_.is(nodeB)).times(1))
-        .repeat(_.both)(_.until(_.is(nodeB)))
+        .repeat(_.both)(_.dedup // no cycles
+                         .emit(_.is(nodeB)) // we only care about the paths that lead to our destination
+                         //           .times(3) // TODO make configurable
+                         .until(_.is(nodeB))) // don't continue on a given path if we've reached our destination
         .path
         .dedup
-        .foreach(println)
-      println("XXX1")
-
-//      Traversal.fromSingle(nodeA)
-//        .enablePathTracking
-//        .repeat(_.both)(_.emit(_.is(nodeB)).times(1))
-//        .path
-//        .dedup
-//        .map { path =>
-//          Path(
-//            path.map(_.asInstanceOf[Node]) // safe to cast, because we called `_.both` on repeat step
-//          )
-//        }.toSeq
-      ???
+        .cast[Seq[Node]]
+        .map(Path.apply)
+        .toSeq
     }
   }
 

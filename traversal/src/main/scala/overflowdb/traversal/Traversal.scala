@@ -68,14 +68,8 @@ class Traversal[+A](elements: IterableOnce[A])
 
   /** filters out everything that is _not_ the given value */
   @Doc(info = "filters out everything that is _not_ the given value")
-  def is[B >: A](value: B): Traversal[A] = {
-//    filter(_ == value)
-    filter { x =>
-      val ret = x == value
-      println(s"XXX3: $x == $value : $ret")
-      ret
-    }
-  }
+  def is[B >: A](value: B): Traversal[A] =
+    filter(_ == value)
 
   /** filters out all elements that are _not_ in the provided set */
   @Doc(info = "filters out all elements that are _not_ in the provided set")
