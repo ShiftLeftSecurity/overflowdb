@@ -7,6 +7,5 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "4.1.0",
   "io.spray" %% "spray-json" % "1.3.6"
 )
-scalacOptions ++= Seq("-deprecation:false")
 
 Test/console/scalacOptions -= "-Xlint"
