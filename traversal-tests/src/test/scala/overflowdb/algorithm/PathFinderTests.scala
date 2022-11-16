@@ -27,7 +27,7 @@ class PathFinderTests extends AnyWordSpec {
         center, r1
       ))
     )
-    path.head.withEdges shouldBe "foo"
+    path.head.withEdges shouldBe "TODO"
   }
 
 }

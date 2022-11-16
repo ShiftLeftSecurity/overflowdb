@@ -9,12 +9,26 @@ object PathFinder {
   def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
+      println("XXX0")
       Traversal.fromSingle(nodeA)
         .enablePathTracking
-        .repeat(_.both)(_.emit.times(2))
+//        .repeat(_.both)(_.emit(_.is(nodeB)).times(1))
+        .repeat(_.both)(_.until(_.is(nodeB)))
         .path
+        .dedup
         .foreach(println)
+      println("XXX1")
 
+//      Traversal.fromSingle(nodeA)
+//        .enablePathTracking
+//        .repeat(_.both)(_.emit(_.is(nodeB)).times(1))
+//        .path
+//        .dedup
+//        .map { path =>
+//          Path(
+//            path.map(_.asInstanceOf[Node]) // safe to cast, because we called `_.both` on repeat step
+//          )
+//        }.toSeq
       ???
     }
   }
