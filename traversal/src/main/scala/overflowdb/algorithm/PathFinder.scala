@@ -4,17 +4,12 @@ import overflowdb.traversal.Traversal
 import overflowdb.{Direction, Node}
 
 object PathFinder {
-  case class Path(elements: Seq[PathEntry])
-
   def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
-    if (nodeA == nodeB) Seq(Path(Seq(NodeEntry(nodeA))))
+    if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
       Traversal.fromSingle(nodeA)
         .enablePathTracking
-        .repeat(_.union(
-          _.outE.inV,
-          _.inE.outV
-        ))(_.emit.times(2))
+        .repeat(_.both)(_.emit.times(2))
         .path
         .foreach(println)
 
@@ -22,6 +17,28 @@ object PathFinder {
     }
   }
 
+  case class Path(nodes: Seq[Node]) {
+    def withEdges: PathWithEdges = {
+
+      // TODO use for comprehension
+      PathWithEdges(nodes.sliding(2).flatMap { case Seq(nodeA, nodeB) =>
+        edgesBetween(nodeA, nodeB).map { edgeEntry =>
+          Seq(
+            NodeEntry(nodeA),
+            edgeEntry,
+            NodeEntry (nodeB),
+          )
+        }
+      } )
+      ???
+    }
+  }
+
+  private def edgesBetween(nodeA: Node, nodeB: Node): Seq[EdgeEntry] = {
+    ???
+  }
+
+  case class PathWithEdges(elements: Seq[PathEntry])
   sealed trait PathEntry
   case class NodeEntry(node: Node) extends PathEntry {
     def label: String = node.label()
@@ -31,4 +48,6 @@ object PathFinder {
     assert(direction == Direction.IN || direction == Direction.OUT,
       s"direction must be either IN or OUT, but was $direction")
   }
+
+
 }

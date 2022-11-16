@@ -15,17 +15,19 @@ class PathFinderTests extends AnyWordSpec {
   "identity" in {
     PathFinder(center, center) shouldBe Seq(
       Path(Seq(
-        NodeEntry(center)
+        center
       ))
     )
   }
 
   "direct neighbors" in {
-    PathFinder(center, r1) shouldBe Seq(
+    val path = PathFinder(center, r1)
+    path shouldBe Seq(
       Path(Seq(
-        NodeEntry(center), EdgeEntry(OUT, Connection.Label), NodeEntry(r1)
+        center, r1
       ))
     )
+    path.withEdges shouldBe
   }
 
 }
