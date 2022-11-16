@@ -165,7 +165,7 @@ class Traversal[+A](elements: IterableOnce[A])
    *   .union(_.out, _.in)
    * }}}
    */
-  @Doc(info = "union/sum/aggregate given traversals from the current point")
+  @Doc(info = "union/sum/aggregate/join given traversals from the current point")
   def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
     flatMap { (a: A) =>
       traversals.flatMap(_.apply(Traversal.fromSingle(a)))
