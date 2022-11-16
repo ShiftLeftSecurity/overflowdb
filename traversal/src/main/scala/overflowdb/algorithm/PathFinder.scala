@@ -1,7 +1,7 @@
 package overflowdb.algorithm
 
 import overflowdb.traversal.Traversal
-import overflowdb.{Direction, Node}
+import overflowdb.{Direction, Edge, Node}
 
 object PathFinder {
   def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
@@ -19,18 +19,21 @@ object PathFinder {
 
   case class Path(nodes: Seq[Node]) {
     def withEdges: PathWithEdges = {
-
-      // TODO use for comprehension
-      PathWithEdges(nodes.sliding(2).flatMap { case Seq(nodeA, nodeB) =>
-        edgesBetween(nodeA, nodeB).map { edgeEntry =>
+      // TODO use for comprehension?
+      PathWithEdges(
+        nodes.sliding(2).flatMap { case Seq(nodeA, nodeB) =>
+          val edgesBetween0: PathEntry = edgesBetween(nodeA, nodeB) match {
+            case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
+            case Seq(edgeEntry) => edgeEntry
+            case multipleEdges => EdgeEntries(multipleEdges)
+          }
           Seq(
             NodeEntry(nodeA),
-            edgeEntry,
+            edgesBetween0,
             NodeEntry (nodeB),
           )
-        }
-      } )
-      ???
+        }.to(Seq)
+      )
     }
   }
 
@@ -44,6 +47,7 @@ object PathFinder {
     def label: String = node.label()
     def id: Long = node.id()
   }
+  case class EdgeEntries(edgeEntries: Seq[EdgeEntry]) extends PathEntry
   case class EdgeEntry(direction: Direction, label: String) extends PathEntry {
     assert(direction == Direction.IN || direction == Direction.OUT,
       s"direction must be either IN or OUT, but was $direction")
