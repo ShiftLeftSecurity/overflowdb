@@ -21,21 +21,16 @@ object PathFinder {
 
   case class Path(nodes: Seq[Node]) {
     def withEdges: PathWithEdges = {
-      // TODO use for comprehension?
-      PathWithEdges(
-        nodes.sliding(2).flatMap { case Seq(nodeA, nodeB) =>
-          val edgesBetweenAsPathEntry: PathEntry = edgesBetween(nodeA, nodeB) match {
-            case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
-            case Seq(edgeEntry) => edgeEntry
-            case multipleEdges => EdgeEntries(multipleEdges)
-          }
-          Seq(
-            NodeEntry(nodeA),
-            edgesBetweenAsPathEntry,
-            NodeEntry (nodeB),
-          )
-        }.to(Seq)
-      )
+      val nodesWithEdges = for {
+        case Seq(nodeA, nodeB) <- nodes.sliding(2)
+        edgesBetweenAsPathEntry: PathEntry = edgesBetween(nodeA, nodeB) match {
+          case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
+          case Seq(edgeEntry) => edgeEntry
+          case multipleEdges => EdgeEntries(multipleEdges)
+        }
+      } yield Seq(NodeEntry(nodeA), edgesBetweenAsPathEntry, NodeEntry (nodeB))
+
+      PathWithEdges(nodesWithEdges.flatten.to(Seq))
     }
   }
 
