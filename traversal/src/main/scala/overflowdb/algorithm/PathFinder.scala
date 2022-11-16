@@ -25,16 +25,25 @@ object PathFinder {
 
   case class Path(nodes: Seq[Node]) {
     def withEdges: PathWithEdges = {
-      val nodesWithEdges = for {
-        case Seq(nodeA, nodeB) <- nodes.sliding(2)
-        edgesBetweenAsPathEntry: PathEntry = edgesBetween(nodeA, nodeB) match {
-          case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
-          case Seq(edgeEntry) => edgeEntry
-          case multipleEdges => EdgeEntries(multipleEdges)
-        }
-      } yield Seq(NodeEntry(nodeA), edgesBetweenAsPathEntry, NodeEntry (nodeB))
+      val elements = Seq.newBuilder[PathEntry]
+      nodes.headOption.foreach { firstElement =>
+        elements.addOne(NodeEntry(firstElement))
+      }
 
-      PathWithEdges(nodesWithEdges.flatten.to(Seq))
+      for {
+        case Seq(nodeA, nodeB) <- nodes.sliding(2)
+        edgesBetweenAsPathEntry: PathEntry =
+          edgesBetween(nodeA, nodeB) match {
+            case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
+            case Seq(edgeEntry) => edgeEntry
+            case multipleEdges => EdgeEntries(multipleEdges)
+          }
+      } {
+        elements.addOne(edgesBetweenAsPathEntry)
+        elements.addOne(NodeEntry(nodeB))
+      }
+
+      PathWithEdges(elements.result())
     }
   }
 
