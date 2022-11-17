@@ -99,7 +99,7 @@ class GratefulDeadTests extends AnyWordSpec {
     "across all playlists, how many distinct singers appear 3 places after songs sang by 'Hunter'?" in {
       gratefulDead.artists.name("Hunter")
         .sangSongs
-        .repeat(_.followedBy)(_.times(3))
+        .repeat(_.followedBy)(_.maxDepth(3))
         .sungBy
         .toSetMutable
         .size shouldBe 43

@@ -6,11 +6,11 @@ trait RepeatBehaviour[A] {
   val searchAlgorithm: SearchAlgorithm.Value
   val untilCondition: Option[A => Iterator[_]]
   val whileCondition: Option[A => Iterator[_]]
-  val times: Option[Int]
+  val maxDepth: Option[Int]
   val dedupEnabled: Boolean
 
-  def timesReached(currentDepth: Int): Boolean =
-    times.isDefined && times.get <= currentDepth
+  def maxDepthReached(currentDepth: Int): Boolean =
+    maxDepth.isDefined && maxDepth.get <= currentDepth
 
   def untilConditionReached(element: A): Boolean =
     untilCondition match {
@@ -42,30 +42,33 @@ object RepeatBehaviour {
     private[this] var _shouldEmit: (A, Int) => Boolean = (_, _) => false
     private[this] var _untilCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _whileCondition: Option[Traversal[A] => Traversal[_]] = None
-    private[this] var _times: Option[Int] = None
+    private[this] var _maxDepth: Option[Int] = None
     private[this] var _dedupEnabled: Boolean = false
     private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
 
-    /* configure search algorithm to go "breadth first", rather than the default "depth first" */
+    /** configure search algorithm to go "breadth first", rather than the default "depth first" */
     def breadthFirstSearch: Builder[A] = {
       _searchAlgorithm = SearchAlgorithm.BreadthFirst
       this
     }
+
+    /** configure search algorithm to go "breadth first", rather than the default "depth first" */
     def bfs: Builder[A] = breadthFirstSearch
 
-    /* configure `repeat` step to emit everything along the way */
+    /** Emit all intermediate elements (along the way). */
     def emit: Builder[A] = {
       _shouldEmit = (_, _) => true
       this
     }
 
-    /* configure `repeat` step to emit everything along the way, apart from the _first_ element */
+    /** Emit intermediate elements (along the way), apart from the _first_ element */
     def emitAllButFirst: Builder[A] = {
       _shouldEmit = (_, depth) => depth > 0
       this
     }
 
-    /* configure `repeat` step to emit whatever meets the given condition */
+    /** Emit intermediate elements (along the way), if they meet the given condition.
+     * Note that this does not apply a filter on the final elements of the traversal. */
     def emit(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _shouldEmit = (element, _) => condition(Traversal.fromSingle(element)).hasNext
       this
@@ -78,7 +81,7 @@ object RepeatBehaviour {
       this
     }
 
-    /* Configure `repeat` step to stop traversing when given condition-traversal has no result.
+    /** Stop traversing when given condition-traversal has no result.
     * The condition-traversal is already evaluated at the first iteration, for classic while/repeat behaviour.
     *
     * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted. */
@@ -87,12 +90,20 @@ object RepeatBehaviour {
       this
     }
 
-    /* configure `repeat` step to perform the given amount of iterations */
-    def times(value: Int): Builder[A] = {
-      _times = Some(value)
+    /** Maximum depth to go down in the repeat traversal.
+     * Note that there may be other conditions like until|whilst etc. */
+    @deprecated("use `maxDepth` instead - semantically equivalent, while it describes the meaning more precisely", "1.153")
+    def times(value: Int): Builder[A] =
+      maxDepth(value)
+
+    /** Maximum depth to go down in the repeat traversal.
+      * Note that there may be other conditions like until|whilst etc. */
+    def maxDepth(value: Int): Builder[A] = {
+      _maxDepth = Some(value)
       this
     }
 
+    /** Keep a 'visited' list of elements to ensure we are not going in cycles. */
     def dedup: Builder[A] = {
       _dedupEnabled = true
       this
@@ -103,7 +114,7 @@ object RepeatBehaviour {
         override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
         override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
         override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
-        final override val times: Option[Int] = _times
+        final override val maxDepth: Option[Int] = _maxDepth
         final override val dedupEnabled = _dedupEnabled
         override def shouldEmit(element: A, currentDepth: Int): Boolean = _shouldEmit(element, currentDepth)
       }

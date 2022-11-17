@@ -41,7 +41,7 @@ object PathAwareRepeatStep {
             val WorklistItem(trav0, depth) = worklist.head
             val trav = trav0.path
             if (trav.isEmpty) worklist.removeHead()
-            else if (behaviour.timesReached(depth)) stop = true
+            else if (behaviour.maxDepthReached(depth)) stop = true
             else {
               val path0 = trav.next()
               val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
