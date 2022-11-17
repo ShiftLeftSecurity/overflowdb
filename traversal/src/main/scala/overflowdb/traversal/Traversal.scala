@@ -165,7 +165,7 @@ class Traversal[+A](elements: IterableOnce[A])
    *   .union(_.out, _.in)
    * }}}
    */
-  @Doc(info = "union/sum/aggregate given traversals from the current point")
+  @Doc(info = "union/sum/aggregate/join given traversals from the current point")
   def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
     flatMap { (a: A) =>
       traversals.flatMap(_.apply(Traversal.fromSingle(a)))
@@ -312,6 +312,7 @@ class Traversal[+A](elements: IterableOnce[A])
     * {{{
     *  myTraversal.enablePathTracking.out.out.path.toList
     * }}}
+    *  TODO would be nice to preserve the types of the elements, at least if they have a common supertype
     */
   @Doc(info = "retrieve entire path that has been traversed thus far")
   def path: Traversal[Vector[Any]] =
