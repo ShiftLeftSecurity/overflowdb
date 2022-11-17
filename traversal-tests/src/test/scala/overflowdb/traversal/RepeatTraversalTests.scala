@@ -114,7 +114,18 @@ class RepeatTraversalTests extends AnyWordSpec {
     "be combinable with `.times`" in {
       centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).times(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
+  }
 
+  "until and times" should {
+    "work in combination" in {
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).toSetMutable shouldBe Set(l2, r2)
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).has(Name -> "R2").l shouldBe Seq(r2)
+      centerTrav.repeat(_.out)(_.breadthFirstSearch.until(_.has(Name -> "R2")).times(2)).toSetMutable shouldBe Set(l2, r2)
+    }
+
+    "work in combination with path" in {
+      centerTrav.enablePathTracking.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).path.filter(_.last == r2).l shouldBe Seq(Vector(center, r1, r2))
+    }
   }
 
   "support repeat/while behaviour" should {
