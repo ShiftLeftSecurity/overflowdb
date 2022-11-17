@@ -4,8 +4,7 @@ import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup}
 import PathFinder._
 import overflowdb.Direction._
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-import overflowdb.Direction
+import org.scalatest.matchers.should.Matchers._
 
 class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
   /* sample graph:
@@ -33,7 +32,7 @@ class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
     )
 
     path.head.withEdges shouldBe PathWithEdges(Seq(
-      NodeEntry(center), EdgeEntry(Direction.OUT, Connection.Label), NodeEntry(r1)
+      NodeEntry(center), EdgeEntry(OUT, Connection.Label), NodeEntry(r1)
     ))
   }
 

@@ -1,7 +1,7 @@
 package overflowdb.algorithm
 
-import overflowdb.traversal.{RepeatBehaviour, Traversal}
 import overflowdb.{Direction, Node}
+import overflowdb.traversal._
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
