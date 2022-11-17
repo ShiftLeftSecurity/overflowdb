@@ -76,7 +76,7 @@ class RepeatStepIterator[A](element: A,
     while (worklist.nonEmpty && !stop) {
       val WorklistItem(trav, depth) = worklist.head
       if (trav.isEmpty) worklist.removeHead()
-      else if (behaviour.timesReached(depth)) stop = true
+      else if (behaviour.maxDepthReached(depth)) stop = true
       else {
         val element = trav.next()
         if (behaviour.dedupEnabled) visited.addOne(element)

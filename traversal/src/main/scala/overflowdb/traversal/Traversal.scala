@@ -172,7 +172,7 @@ class Traversal[+A](elements: IterableOnce[A])
    * By default it will continue repeating until there's no more results, not emit anything along the way, and use
    * depth first search.
    *
-   * The @param behaviourBuilder allows you to configure end conditions (times/until), whether it should emit
+   * The @param behaviourBuilder allows you to configure end conditions (until|whilst|maxDepth), whether it should emit
    * elements it passes by, and which search algorithm to use (depth-first or breadth-first).
    *
    * Search algorithm: Depth First Search (DFS) vs Breadth First Search (BFS):
@@ -184,7 +184,7 @@ class Traversal[+A](elements: IterableOnce[A])
    * @example
    * {{{
    * .repeat(_.out)                            // repeat until there's no more elements, emit nothing, use DFS
-   * .repeat(_.out)(_.times(3))                               // perform exactly three repeat iterations
+   * .repeat(_.out)(_.maxDepth(3))                            // perform exactly three repeat iterations
    * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
    * .repeat(_.out)(_.emit)                                   // emit everything along the way
    * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
@@ -218,7 +218,7 @@ class Traversal[+A](elements: IterableOnce[A])
    * {{{
    * .choose(_.property(Name)) {
    *   case "L1" => _.out
-   *   case "R1" => _.repeat(_.out)(_.times(3))
+   *   case "R1" => _.repeat(_.out)(_.maxDepth(3))
    *   case _ => _.in
    * }
    * }}}

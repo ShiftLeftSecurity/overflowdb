@@ -21,7 +21,7 @@ class RepeatTraversalTests extends AnyWordSpec {
     centerTrav.repeat(_.out)(_.maxDepth(2)).property(Name).toSetMutable shouldBe Set("L2", "R2")
   }
 
-  "repeat given traversal X times" should {
+  "repeat given traversal up to depth 2" should {
     "return only the final elements" in {
       val expectedResults = Set("L2", "R2")
       centerTrav.repeat(_.followedBy)(_.maxDepth(2)).name.toSetMutable shouldBe expectedResults
@@ -111,12 +111,12 @@ class RepeatTraversalTests extends AnyWordSpec {
       centerTrav.repeat(_.out)(_.until(_.hasLabel(Thing.Label)).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
 
-    "be combinable with `.times`" in {
+    "be combinable with `.maxDepth`" in {
       centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).maxDepth(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
   }
 
-  "until and times" should {
+  "until and maxDepth" should {
     "work in combination" in {
       centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).maxDepth(2)).toSetMutable shouldBe Set(l2, r2)
       centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).maxDepth(2)).has(Name -> "R2").l shouldBe Seq(r2)
@@ -163,7 +163,7 @@ class RepeatTraversalTests extends AnyWordSpec {
       )
     }
 
-    "be combinable with `.times`" in {
+    "be combinable with `.maxDepth`" in {
       centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).maxDepth(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
   }
@@ -338,7 +338,7 @@ class RepeatTraversalTests extends AnyWordSpec {
   }
 
   "support .path step" when {
-    "using `times` modulator" in {
+    "using `maxDepth` modulator" in {
       centerTrav.enablePathTracking.repeat(_.out)(_.maxDepth(2)).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))

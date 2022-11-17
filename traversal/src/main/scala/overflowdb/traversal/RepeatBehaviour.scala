@@ -6,11 +6,11 @@ trait RepeatBehaviour[A] {
   val searchAlgorithm: SearchAlgorithm.Value
   val untilCondition: Option[A => Iterator[_]]
   val whileCondition: Option[A => Iterator[_]]
-  val times: Option[Int]
+  val maxDepth: Option[Int]
   val dedupEnabled: Boolean
 
-  def timesReached(currentDepth: Int): Boolean =
-    times.isDefined && times.get <= currentDepth
+  def maxDepthReached(currentDepth: Int): Boolean =
+    maxDepth.isDefined && maxDepth.get <= currentDepth
 
   def untilConditionReached(element: A): Boolean =
     untilCondition match {
@@ -114,7 +114,7 @@ object RepeatBehaviour {
         override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
         override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
         override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
-        final override val times: Option[Int] = _maxDepth
+        final override val maxDepth: Option[Int] = _maxDepth
         final override val dedupEnabled = _dedupEnabled
         override def shouldEmit(element: A, currentDepth: Int): Boolean = _shouldEmit(element, currentDepth)
       }
