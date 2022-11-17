@@ -49,7 +49,7 @@ class LogicalStepsTests extends AnyWordSpec {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
-          case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
+          case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
         }.property(Name).toSetMutable shouldBe Set("L2", "R4")
     }
 
@@ -57,7 +57,7 @@ class LogicalStepsTests extends AnyWordSpec {
       graph.nodes(Thing.Label)
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
-          case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
+          case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
           case _ => _.in
         }.property(Name).toSetMutable shouldBe Set("L2", "L1", "R1", "R2", "R3", "R4")
     }

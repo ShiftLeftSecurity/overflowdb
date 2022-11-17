@@ -153,7 +153,7 @@ class PathTraversalTests extends AnyWordSpec {
         graph.nodes(Thing.Label).enablePathTracking
           .choose(_.property(Name)) {
             case "L1" => _.out // -> L2
-            case "R1" => _.repeat(_.out)(_.times(3)) // -> R4
+            case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
           }.property(Name).path.toSetMutable shouldBe Set(
           Seq(r1, r4, "R4"),
           Seq(l1, l2, "L2")

@@ -14,36 +14,36 @@ class RepeatTraversalTests extends AnyWordSpec {
    */
 
   "typical case for both domain-specific steps" in {
-    centerTrav.repeat(_.followedBy)(_.times(2)).name.toSetMutable shouldBe Set("L2", "R2")
+    centerTrav.repeat(_.followedBy)(_.maxDepth(2)).name.toSetMutable shouldBe Set("L2", "R2")
   }
 
   "typical case for both generic graph steps" in {
-    centerTrav.repeat(_.out)(_.times(2)).property(Name).toSetMutable shouldBe Set("L2", "R2")
+    centerTrav.repeat(_.out)(_.maxDepth(2)).property(Name).toSetMutable shouldBe Set("L2", "R2")
   }
 
   "repeat given traversal X times" should {
     "return only the final elements" in {
       val expectedResults = Set("L2", "R2")
-      centerTrav.repeat(_.followedBy)(_.times(2)).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.times(2).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(2)).property(Name).toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(2).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(2)).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(2).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(2)).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(2).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
 
     "return only the final elements - if any" in {
       val expectedResults = Set("R4") // there is no L4
-      centerTrav.repeat(_.followedBy)(_.times(4)).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.times(4).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(4)).property(Name).toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(4).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(4)).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(4).breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(4)).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(4).breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
 
     "return everything along the way also, if used in combination with emit" in {
       val expectedResults = Set("Center", "L1", "L2", "R1", "R2")
-      centerTrav.repeat(_.followedBy)(_.times(2).emit).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.followedBy)(_.times(2).emit.breadthFirstSearch).name.toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(2).emit).property(Name).toSetMutable shouldBe expectedResults
-      centerTrav.repeat(_.out)(_.times(2).emit.breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(2).emit).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.followedBy)(_.maxDepth(2).emit.breadthFirstSearch).name.toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(2).emit).property(Name).toSetMutable shouldBe expectedResults
+      centerTrav.repeat(_.out)(_.maxDepth(2).emit.breadthFirstSearch).property(Name).toSetMutable shouldBe expectedResults
     }
   }
 
@@ -112,19 +112,19 @@ class RepeatTraversalTests extends AnyWordSpec {
     }
 
     "be combinable with `.times`" in {
-      centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).times(3)).name.toSetMutable shouldBe Set("L3", "R2")
+      centerTrav.repeat(_.followedBy)(_.until(_.name("R2")).maxDepth(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
   }
 
   "until and times" should {
     "work in combination" in {
-      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).toSetMutable shouldBe Set(l2, r2)
-      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).has(Name -> "R2").l shouldBe Seq(r2)
-      centerTrav.repeat(_.out)(_.breadthFirstSearch.until(_.has(Name -> "R2")).times(2)).toSetMutable shouldBe Set(l2, r2)
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).maxDepth(2)).toSetMutable shouldBe Set(l2, r2)
+      centerTrav.repeat(_.out)(_.until(_.has(Name -> "R2")).maxDepth(2)).has(Name -> "R2").l shouldBe Seq(r2)
+      centerTrav.repeat(_.out)(_.breadthFirstSearch.until(_.has(Name -> "R2")).maxDepth(2)).toSetMutable shouldBe Set(l2, r2)
     }
 
     "work in combination with path" in {
-      centerTrav.enablePathTracking.repeat(_.out)(_.until(_.has(Name -> "R2")).times(2)).path.filter(_.last == r2).l shouldBe Seq(Vector(center, r1, r2))
+      centerTrav.enablePathTracking.repeat(_.out)(_.until(_.has(Name -> "R2")).maxDepth(2)).path.filter(_.last == r2).l shouldBe Seq(Vector(center, r1, r2))
     }
   }
 
@@ -164,28 +164,28 @@ class RepeatTraversalTests extends AnyWordSpec {
     }
 
     "be combinable with `.times`" in {
-      centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).times(3)).name.toSetMutable shouldBe Set("L3", "R2")
+      centerTrav.repeat(_.followedBy)(_.whilst(_.nameNot("R2")).maxDepth(3)).name.toSetMutable shouldBe Set("L3", "R2")
     }
   }
 
   ".dedup should apply to all repeat iterations" when {
     "path tracking is not enabled" in {
-      centerTrav.repeat(_.both)(_.times(2).dedup).toSetMutable shouldBe Set(l2, r2)
-      centerTrav.repeat(_.both)(_.times(3).dedup).toSetMutable shouldBe Set(l3, r3)
-      centerTrav.repeat(_.both)(_.times(4).dedup).toSetMutable shouldBe Set(r4)
+      centerTrav.repeat(_.both)(_.maxDepth(2).dedup).toSetMutable shouldBe Set(l2, r2)
+      centerTrav.repeat(_.both)(_.maxDepth(3).dedup).toSetMutable shouldBe Set(l3, r3)
+      centerTrav.repeat(_.both)(_.maxDepth(4).dedup).toSetMutable shouldBe Set(r4)
 
       // for reference, without dedup (order is irrelevant, only using .l to show duplicate `center`)
-      centerTrav.repeat(_.both)(_.times(2)).l shouldBe Seq(l2, center, r2, center)
+      centerTrav.repeat(_.both)(_.maxDepth(2)).l shouldBe Seq(l2, center, r2, center)
     }
 
     "path tracking is enabled" in {
-      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).dedup).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.both)(_.maxDepth(2).dedup).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2)
       )
 
       // for reference, without dedup:
-      centerTrav.enablePathTracking.repeat(_.both)(_.times(2)).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.both)(_.maxDepth(2)).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, l1, center),
         Seq(center, r1, r2),
@@ -195,11 +195,11 @@ class RepeatTraversalTests extends AnyWordSpec {
 
     "used with emit" in {
       // order is irrelevant, only using .l to show that there's no duplicates
-      centerTrav.repeat(_.both)(_.times(2).emit.dedup).l shouldBe Seq(center, l1, l2, r1, r2)
+      centerTrav.repeat(_.both)(_.maxDepth(2).emit.dedup).l shouldBe Seq(center, l1, l2, r1, r2)
     }
 
     "used with emit and path" in {
-      centerTrav.enablePathTracking.repeat(_.both)(_.times(2).emit.dedup).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.both)(_.maxDepth(2).emit.dedup).path.toSetMutable shouldBe Set(
         Seq(center),
         Seq(center, l1),
         Seq(center, l1, l2),
@@ -224,14 +224,14 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "hasNext check doesn't change contents of traversal" when {
     "path tracking is not enabled" in {
-      val trav = centerTrav.repeat(_.followedBy)(_.times(2))
+      val trav = centerTrav.repeat(_.followedBy)(_.maxDepth(2))
       trav.hasNext shouldBe true
       trav.toSetMutable shouldBe Set(l2, r2)
     }
 
     "path tracking is enabled" in {
-      val trav1 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2))
-      val trav2 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.times(2)).path
+      val trav1 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.maxDepth(2))
+      val trav2 = centerTrav.enablePathTracking.repeat(_.followedBy)(_.maxDepth(2)).path
       trav1.hasNext shouldBe true
       trav2.hasNext shouldBe true
       trav1.toSetMutable shouldBe Set(l2, r2)
@@ -288,7 +288,7 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "hasNext is idempotent: DFS" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
-    val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.times(3))
+    val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.maxDepth(3))
 
     // hasNext will run the provided repeat traversal exactly 3 times (as configured)
     traversal.hasNext shouldBe true
@@ -301,7 +301,7 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "hasNext is idempotent: BFS" in {
     val traversedNodes = mutable.ListBuffer.empty[Thing]
-    val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.times(2).breadthFirstSearch)
+    val traversal = centerTrav.repeat(_.sideEffect(traversedNodes.addOne).followedBy)(_.maxDepth(2).breadthFirstSearch)
 
     // hasNext will run the provided repeat traversal exactly 3 times (as configured)
     traversal.hasNext shouldBe true
@@ -326,8 +326,8 @@ class RepeatTraversalTests extends AnyWordSpec {
     c --- Connection.Label --> a
 
     val repeatCount = 100000
-    Traversal.fromSingle(a).repeat(_.out)(_.times(repeatCount)).property(Name).l shouldBe List("b")
-    Traversal.fromSingle(a).repeat(_.out)(_.times(repeatCount).breadthFirstSearch).property(Name).l shouldBe List("b")
+    Traversal.fromSingle(a).repeat(_.out)(_.maxDepth(repeatCount)).property(Name).l shouldBe List("b")
+    Traversal.fromSingle(a).repeat(_.out)(_.maxDepth(repeatCount).breadthFirstSearch).property(Name).l shouldBe List("b")
 
     // for reference: tinkerpop becomes very slow with large iteration counts:
     // on my machine this didn't terminate within 5mins, hence commenting out
@@ -339,7 +339,7 @@ class RepeatTraversalTests extends AnyWordSpec {
 
   "support .path step" when {
     "using `times` modulator" in {
-      centerTrav.enablePathTracking.repeat(_.out)(_.times(2)).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.out)(_.maxDepth(2)).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))
     }
@@ -365,21 +365,21 @@ class RepeatTraversalTests extends AnyWordSpec {
     }
 
     "using breadth first search" in {
-      centerTrav.enablePathTracking.repeat(_.followedBy)(_.breadthFirstSearch.times(2)).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.followedBy)(_.breadthFirstSearch.maxDepth(2)).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))
     }
 
     "doing multiple steps: should track every single step along the way" in {
-      centerTrav.enablePathTracking.repeat(_.followedBy.followedBy)(_.times(1)).path.toSetMutable shouldBe Set(
+      centerTrav.enablePathTracking.repeat(_.followedBy.followedBy)(_.maxDepth(1)).path.toSetMutable shouldBe Set(
         Seq(center, l1, l2),
         Seq(center, r1, r2))
 
-      r1.start.enablePathTracking.repeat(_.followedBy.followedBy.followedBy)(_.times(1)).path.toSetMutable shouldBe Set(
+      r1.start.enablePathTracking.repeat(_.followedBy.followedBy.followedBy)(_.maxDepth(1)).path.toSetMutable shouldBe Set(
         Seq(r1, r2, r3, r4))
 
-      r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).l shouldBe Seq(r5)
-      r1.start.enablePathTracking.repeat(_.out.out)(_.times(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
+      r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).l shouldBe Seq(r5)
+      r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
     }
   }
 }
