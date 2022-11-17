@@ -6,8 +6,7 @@ import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing, ThingTraversal}
 
-class LogicalStepsTests extends AnyWordSpec {
-  import ExampleGraphSetup._
+class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
    */

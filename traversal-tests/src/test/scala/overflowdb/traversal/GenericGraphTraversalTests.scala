@@ -9,9 +9,7 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 
 /** generic graph traversals, i.e. domain independent */
-class GenericGraphTraversalTests extends AnyWordSpec {
-  import ExampleGraphSetup._
-
+class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
   "V for all nodes" in {
     graph.V.count.head shouldBe 9
     graph.V.size shouldBe 9
@@ -154,5 +152,4 @@ class GenericGraphTraversalTests extends AnyWordSpec {
       l2.start.bothE(nonExistingLabel).size shouldBe 0
     }
   }
-
 }

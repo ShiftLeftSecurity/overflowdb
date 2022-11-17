@@ -9,8 +9,7 @@ import overflowdb.{Node, toPropertyKeyOps}
 
 import scala.collection.mutable
 
-class TraversalTests extends AnyWordSpec {
-  import ExampleGraphSetup._
+class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
   "can only be iterated once" in {
     val one = Traversal.fromSingle("one")
