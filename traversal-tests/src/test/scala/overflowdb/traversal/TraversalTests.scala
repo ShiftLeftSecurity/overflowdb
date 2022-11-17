@@ -198,6 +198,11 @@ class TraversalTests extends AnyWordSpec {
     oneToFour.outside(2, 3).l shouldBe Seq(1, 4)
   }
 
+  "`is` filter step" in {
+    def oneToFour = Traversal(1, 2, 3, 4)
+    oneToFour.is(2).l shouldBe Seq(2)
+  }
+
   "within/without filter steps" in {
     def oneToFour = Traversal(1, 2, 3, 4)
     oneToFour.within(Set(2, 4)).l shouldBe Seq(2, 4)
