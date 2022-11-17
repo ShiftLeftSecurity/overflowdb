@@ -1,20 +1,27 @@
 package overflowdb.algorithm
 
-import overflowdb.traversal.Traversal
+import overflowdb.traversal.{RepeatBehaviour, Traversal}
 import overflowdb.{Direction, Node}
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 object PathFinder {
-  def apply(nodeA: Node, nodeB: Node): Seq[Path] = {
+  def apply(nodeA: Node, nodeB: Node, maxDepth: Int = -1): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
       Traversal.fromSingle(nodeA)
         .enablePathTracking
-        .repeat(_.both)(_.dedup // no cycles
-                         .emit(_.is(nodeB)) // we only care about the paths that lead to our destination
-                         //           .times(3) // TODO make configurable
-                         .until(_.is(nodeB))) // don't continue on a given path if we've reached our destination
+        .repeat(_.both) { initialBehaviour =>
+          val behaviour = initialBehaviour
+            .dedup // no cycles
+            .emit(_.is(nodeB)) // we only care about the paths that lead to our destination
+            .until(_.is(nodeB)) // don't continue on a given path if we've reached our destination
+
+          if (maxDepth > -1)
+            behaviour.maxDepth(maxDepth)
+          else
+            behaviour
+        }
         .path
         .dedup
         .cast[Seq[Node]]

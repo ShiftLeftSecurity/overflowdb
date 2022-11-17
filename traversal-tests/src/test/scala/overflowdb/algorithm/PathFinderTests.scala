@@ -83,4 +83,14 @@ class PathFinderTests extends AnyWordSpec with ExampleGraphSetup {
     ))
   }
 
+  "max depth" in {
+    PathFinder(center, r3, maxDepth = 3) shouldBe Seq(
+      Path(Seq(
+        center, r1, r2, r3
+      ))
+    )
+
+//    PathFinder(center, r3, maxDepth = 2) shouldBe Nil
+  }
+
 }
