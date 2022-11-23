@@ -2,6 +2,7 @@ package overflowdb.traversal
 
 import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
+import overflowdb.traversal.ChainedImplicitsTemp._
 import overflowdb.traversal.filter.P
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, SimpleDomain, Thing, ThingTraversal}
 import overflowdb.traversal.testdomains.gratefuldead._
