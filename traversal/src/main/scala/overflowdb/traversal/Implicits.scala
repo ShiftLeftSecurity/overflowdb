@@ -35,8 +35,8 @@ trait Implicits {
   // implicit def toElementTraversalViaAdditionalImplicit[A <: Element, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
   //   new ElementTraversal[A](toTraversal(traversable))
 
-  implicit def toNumericTraversal[A : Numeric](traversal: Traversal[A]): NumericTraversal[A] =
-    new NumericTraversal[A](traversal)
+  // implicit def toNumericTraversal[A : Numeric](traversal: Traversal[A]): NumericTraversal[A] =
+  //   new NumericTraversal[A](traversal)
 
 }
 
