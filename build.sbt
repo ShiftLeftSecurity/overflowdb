@@ -2,6 +2,7 @@ name := "overflowdb"
 ThisBuild/organization := "io.shiftleft"
 ThisBuild/scalaVersion := "2.13.10"
 ThisBuild/crossScalaVersions := Seq("2.13.10", "3.2.1")
+// TODO once we're on Scala 3.2.2: make chained implicits in `Implicits.scala` available again
 publish/skip := true
 
 lazy val core        = project.in(file("core"))
