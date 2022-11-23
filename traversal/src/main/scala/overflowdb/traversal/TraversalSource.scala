@@ -34,7 +34,7 @@ class TraversalSource(graph: Graph) {
       Traversal.from(nodes.asScala)
     } else {
       // maybe print a warning: may make sense to create an index
-      Traversal(graph.nodes().has(key, value))
+      Traversal.from(graph.nodes()).has(key, value)
     }
   }
 

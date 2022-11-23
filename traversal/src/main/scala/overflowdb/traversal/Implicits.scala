@@ -22,16 +22,21 @@ trait Implicits {
   implicit def toElementTraversal[A <: Element](traversal: Traversal[A]): ElementTraversal[A] =
     new ElementTraversal[A](traversal)
 
-  implicit def toNodeTraversalViaAdditionalImplicit[A <: Node, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
-    new NodeTraversal[A](toTraversal(traversable))
+  // TODO make available again once we're on Scala 3.2.2
+  // context: these break REPL autocompletion, e.g. in joern for `cpg.<tab>`
+  // fixed via https://github.com/lampepfl/dotty/issues/16360#issuecomment-1324857836
 
-  implicit def toEdgeTraversalViaAdditionalImplicit[A <: Edge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
-    new EdgeTraversal[A](toTraversal(traversable))
+  // implicit def toNodeTraversalViaAdditionalImplicit[A <: Node, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): NodeTraversal[A] =
+  //   new NodeTraversal[A](toTraversal(traversable))
 
-  implicit def toElementTraversalViaAdditionalImplicit[A <: Element, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
-    new ElementTraversal[A](toTraversal(traversable))
+  // implicit def toEdgeTraversalViaAdditionalImplicit[A <: Edge, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): EdgeTraversal[A] =
+  //   new EdgeTraversal[A](toTraversal(traversable))
+
+  // implicit def toElementTraversalViaAdditionalImplicit[A <: Element, Trav](traversable: Trav)(implicit toTraversal: Trav => Traversal[A]): ElementTraversal[A] =
+  //   new ElementTraversal[A](toTraversal(traversable))
 
   implicit def toNumericTraversal[A : Numeric](traversal: Traversal[A]): NumericTraversal[A] =
     new NumericTraversal[A](traversal)
 
 }
+
