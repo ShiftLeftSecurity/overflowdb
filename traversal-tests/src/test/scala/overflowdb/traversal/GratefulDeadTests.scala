@@ -4,6 +4,7 @@ import org.scalatest.matchers.should.Matchers._
 import org.scalatest.wordspec.AnyWordSpec
 import overflowdb.traversal.filter.StringPropertyFilter.InvalidRegexException
 import overflowdb.traversal.testdomains.gratefuldead._
+import overflowdb.traversal.ChainedImplicitsTemp._
 
 class GratefulDeadTests extends AnyWordSpec {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
