@@ -31,6 +31,7 @@ public class OdbStorage implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final File mvstoreFile;
+  private final StringInterner stringInterner;
   private FileStore mvstoreFileStore;
   protected MVStore mvstore;
   private MVMap<Long, byte[]> nodesMVMap;
@@ -41,19 +42,20 @@ public class OdbStorage implements AutoCloseable {
   private ArrayList<String> stringToIntReverseMappings;
   private int libraryVersionsIdCurrentRun;
 
-  public static OdbStorage createWithTempFile() {
-    return new OdbStorage(Optional.empty());
+  public static OdbStorage createWithTempFile(StringInterner stringInterner) {
+    return new OdbStorage(Optional.empty(), stringInterner);
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile));
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile, StringInterner stringInterner) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile), stringInterner);
   }
 
-  private OdbStorage(final Optional<File> mvstoreFileMaybe) {
+  private OdbStorage(final Optional<File> mvstoreFileMaybe, StringInterner stringInterner) {
+    this.stringInterner = stringInterner;
     if (mvstoreFileMaybe.isPresent()) {
       mvstoreFile = mvstoreFileMaybe.get();
       if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
@@ -204,7 +206,7 @@ public class OdbStorage implements AutoCloseable {
   public String reverseLookupStringToIntMapping(int stringId) {
     getStringToIntMappings(); //ensure everything is initialized
     String string = stringToIntReverseMappings.get(stringId);
-    return StringInterner.intern(string);
+    return stringInterner.intern(string);
   }
 
   private void ensureMVStoreAvailable() {

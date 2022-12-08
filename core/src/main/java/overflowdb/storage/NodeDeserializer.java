@@ -23,10 +23,12 @@ public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<String, NodeFactory> nodeFactoryByLabel;
   private final OdbStorage storage;
+  private final StringInterner stringInterner;
 
   public NodeDeserializer(Graph graph, Map<String, NodeFactory> nodeFactoryByLabel, boolean statsEnabled, OdbStorage storage) {
     super(statsEnabled);
     this.graph = graph;
+    this.stringInterner = graph.getStringInterner();
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.storage = storage;
   }
@@ -111,7 +113,7 @@ public class NodeDeserializer extends BookKeeper {
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
-        return StringInterner.intern(value.asStringValue().asString());
+        return stringInterner.intern(value.asStringValue().asString());
       case BYTE:
         return value.asIntegerValue().asByte();
       case SHORT:

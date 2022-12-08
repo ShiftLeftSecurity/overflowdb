@@ -8,6 +8,7 @@ import overflowdb.Config;
 import overflowdb.Graph;
 import overflowdb.testdomains.gratefuldead.GratefulDead;
 import overflowdb.testdomains.gratefuldead.Song;
+import overflowdb.util.StringInterner;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class OdbStorageTest {
+  private StringInterner stringInterner = new StringInterner();
 
   @Test
   public void persistToFileIfStorageConfigured() throws IOException {
@@ -66,7 +68,7 @@ public class OdbStorageTest {
   public void shouldErrorWhenTryingToOpenWithoutStorageFormatVersion() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.deleteOnExit();
-    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
     storage.close();
 
     // modify storage: drop storage version
@@ -76,14 +78,14 @@ public class OdbStorageTest {
     store.close();
 
     // should throw a BackwardsCompatibilityError
-    OdbStorage.createWithSpecificLocation(storageFile);
+    OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
   }
 
   @Test(expected = BackwardsCompatibilityError.class)
   public void shouldErrorWhenTryingToOpenDifferentStorageFormatVersion() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.deleteOnExit();
-    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
     storage.close();
 
     // modify storage: change storage version
@@ -93,14 +95,14 @@ public class OdbStorageTest {
     store.close();
 
     // should throw a BackwardsCompatibilityError
-    OdbStorage.createWithSpecificLocation(storageFile);
+    OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
   }
 
   @Test
   public void shouldProvideStringToIntGlossary() throws IOException {
     File storageFile = Files.createTempFile("overflowdb", "bin").toFile();
     storageFile.deleteOnExit();
-    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile);
+    OdbStorage storage = OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
 
     String a = "a";
     String b = "b";
@@ -117,7 +119,7 @@ public class OdbStorageTest {
 
     // should survive restarts
     storage.close();
-    storage = OdbStorage.createWithSpecificLocation(storageFile);
+    storage = OdbStorage.createWithSpecificLocation(storageFile, stringInterner);
     assertEquals(stringIdA, storage.lookupOrCreateStringToIntMapping(a));
     assertEquals(stringIdB, storage.lookupOrCreateStringToIntMapping(b));
 
