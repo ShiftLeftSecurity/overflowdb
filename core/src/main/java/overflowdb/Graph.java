@@ -8,10 +8,7 @@ import overflowdb.storage.NodeDeserializer;
 import overflowdb.storage.NodeSerializer;
 import overflowdb.storage.NodesWriter;
 import overflowdb.storage.OdbStorage;
-import overflowdb.util.IteratorUtils;
-import overflowdb.util.MultiIterator;
-import overflowdb.util.NodesList;
-import overflowdb.util.PropertyHelper;
+import overflowdb.util.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,6 +31,7 @@ public final class Graph implements AutoCloseable {
   protected final OdbStorage storage;
   public final NodeSerializer nodeSerializer;
   protected final NodeDeserializer nodeDeserializer;
+  protected final StringInterner stringInterner;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final boolean overflowEnabled;
   protected final ReferenceManager referenceManager;
@@ -68,10 +66,11 @@ public final class Graph implements AutoCloseable {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
+    this.stringInterner = new StringInterner();
 
     this.storage = config.getStorageLocation().isPresent()
-        ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile())
-        : OdbStorage.createWithTempFile();
+        ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile(), stringInterner)
+        : OdbStorage.createWithTempFile(stringInterner);
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
     this.nodesWriter = new NodesWriter(nodeSerializer, storage);
@@ -217,6 +216,7 @@ public final class Graph implements AutoCloseable {
     } else {
       this.closed = true;
       shutdownNow();
+      stringInterner.clear();
     }
   }
 
@@ -430,5 +430,9 @@ public final class Graph implements AutoCloseable {
 
   public ArrayList<Map<String, String>> getAllLibraryVersions() {
     return storage.getAllLibraryVersions();
+  }
+
+  public StringInterner getStringInterner() {
+    return this.stringInterner;
   }
 }
