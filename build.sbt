@@ -15,7 +15,7 @@ lazy val traversalTests = project.in(file("traversal-tests"  )).dependsOn(format
 
 ThisBuild/libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "2.0.6" % Test,
-  "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.15" % Test,
 )
 
 ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
