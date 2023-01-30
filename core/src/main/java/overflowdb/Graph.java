@@ -31,7 +31,6 @@ public final class Graph implements AutoCloseable {
   protected final OdbStorage storage;
   public final NodeSerializer nodeSerializer;
   protected final NodeDeserializer nodeDeserializer;
-  protected final StringInterner stringInterner;
   protected final Optional<HeapUsageMonitor> heapUsageMonitor;
   protected final boolean overflowEnabled;
   protected final ReferenceManager referenceManager;
@@ -66,11 +65,10 @@ public final class Graph implements AutoCloseable {
     this.config = config;
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.edgeFactoryByLabel = edgeFactoryByLabel;
-    this.stringInterner = new StringInterner();
 
     this.storage = config.getStorageLocation().isPresent()
-        ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile(), stringInterner)
-        : OdbStorage.createWithTempFile(stringInterner);
+        ? OdbStorage.createWithSpecificLocation(config.getStorageLocation().get().toFile())
+        : OdbStorage.createWithTempFile();
     this.nodeDeserializer = new NodeDeserializer(this, nodeFactoryByLabel, config.isSerializationStatsEnabled(), storage);
     this.nodeSerializer = new NodeSerializer(config.isSerializationStatsEnabled(), storage, convertPropertyForPersistence);
     this.nodesWriter = new NodesWriter(nodeSerializer, storage);
@@ -216,7 +214,6 @@ public final class Graph implements AutoCloseable {
     } else {
       this.closed = true;
       shutdownNow();
-      stringInterner.clear();
     }
   }
 
@@ -432,7 +429,4 @@ public final class Graph implements AutoCloseable {
     return storage.getAllLibraryVersions();
   }
 
-  public StringInterner getStringInterner() {
-    return this.stringInterner;
-  }
 }
