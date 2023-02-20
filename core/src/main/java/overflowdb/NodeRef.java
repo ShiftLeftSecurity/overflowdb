@@ -101,7 +101,7 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     } else {
       final N node = readFromDisk();
       if (node == null) throw new IllegalStateException("unable to read node from disk; id=" + id);
-      assert(this.node == node);
+      if (this.node != node) throw new AssertionError("invalid state after reading node from dist; id=" + id);
       graph.registerNodeRef(this);
       return node;
     }
