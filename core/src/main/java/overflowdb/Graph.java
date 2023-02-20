@@ -173,7 +173,7 @@ public final class Graph implements AutoCloseable {
       throw new IllegalArgumentException("No NodeFactory for label=" + label + " available.");
     }
     final NodeFactory factory = nodeFactoryByLabel.get(label);
-    final NodeDb node = factory.createNode(this, idValue);
+    final NodeDb node = factory.createNode(this, idValue, null);
     PropertyHelper.attachProperties(node, keyValues);
     registerNodeRef(node.ref);
 

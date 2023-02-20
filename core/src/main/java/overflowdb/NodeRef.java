@@ -99,9 +99,9 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     if (ref != null) {
       return ref;
     } else {
-      final N node = readFromDisk(id);
+      final N node = readFromDisk();
       if (node == null) throw new IllegalStateException("unable to read node from disk; id=" + id);
-      this.node = node;
+      if (this.node != node) throw new AssertionError("invalid state after reading node from dist; id=" + id);
       graph.registerNodeRef(this);
       return node;
     }
@@ -115,9 +115,9 @@ public abstract class NodeRef<N extends NodeDb> extends Node {
     this.node = node;
   }
 
-  private final N readFromDisk(long nodeId) throws IOException {
-    byte[] bytes = graph.storage.getSerializedNode(nodeId);
-    return (N) graph.nodeDeserializer.deserialize(bytes);
+  private final N readFromDisk() throws IOException {
+    byte[] bytes = graph.storage.getSerializedNode(this.id);
+    return (N) graph.nodeDeserializer.deserialize(bytes, this);
   }
 
   public long id() {
