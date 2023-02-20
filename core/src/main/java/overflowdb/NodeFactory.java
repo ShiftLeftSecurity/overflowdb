@@ -8,7 +8,7 @@ public abstract class NodeFactory<V extends NodeDb> {
   public abstract NodeRef<V> createNodeRef(Graph graph, long id);
 
   public  V createNode(Graph graph, long id) {
-  return createNode(graph, id, null);
+    return createNode(graph, id, null);
   }
 
   public V createNode(Graph graph, long id, NodeRef<V> ref) {
