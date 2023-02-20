@@ -33,7 +33,10 @@ public class NodeDeserializer extends BookKeeper {
     this.storage = storage;
   }
 
-  public final NodeDb deserialize(byte[] bytes) throws IOException {
+  public final NodeDb deserialize(byte[] bytes) throws  IOException {
+    return deserialize(bytes, null);
+  }
+  public final NodeDb deserialize(byte[] bytes, NodeRef<?> ref) throws IOException {
     long startTimeNanos = getStartTimeNanos();
     if (null == bytes)
       return null;
@@ -44,7 +47,7 @@ public class NodeDeserializer extends BookKeeper {
     final Object[] properties = unpackProperties(unpacker);
 
     final String label = storage.reverseLookupStringToIntMapping(labelStringId);
-    NodeDb node = getNodeFactory(label).createNode(graph, id);
+    NodeDb node = getNodeFactory(label).createNode(graph, id, ref);
     PropertyHelper.attachProperties(node, properties);
 
     deserializeEdges(unpacker, node, Direction.OUT);
