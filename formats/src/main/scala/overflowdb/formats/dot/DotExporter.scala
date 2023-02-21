@@ -1,5 +1,6 @@
 package overflowdb.formats.dot
 
+import org.apache.commons.text.StringEscapeUtils
 import overflowdb.formats.{ExportResult, Exporter, iterableForList, resolveOutputFileSingle}
 import overflowdb.{Edge, Node}
 
@@ -71,8 +72,9 @@ object DotExporter extends Exporter {
   private def encodePropertyValue(value: Object): String = {
     value match {
       case value: String =>
-        // escape double quotes, because we use them to enclose strings
-        val escaped = value.replace("\"", "\\\"")
+        val escaped = value
+          .replace("""\""", """\\""") // escape escape chars - this should come first
+          .replace("\"", "\\\"") // escape double quotes, because we use them to enclose strings
         s"\"$escaped\""
       case list if iterableForList.isDefinedAt(list) =>
         val values = iterableForList(list).mkString(";")
