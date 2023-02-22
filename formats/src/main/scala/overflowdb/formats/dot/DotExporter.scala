@@ -1,6 +1,5 @@
 package overflowdb.formats.dot
 
-import org.apache.commons.text.StringEscapeUtils
 import overflowdb.formats.{ExportResult, Exporter, iterableForList, resolveOutputFileSingle}
 import overflowdb.{Edge, Node}
 
