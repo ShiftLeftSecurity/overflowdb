@@ -11,6 +11,7 @@ import overflowdb.testdomains.simple.TestEdge;
 import overflowdb.testdomains.simple.TestNode;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -89,5 +90,37 @@ public class GraphTest {
     assertEquals(graph.nodeCount(), 2);
     assertEquals(graph.edgeCount(), 1);
   }
+
+  @Test
+  public void shouldCorrectlyCloneEdgeOrders() {
+    Config config = Config.withoutOverflow();
+    Graph graph = SimpleDomain.newGraph(config);
+    Node n0 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n0");
+    Node n1 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n1");
+    Node n2 = graph.addNode(TestNode.LABEL, TestNode.STRING_PROPERTY, "n2");
+    n1.addEdge(TestEdge.LABEL, n2);
+    n0.addEdge(TestEdge.LABEL, n2);
+
+    // copy graph
+    Graph graph2 = SimpleDomain.newGraph(config);
+    graph.copyTo(graph2);
+
+    //verify order of in-edges on n1
+    Iterator<Node> orig = n2.in();
+    assertEquals(orig.next().property(TestNode.STRING_PROPERTY), "n1");
+    assertEquals(orig.next().property(TestNode.STRING_PROPERTY), "n0");
+    assertEquals(orig.hasNext(), false);
+
+    //same for the copy
+
+    Node n0Copy = graph2.node(n0.id());
+    Node n1Copy = graph2.node(n1.id());
+    Node n2Copy = graph2.node(n2.id());
+    Iterator<Node> copy = n2Copy.in();
+    assertEquals(copy.next().property(TestNode.STRING_PROPERTY), "n1");
+    assertEquals(copy.next().property(TestNode.STRING_PROPERTY), "n0");
+    assertEquals(copy.hasNext(), false);
+  }
+
 
 }
