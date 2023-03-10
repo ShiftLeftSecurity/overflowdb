@@ -398,11 +398,18 @@ public final class Graph implements AutoCloseable {
     nodes().forEachRemaining(node -> {
       destination.addNode(node.id(), node.label(), PropertyHelper.toKeyValueArray(node.propertiesMap()));
     });
+    nodes().forEachRemaining( node -> {
+      NodeDb mapped =  ((NodeRef<NodeDb>) destination.node(node.id())).get();
 
-    edges().forEachRemaining(edge -> {
-      final Node inNode = destination.node(edge.inNode().id());
-      final Node outNode = destination.node(edge.outNode().id());
-      outNode.addEdge(edge.label(), inNode, PropertyHelper.toKeyValueArray(edge.propertiesMap()));
+      node.outE().forEachRemaining(edge -> {
+                NodeRef<?> other = (NodeRef<?>) destination.node(edge.inNode().id());
+                mapped.storeAdjacentNode(Direction.OUT, edge.label(), other, PropertyHelper.toKeyValueArray(edge.propertiesMap()));
+      });
+      node.inE().forEachRemaining(edge -> {
+        NodeRef<?> other = (NodeRef<?>) destination.node(edge.outNode().id());
+        mapped.storeAdjacentNode(Direction.IN, edge.label(), other, PropertyHelper.toKeyValueArray(edge.propertiesMap()));
+      });
+
     });
   }
 
