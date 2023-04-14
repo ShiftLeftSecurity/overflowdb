@@ -46,6 +46,26 @@ class PathAwareTraversal[+A](val elementsWithPath: IterableOnce[(A, Vector[Any])
   override def dedupBy(fun: A => Any): Traversal[A] =
     new PathAwareTraversal(elementsWithPathIterator.distinctBy(x => fun(x._1)))
 
+  override def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
+     new PathAwareTraversal(elementsWithPathIterator.flatMap{case (a, p) => traversals.flatMap{inner => 
+     inner(new PathAwareTraversal(Iterator.single((a,p)))) match {
+      case stillPathAware: PathAwareTraversal[B] => stillPathAware.elementsWithPathIterator 
+     case notPathAware => notPathAware.iterator.map{(b:B) => (b, p.appended(a))}
+     }
+      }})
+  }
+  override def choose[BranchOn >: Null, NewEnd]
+    (on: Traversal[A] => Traversal[BranchOn])
+    (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] = {
+      new PathAwareTraversal(elementsWithPathIterator.flatMap{case (a, p) => 
+        val branchOnValue: BranchOn = on(Traversal.fromSingle(a)).headOption.getOrElse(null)
+        options.applyOrElse(branchOnValue, (failState:BranchOn) => ((unused:Traversal[A])=> Traversal.empty[NewEnd])).apply(new PathAwareTraversal(Iterator.single((a,p)))) match {
+      case stillPathAware: PathAwareTraversal[NewEnd] => stillPathAware.elementsWithPathIterator 
+     case notPathAware => notPathAware.iterator.map{(b:NewEnd) => (b, p.appended(a))}        
+     }})}
+
+
+
   // TODO add type safety once we're on dotty, similar to gremlin-scala's as/label steps with typelevel append?
   override def path: Traversal[Vector[Any]] =
     new Traversal(elementsWithPathIterator.map {
