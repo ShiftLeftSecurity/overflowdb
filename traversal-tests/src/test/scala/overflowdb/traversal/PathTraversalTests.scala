@@ -159,13 +159,12 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
             case "L1" => _.out // -> L2
             case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
           }.property(Name).path.toSetMutable shouldBe Set(
-          Seq(r1, r4, "R4"), //fixme: Is this really what we want? Shouldn't the repeat be path-tracked?
+          Seq(r1, r2, r3, r4, "R4"),
           Seq(l1, l2, "L2")
         )
       }
 
       "coalesce" in {
-        //fixme: Is this really what we want? Shouldn't substeps be path-tracked?
         var traversalInvoked = false
         centerTrav.enablePathTracking.coalesce(
           _.out("doesn't exist"),
@@ -179,12 +178,15 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
       }
 
       "union" in {
-        //fixme: Is this really what we want? Shouldn't substeps be path-tracked?
          centerTrav.enablePathTracking.union(_.out.out).path.toSetMutable shouldBe Set(
+          Seq(center, l1, l2),
+          Seq(center, r1, r2)
+         )
+        //we can hide internal steps from path-tracking
+        centerTrav.enablePathTracking.union(t => Traversal.from(t.out.out).iterator).path.toSetMutable shouldBe Set(
           Seq(center, l2),
           Seq(center, r2)
-         )
-
+        )
       }
 
     }

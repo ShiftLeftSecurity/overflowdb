@@ -231,15 +231,11 @@ class Traversal[+A](elements: IterableOnce[A])
    */
   @Doc(info = "allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...")
   def choose[BranchOn >: Null, NewEnd]
-    (on: Traversal[A] => Traversal[BranchOn])
-    (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
+  (on: Traversal[A] => Traversal[BranchOn])
+  (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
     flatMap { (a: A) =>
       val branchOnValue: BranchOn = on(Traversal.fromSingle(a)).headOption.getOrElse(null)
-      if (options.isDefinedAt(branchOnValue)) {
-        options(branchOnValue)(Traversal.fromSingle(a))
-      } else {
-        Traversal.empty
-      }
+      options.applyOrElse(branchOnValue, (fail: BranchOn) => ((unused: Traversal[A]) => Traversal.empty[NewEnd])).apply(Traversal.fromSingle(a))
     }
 
   /** Branch step: evaluates the provided traversals in order and returns the first traversal that emits at least one element.

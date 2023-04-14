@@ -381,6 +381,13 @@ class RepeatTraversalTests extends AnyWordSpec with ExampleGraphSetup {
       r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).l shouldBe Seq(r5)
       r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
     }
+    "should not forget steps preceding the repeat" in {
+      centerTrav.enablePathTracking.followedBy.repeat(_.followedBy.followedBy)(_.maxDepth(1)).path.toSetMutable shouldBe Set(
+        Seq(center, l1, l2, l3),
+        Seq(center, r1, r2, r3)
+      )
+    }
+
   }
 
 }
