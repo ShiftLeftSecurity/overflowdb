@@ -2,9 +2,7 @@ package overflowdb.traversal
 
 import overflowdb.Graph
 
-class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph,
-                                                       label: String,
-                                                       iter: ArrayListIter[A])
+class InitialTraversal[+A <: overflowdb.Node] private (graph: Graph, label: String, iter: ArrayListIter[A])
     extends Traversal[A](iter) {
 
   // we can only do this if the iterator itself is virgin, e.g. `val trav = cpg.method; trav.next; trav.fullNameExact(...)` cannot use the index

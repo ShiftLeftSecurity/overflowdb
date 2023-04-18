@@ -17,7 +17,7 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends NodeDb(ref) {
   override def property(key: String) =
     key match {
       case Artist.PropertyNames.Name => _name
-      case _ => null
+      case _                         => null
     }
 
   override protected def updateSpecificProperty(key: String, value: Object) =
@@ -29,11 +29,11 @@ class ArtistDb(ref: NodeRef[ArtistDb]) extends NodeDb(ref) {
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 
-  override protected def removeSpecificProperty(key: String) = 
+  override protected def removeSpecificProperty(key: String) =
     key match {
       case Artist.PropertyNames.Name =>
         _name = null
-      case _ =>       
+      case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
 

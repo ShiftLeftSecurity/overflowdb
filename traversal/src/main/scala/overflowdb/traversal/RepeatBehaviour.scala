@@ -15,7 +15,7 @@ trait RepeatBehaviour[A] {
   def untilConditionReached(element: A): Boolean =
     untilCondition match {
       case Some(untilConditionTraversal) => untilConditionTraversal(element).hasNext
-      case None => false
+      case None                          => false
     }
 
   def whileConditionIsDefinedAndEmpty(element: A): Boolean =
@@ -67,37 +67,42 @@ object RepeatBehaviour {
       this
     }
 
-    /** Emit intermediate elements (along the way), if they meet the given condition.
-     * Note that this does not apply a filter on the final elements of the traversal. */
+    /** Emit intermediate elements (along the way), if they meet the given condition. Note that this does not apply a
+      * filter on the final elements of the traversal.
+      */
     def emit(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _shouldEmit = (element, _) => condition(Traversal.fromSingle(element)).hasNext
       this
     }
 
     /* Configure `repeat` step to stop traversing when given condition-traversal has at least one result.
-    * The condition-traversal is only evaluated _after_ the first iteration, for classic repeat/until behaviour */
+     * The condition-traversal is only evaluated _after_ the first iteration, for classic repeat/until behaviour */
     def until(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _untilCondition = Some(condition)
       this
     }
 
-    /** Stop traversing when given condition-traversal has no result.
-    * The condition-traversal is already evaluated at the first iteration, for classic while/repeat behaviour.
-    *
-    * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted. */
+    /** Stop traversing when given condition-traversal has no result. The condition-traversal is already evaluated at
+      * the first iteration, for classic while/repeat behaviour.
+      *
+      * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted.
+      */
     def whilst(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _whileCondition = Some(condition)
       this
     }
 
-    /** Maximum depth to go down in the repeat traversal.
-     * Note that there may be other conditions like until|whilst etc. */
-    @deprecated("use `maxDepth` instead - semantically equivalent, while it describes the meaning more precisely", "1.153")
+    /** Maximum depth to go down in the repeat traversal. Note that there may be other conditions like until|whilst etc.
+      */
+    @deprecated(
+      "use `maxDepth` instead - semantically equivalent, while it describes the meaning more precisely",
+      "1.153"
+    )
     def times(value: Int): Builder[A] =
       maxDepth(value)
 
-    /** Maximum depth to go down in the repeat traversal.
-      * Note that there may be other conditions like until|whilst etc. */
+    /** Maximum depth to go down in the repeat traversal. Note that there may be other conditions like until|whilst etc.
+      */
     def maxDepth(value: Int): Builder[A] = {
       _maxDepth = Some(value)
       this

@@ -4,7 +4,9 @@ object DocFinder {
   def findDocumentedMethodsOf(clazz: Class[_]): Iterable[StepDoc] = {
     clazz.getMethods.flatMap { method =>
       method.getAnnotations.find(_.isInstanceOf[Doc]).map { case docAnnotation: Doc =>
-        StepDoc(clazz.getName, method.getName,
+        StepDoc(
+          clazz.getName,
+          method.getName,
           StrippedDoc(docAnnotation.info, docAnnotation.longInfo.stripMargin, docAnnotation.example.stripMargin)
         )
       }

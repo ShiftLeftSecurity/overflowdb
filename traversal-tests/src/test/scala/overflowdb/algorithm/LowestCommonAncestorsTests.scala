@@ -5,35 +5,32 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class LowestCommonAncestorsTests extends AnyWordSpec {
 
-  /**
-   *
-   *    +--------------+
-   *    |              |
-   *    |  +---+     +---+     +---+     +---+     +---+     +---+
-   *    |  | A | --> | C | --> | D | --> |   | --> | H | --> | I |
-   *    |  +---+     +---+     +---+     |   |     +---+     +---+
-   *    |    |         |                 |   |
-   *    |    |         +---------------> | G |
-   *    |    v                           |   |
-   *    |  +---+                         |   |     +---+
-   *    |  | B | ----------------------> |   | --> | F |
-   *    |  +---+                         +---+     +---+
-   *    |    |
-   *    |    |
-   *    |    v
-   *    |  +---+
-   *    +> | E |
-   *       +---+
-   *
-   * created by `graph-easy --input=lca.eg`, where lca.eg:
-[A] --> [B],[C]
-[B] --> [E],[G]
-[C] --> [D],[E],[G]
-[D] --> [G]
-[G] --> [F],[H]
-[H] --> [I]
-   *
-   */
+  /**    +--------------+
+    *    |              |
+    *    |  +---+     +---+     +---+     +---+     +---+     +---+
+    *    |  | A | --> | C | --> | D | --> |   | --> | H | --> | I |
+    *    |  +---+     +---+     +---+     |   |     +---+     +---+
+    *    |    |         |                 |   |
+    *    |    |         +---------------> | G |
+    *    |    v                           |   |
+    *    |  +---+                         |   |     +---+
+    *    |  | B | ----------------------> |   | --> | F |
+    *    |  +---+                         +---+     +---+
+    *    |    |
+    *    |    |
+    *    |    v
+    *    |  +---+
+    *    +> | E |
+    *       +---+
+    *
+    * created by `graph-easy --input=lca.eg`, where lca.eg:
+    * [A] --> [B],[C]
+    * [B] --> [E],[G]
+    * [C] --> [D],[E],[G]
+    * [D] --> [G]
+    * [G] --> [F],[H]
+    * [H] --> [I]
+    */
 
   val A = new Node("A", Set.empty)
   val B = new Node("B", Set(A))
@@ -73,7 +70,7 @@ class LowestCommonAncestorsTests extends AnyWordSpec {
   "cyclic dependencies" in {
     val A = new Node("A", Set.empty)
     val B = new Node("B", Set(A))
-    A.parents = Set(B)  // cycle in dependencies, not a DAG any longer
+    A.parents = Set(B) // cycle in dependencies, not a DAG any longer
     LowestCommonAncestors(Set(A, B)) shouldBe Set.empty
   }
 

@@ -43,6 +43,3 @@ object Artist {
       List(SungBy.layoutInformation, WrittenBy.layoutInformation).asJava
     )
 }
-
-
-

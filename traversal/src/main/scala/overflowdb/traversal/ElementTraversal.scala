@@ -11,17 +11,17 @@ class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal
   @Doc(info = "Traverse to the element label")
   def label: Traversal[String] = traversal.map(_.label)
 
-  /** filter by the element label
-   * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.label` instead, it is much faster
-   * TODO: make the above an automatic optimisation */
+  /** filter by the element label Note: do not use as the first step in a traversal, e.g.
+    * `traversalSource.all.label(value)`. Use `traversalSource.label` instead, it is much faster TODO: make the above an
+    * automatic optimisation
+    */
   def label(value: String): Traversal[E] =
     traversal.filter(_.label == value)
 
-  /** filter by the element labels
-   * Note: do not use as the first step in a traversal, e.g. `traversalSource.all.label(value)`.
-   * Use `traversalSource.label` instead, it is much faster
-   * TODO: make the above an automatic optimisation */
+  /** filter by the element labels Note: do not use as the first step in a traversal, e.g.
+    * `traversalSource.all.label(value)`. Use `traversalSource.label` instead, it is much faster TODO: make the above an
+    * automatic optimisation
+    */
   def label(values: String*): Traversal[E] = {
     val wanted = values.toSet
     traversal.filter(element => wanted.contains(element.label))
@@ -74,17 +74,18 @@ class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal
     hasNot(key.name, value)
 
   /** Filter elements by property with given predicate.
-   * @example from GenericGraphTraversalTest
-   * {{{
-   * .has(Name.where(_.endsWith("1")))
-   * .has(Name.where(_.matches("[LR].")))
-   * .has(Name.where(P.eq("R1")))
-   * .has(Name.where(P.neq("R1")))
-   * .has(Name.where(P.within(Set("L1", "L2"))))
-   * .has(Name.where(P.within("L1", "L2", "L3")))
-   * .has(Name.where(P.matches("[LR].")))
-   * }}}
-   */
+    * @example
+    *   from GenericGraphTraversalTest
+    *   {{{
+    * .has(Name.where(_.endsWith("1")))
+    * .has(Name.where(_.matches("[LR].")))
+    * .has(Name.where(P.eq("R1")))
+    * .has(Name.where(P.neq("R1")))
+    * .has(Name.where(P.within(Set("L1", "L2"))))
+    * .has(Name.where(P.within("L1", "L2", "L3")))
+    * .has(Name.where(P.matches("[LR].")))
+    *   }}}
+    */
   def has[A](propertyPredicate: PropertyPredicate[A]): Traversal[E] =
     traversal.filter(element => propertyPredicate.predicate(element.property(propertyPredicate.key)))
 
@@ -97,17 +98,18 @@ class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal
     traversal.filter(_.property(key) != value)
 
   /** Filter elements by property with given predicate.
-   * @example from GenericGraphTraversalTest
-   * {{{
-   * .hasNot(Name.where(_.endsWith("1")))
-   * .hasNot(Name.where(_.matches("[LR].")))
-   * .hasNot(Name.where(P.eq("R1")))
-   * .hasNot(Name.where(P.neq("R1")))
-   * .hasNot(Name.where(P.within(Set("L1", "L2"))))
-   * .hasNot(Name.where(P.within("L1", "L2", "L3")))
-   * .hasNot(Name.where(P.matches("[LR].")))
-   * }}}
-   */
+    * @example
+    *   from GenericGraphTraversalTest
+    *   {{{
+    * .hasNot(Name.where(_.endsWith("1")))
+    * .hasNot(Name.where(_.matches("[LR].")))
+    * .hasNot(Name.where(P.eq("R1")))
+    * .hasNot(Name.where(P.neq("R1")))
+    * .hasNot(Name.where(P.within(Set("L1", "L2"))))
+    * .hasNot(Name.where(P.within("L1", "L2", "L3")))
+    * .hasNot(Name.where(P.matches("[LR].")))
+    *   }}}
+    */
   def hasNot[A](propertyPredicate: PropertyPredicate[A]): Traversal[E] =
     traversal.filterNot(element => propertyPredicate.predicate(element.property(propertyPredicate.key)))
 

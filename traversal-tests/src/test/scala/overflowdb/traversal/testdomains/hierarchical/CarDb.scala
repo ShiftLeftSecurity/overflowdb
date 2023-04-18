@@ -10,7 +10,7 @@ class CarDb(ref: NodeRef[CarDb]) extends NodeDb(ref) {
   override def property(key: String) =
     key match {
       case Car.PropertyNames.Name => _name
-      case _ => null
+      case _                      => null
     }
 
   override protected def updateSpecificProperty(key: String, value: Object) =

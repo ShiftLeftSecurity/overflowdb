@@ -39,4 +39,3 @@ trait Implicits {
   //   new NumericTraversal[A](traversal)
 
 }
-

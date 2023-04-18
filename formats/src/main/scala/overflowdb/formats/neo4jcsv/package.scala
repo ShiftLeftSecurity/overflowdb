@@ -7,7 +7,7 @@ package object neo4jcsv {
   }
 
   val HeaderFileSuffix = "_header"
-  val DataFileSuffix   = "_data"
+  val DataFileSuffix = "_data"
   val CypherFileSuffix = "_cypher"
 
   object ColumnType extends Enumeration {
@@ -43,6 +43,5 @@ package object neo4jcsv {
     val DateTime = Value("datetime")
     val Duration = Value("duration")
   }
-
 
 }

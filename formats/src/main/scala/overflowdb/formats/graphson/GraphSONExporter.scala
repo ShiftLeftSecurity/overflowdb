@@ -9,8 +9,7 @@ import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicInteger
 import scala.jdk.CollectionConverters.{IterableHasAsScala, MapHasAsScala}
 
-/**
-  * Exports OverflowDB graph to GraphSON 3.0
+/** Exports OverflowDB graph to GraphSON 3.0
   *
   * https://tinkerpop.apache.org/docs/3.4.1/dev/io/#graphson-3d0
   */
@@ -18,20 +17,26 @@ object GraphSONExporter extends Exporter {
 
   override def defaultFileExtension = "json"
 
-  override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[overflowdb.Edge], outputFile: Path): ExportResult = {
+  override def runExport(
+      nodes: IterableOnce[Node],
+      edges: IterableOnce[overflowdb.Edge],
+      outputFile: Path
+  ): ExportResult = {
     val outFile = resolveOutputFileSingle(outputFile, s"export.$defaultFileExtension")
     // OverflowDB only stores IDs on nodes. GraphSON requires IDs on properties and edges too
     // so we add them synthetically
     val propertyId = new AtomicInteger(0)
     val edgeId = new AtomicInteger(0)
 
-    val nodeEntries = nodes.iterator.map(node =>
-      Vertex(
-        LongValue(node.id),
-        node.label,
-        propertyEntry(node, propertyId, "g:VertexProperty")
+    val nodeEntries = nodes.iterator
+      .map(node =>
+        Vertex(
+          LongValue(node.id),
+          node.label,
+          propertyEntry(node, propertyId, "g:VertexProperty")
+        )
       )
-    ).toSeq
+      .toSeq
 
     val edgeEntries = edges.iterator.map { edge =>
       val inNode = edge.inNode()
@@ -64,11 +69,8 @@ object GraphSONExporter extends Exporter {
       propertyId: AtomicInteger,
       propertyType: String
   ): Map[String, Property] = {
-    element.propertiesMap.asScala.map {
-      case (propertyName, propertyValue) =>
-        propertyName -> Property(LongValue(propertyId.getAndIncrement()),
-                                 valueEntry(propertyValue),
-                                 propertyType)
+    element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
+      propertyName -> Property(LongValue(propertyId.getAndIncrement()), valueEntry(propertyValue), propertyType)
     }.toMap
   }
 

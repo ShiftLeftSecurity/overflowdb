@@ -17,7 +17,7 @@ class ThingDb(ref: NodeRef[ThingDb]) extends NodeDb(ref) {
     key match {
       case Thing.PropertyNames.Name => _name
       case Thing.PropertyNames.Size => _size
-      case _ => null
+      case _                        => null
     }
 
   override protected def updateSpecificProperty(key: String, value: Object) =

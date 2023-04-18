@@ -7,18 +7,18 @@ import scala.collection.{mutable, Iterator}
 
 object RepeatStep {
 
-  /** @see [[Traversal.repeat]] for a detailed overview
+  /** @see
+    *   [[Traversal.repeat]] for a detailed overview
     *
     * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space
-    * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical.
-    * The RepeatTraversalTests cover this case.
-    * */
-  def apply[A](repeatTraversal: Traversal[A] => Traversal[A],
-               behaviour: RepeatBehaviour[A]): A => Traversal[A] = { (element: A) =>
-    Traversal(
-      new RepeatStepIterator[A](element,
-                                elem => repeatTraversal(Traversal.fromSingle(elem)).iterator,
-                                behaviour))
+    * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical. The
+    * RepeatTraversalTests cover this case.
+    */
+  def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
+    (element: A) =>
+      Traversal(
+        new RepeatStepIterator[A](element, elem => repeatTraversal(Traversal.fromSingle(elem)).iterator, behaviour)
+      )
   }
 
   /** stores work still to do. depending on the underlying collection type, the behaviour of the repeat step changes */
@@ -50,9 +50,7 @@ object RepeatStep {
   case class WorklistItem[A](traversal: Iterator[A], depth: Int)
 }
 
-class RepeatStepIterator[A](element: A,
-                            repeatTraversal: A => Iterator[A],
-                            behaviour: RepeatBehaviour[A])
+class RepeatStepIterator[A](element: A, repeatTraversal: A => Iterator[A], behaviour: RepeatBehaviour[A])
     extends Iterator[A] {
   val visited = mutable.Set.empty[A] // only used if dedup enabled
   val emitSack: mutable.Queue[A] = mutable.Queue.empty
@@ -80,10 +78,11 @@ class RepeatStepIterator[A](element: A,
       else {
         val element = trav.next()
         if (behaviour.dedupEnabled) visited.addOne(element)
-        if (// `while/repeat` behaviour, i.e. check every time
-            behaviour.whileConditionIsDefinedAndEmpty(element) ||
-            // `repeat/until` behaviour, i.e. only check the `until` condition from depth 1
-            (depth > 0 && behaviour.untilConditionReached(element))) {
+        if ( // `while/repeat` behaviour, i.e. check every time
+          behaviour.whileConditionIsDefinedAndEmpty(element) ||
+          // `repeat/until` behaviour, i.e. only check the `until` condition from depth 1
+          (depth > 0 && behaviour.untilConditionReached(element))
+        ) {
           // we just consumed an element from the traversal, so in lieu adding to the emit sack
           emitSack.enqueue(element)
           stop = true

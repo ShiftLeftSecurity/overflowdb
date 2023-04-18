@@ -3,16 +3,23 @@ package overflowdb.traversal
 import org.slf4j.LoggerFactory
 import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 
-import scala.collection.{Iterable, IterableFactory, IterableFactoryDefaults, IterableOnce, IterableOps, Iterator, mutable}
+import scala.collection.{
+  Iterable,
+  IterableFactory,
+  IterableFactoryDefaults,
+  IterableOnce,
+  IterableOps,
+  Iterator,
+  mutable
+}
 import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
-/**
-  * TODO more docs
+/** TODO more docs
   *
   * Just like Tinkerpop3 and most other Iterators, a Traversal can only be executed once.
- **/
+  */
 class Traversal[+A](elements: IterableOnce[A])
     extends IterableOnce[A]
     with IterableOps[A, Traversal, Traversal[A]]
@@ -26,7 +33,7 @@ class Traversal[+A](elements: IterableOnce[A])
   @Doc(info = "Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iterator.toList
 
- /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
+  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
   def toSetMutable[B >: A]: mutable.Set[B] = mutable.Set.from(this)
 
   /** Execute the traversal and convert the result to an immutable Set */
@@ -37,12 +44,10 @@ class Traversal[+A](elements: IterableOnce[A])
   def iterate(): Unit =
     while (hasNext) next()
 
-  /**
-   * Print help/documentation based on the current elementType `A`.
-   * Relies on all step extensions being annotated with @Traversal / @Doc
-   * Note that this works independently of tab completion and implicit conversions in scope - it will simply list
-   * all documented steps in the classpath
-   * */
+  /** Print help/documentation based on the current elementType `A`. Relies on all step extensions being annotated with
+    * \@Traversal / @Doc Note that this works independently of tab completion and implicit conversions in scope - it
+    * will simply list all documented steps in the classpath
+    */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
   def help[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
@@ -54,9 +59,10 @@ class Traversal[+A](elements: IterableOnce[A])
   def count: Traversal[Int] =
     Traversal.fromSingle(iterator.size)
 
-  /** casts all elements to given type
-    * note: this can lead to casting errors
-    * @see {{{collectAll}}} as a safe alternative */
+  /** casts all elements to given type note: this can lead to casting errors
+    * @see
+    *   {{{collectAll}}} as a safe alternative
+    */
   @Doc(info = "casts all elements to given type")
   def cast[B]: Traversal[B] =
     this.asInstanceOf[Traversal[B]]
@@ -99,12 +105,13 @@ class Traversal[+A](elements: IterableOnce[A])
       a
     }
 
-  /** perform side effect without changing the contents of the traversal
-   *  will only apply the partialFunction if it is defined for the given input - analogous to `collect` */
+  /** perform side effect without changing the contents of the traversal will only apply the partialFunction if it is
+    * defined for the given input - analogous to `collect`
+    */
   @Doc(info = "perform side effect without changing the contents of the traversal")
   def sideEffectPF(pf: PartialFunction[A, Unit]): Traversal[A] =
     mapElements { a =>
-      pf.applyOrElse(a, {(_: A) => ()})
+      pf.applyOrElse(a, { (_: A) => () })
       a
     }
 
@@ -127,12 +134,11 @@ class Traversal[+A](elements: IterableOnce[A])
   def not(trav: Traversal[A] => Traversal[_]): Traversal[A] =
     whereNot(trav)
 
-  /** only preserves elements for which _at least one of_ the given traversals has at least one result
-   * Works for arbitrary amount of 'OR' traversals.
-   * @example {{{
-   *   .or(_.label("someLabel"),
-   *       _.has("someProperty"))
-   * }}} */
+  /** only preserves elements for which _at least one of_ the given traversals has at least one result Works for
+    * arbitrary amount of 'OR' traversals.
+    * @example
+    *   {{{.or(_.label("someLabel"), _.has("someProperty"))}}}
+    */
   @Doc(info = "only preserves elements for which _at least one of_ the given traversals has at least one result")
   def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
     filter { (a: A) =>
@@ -142,12 +148,11 @@ class Traversal[+A](elements: IterableOnce[A])
     }
   }
 
-  /** only preserves elements for which _all of_ the given traversals have at least one result
-   * Works for arbitrary amount of 'AND' traversals.
-   * @example {{{
-   *   .and(_.label("someLabel"),
-   *        _.has("someProperty"))
-   * }}} */
+  /** only preserves elements for which _all of_ the given traversals have at least one result Works for arbitrary
+    * amount of 'AND' traversals.
+    * @example
+    *   {{{.and(_.label("someLabel"), _.has("someProperty"))}}}
+    */
   @Doc(info = "only preserves elements for which _all of_ the given traversals have at least one result")
   def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
     filter { (a: A) =>
@@ -157,14 +162,13 @@ class Traversal[+A](elements: IterableOnce[A])
     }
   }
 
-  /**
-   * union step from the current point
-   *
-   * @param traversals to be executed from here, results are being aggregated/summed/unioned
-   * @example {{{
-   *   .union(_.out, _.in)
-   * }}}
-   */
+  /** union step from the current point
+    *
+    * @param traversals
+    *   to be executed from here, results are being aggregated/summed/unioned
+    * @example
+    *   {{{.union(_.out, _.in)}}}
+    */
   @Doc(info = "union/sum/aggregate/join given traversals from the current point")
   def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
     flatMap { (a: A) =>
@@ -173,99 +177,118 @@ class Traversal[+A](elements: IterableOnce[A])
   }
 
   /** Repeat the given traversal
-   *
-   * By default it will continue repeating until there's no more results, not emit anything along the way, and use
-   * depth first search.
-   *
-   * The @param behaviourBuilder allows you to configure end conditions (until|whilst|maxDepth), whether it should emit
-   * elements it passes by, and which search algorithm to use (depth-first or breadth-first).
-   *
-   * Search algorithm: Depth First Search (DFS) vs Breadth First Search (BFS):
-   * DFS means the repeat step will go deep before wide. BFS does the opposite: wide before deep.
-   * For example, given the graph {{{ L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 }}}
-   * DFS will iterate the nodes in the order: {{{ Center, L1, L2, L3, R1, R2, R3, R4 }}}
-   * BFS will iterate the nodes in the order: {{{ Center, L1, R1, R1, R2, L3, R3, R4 }}}
-   *
-   * @example
-   * {{{
-   * .repeat(_.out)                            // repeat until there's no more elements, emit nothing, use DFS
-   * .repeat(_.out)(_.maxDepth(3))                            // perform exactly three repeat iterations
-   * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
-   * .repeat(_.out)(_.emit)                                   // emit everything along the way
-   * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
-   * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
-   * }}}
-   *
-   * @note this works for domain-specific steps as well as generic graph steps - for details please take a look at
-   * the examples in RepeatTraversalTests: both '''.followedBy''' and '''.out''' work.
-   *
-   * @see RepeatTraversalTests for more detail and examples for all of the above.
-   */
+    *
+    * By default it will continue repeating until there's no more results, not emit anything along the way, and use
+    * depth first search.
+    *
+    * The @param behaviourBuilder allows you to configure end conditions (until|whilst|maxDepth), whether it should emit
+    * elements it passes by, and which search algorithm to use (depth-first or breadth-first).
+    *
+    * Search algorithm: Depth First Search (DFS) vs Breadth First Search (BFS): DFS means the repeat step will go deep
+    * before wide. BFS does the opposite: wide before deep. For example, given the graph
+    * {{{L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4}}} DFS will iterate the nodes in the order:
+    * {{{Center, L1, L2, L3, R1, R2, R3, R4}}} BFS will iterate the nodes in the order:
+    * {{{Center, L1, R1, R1, R2, L3, R3, R4}}}
+    *
+    * @example
+    *   {{{
+    * .repeat(_.out)                            // repeat until there's no more elements, emit nothing, use DFS
+    * .repeat(_.out)(_.maxDepth(3))                            // perform exactly three repeat iterations
+    * .repeat(_.out)(_.until(_.property(Name).endsWith("2")))  // repeat until the 'Name' property ends with '2'
+    * .repeat(_.out)(_.emit)                                   // emit everything along the way
+    * .repeat(_.out)(_.emit.breadthFirstSearch)                // emit everything, use BFS
+    * .repeat(_.out)(_.emit(_.property(Name).startsWith("L"))) // emit if the 'Name' property starts with 'L'
+    *   }}}
+    *
+    * @note
+    *   this works for domain-specific steps as well as generic graph steps - for details please take a look at the
+    *   examples in RepeatTraversalTests: both '''.followedBy''' and '''.out''' work.
+    *
+    * @see
+    *   RepeatTraversalTests for more detail and examples for all of the above.
+    */
   @Doc(info = "repeat the given traversal")
-  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])
-    (implicit behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _)
-    : Traversal[B] = {
+  def repeat[B >: A](repeatTraversal: Traversal[A] => Traversal[B])(implicit
+      behaviourBuilder: RepeatBehaviour.Builder[B] => RepeatBehaviour.Builder[B] = RepeatBehaviour.noop[B] _
+  ): Traversal[B] = {
     val behaviour = behaviourBuilder(new RepeatBehaviour.Builder[B]).build
-    val _repeatTraversal = repeatTraversal.asInstanceOf[Traversal[B] => Traversal[B]] //this cast usually :tm: safe, because `B` is a supertype of `A`
+    val _repeatTraversal =
+      repeatTraversal
+        .asInstanceOf[Traversal[B] => Traversal[B]] // this cast usually :tm: safe, because `B` is a supertype of `A`
     flatMap(RepeatStep(_repeatTraversal, behaviour))
   }
 
   /** Branch step: based on the current element, match on something given a traversal, and provide resulting traversals
-   * based on the matched element. Allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...
-   *
-   * @param on Traversal to get to what you want to match on
-   * @tparam BranchOn required to be >: Null because the implementation is using `null` as the default value. I didn't
-   *                  find a better way to implement all semantics with the niceties of PartialFunction, and also yolo...
-   * @param options PartialFunction from the matched element to the resulting traversal
-   * @tparam NewEnd The element type of the resulting traversal
-   *
-   * @example
-   * {{{
-   * .choose(_.property(Name)) {
-   *   case "L1" => _.out
-   *   case "R1" => _.repeat(_.out)(_.maxDepth(3))
-   *   case _ => _.in
-   * }
-   * }}}
-   * @see LogicalStepsTests
-   */
+    * based on the matched element. Allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else,
+    * ...
+    *
+    * @param on
+    *   Traversal to get to what you want to match on
+    * @tparam BranchOn
+    *   required to be >: Null because the implementation is using `null` as the default value. I didn't find a better
+    *   way to implement all semantics with the niceties of PartialFunction, and also yolo...
+    * @param options
+    *   PartialFunction from the matched element to the resulting traversal
+    * @tparam NewEnd
+    *   The element type of the resulting traversal
+    *
+    * @example
+    *   {{{
+    * .choose(_.property(Name)) {
+    *   case "L1" => _.out
+    *   case "R1" => _.repeat(_.out)(_.maxDepth(3))
+    *   case _ => _.in
+    * }
+    *   }}}
+    * @see
+    *   LogicalStepsTests
+    */
   @Doc(info = "allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...")
-  def choose[BranchOn >: Null, NewEnd]
-  (on: Traversal[A] => Traversal[BranchOn])
-  (options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
+  def choose[BranchOn >: Null, NewEnd](
+      on: Traversal[A] => Traversal[BranchOn]
+  )(options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] =
     flatMap { (a: A) =>
       val branchOnValue: BranchOn = on(Traversal.fromSingle(a)).headOption.getOrElse(null)
-      options.applyOrElse(branchOnValue, (fail: BranchOn) => ((unused: Traversal[A]) => Traversal.empty[NewEnd])).apply(Traversal.fromSingle(a))
+      options
+        .applyOrElse(branchOnValue, (fail: BranchOn) => ((unused: Traversal[A]) => Traversal.empty[NewEnd]))
+        .apply(Traversal.fromSingle(a))
     }
 
-  /** Branch step: evaluates the provided traversals in order and returns the first traversal that emits at least one element.
-   *
-   * @example
-   * {{{
-   *  .coalesce(
-   *    _.out("label1"),
-   *    _.in("label2"),
-   *    _.in("label3")
-   *  )
-   * }}}
-   * @see LogicalStepsTests
-   */
-  @Doc(info = "evaluates the provided traversals in order and returns the first traversal that emits at least one element")
+  /** Branch step: evaluates the provided traversals in order and returns the first traversal that emits at least one
+    * element.
+    *
+    * @example
+    *   {{{
+    *  .coalesce(
+    *    _.out("label1"),
+    *    _.in("label2"),
+    *    _.in("label3")
+    *  )
+    *   }}}
+    * @see
+    *   LogicalStepsTests
+    */
+  @Doc(
+    info = "evaluates the provided traversals in order and returns the first traversal that emits at least one element"
+  )
   def coalesce[NewEnd](options: (Traversal[A] => Traversal[NewEnd])*): Traversal[NewEnd] =
     flatMap { (a: A) =>
-      options.iterator.map(_.apply(Traversal.fromSingle(a))).collectFirst {
-        case option if option.nonEmpty => option
-      }.getOrElse(Traversal.empty)
+      options.iterator
+        .map(_.apply(Traversal.fromSingle(a)))
+        .collectFirst {
+          case option if option.nonEmpty => option
+        }
+        .getOrElse(Traversal.empty)
     }
 
   /** aggregate all objects at this point into the given collection (side effect)
-   * @example
-   * {{{
-   *  val xs = mutable.ArrayBuffer.empty[A]
-   *  myTraversal.aggregate(xs).foo.bar
-   *  // xs will be filled once `myTraversal` is executed
-   * }}}
-   **/
+    * @example
+    *   {{{
+    *  val xs = mutable.ArrayBuffer.empty[A]
+    *  myTraversal.aggregate(xs).foo.bar
+    *  // xs will be filled once `myTraversal` is executed
+    *   }}}
+    */
   @Doc(info = "aggregate all objects at this point into the given collection (side effect)")
   def aggregate(into: mutable.Growable[A]): Traversal[A] =
     sideEffect(into.addOne(_))
@@ -302,25 +325,29 @@ class Traversal[+A](elements: IterableOnce[A])
   def enablePathTracking: PathAwareTraversal[A] =
     PathAwareTraversal.from(elements)
 
-  /** retrieve entire path that has been traversed thus far 
-    * prerequisite: enablePathTracking has been called previously
+  /** retrieve entire path that has been traversed thus far prerequisite: enablePathTracking has been called previously
     * @example
-    * {{{
+    *   {{{
     *  myTraversal.enablePathTracking.out.out.path.toList
-    * }}}
-    *  TODO would be nice to preserve the types of the elements, at least if they have a common supertype
+    *   }}}
+    *   TODO would be nice to preserve the types of the elements, at least if they have a common supertype
     */
   @Doc(info = "retrieve entire path that has been traversed thus far")
   def path: Traversal[Vector[Any]] =
-    throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
+    throw new AssertionError(
+      "path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`"
+    )
 
-  /** Removes all results whose traversal path has repeated objects.
-   * prerequisite: {{{enablePathTracking}}} */
+  /** Removes all results whose traversal path has repeated objects. prerequisite: {{{enablePathTracking}}}
+    */
   def simplePath: Traversal[A] =
-    throw new AssertionError("path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`")
+    throw new AssertionError(
+      "path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`"
+    )
 
-  /** create a new Traversal instance with mapped elements
-   * only exists so it can be overridden by extending classes (e.g. {{{PathAwareTraversal}}}) */
+  /** create a new Traversal instance with mapped elements only exists so it can be overridden by extending classes
+    * (e.g. {{{PathAwareTraversal}}})
+    */
   protected def mapElements[B](f: A => B): Traversal[B] =
     new Traversal(iterator.map(f))
 
@@ -334,7 +361,7 @@ class Traversal[+A](elements: IterableOnce[A])
 object Traversal extends IterableFactory[Traversal] {
   protected val logger = LoggerFactory.getLogger("Traversal")
 
-  def help: TraversalHelp = ???// = new TraversalHelp
+  def help: TraversalHelp = ??? // = new TraversalHelp
 
   override def empty[A]: Traversal[A] = new Traversal(Iterator.empty)
 
@@ -347,7 +374,7 @@ object Traversal extends IterableFactory[Traversal] {
   override def from[A](iterable: IterableOnce[A]): Traversal[A] =
     iterable match {
       case traversal: Traversal[_] => traversal.asInstanceOf[Traversal[A]]
-      case _ => new Traversal(iterable)
+      case _                       => new Traversal(iterable)
     }
 
   def apply[A](iterable: java.util.Iterator[A]): Traversal[A] =

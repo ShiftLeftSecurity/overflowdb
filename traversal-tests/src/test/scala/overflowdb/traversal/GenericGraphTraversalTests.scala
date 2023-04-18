@@ -23,7 +23,16 @@ class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
   "label lookup" in {
     graph.V.label.toList shouldBe List("thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing", "thing")
-    graph.E.label.toList shouldBe List("connection", "connection", "connection", "connection", "connection", "connection", "connection", "connection")
+    graph.E.label.toList shouldBe List(
+      "connection",
+      "connection",
+      "connection",
+      "connection",
+      "connection",
+      "connection",
+      "connection",
+      "connection"
+    )
   }
 
   "property lookup" in {
@@ -32,7 +41,7 @@ class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
     graph.E.propertyOption(Distance).toSetMutable shouldBe Set(Some(10), Some(13), Some(14), None)
   }
 
-  "filter steps" can {
+  "filter steps".can {
     "filter by id" in {
       graph.V.hasId(center.id).property(Name).toList shouldBe List("Center")
     }
@@ -93,11 +102,11 @@ class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
     "`not` step taking a traversal" in {
       // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
-       graph.V.not(_.out).property(Name).toSetMutable shouldBe Set("L3", "R5")
+      graph.V.not(_.out).property(Name).toSetMutable shouldBe Set("L3", "R5")
     }
   }
 
-  "base steps: out/in/both" can {
+  "base steps: out/in/both".can {
     "step out" in {
       center.start.out.toSetMutable shouldBe Set(l1, r1)
       center.start.out.out.toSetMutable shouldBe Set(l2, r2)

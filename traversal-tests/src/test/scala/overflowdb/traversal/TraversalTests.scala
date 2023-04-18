@@ -31,9 +31,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
   ".sideEffectPF step should support PartialFunction and not fail for undefined cases" in {
     val sack = mutable.ListBuffer.empty[Node]
 
-    center
-      .start
-      .out
+    center.start.out
       .sideEffectPF {
         case node if node.property(Thing.Properties.Name).startsWith("L") =>
           sack.addOne(node)
@@ -45,15 +43,17 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
   }
 
   "domain overview" in {
-    simpleDomain.all.property(Thing.Properties.Name).toSetMutable shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
+    simpleDomain.all
+      .property(Thing.Properties.Name)
+      .toSetMutable shouldBe Set("L3", "L2", "L1", "Center", "R1", "R2", "R3", "R4", "R5")
     centerTrav.head.name shouldBe "Center"
     simpleDomain.all.label.toSetMutable shouldBe Set(Thing.Label)
   }
 
   ".dedup step" should {
     "remove duplicates" in {
-      Traversal(Iterator(1,2,1,3)).dedup.l shouldBe List(1,2,3)
-      Traversal(Iterator(1,2,1,3)).dedupBy(_.hashCode).l shouldBe List(1,2,3)
+      Traversal(Iterator(1, 2, 1, 3)).dedup.l shouldBe List(1, 2, 3)
+      Traversal(Iterator(1, 2, 1, 3)).dedupBy(_.hashCode).l shouldBe List(1, 2, 3)
     }
 
     "allow method only based on hashCode - to ensure the traversal doesn't hold onto elements after they've been consumed" in {
@@ -70,15 +70,18 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
         }
       })
 
-      /** using dedup by hash comparison, we can traverse over these elements - already consumed elements are garbage collected */
+      /** using dedup by hash comparison, we can traverse over these elements - already consumed elements are garbage
+        * collected
+        */
       val traversal = infiniteTraversalWithLargeElements.dedupBy(_.hashCode)
       0.to(128).foreach { i =>
         traversal.next()
       }
 
       /** This is a copy of the above, but using the default dedup comparison style (hashAndEquals). To be able to
-       * compare objects via `.equals` it has to hold onto already consumed objects, making it run out of memory
-       * eventually. When run with -Xmx128m this happens after ~5 iterations. */
+        * compare objects via `.equals` it has to hold onto already consumed objects, making it run out of memory
+        * eventually. When run with -Xmx128m this happens after ~5 iterations.
+        */
 //      val traversal2 = infiniteTraversalWithLargeElements.dedup
 //      0.to(128).foreach { i =>
 //        println(i)
@@ -134,13 +137,13 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
   }
 
   ".aggregate step stores all objects at this point into a given collection" in {
-     val buffer = mutable.ArrayBuffer.empty[Thing]
-     center.start.followedBy.aggregate(buffer).followedBy.iterate()
-     buffer.toSet shouldBe Set(l1, r1)
+    val buffer = mutable.ArrayBuffer.empty[Thing]
+    center.start.followedBy.aggregate(buffer).followedBy.iterate()
+    buffer.toSet shouldBe Set(l1, r1)
   }
 
   ".sort steps should order" in {
-    Traversal(1,3,2).sorted.l shouldBe Seq(1,2,3)
+    Traversal(1, 3, 2).sorted.l shouldBe Seq(1, 2, 3)
     Traversal("aa", "aaa", "a").sortBy(_.length).l shouldBe Seq("a", "aa", "aaa")
   }
 
@@ -157,9 +160,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
       Traversal("aaa", "bbb", "cc").groupBy(_.length)
 
     val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSetMutable) }.toSetMutable
-    results shouldBe Set(
-      2 -> Set("cc"),
-      3 -> Set("aaa", "bbb"))
+    results shouldBe Set(2 -> Set("cc"), 3 -> Set("aaa", "bbb"))
   }
 
   ".groupMap step" in {
@@ -167,7 +168,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
     val Seq(keys -> values) = traversal.l
     keys shouldBe "a"
-    values.toSetMutable shouldBe(Set(1, 2))
+    values.toSetMutable shouldBe (Set(1, 2))
   }
 
   "string filter steps" in {
@@ -175,10 +176,13 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
     val Name = Thing.PropertyNames.Name
 
     graph.addNode(Thing.Label, Name, "regular name")
-    graph.addNode(Thing.Label, Name,
+    graph.addNode(
+      Thing.Label,
+      Name,
       """multi line name
         |line two
-        |""".stripMargin)
+        |""".stripMargin
+    )
 
     graph.V.has(Thing.Properties.Name.where(P.matches(".*"))).size shouldBe 2
     graph.V.has(Thing.Properties.Name.where(P.matches(".*", ".*"))).size shouldBe 2
@@ -190,7 +194,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
     def oneToFour = Traversal(1, 2, 3, 4)
     oneToFour.greaterThanEqual(3).l shouldBe Seq(3, 4)
     oneToFour.greaterThan(3).l shouldBe Seq(4)
-    oneToFour.lessThanEqual(3).l shouldBe Seq(1,2, 3)
+    oneToFour.lessThanEqual(3).l shouldBe Seq(1, 2, 3)
     oneToFour.lessThan(3).l shouldBe Seq(1, 2)
     oneToFour.equiv(3).l shouldBe Seq(3)
     oneToFour.between(2, 4).l shouldBe Seq(2, 3)
@@ -231,7 +235,9 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
         thingTraversalHelpVerbose should include(".sideEffect") // step from Traversal
         thingTraversalHelpVerbose should include(".label") // step from ElementTraversal
         thingTraversalHelpVerbose should include(".out") // step from NodeTraversal
-        thingTraversalHelpVerbose should include("just like name, but in a different package") // step from helptest.SimpleDomainTraversal
+        thingTraversalHelpVerbose should include(
+          "just like name, but in a different package"
+        ) // step from helptest.SimpleDomainTraversal
       }
 
       "using hierarchical domain" in {
@@ -260,7 +266,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
         "traversing non-nodes" in {
           val stringTraversal = Traversal.empty[String]
           stringTraversal.helpVerbose should include(".sideEffect")
-          stringTraversal.helpVerbose should not include ".label"
+          (stringTraversal.helpVerbose should not).include(".label")
         }
       }
     }

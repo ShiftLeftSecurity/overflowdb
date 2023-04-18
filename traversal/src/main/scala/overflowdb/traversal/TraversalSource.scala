@@ -7,10 +7,10 @@ class TraversalSource(graph: Graph) {
   def all: Traversal[Node] =
     Traversal(graph.nodes())
 
-  def id[NodeType : DefaultsToNode](id: Long): Traversal[NodeType] =
+  def id[NodeType: DefaultsToNode](id: Long): Traversal[NodeType] =
     Traversal(graph.node(id)).cast[NodeType]
 
-  def ids[NodeType : DefaultsToNode](ids: Long*): Traversal[NodeType] =
+  def ids[NodeType: DefaultsToNode](ids: Long*): Traversal[NodeType] =
     Traversal(graph.nodes(ids: _*)).cast[NodeType]
 
   def label(label: String): Traversal[Node] =
@@ -38,13 +38,15 @@ class TraversalSource(graph: Graph) {
     }
   }
 
-  /** Start traversal with all nodes with given label that have given property value
-   * Inspects the cardinality of the indices of the properties and labels, and takes the smaller one */
+  /** Start traversal with all nodes with given label that have given property value Inspects the cardinality of the
+    * indices of the properties and labels, and takes the smaller one
+    */
   def labelAndProperty(label: String, property: Property[_]): Traversal[Node] =
     this.labelAndProperty(label, property.key.name, property.value)
 
-  /** Start traversal with all nodes with given label that have given property value
-   * Inspects the cardinality of the indices of the properties and labels, and takes the smaller one */
+  /** Start traversal with all nodes with given label that have given property value Inspects the cardinality of the
+    * indices of the properties and labels, and takes the smaller one
+    */
   def labelAndProperty(label: String, propertyKey: String, propertyValue: Any): Traversal[Node] = {
     lazy val propertyIsIndexed = graph.indexManager.isIndexed(propertyKey)
     lazy val nodesByPropertyIndex = graph.indexManager.lookup(propertyKey, propertyValue)

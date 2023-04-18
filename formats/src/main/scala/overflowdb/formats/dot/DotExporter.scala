@@ -7,17 +7,14 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.util.Using
 
-/**
- * Exports OverflowDB Graph to graphviz dot/gv file
- *
- * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
- * If you import this into a different database, you'll need to parse that separately.
- *
- * https://en.wikipedia.org/wiki/DOT_(graph_description_language)
- * https://www.graphviz.org/doc/info/lang.html
- * http://magjac.com/graphviz-visual-editor/
- * https://www.slideshare.net/albazo/graphiz-using-the-dot-language
- * */
+/** Exports OverflowDB Graph to graphviz dot/gv file
+  *
+  * Note: GraphML doesn't natively support list property types, so we fake it by encoding it as a `;` delimited string.
+  * If you import this into a different database, you'll need to parse that separately.
+  *
+  * https://en.wikipedia.org/wiki/DOT_(graph_description_language) https://www.graphviz.org/doc/info/lang.html
+  * http://magjac.com/graphviz-visual-editor/ https://www.slideshare.net/albazo/graphiz-using-the-dot-language
+  */
 object DotExporter extends Exporter {
   override def defaultFileExtension = "dot"
 
@@ -63,9 +60,11 @@ object DotExporter extends Exporter {
   }
 
   private def properties2Dot(properties: java.util.Map[String, Object]): String = {
-    properties.asScala.map { case (key, value) =>
-      s"$key=${encodePropertyValue(value)}"
-    }.mkString(" ")
+    properties.asScala
+      .map { case (key, value) =>
+        s"$key=${encodePropertyValue(value)}"
+      }
+      .mkString(" ")
   }
 
   private def encodePropertyValue(value: Object): String = {
