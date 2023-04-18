@@ -23,10 +23,10 @@ class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
 
   override def property(key: String) =
     key match {
-      case Song.PropertyNames.Name => _name
-      case Song.PropertyNames.SongType => _songType
+      case Song.PropertyNames.Name         => _name
+      case Song.PropertyNames.SongType     => _songType
       case Song.PropertyNames.Performances => _performances
-      case _ => null
+      case _                               => null
     }
 
   override protected def updateSpecificProperty(key: String, value: Object) =
@@ -38,7 +38,7 @@ class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
       case Song.PropertyNames.Performances =>
         _performances = value match {
           case value: String => Integer.valueOf(value)
-          case value => value.asInstanceOf[Integer]
+          case value         => value.asInstanceOf[Integer]
         }
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
@@ -46,8 +46,8 @@ class SongDb(ref: NodeRef[SongDb]) extends NodeDb(ref) {
 
   override protected def removeSpecificProperty(key: String) =
     key match {
-      case Song.PropertyNames.Name => _name = null
-      case Song.PropertyNames.SongType => _songType = null
+      case Song.PropertyNames.Name         => _name = null
+      case Song.PropertyNames.SongType     => _songType = null
       case Song.PropertyNames.Performances => _performances = null
       case _ =>
         throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());

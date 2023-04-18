@@ -44,7 +44,8 @@ package object gratefuldead {
     def songType(regexp: String): Traversal[Song] = StringPropertyFilter.regexp(trav)(_.songType, regexp)
     def songType(regexps: String*): Traversal[Song] = StringPropertyFilter.regexpMultiple(trav)(_.songType, regexps)
     def songTypeNot(regexp: String): Traversal[Song] = StringPropertyFilter.regexpNot(trav)(_.songType, regexp)
-    def songTypeNot(regexps: String*): Traversal[Song] = StringPropertyFilter.regexpNotMultiple(trav)(_.songType, regexps)
+    def songTypeNot(regexps: String*): Traversal[Song] =
+      StringPropertyFilter.regexpNotMultiple(trav)(_.songType, regexps)
     def songTypeExact(value: String): Traversal[Song] = PropertyFilter.exact(trav)(_.songType, value)
     def songTypeExact(values: String*): Traversal[Song] = PropertyFilter.exactMultiple(trav)(_.songType, values)
     def songTypeContains(value: String): Traversal[Song] = StringPropertyFilter.contains(trav)(_.songType, value)

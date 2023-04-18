@@ -52,5 +52,3 @@ object Song {
       List(FollowedBy.layoutInformation).asJava
     )
 }
-
-

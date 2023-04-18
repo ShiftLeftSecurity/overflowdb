@@ -43,23 +43,22 @@ class DependencySequencerTests extends AnyWordSpec {
   "throw error if it's not a DAG" in {
     val A = new Node("A")
     val B = new Node("B", Set(A))
-    A.parents = Set(B)  // cycle in dependencies, not a DAG any longer
+    A.parents = Set(B) // cycle in dependencies, not a DAG any longer
     assertThrows[AssertionError](DependencySequencer(Set(A, B)))
   }
 
   "larger graph 1" in {
-    /**
-     *             +-------------------+
-     *             |                   v
-     * +---+     +---+     +---+     +---+
-     * | A | --> | B | --> | C | --> | E |
-     * +---+     +---+     +---+     +---+
-     *             |                   ^
-     *             v                   |
-     *           +---+                 |
-     *           | D | ----------------+
-     *           +---+
-     */
+
+    /** \+-------------------+
+      * \| v
+      * \+---+ +---+ +---+ +---+
+      * \| A | --> | B | --> | C | --> | E |
+      * \+---+ +---+ +---+ +---+
+      * \| ^ v |
+      * \+---+ |
+      * \| D | ----------------+
+      * \+---+
+      */
     val A = new Node("A")
     val B = new Node("B", Set(A))
     val C = new Node("C", Set(B))
@@ -69,18 +68,17 @@ class DependencySequencerTests extends AnyWordSpec {
   }
 
   "larger graph 2" in {
-    /**
-     *             +-----------------------------+
-     *             |                             v
-     * +---+     +---+     +---+     +---+     +---+
-     * | A | --> | B | --> | D | --> | E | --> | F |
-     * +---+     +---+     +---+     +---+     +---+
-     *             |                             ^
-     *             v                             |
-     *           +---+                           |
-     *           | C | --------------------------+
-     *           +---+
-     */
+
+    /** \+-----------------------------+
+      * \| v
+      * \+---+ +---+ +---+ +---+ +---+
+      * \| A | --> | B | --> | D | --> | E | --> | F |
+      * \+---+ +---+ +---+ +---+ +---+
+      * \| ^ v |
+      * \+---+ |
+      * \| C | --------------------------+
+      * \+---+
+      */
     val A = new Node("A")
     val B = new Node("B", Set(A))
     val C = new Node("C", Set(B))

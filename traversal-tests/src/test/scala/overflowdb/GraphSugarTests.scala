@@ -10,7 +10,7 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties._
 
 class GraphSugarTests extends AnyWordSpec {
 
-  "graph + label" can {
+  "graph + label".can {
     "add a node" in {
       val graph = SimpleDomain.newGraph
       graph + Thing.Label
@@ -56,7 +56,7 @@ class GraphSugarTests extends AnyWordSpec {
     }
   }
 
-  "nodeOption" can {
+  "nodeOption".can {
     "retrieve a node, or not" in {
       val graph = SimpleDomain.newGraph
       val node = graph + Thing.Label
@@ -65,7 +65,7 @@ class GraphSugarTests extends AnyWordSpec {
     }
   }
 
-  "arrow syntax" can {
+  "arrow syntax".can {
     "add an edge" in {
       val graph = SimpleDomain.newGraph
       val node1 = graph + Thing.Label

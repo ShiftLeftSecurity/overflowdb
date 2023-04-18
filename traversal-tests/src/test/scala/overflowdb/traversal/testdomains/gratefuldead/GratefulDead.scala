@@ -10,9 +10,11 @@ object GratefulDead {
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
   def newGraph(config: Config): Graph =
-    Graph.open(config,
+    Graph.open(
+      config,
       util.Arrays.asList(Song.factory, Artist.factory),
-      util.Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory))
+      util.Arrays.asList(FollowedBy.factory, SungBy.factory, WrittenBy.factory)
+    )
 
   def newGraphWithData: Graph = {
     val graph = newGraph
