@@ -14,20 +14,20 @@ object Neo4jCsvExporter extends Exporter {
 
   override def defaultFileExtension = "csv"
 
-  /**
-   * Exports OverflowDB Graph to neo4j csv files
-   * see https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
-   *
-   * For both nodes and relationships, we first write the data file and to derive the property types from their
-   * runtime types. We will write columns for all declared properties, because we only know which ones are
-   * actually in use *after* traversing all elements.
-   *
-   * */
+  /** Exports OverflowDB Graph to neo4j csv files see
+    * https://neo4j.com/docs/operations-manual/current/tools/neo4j-admin/neo4j-admin-import/
+    *
+    * For both nodes and relationships, we first write the data file and to derive the property types from their runtime
+    * types. We will write columns for all declared properties, because we only know which ones are actually in use
+    * *after* traversing all elements.
+    */
   override def runExport(nodes: IterableOnce[Node], edges: IterableOnce[Edge], outputRootDirectory: Path) = {
     val nodesByLabel = nodes.iterator.toSeq.groupBy(_.label).filter(_._2.nonEmpty)
-    val CountAndFiles(nodeCount, nodeFiles) = nodesByLabel.map {
-      case (label, nodes) => exportNodes(nodes, label, outputRootDirectory)
-    }.reduce(_.plus(_))
+    val CountAndFiles(nodeCount, nodeFiles) = nodesByLabel
+      .map { case (label, nodes) =>
+        exportNodes(nodes, label, outputRootDirectory)
+      }
+      .reduce(_.plus(_))
 
     val CountAndFiles(edgeCount, edgeFiles) = exportEdges(edges, outputRootDirectory)
 
@@ -37,8 +37,7 @@ object Neo4jCsvExporter extends Exporter {
       nodeCount = nodeCount,
       edgeCount = edgeCount,
       files = nodeFiles ++ edgeFiles,
-      additionalInfo = Option(
-        s"""Instructions on how to import the exported files into neo4j:
+      additionalInfo = Option(s"""Instructions on how to import the exported files into neo4j:
            |Prerequisite: ensure you have neo4j community server running (enterprise and desktop may work too)
            |e.g. download from https://neo4j.com/download-center/#community and start via `bin/neo4j console`
            |
@@ -61,8 +60,10 @@ object Neo4jCsvExporter extends Exporter {
   }
 
   private def exportNodes(nodes: IterableOnce[Node], label: String, outputRootDirectory: Path): CountAndFiles = {
-    val dataFile   = outputRootDirectory.resolve(s"nodes_$label$DataFileSuffix.csv")
-    val headerFile = outputRootDirectory.resolve(s"nodes_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
+    val dataFile = outputRootDirectory.resolve(s"nodes_$label$DataFileSuffix.csv")
+    val headerFile = outputRootDirectory.resolve(
+      s"nodes_$label$HeaderFileSuffix.csv"
+    ) // to be written at the very end, with complete ColumnDefByName
     val cypherFile = outputRootDirectory.resolve(s"nodes_$label$CypherFileSuffix.csv")
     // will be initialized with the first node
     var columnDefinitions: ColumnDefinitions = null
@@ -103,15 +104,19 @@ object Neo4jCsvExporter extends Exporter {
 
     edges.iterator.foreach { edge =>
       val label = edge.label
-      val context = edgeFilesContextByLabel.getOrElseUpdate(label, {
-        // first time we encounter an edge of this type - create the columnMapping and write the header file
-        val headerFile = outputRootDirectory.resolve(s"edges_$label$HeaderFileSuffix.csv")  // to be written at the very end, with complete ColumnDefByName
-        val dataFile   = outputRootDirectory.resolve(s"edges_$label$DataFileSuffix.csv")
-        val cypherFile   = outputRootDirectory.resolve(s"edges_$label$CypherFileSuffix.csv")
-        val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
-        val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
-        EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions)
-      })
+      val context = edgeFilesContextByLabel.getOrElseUpdate(
+        label, {
+          // first time we encounter an edge of this type - create the columnMapping and write the header file
+          val headerFile = outputRootDirectory.resolve(
+            s"edges_$label$HeaderFileSuffix.csv"
+          ) // to be written at the very end, with complete ColumnDefByName
+          val dataFile = outputRootDirectory.resolve(s"edges_$label$DataFileSuffix.csv")
+          val cypherFile = outputRootDirectory.resolve(s"edges_$label$CypherFileSuffix.csv")
+          val dataFileWriter = CSVWriter.open(dataFile.toFile, append = false)
+          val columnDefinitions = new ColumnDefinitions(edge.propertyKeys.asScala)
+          EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions)
+        }
+      )
 
       val specialColumns = Seq(edge.outNode.id.toString, edge.inNode.id.toString, edge.label)
       val propertyValueColumns = context.columnDefinitions.propertyValues(edge.propertyOption(_).toScala)
@@ -121,8 +126,10 @@ object Neo4jCsvExporter extends Exporter {
 
     val files = edgeFilesContextByLabel.values.flatMap {
       case EdgeFilesContext(label, headerFile, dataFile, cypherFile, dataFileWriter, columnDefinitions) =>
-        writeSingleLineCsv(headerFile,
-          Seq(ColumnType.StartId, ColumnType.EndId, ColumnType.Type) ++ columnDefinitions.propertiesWithTypes)
+        writeSingleLineCsv(
+          headerFile,
+          Seq(ColumnType.StartId, ColumnType.EndId, ColumnType.Type) ++ columnDefinitions.propertiesWithTypes
+        )
 
         dataFileWriter.flush()
         dataFileWriter.close()
@@ -150,12 +157,14 @@ object Neo4jCsvExporter extends Exporter {
     }
   }
 
-  private case class EdgeFilesContext(label: String,
-                                      headerFile: Path,
-                                      dataFile: Path,
-                                      cypherFile: Path,
-                                      dataFileWriter: CSVWriter,
-                                      columnDefinitions: ColumnDefinitions)
+  private case class EdgeFilesContext(
+      label: String,
+      headerFile: Path,
+      dataFile: Path,
+      cypherFile: Path,
+      dataFileWriter: CSVWriter,
+      columnDefinitions: ColumnDefinitions
+  )
 
   case class CountAndFiles(count: Int, files: Seq[Path]) {
     def plus(other: CountAndFiles): CountAndFiles =

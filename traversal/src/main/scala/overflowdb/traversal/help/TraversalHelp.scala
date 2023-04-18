@@ -9,18 +9,17 @@ import java.lang.annotation.{Annotation => JAnnotation}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-/**
- * Searches classpath for @Traversal|@TraversalSource and @Doc annotations (via reflection).
- * Used for `.help` step. There are two use cases for this, which require slightly different implementations
- * 1) `myDomain.help` - for the node starter steps
- * 2) `myDomain.someNodeType.help` - for steps that are available a specific node type
- *
- * For use case 2, we also take into account all parent traits of a node type, recursively.
- * I.e. if `SomeNodeType` has a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`,
- * we will include those in the results.
- *
- * @param searchPackages: The base packages that we scan for - we're not scanning the entire classpath
- */
+/** Searches classpath for @Traversal|@TraversalSource and @Doc annotations (via reflection). Used for `.help` step.
+  * There are two use cases for this, which require slightly different implementations 1) `myDomain.help` - for the node
+  * starter steps 2) `myDomain.someNodeType.help` - for steps that are available a specific node type
+  *
+  * For use case 2, we also take into account all parent traits of a node type, recursively.
+  * I.e. if `SomeNodeType` has a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`, we
+  * will include those in the results.
+  *
+  * @param searchPackages:
+  *   The base packages that we scan for - we're not scanning the entire classpath
+  */
 class TraversalHelp(searchPackages: DocSearchPackages) {
   import TraversalHelp._
 
@@ -61,8 +60,8 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
   lazy val forTraversalSources: String = {
     val stepDocs = for {
       packageName <- packageNamesToSearch
-      traversal   <- findClassesAnnotatedWith(packageName, classOf[help.TraversalSource])
-      stepDoc     <- findStepDocs(traversal)
+      traversal <- findClassesAnnotatedWith(packageName, classOf[help.TraversalSource])
+      stepDoc <- findStepDocs(traversal)
     } yield stepDoc
 
     val table = Table(
@@ -77,20 +76,22 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
        |""".stripMargin
   }
 
-  /**
-    * Scans the entire classpath for classes annotated with @TraversalExt (using java reflection),
-    * to then extract the @Doc annotations for all steps, and group them by the elementType (e.g. node.Method).
+  /** Scans the entire classpath for classes annotated with @TraversalExt (using java reflection), to then extract the
+    * \@Doc annotations for all steps, and group them by the elementType (e.g. node.Method).
     */
   lazy val stepDocsByElementType: Map[Class[_], List[StepDoc]] = {
     for {
       packageName <- packageNamesToSearch
-      traversal  <- findClassesAnnotatedWith(packageName, classOf[help.Traversal])
+      traversal <- findClassesAnnotatedWith(packageName, classOf[help.Traversal])
       annotation <- Option(traversal.getAnnotation(classOf[help.Traversal])).iterator
-      stepDoc    <- findStepDocs(traversal)
+      stepDoc <- findStepDocs(traversal)
     } yield (annotation.elementType, stepDoc)
   }.toList.distinct.groupMap(_._1)(_._2)
 
-  private def findClassesAnnotatedWith[Annotation <: JAnnotation](packageName: String, annotationClass: Class[Annotation]): Iterator[Class[_]] =
+  private def findClassesAnnotatedWith[Annotation <: JAnnotation](
+      packageName: String,
+      annotationClass: Class[Annotation]
+  ): Iterator[Class[_]] =
     new Reflections(packageName).getTypesAnnotatedWith(annotationClass).asScala.iterator
 
   lazy val genericStepDocs: Iterable[StepDoc] =
@@ -100,7 +101,8 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     findStepDocs(classOf[NodeTraversal[_]]) ++ findStepDocs(classOf[ElementTraversal[_]])
 
   protected def findStepDocs(traversal: Class[_]): Iterable[StepDoc] = {
-    DocFinder.findDocumentedMethodsOf(traversal)
+    DocFinder
+      .findDocumentedMethodsOf(traversal)
       // scala generates additional `fooBar$extension` methods, but those don't matter in the context of .help/@Doc
       .filterNot(_.methodName.endsWith("$extension"))
   }

@@ -11,14 +11,18 @@ object PathAwareRepeatStep {
   case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 
   /** @see
-   *   [[Traversal.repeat]] for a detailed overview
-   *
-   * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space for ~10k steps. So
-   * instead, this uses a programmatic Stack which is semantically identical. The RepeatTraversalTests cover this case.
-   */
-  def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => PathAwareTraversal[A] = { (element: A) =>
+    *   [[Traversal.repeat]] for a detailed overview
+    *
+    * Implementation note: using recursion results in nicer code, but uses the JVM stack, which only has enough space
+    * for ~10k steps. So instead, this uses a programmatic Stack which is semantically identical. The
+    * RepeatTraversalTests cover this case.
+    */
+  def apply[A](
+      repeatTraversal: Traversal[A] => Traversal[A],
+      behaviour: RepeatBehaviour[A]
+  ): A => PathAwareTraversal[A] = { (element: A) =>
     new PathAwareTraversal[A](new Iterator[(A, Vector[Any])] {
-      val visited                                   = mutable.Set.empty[A]
+      val visited = mutable.Set.empty[A]
       val emitSack: mutable.Queue[(A, Vector[Any])] = mutable.Queue.empty
       val worklist: Worklist[WorklistItem[A]] = behaviour.searchAlgorithm match {
         case SearchAlgorithm.DepthFirst   => new LifoWorklist()
@@ -39,7 +43,7 @@ object PathAwareRepeatStep {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav0, depth) = worklist.head
-          val trav                       = trav0.asInstanceOf[PathAwareTraversal[A]].wrapped
+          val trav = trav0.asInstanceOf[PathAwareTraversal[A]].wrapped
           if (trav.isEmpty) worklist.removeHead()
           else if (behaviour.maxDepthReached(depth)) stop = true
           else {
@@ -48,8 +52,8 @@ object PathAwareRepeatStep {
 
             if ( // `while/repeat` behaviour, i.e. check every time
               behaviour.whileConditionIsDefinedAndEmpty(element) ||
-                // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
-                (depth > 0 && behaviour.untilConditionReached(element))
+              // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
+              (depth > 0 && behaviour.untilConditionReached(element))
             ) {
               // we just consumed an element from the traversal, so in lieu adding to the emit sack
               emitSack.enqueue((element, path1))

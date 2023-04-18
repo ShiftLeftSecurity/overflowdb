@@ -4,7 +4,6 @@ import java.nio.file.{Path, Paths}
 import overflowdb.{Edge, Graph, Node}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
-
 trait Exporter {
 
   def defaultFileExtension: String

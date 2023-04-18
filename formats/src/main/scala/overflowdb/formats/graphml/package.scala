@@ -27,7 +27,9 @@ package object graphml {
       else if (clazz.isAssignableFrom(classOf[String]))
         Type.String
       else
-        throw new AssertionError(s"unsupported runtime class `$clazz` - only ${Type.values.mkString("|")} are supported...}")
+        throw new AssertionError(
+          s"unsupported runtime class `$clazz` - only ${Type.values.mkString("|")} are supported...}"
+        )
     }
   }
 

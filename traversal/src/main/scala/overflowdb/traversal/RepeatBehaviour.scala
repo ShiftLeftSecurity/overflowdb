@@ -39,12 +39,12 @@ object RepeatBehaviour {
   def noop[A](builder: RepeatBehaviour.Builder[A]): Builder[A] = builder
 
   class Builder[A] {
-    private[this] var _shouldEmit: (A, Int) => Boolean                      = (_, _) => false
+    private[this] var _shouldEmit: (A, Int) => Boolean = (_, _) => false
     private[this] var _untilCondition: Option[Traversal[A] => Traversal[_]] = None
     private[this] var _whileCondition: Option[Traversal[A] => Traversal[_]] = None
-    private[this] var _maxDepth: Option[Int]                                = None
-    private[this] var _dedupEnabled: Boolean                                = false
-    private[this] var _searchAlgorithm: SearchAlgorithm.Value               = SearchAlgorithm.DepthFirst
+    private[this] var _maxDepth: Option[Int] = None
+    private[this] var _dedupEnabled: Boolean = false
+    private[this] var _searchAlgorithm: SearchAlgorithm.Value = SearchAlgorithm.DepthFirst
 
     /** configure search algorithm to go "breadth first", rather than the default "depth first" */
     def breadthFirstSearch: Builder[A] = {
@@ -67,9 +67,9 @@ object RepeatBehaviour {
       this
     }
 
-    /** Emit intermediate elements (along the way), if they meet the given condition. Note that this does not apply a filter on the final
-     * elements of the traversal.
-     */
+    /** Emit intermediate elements (along the way), if they meet the given condition. Note that this does not apply a
+      * filter on the final elements of the traversal.
+      */
     def emit(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _shouldEmit = (element, _) => condition(Iterator.single(element)).hasNext
       this
@@ -82,24 +82,27 @@ object RepeatBehaviour {
       this
     }
 
-    /** Stop traversing when given condition-traversal has no result. The condition-traversal is already evaluated at the first iteration,
-     * for classic while/repeat behaviour.
-     *
-     * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted.
-     */
+    /** Stop traversing when given condition-traversal has no result. The condition-traversal is already evaluated at
+      * the first iteration, for classic while/repeat behaviour.
+      *
+      * n.b. the only reason not to call this `while` is to avoid using scala keywords, which would need to be quoted.
+      */
     def whilst(condition: Traversal[A] => Traversal[_]): Builder[A] = {
       _whileCondition = Some(condition)
       this
     }
 
     /** Maximum depth to go down in the repeat traversal. Note that there may be other conditions like until|whilst etc.
-     */
-    @deprecated("use `maxDepth` instead - semantically equivalent, while it describes the meaning more precisely", "1.153")
+      */
+    @deprecated(
+      "use `maxDepth` instead - semantically equivalent, while it describes the meaning more precisely",
+      "1.153"
+    )
     def times(value: Int): Builder[A] =
       maxDepth(value)
 
     /** Maximum depth to go down in the repeat traversal. Note that there may be other conditions like until|whilst etc.
-     */
+      */
     def maxDepth(value: Int): Builder[A] = {
       _maxDepth = Some(value)
       this
@@ -114,10 +117,10 @@ object RepeatBehaviour {
     private[traversal] def build: RepeatBehaviour[A] = {
       new RepeatBehaviour[A] {
         override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-        override val untilCondition                         = _untilCondition.map(_.andThen(_.iterator).compose(Iterator.single))
-        override val whileCondition                         = _whileCondition.map(_.andThen(_.iterator).compose(Iterator.single))
-        final override val maxDepth: Option[Int]            = _maxDepth
-        final override val dedupEnabled                     = _dedupEnabled
+        override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Iterator.single))
+        override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Iterator.single))
+        final override val maxDepth: Option[Int] = _maxDepth
+        final override val dedupEnabled = _dedupEnabled
         override def shouldEmit(element: A, currentDepth: Int): Boolean = _shouldEmit(element, currentDepth)
       }
     }

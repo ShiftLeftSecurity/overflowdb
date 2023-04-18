@@ -4,25 +4,22 @@ import scala.annotation.tailrec
 
 object LowestCommonAncestors {
 
-  /**
-   * Find the lowest common ancestor(s) for a set of nodes in a directed acyclic graph (DAG).
-   * @return Set.empty if given nodes have cyclic dependencies
-   *
-   * Algorithm:
-   * 1) for each relevant node, find their recursive parents
-   * 2) create the intersection of all of those sets
-   * 3) the LCA are those nodes, that do not have any children in that set
-   *
-   * based on https://www.baeldung.com/cs/lowest-common-ancestor-acyclic-graph
-   */
+  /** Find the lowest common ancestor(s) for a set of nodes in a directed acyclic graph (DAG).
+    * @return
+    *   Set.empty if given nodes have cyclic dependencies
+    *
+    * Algorithm: 1) for each relevant node, find their recursive parents 2) create the intersection of all of those sets
+    * 3) the LCA are those nodes, that do not have any children in that set
+    *
+    * based on https://www.baeldung.com/cs/lowest-common-ancestor-acyclic-graph
+    */
   def apply[A: GetParents](nodes: Set[A]): Set[A] = {
     if (nodes.size <= 1) {
       nodes
     } else {
       val (head, tail) = (nodes.head, nodes.tail)
-      val parentsIntersection = tail.foldLeft(parentsRecursive(head)) {
-        case (res, next) =>
-          res.intersect(parentsRecursive(next))
+      val parentsIntersection = tail.foldLeft(parentsRecursive(head)) { case (res, next) =>
+        res.intersect(parentsRecursive(next))
       }
 
       parentsIntersection.filter { node =>
@@ -48,6 +45,5 @@ object LowestCommonAncestors {
     }
 
   }
-
 
 }

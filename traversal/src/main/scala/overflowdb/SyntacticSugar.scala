@@ -3,7 +3,7 @@ package overflowdb
 class PropertyPredicate[A](val key: PropertyKey[A], val predicate: A => Boolean)
 
 class PropertyKeyOps[A](val propertyKey: PropertyKey[A]) extends AnyVal {
-  def -> (value: A): Property[A] =
+  def ->(value: A): Property[A] =
     propertyKey.of(value)
 
   def where(predicate: A => Boolean): PropertyPredicate[A] =
@@ -59,4 +59,3 @@ private[overflowdb] class SemiEdge(outNode: Node, label: String, properties: Seq
     outNode.addEdge(label, inNode, keyValues: _*)
   }
 }
-
