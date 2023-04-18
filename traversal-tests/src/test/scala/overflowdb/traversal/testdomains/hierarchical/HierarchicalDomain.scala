@@ -7,11 +7,9 @@ import java.util
 import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 import overflowdb.traversal.testdomains.simple.SimpleDomain.getClass
 
-/** a simple domain with some hierarchy in the nodes: a top level interface
-  * Car
-  * Animal (abstract node)
-  * Elephant (extends Animal)
-  * */
+/** a simple domain with some hierarchy in the nodes: a top level interface Car Animal (abstract node) Elephant (extends
+  * Animal)
+  */
 object HierarchicalDomain {
   implicit val defaultDocSearchPackage: DocSearchPackages =
     DocSearchPackages(getClass.getPackage.getName)
@@ -21,9 +19,7 @@ object HierarchicalDomain {
   def newGraph: Graph = newGraph(Config.withoutOverflow)
 
   def newGraph(config: Config): Graph =
-    Graph.open(config,
-      util.Arrays.asList(Car.factory, Elephant.factory),
-      util.Arrays.asList())
+    Graph.open(config, util.Arrays.asList(Car.factory, Elephant.factory), util.Arrays.asList())
 
   def traversal(graph: Graph) = new HierarchicalDomainTraversalSource(graph)
 }
@@ -42,4 +38,3 @@ class HierarchicalDomainTraversalSource(graph: Graph) extends TraversalSource(gr
 
   lazy val help: String = HierarchicalDomain.help.forTraversalSources
 }
-

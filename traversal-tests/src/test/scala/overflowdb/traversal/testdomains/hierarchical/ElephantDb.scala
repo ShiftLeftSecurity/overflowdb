@@ -11,7 +11,7 @@ class ElephantDb(ref: NodeRef[ElephantDb]) extends NodeDb(ref) with Animal {
   override def property(key: String) =
     key match {
       case Elephant.PropertyNames.Name => _name
-      case _ => null
+      case _                           => null
     }
 
   override protected def updateSpecificProperty(key: String, value: Object) =

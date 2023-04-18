@@ -17,7 +17,6 @@ class Thing(graph: Graph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
   override def toString = s"Thing(id=$id;name=$name)"
 }
 
-
 object Thing {
   val Label = "thing"
 

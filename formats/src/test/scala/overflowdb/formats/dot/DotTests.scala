@@ -21,12 +21,19 @@ class DotTests extends AnyWordSpec {
     val funkyList = new FunkyList()
     funkyList.add("apoplectic")
     funkyList.add("bucolic")
-    val node1 = graph.addNode(1, TestNode.LABEL,
-      TestNode.INT_PROPERTY, 11,
-      TestNode.STRING_PROPERTY, "<stringProp1>",
-      TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringList\\Prop1b").asJava,
-      TestNode.FUNKY_LIST_PROPERTY, funkyList,
-      TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
+    val node1 = graph.addNode(
+      1,
+      TestNode.LABEL,
+      TestNode.INT_PROPERTY,
+      11,
+      TestNode.STRING_PROPERTY,
+      "<stringProp1>",
+      TestNode.STRING_LIST_PROPERTY,
+      List("stringListProp1a", "stringList\\Prop1b").asJava,
+      TestNode.FUNKY_LIST_PROPERTY,
+      funkyList,
+      TestNode.INT_LIST_PROPERTY,
+      List(21, 31, 41).asJava
     )
 
     node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)

@@ -50,13 +50,7 @@ class GraphSONTests extends AnyWordSpec {
       val funkyList = new FunkyList()
       funkyList.add("apoplectic")
       funkyList.add("bucolic")
-      val node1 = graph.addNode(1,
-                                TestNode.LABEL,
-                                TestNode.INT_PROPERTY,
-                                11,
-                                TestNode.STRING_PROPERTY,
-                                "<stringProp1>",
-      )
+      val node1 = graph.addNode(1, TestNode.LABEL, TestNode.INT_PROPERTY, 11, TestNode.STRING_PROPERTY, "<stringProp1>")
 
       node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)
       node2.addEdge(TestEdge.LABEL, node3)
@@ -74,7 +68,8 @@ class GraphSONTests extends AnyWordSpec {
         withClue(
           s"original graph and reimport from graphml should be completely equal, but there are differences:\n" +
             diff.asScala.mkString("\n") +
-            "\n") {
+            "\n"
+        ) {
           diff.size shouldBe 0
         }
       }
@@ -94,7 +89,7 @@ class GraphSONTests extends AnyWordSpec {
         TestNode.STRING_LIST_PROPERTY,
         List("stringListProp1a", "stringListProp1b").asJava,
         TestNode.INT_LIST_PROPERTY,
-        List(21, 31, 41).asJava,
+        List(21, 31, 41).asJava
       )
 
       File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
@@ -110,7 +105,8 @@ class GraphSONTests extends AnyWordSpec {
         val diff = DiffTool.compare(graph, reimported)
         val diffString = diff.asScala.mkString(lineSeparator)
         withClue(
-          s"original graph contained two list properties, these should also be present in reimported graph $diffString $lineSeparator") {
+          s"original graph contained two list properties, these should also be present in reimported graph $diffString $lineSeparator"
+        ) {
           diff.size shouldBe 0
         }
       }

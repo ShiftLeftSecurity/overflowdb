@@ -9,7 +9,7 @@ import overflowdb.traversal.ChainedImplicitsTemp._
 class GratefulDeadTests extends AnyWordSpec {
   val gratefulDead = GratefulDead.traversal(GratefulDead.newGraphWithData)
 
-  "generic graph traversal" can {
+  "generic graph traversal".can {
     "perform generic graph steps" in {
       gratefulDead.all.size shouldBe 808
       gratefulDead.all.id.l.sorted.head shouldBe 1
@@ -24,7 +24,7 @@ class GratefulDeadTests extends AnyWordSpec {
     }
   }
 
-  "domain specific traversal" can {
+  "domain specific traversal".can {
     "perform single step start traversal" in {
       gratefulDead.artists.size shouldBe 224
       gratefulDead.songs.size shouldBe 584
@@ -64,7 +64,11 @@ class GratefulDeadTests extends AnyWordSpec {
     "traverse domain-specific edges" in {
       gratefulDead.artists.nameExact("Bob_Dylan").sangSongs.size shouldBe 22
       gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.size shouldBe 5
-      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSetMutable shouldBe Set("original", "cover", "")
+      gratefulDead.songs.nameExact("WALKIN THE DOG").followedBy.songType.toSetMutable shouldBe Set(
+        "original",
+        "cover",
+        ""
+      )
     }
 
     "be expressed in for comprehension" in {
@@ -79,7 +83,7 @@ class GratefulDeadTests extends AnyWordSpec {
     }
   }
 
-  "lifting elements into a Traversal" can {
+  "lifting elements into a Traversal".can {
     "lift a single element with `Traversal.fromSingle`" in {
       val dylan = gratefulDead.artists.nameExact("Bob_Dylan").head
       Traversal.fromSingle(dylan).sangSongs.size shouldBe 22
@@ -96,9 +100,10 @@ class GratefulDeadTests extends AnyWordSpec {
     }
   }
 
-  "repeat step" can {
+  "repeat step".can {
     "across all playlists, how many distinct singers appear 3 places after songs sang by 'Hunter'?" in {
-      gratefulDead.artists.name("Hunter")
+      gratefulDead.artists
+        .name("Hunter")
         .sangSongs
         .repeat(_.followedBy)(_.maxDepth(3))
         .sungBy

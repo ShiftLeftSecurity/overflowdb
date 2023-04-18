@@ -50,10 +50,7 @@ class GraphMLTests extends AnyWordSpec {
       val funkyList = new FunkyList()
       funkyList.add("apoplectic")
       funkyList.add("bucolic")
-      val node1 = graph.addNode(1, TestNode.LABEL,
-        TestNode.INT_PROPERTY, 11,
-        TestNode.STRING_PROPERTY, "<stringProp1>",
-      )
+      val node1 = graph.addNode(1, TestNode.LABEL, TestNode.INT_PROPERTY, 11, TestNode.STRING_PROPERTY, "<stringProp1>")
 
       node1.addEdge(TestEdge.LABEL, node2, TestEdge.LONG_PROPERTY, Long.MaxValue)
       node2.addEdge(TestEdge.LABEL, node3)
@@ -68,9 +65,11 @@ class GraphMLTests extends AnyWordSpec {
         val reimported = SimpleDomain.newGraph()
         GraphMLImporter.runImport(reimported, graphMLFile)
         val diff = DiffTool.compare(graph, reimported)
-        withClue(s"original graph and reimport from graphml should be completely equal, but there are differences:\n" +
-          diff.asScala.mkString("\n") +
-          "\n") {
+        withClue(
+          s"original graph and reimport from graphml should be completely equal, but there are differences:\n" +
+            diff.asScala.mkString("\n") +
+            "\n"
+        ) {
           diff.size shouldBe 0
         }
       }
@@ -80,11 +79,17 @@ class GraphMLTests extends AnyWordSpec {
       val graph = SimpleDomain.newGraph()
 
       // will discard the list properties
-      val node1 = graph.addNode(1, TestNode.LABEL,
-        TestNode.INT_PROPERTY, 11,
-        TestNode.STRING_PROPERTY, "<stringProp1>",
-        TestNode.STRING_LIST_PROPERTY, List("stringListProp1a", "stringListProp1b").asJava,
-        TestNode.INT_LIST_PROPERTY, List(21, 31, 41).asJava,
+      val node1 = graph.addNode(
+        1,
+        TestNode.LABEL,
+        TestNode.INT_PROPERTY,
+        11,
+        TestNode.STRING_PROPERTY,
+        "<stringProp1>",
+        TestNode.STRING_LIST_PROPERTY,
+        List("stringListProp1a", "stringListProp1b").asJava,
+        TestNode.INT_LIST_PROPERTY,
+        List(21, 31, 41).asJava
       )
 
       File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
@@ -99,10 +104,12 @@ class GraphMLTests extends AnyWordSpec {
         GraphMLImporter.runImport(reimported, graphMLFile)
         val diff = DiffTool.compare(graph, reimported)
         val diffString = diff.asScala.mkString(lineSeparator)
-        withClue(s"because the original graph contained two list properties, and those are not supported by graphml, " +
-          s"the exporter drops them. therefor they'll not be part of the reimported graph" +
-          diffString +
-          lineSeparator) {
+        withClue(
+          s"because the original graph contained two list properties, and those are not supported by graphml, " +
+            s"the exporter drops them. therefor they'll not be part of the reimported graph" +
+            diffString +
+            lineSeparator
+        ) {
           diff.size shouldBe 2
           diffString should include("IntListProperty")
           diffString should include("StringListProperty")

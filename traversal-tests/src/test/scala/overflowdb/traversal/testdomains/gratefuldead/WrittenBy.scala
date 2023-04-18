@@ -4,7 +4,7 @@ import overflowdb._
 import scala.jdk.CollectionConverters._
 
 class WrittenBy(graph: Graph, outVertex: NodeRef[ArtistDb], inVertex: NodeRef[SongDb])
-  extends Edge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.PropertyNames.all.asJava)
+    extends Edge(graph, WrittenBy.Label, outVertex, inVertex, WrittenBy.PropertyNames.all.asJava)
 
 object WrittenBy {
   val Label = "writtenBy"

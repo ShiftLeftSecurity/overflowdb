@@ -137,7 +137,7 @@ class Traversal[+A](elements: IterableOnce[A])
   /** only preserves elements for which _at least one of_ the given traversals has at least one result Works for
     * arbitrary amount of 'OR' traversals.
     * @example
-    *   {{{ .or(_.label("someLabel"), _.has("someProperty")) }}}
+    *   {{{.or(_.label("someLabel"), _.has("someProperty"))}}}
     */
   @Doc(info = "only preserves elements for which _at least one of_ the given traversals has at least one result")
   def or(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
@@ -151,7 +151,7 @@ class Traversal[+A](elements: IterableOnce[A])
   /** only preserves elements for which _all of_ the given traversals have at least one result Works for arbitrary
     * amount of 'AND' traversals.
     * @example
-    *   {{{ .and(_.label("someLabel"), _.has("someProperty")) }}}
+    *   {{{.and(_.label("someLabel"), _.has("someProperty"))}}}
     */
   @Doc(info = "only preserves elements for which _all of_ the given traversals have at least one result")
   def and(traversals: (Traversal[A] => Traversal[_])*): Traversal[A] = {
@@ -167,7 +167,7 @@ class Traversal[+A](elements: IterableOnce[A])
     * @param traversals
     *   to be executed from here, results are being aggregated/summed/unioned
     * @example
-    *   {{{ .union(_.out, _.in) }}}
+    *   {{{.union(_.out, _.in)}}}
     */
   @Doc(info = "union/sum/aggregate/join given traversals from the current point")
   def union[B](traversals: (Traversal[A] => Traversal[B])*): Traversal[B] = {
