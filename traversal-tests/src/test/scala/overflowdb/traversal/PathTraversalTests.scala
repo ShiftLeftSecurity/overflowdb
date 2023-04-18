@@ -57,6 +57,11 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
           Seq(center, r1, "R1"))
       }
 
+      "collectAll: includes intermediate results (this behavior is undesired)" in {
+        centerTrav.enablePathTracking.collectAll[Thing].path.toList shouldBe List(
+          Seq(center, center))
+      }
+
       "filter" in {
         centerTrav.enablePathTracking.followedBy.nameStartsWith("R").followedBy.path.toSetMutable shouldBe Set(
           Seq(center, r1, r2))
