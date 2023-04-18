@@ -35,7 +35,7 @@ class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
     while (iterator.hasNext) iterator.next()
 
   def count: Traversal[Int] =
-    Iterator(iterator.size)
+    Iterator.single(iterator.size)
 
   /** casts all elements to given type note: this can lead to casting errors
     *
@@ -80,6 +80,9 @@ class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
   def help[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
+  @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
+  def helpVerbose[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
+    new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 }
 class TraversalFilterExt[A](val iterator: Iterator[A]) extends AnyVal {
   type Traversal[A] = Iterator[A]
@@ -210,19 +213,16 @@ class TraversalLogicExt[A](val iterator: Iterator[A]) extends AnyVal {
     *   LogicalStepsTests
     */
   @Doc(info = "allows to implement conditional semantics: if, if/else, if/elseif, if/elseif/else, ...")
-  def choose[BranchOn, NewEnd](
+  def choose[BranchOn >: Null, NewEnd](
       on: Traversal[A] => Traversal[BranchOn]
   )(options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]): Traversal[NewEnd] = iterator match {
-    case pathAwareTraversal: PathAwareTraversal[A] => pathAwareTraversal._choose(on)(options)
+    case pathAwareTraversal: PathAwareTraversal[A] => pathAwareTraversal._choose[BranchOn, NewEnd](on)(options)
     case _ =>
       iterator.flatMap { (a: A) =>
-        on(Iterator.single(a)).nextOption match {
-          case None => Iterator.empty[NewEnd]
-          case Some(branchon) =>
-            options.applyOrElse(branchon, (inapplicable: BranchOn) => ((arg: Traversal[A]) => Iterator.empty[NewEnd]))(
-              Iterator.single(a)
-            )
-        }
+        val branchOnValue: BranchOn = on(Iterator.single(a)).nextOption().getOrElse(null)
+        options
+          .applyOrElse(branchOnValue, (failState: BranchOn) => ((unused: Traversal[A]) => Iterator.empty[NewEnd]))
+          .apply(Iterator.single(a))
       }
   }
 
@@ -242,15 +242,16 @@ class TraversalLogicExt[A](val iterator: Iterator[A]) extends AnyVal {
       }
   }
 
+  /*
   /** aggregate all objects at this point into the given collection (side effect)
-    *
-    * @example
-    *   {{{
-    *  val xs = mutable.ArrayBuffer.empty[A]
-    *  myTraversal.aggregate(xs).foo.bar
-    *  // xs will be filled once `myTraversal` is executed
-    *   }}}
-    */
+   *
+   * @example
+   *   {{{
+   *  val xs = mutable.ArrayBuffer.empty[A]
+   *  myTraversal.aggregate(xs).foo.bar
+   *  // xs will be filled once `myTraversal` is executed
+   *   }}}
+   */
   @Doc(info = "aggregate all objects at this point into the given collection (side effect)")
   def aggregate(into: mutable.Growable[A]): Traversal[A] =
     sideEffect(into.addOne(_))
@@ -271,6 +272,8 @@ class TraversalLogicExt[A](val iterator: Iterator[A]) extends AnyVal {
     }
     counts.to(Map)
   }
+
+   */
 }
 
 class TraversalTrackingExt[A](val iterator: Iterator[A]) extends AnyVal {
@@ -301,14 +304,30 @@ class TraversalTrackingExt[A](val iterator: Iterator[A]) extends AnyVal {
     *   TODO would be nice to preserve the types of the elements, at least if they have a common supertype
     */
   @Doc(info = "retrieve entire path that has been traversed thus far")
-  def path: Traversal[Vector[Any]] = iterator.asInstanceOf[PathAwareTraversal[A]].wrapped.map { case (a, p) =>
-    p.appended(a)
+  def path: Traversal[Vector[Any]] = iterator match {
+    case tracked: PathAwareTraversal[A] =>
+      tracked.wrapped.map { case (a, p) =>
+        p.appended(a)
+      }
+    case _ =>
+      throw new AssertionError(
+        "path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`"
+      )
   } // fixme: I think ClassCastException is the correct result when the user forgot to enable path tracking. But a better error message to go along with it would be nice.
 
-  def simplePath: Traversal[Vector[Any]] = path.filter { p => mutable.Set.from(p).size == p.size }
+  def simplePath: Traversal[A] = iterator match {
+    case tracked: PathAwareTraversal[A] =>
+      new PathAwareTraversal(tracked.wrapped.filter { case (a, p) =>
+        mutable.Set.from(p).addOne(a).size == 1 + p.size
+      })
+    case _ =>
+      throw new AssertionError(
+        "path tracking not enabled, please make sure you have a `PathAwareTraversal`, e.g. via `Traversal.enablePathTracking`"
+      )
+  }
 }
 
-class RepeatTraversalExt[A](val trav: Iterator[A]) extends AnyVal {
+class TraversalRepeatExt[A](val trav: Iterator[A]) extends AnyVal {
   type Traversal[A] = Iterator[A]
 
   /** Repeat the given traversal

@@ -1,10 +1,13 @@
 package overflowdb.traversal
 
 import overflowdb.traversal.help.Doc
-import overflowdb.{Node, Edge}
+import overflowdb.{Edge, Node}
 
-class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
+class NodeTraversal[E <: Node](val traversal: Iterator[E]) extends AnyVal {
+  type Traversal[A] = Iterator[A]
+  import ImplicitsTmp._
   @Doc(info = "Traverse to node id")
   def id: Traversal[Long] = traversal.map(_.id)
 
@@ -31,50 +34,50 @@ class NodeTraversal[E <: Node](val traversal: Traversal[E]) extends AnyVal {
   /** follow outgoing edges to adjacent nodes */
   @Doc(info = "follow outgoing edges to adjacent nodes")
   def out: Traversal[Node] =
-    traversal.flatMap(_.out)
+    traversal.flatMap(_.out.asScala)
 
   /** follow outgoing edges of given labels to adjacent nodes */
   def out(labels: String*): Traversal[Node] =
-    traversal.flatMap(_.out(labels: _*).toScalaAs)
+    traversal.flatMap(_.out(labels: _*).asScala)
 
   /** follow incoming edges to adjacent nodes */
   def in: Traversal[Node] =
-    traversal.flatMap(_.in)
+    traversal.flatMap(_.in.asScala)
 
   /** follow incoming edges of given label to adjacent nodes */
   def in(labels: String*): Traversal[Node] =
-    traversal.flatMap(_.in(labels: _*).toScalaAs)
+    traversal.flatMap(_.in(labels: _*).asScala)
 
   /** follow incoming and outgoing edges to adjacent nodes */
   def both: Traversal[Node] =
-    traversal.flatMap(_.both)
+    traversal.flatMap(_.both.asScala)
 
   /** follow incoming and outgoing edges of given labels to adjacent nodes */
   def both(labels: String*): Traversal[Node] =
-    traversal.flatMap(_.both(labels: _*))
+    traversal.flatMap(_.both(labels: _*).asScala)
 
   /** follow outgoing edges */
   def outE: Traversal[Edge] =
-    traversal.flatMap(_.outE)
+    traversal.flatMap(_.outE.asScala)
 
   /** follow outgoing edges of given label */
   def outE(labels: String*): Traversal[Edge] =
-    traversal.flatMap(_.outE(labels: _*))
+    traversal.flatMap(_.outE(labels: _*).asScala)
 
   /** follow incoming edges */
   def inE: Traversal[Edge] =
-    traversal.flatMap(_.inE)
+    traversal.flatMap(_.inE.asScala)
 
   /** follow incoming edges of given label */
   def inE(labels: String*): Traversal[Edge] =
-    traversal.flatMap(_.inE(labels: _*))
+    traversal.flatMap(_.inE(labels: _*).asScala)
 
   /** follow incoming and outgoing edges */
   def bothE: Traversal[Edge] =
-    traversal.flatMap(_.bothE)
+    traversal.flatMap(_.bothE.asScala)
 
   /** follow incoming and outgoing edges of given label */
   def bothE(labels: String*): Traversal[Edge] =
-    traversal.flatMap(_.bothE(labels: _*))
+    traversal.flatMap(_.bothE(labels: _*).asScala)
 
 }

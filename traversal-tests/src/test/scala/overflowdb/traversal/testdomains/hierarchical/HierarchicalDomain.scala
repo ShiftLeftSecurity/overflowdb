@@ -1,7 +1,8 @@
 package overflowdb.traversal.testdomains.hierarchical
 
-import overflowdb.traversal.{Traversal, TraversalSource, help}
+import overflowdb.traversal.{TraversalSource, help}
 import overflowdb.{Config, Graph}
+import overflowdb.traversal._
 
 import java.util
 import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}

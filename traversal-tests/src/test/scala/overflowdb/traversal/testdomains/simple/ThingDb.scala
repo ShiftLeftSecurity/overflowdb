@@ -11,7 +11,7 @@ class ThingDb(ref: NodeRef[ThingDb]) extends NodeDb(ref) {
   def size: Integer = _size
 
   /* Thing --- followedBy --- Thing */
-  def followedBy: Traversal[Thing] = out(Connection.Label).toScalaAs[Thing]
+  def followedBy: Iterator[Thing] = out(Connection.Label).toScalaAs[Thing]
 
   override def property(key: String) =
     key match {

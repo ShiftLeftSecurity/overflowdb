@@ -5,7 +5,8 @@ import overflowdb.{Element, Property, PropertyPredicate, PropertyKey}
 
 import scala.jdk.CollectionConverters._
 
-class ElementTraversal[E <: Element](val traversal: Traversal[E]) extends AnyVal {
+class ElementTraversal[E <: Element](val traversal: Iterator[E]) extends AnyVal {
+  type Traversal[A] = Iterator[A]
 
   /** traverse to the element label */
   @Doc(info = "Traverse to the element label")

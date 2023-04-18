@@ -3,12 +3,18 @@ package overflowdb
 import overflowdb.util.JIteratorCastingWrapper
 
 package object traversal extends Implicits {
+  type Traversal[+A] = Iterator[A]
 
   implicit class NodeOps[N <: Node](val node: N) extends AnyVal {
 
+    /** start a new Traversal with this Node, i.e. lift it into a Traversal. Will hopefully be deprecated in favor of
+      * "iterator"
+      */
+    def start: Iterator[N] =
+      Iterator.single(node)
+
     /** start a new Traversal with this Node, i.e. lift it into a Traversal */
-    def start: Traversal[N] =
-      Traversal.fromSingle(node)
+    def iterator: Iterator[N] = Iterator.single(node)
   }
 
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {

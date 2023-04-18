@@ -1,26 +1,29 @@
 package overflowdb.traversal
 
-import overflowdb.{Node, Graph, Property}
+import overflowdb.{Graph, Node, Property}
+
 import scala.jdk.CollectionConverters._
 
 class TraversalSource(graph: Graph) {
+  type Traversal[+A] = Iterator[A]
+  import ImplicitsTmp._
   def all: Traversal[Node] =
-    Traversal(graph.nodes())
+    graph.nodes().asScala
 
   def id[NodeType: DefaultsToNode](id: Long): Traversal[NodeType] =
-    Traversal(graph.node(id)).cast[NodeType]
+    Option(graph.node(id)).iterator.asInstanceOf[Traversal[NodeType]]
 
   def ids[NodeType: DefaultsToNode](ids: Long*): Traversal[NodeType] =
-    Traversal(graph.nodes(ids: _*)).cast[NodeType]
+    graph.nodes(ids: _*).asScala.asInstanceOf[Traversal[NodeType]]
 
   def label(label: String): Traversal[Node] =
-    Traversal(graph.nodes(label))
+    graph.nodes(label).asScala
 
   def hasLabel(label: String): Traversal[Node] =
     this.label(label)
 
   def labelTyped[A <: Node](label: String): Traversal[A] =
-    this.label(label).cast[A]
+    this.label(label).asInstanceOf[Traversal[A]]
 
   /** Start traversal with all nodes that have given property value */
   def has(property: Property[_]): Traversal[Node] = {
@@ -31,10 +34,10 @@ class TraversalSource(graph: Graph) {
   def has(key: String, value: Any): Traversal[Node] = {
     if (graph.indexManager.isIndexed(key)) {
       val nodes = graph.indexManager.lookup(key, value)
-      Traversal.from(nodes.asScala)
+      nodes.asScala.iterator
     } else {
       // maybe print a warning: may make sense to create an index
-      Traversal.from(graph.nodes()).has(key, value)
+      new ElementTraversal(graph.nodes().asScala.iterator).has(key, value)
     }
   }
 
@@ -53,9 +56,9 @@ class TraversalSource(graph: Graph) {
     lazy val cardinalityByLabel = graph.nodeCount(label)
 
     if (propertyIsIndexed && nodesByPropertyIndex.size <= cardinalityByLabel)
-      Traversal.from(nodesByPropertyIndex.asScala).label(label)
+      new ElementTraversal(nodesByPropertyIndex.asScala.iterator).label(label)
     else
-      this.label(label).has(propertyKey, propertyValue)
+      new ElementTraversal(this.label(label)).has(propertyKey, propertyValue)
   }
 }
 

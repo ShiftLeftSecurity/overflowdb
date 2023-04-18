@@ -2,8 +2,9 @@ package overflowdb.traversal.testdomains.gratefuldead
 
 import overflowdb.formats.graphml.GraphMLImporter
 import java.util
-import overflowdb.traversal.{Traversal, TraversalSource}
+import overflowdb.traversal.TraversalSource
 import overflowdb.{Config, Graph}
+import overflowdb.traversal._
 
 /* visual schema: https://raw.githubusercontent.com/apache/tinkerpop/347eb9a8231c48aa22eced9b07dd6241305898c6/docs/static/images/grateful-dead-schema.png */
 object GratefulDead {

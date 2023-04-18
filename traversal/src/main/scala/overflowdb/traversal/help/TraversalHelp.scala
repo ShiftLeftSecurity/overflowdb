@@ -2,7 +2,8 @@ package overflowdb.traversal.help
 
 import org.reflections8.Reflections
 import overflowdb.traversal.help.DocFinder.StepDoc
-import overflowdb.traversal.{ElementTraversal, NodeTraversal, Traversal, help}
+import overflowdb.traversal.{ElementTraversal, NodeTraversal, help}
+import overflowdb.traversal
 import overflowdb.{NodeDb, NodeRef}
 
 import java.lang.annotation.{Annotation => JAnnotation}
@@ -95,7 +96,11 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     new Reflections(packageName).getTypesAnnotatedWith(annotationClass).asScala.iterator
 
   lazy val genericStepDocs: Iterable[StepDoc] =
-    findStepDocs(classOf[Traversal[_]])
+    findStepDocs(classOf[traversal.TraversalSugarExt[_]]) ++ findStepDocs(
+      classOf[traversal.TraversalFilterExt[_]]
+    ) ++ findStepDocs(classOf[traversal.TraversalLogicExt[_]]) ++ findStepDocs(
+      classOf[traversal.TraversalTrackingExt[_]]
+    ) ++ findStepDocs(classOf[traversal.TraversalRepeatExt[_]])
 
   lazy val genericNodeStepDocs: Iterable[StepDoc] =
     findStepDocs(classOf[NodeTraversal[_]]) ++ findStepDocs(classOf[ElementTraversal[_]])

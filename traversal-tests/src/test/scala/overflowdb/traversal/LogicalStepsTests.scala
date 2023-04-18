@@ -6,6 +6,8 @@ import overflowdb.Node
 import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing, ThingTraversal}
 
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+
 class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
   /* most tests work with this simple graph:
    * L3 <- L2 <- L1 <- Center -> R1 -> R2 -> R3 -> R4 -> R5
@@ -46,6 +48,7 @@ class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
     "provide if semantics" in {
       graph
         .nodes(Thing.Label)
+        .asScala
         .choose(_.property(Name)) { case "L1" =>
           _.out // -> L2
         }
@@ -56,6 +59,7 @@ class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
     "provide if/elseif semantics" in {
       graph
         .nodes(Thing.Label)
+        .asScala
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
           case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
@@ -67,6 +71,7 @@ class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
     "provide if/else semantics" in {
       graph
         .nodes(Thing.Label)
+        .asScala
         .choose(_.property(Name)) {
           case "L1" => _.out // -> L2
           case "R1" => _.repeat(_.out)(_.maxDepth(3)) // -> R4
@@ -79,6 +84,7 @@ class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
     "handle empty `on` traversal: if semantics" in {
       graph
         .nodes(Thing.Label)
+        .asScala
         .choose(_.property(Name).filter(_ => false)) { case "L1" =>
           _.out
         }
@@ -89,6 +95,7 @@ class LogicalStepsTests extends AnyWordSpec with ExampleGraphSetup {
     "handle empty `on` traversal: if/else semantics" in {
       graph
         .nodes(Thing.Label)
+        .asScala
         .choose(_.property(Name).filter(_ => false)) {
           case "L1" => _.in
           case _    => _.out

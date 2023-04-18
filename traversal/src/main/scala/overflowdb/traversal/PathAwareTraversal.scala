@@ -54,7 +54,7 @@ class PathAwareTraversal[A](val wrapped: Iterator[(A, Vector[Any])]) extends Ite
       options: PartialFunction[BranchOn, Traversal[A] => Traversal[NewEnd]]
   ): Traversal[NewEnd] =
     new PathAwareTraversal(wrapped.flatMap { case (a, p) =>
-      val branchOnValue: BranchOn = on(Iterator.single(a)).nextOption.getOrElse(null)
+      val branchOnValue: BranchOn = on(Iterator.single(a)).nextOption().getOrElse(null)
       options
         .applyOrElse(branchOnValue, (failState: BranchOn) => ((unused: Traversal[A]) => Iterator.empty[NewEnd]))
         .apply(new PathAwareTraversal(Iterator.single((a, p)))) match {

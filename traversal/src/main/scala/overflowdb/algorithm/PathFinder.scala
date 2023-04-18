@@ -9,8 +9,8 @@ object PathFinder {
   def apply(nodeA: Node, nodeB: Node, maxDepth: Int = -1): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
-      Traversal
-        .fromSingle(nodeA)
+      Iterator
+        .single(nodeA)
         .enablePathTracking
         .repeat(_.both) { initialBehaviour =>
           val behaviour = initialBehaviour.dedup // no cycles

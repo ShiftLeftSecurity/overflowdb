@@ -1,7 +1,7 @@
 package overflowdb.traversal
 
-class NumericTraversal[N](val traversal: Traversal[N]) extends AnyVal {
-
+class NumericTraversal[N](val traversal: Iterator[N]) extends AnyVal {
+  type Traversal[A] = Iterator[A]
   def greaterThan(n: N)(implicit numeric: Numeric[N]): Traversal[N] =
     traversal.filter(numeric.gt(_, n))
 
