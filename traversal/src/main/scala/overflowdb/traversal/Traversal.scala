@@ -61,10 +61,10 @@ class Traversal[+A](elements: IterableOnce[A])
   def cast[B]: Traversal[B] =
     this.asInstanceOf[Traversal[B]]
 
-  /** collects and all elements of the given type */
-  @Doc(info = "collects and all elements of the provided type")
-  def collectAll[B: ClassTag]: Traversal[B] =
-    collect { case b: B => b}
+  /** collects all elements of the given class (beware of type-erasure) */
+  @Doc(info = "collects all elements of the provided class (beware of type-erasure)")
+  def collectAll[B](implicit ev: ClassTag[B]): Traversal[B] =
+    filter(ev.runtimeClass.isInstance).asInstanceOf[Traversal[B]]
 
   /** filters out everything that is _not_ the given value */
   @Doc(info = "filters out everything that is _not_ the given value")
