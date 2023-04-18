@@ -7,12 +7,10 @@ import java.nio.file.Path
 import scala.util.{Failure, Success, Try}
 import scala.xml.{NodeSeq, XML}
 
-/**
- * Imports GraphML into OverflowDB
- *
- * https://en.wikipedia.org/wiki/GraphML
- * http://graphml.graphdrawing.org/primer/graphml-primer.html
- * */
+/** Imports GraphML into OverflowDB
+  *
+  * https://en.wikipedia.org/wiki/GraphML http://graphml.graphdrawing.org/primer/graphml-primer.html
+  */
 object GraphMLImporter extends Importer {
 
   override def runImport(graph: Graph, inputFiles: Seq[Path]): Unit = {
@@ -59,8 +57,9 @@ object GraphMLImporter extends Importer {
       entry \@ "key" match {
         case KeyForNodeLabel => label = Option(value)
         case key =>
-          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
-              throw new AssertionError(s"key $key not found in propertyContext..."))
+          val PropertyContext(name, tpe) = propertyContextById
+            .get(key)
+            .getOrElse(throw new AssertionError(s"key $key not found in propertyContext..."))
           val convertedValue = convertValue(value, tpe, context = node)
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
@@ -83,8 +82,9 @@ object GraphMLImporter extends Importer {
       entry \@ "key" match {
         case KeyForEdgeLabel => label = Option(value)
         case key =>
-          val PropertyContext(name, tpe) = propertyContextById.get(key).getOrElse(
-            throw new AssertionError(s"key $key not found in propertyContext..."))
+          val PropertyContext(name, tpe) = propertyContextById
+            .get(key)
+            .getOrElse(throw new AssertionError(s"key $key not found in propertyContext..."))
           val convertedValue = convertValue(value, tpe, context = edge)
           keyValuePairs.addAll(Seq(name, convertedValue))
       }
@@ -102,8 +102,7 @@ object GraphMLImporter extends Importer {
   private def convertValue(stringValue: String, tpe: Type.Value, context: scala.xml.Node): Any = {
     tryConvertScalarValue(stringValue, tpe) match {
       case Success(value) => value
-      case Failure(e) => throw new AssertionError(
-        s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
+      case Failure(e) => throw new AssertionError(s"unable to parse `$stringValue` of tpe=$tpe. context: $context", e)
     }
   }
 
@@ -111,11 +110,11 @@ object GraphMLImporter extends Importer {
     Try {
       tpe match {
         case Type.Boolean => stringValue.toBoolean
-        case Type.Int => stringValue.toInt
-        case Type.Long => stringValue.toLong
-        case Type.Float => stringValue.toLong
-        case Type.Double => stringValue.toDouble
-        case Type.String => stringValue
+        case Type.Int     => stringValue.toInt
+        case Type.Long    => stringValue.toLong
+        case Type.Float   => stringValue.toLong
+        case Type.Double  => stringValue.toDouble
+        case Type.String  => stringValue
       }
     }
   }

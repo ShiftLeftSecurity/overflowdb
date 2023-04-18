@@ -16,13 +16,13 @@ package object formats {
       byNameLowercase.values.toSeq.map(_.toString.toLowerCase).sorted
   }
 
-  /**
-   * @return true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
-   */
+  /** @return
+    *   true if the given class is either array or a (subclass of) Java Iterable or Scala IterableOnce
+    */
   def isList(clazz: Class[_]): Boolean = {
     clazz.isArray ||
-      classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) ||
-      classOf[IterableOnce[_]].isAssignableFrom(clazz)
+    classOf[java.lang.Iterable[_]].isAssignableFrom(clazz) ||
+    classOf[IterableOnce[_]].isAssignableFrom(clazz)
   }
 
   val iterableForList: PartialFunction[Any, Iterable[_]] = {
@@ -32,9 +32,9 @@ package object formats {
     case arr: Array[_]             => ArraySeq.unsafeWrapArray(arr)
   }
 
-  /** If given outputFile is a directory: export into a new file in that directory
-   * Otherwise: use the given outputFile as is, and create all parent directories (if not there already)
-   */
+  /** If given outputFile is a directory: export into a new file in that directory Otherwise: use the given outputFile
+    * as is, and create all parent directories (if not there already)
+    */
   def resolveOutputFileSingle(outputFile: Path, defaultName: String): Path = {
     if (Files.exists(outputFile) && Files.isDirectory(outputFile)) {
       outputFile.resolve(defaultName)

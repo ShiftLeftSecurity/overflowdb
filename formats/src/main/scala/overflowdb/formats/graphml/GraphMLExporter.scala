@@ -10,16 +10,14 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.xml.{PrettyPrinter, XML}
 
-/**
- * Exports OverflowDB Graph to GraphML
- *
- * Warning: list properties are not natively supported by graphml...
- * We initially built some support for those which deviated from the spec, but given that other tools don't support
- * it, some refusing to import the remainder, we've dropped it. Now, lists are serialised to `;`-separated strings.
- *
- * https://en.wikipedia.org/wiki/GraphML
- * http://graphml.graphdrawing.org/primer/graphml-primer.html
- * */
+/** Exports OverflowDB Graph to GraphML
+  *
+  * Warning: list properties are not natively supported by graphml... We initially built some support for those which
+  * deviated from the spec, but given that other tools don't support it, some refusing to import the remainder, we've
+  * dropped it. Now, lists are serialised to `;`-separated strings.
+  *
+  * https://en.wikipedia.org/wiki/GraphML http://graphml.graphdrawing.org/primer/graphml-primer.html
+  */
 object GraphMLExporter extends Exporter {
 
   override def defaultFileExtension = "xml"
@@ -47,9 +45,11 @@ object GraphMLExporter extends Exporter {
     }.toSeq
 
     def propertyKeyXml(forAttr: String, propsMap: mutable.Map[String, PropertyContext]): String = {
-      propsMap.map { case (key, PropertyContext(name, tpe)) =>
-        s"""<key id="$key" for="$forAttr" attr.name="$name" attr.type="$tpe"></key>"""
-      }.mkString(lineSeparator)
+      propsMap
+        .map { case (key, PropertyContext(name, tpe)) =>
+          s"""<key id="$key" for="$forAttr" attr.name="$name" attr.type="$tpe"></key>"""
+        }
+        .mkString(lineSeparator)
     }
     val nodePropertyKeyEntries = propertyKeyXml("node", nodePropertyContextById)
     val edgePropertyKeyEntries = propertyKeyXml("edge", edgePropertyContextById)
@@ -87,30 +87,34 @@ object GraphMLExporter extends Exporter {
     )
   }
 
-  /**
-   * warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`)
-   * warning2: updated the `discardedListPropertyCount` counter - if we need to discard any list properties, display a warning to the user
-   */
-  private def dataEntries(prefix: String,
-                          element: Element,
-                          propertyContextById: mutable.Map[String, PropertyContext],
-                          discardedListPropertyCount: AtomicInteger): String = {
-    element.propertiesMap.asScala.map { case (propertyName, propertyValue) =>
-      if (isList(propertyValue.getClass)) {
-        discardedListPropertyCount.incrementAndGet()
-        "" // discard list properties
-      } else { // scalar value
-        val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
-        val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
+  /** warning: updates type information based on runtime instances (in mutable.Map `propertyTypeByName`) warning2:
+    * updated the `discardedListPropertyCount` counter - if we need to discard any list properties, display a warning to
+    * the user
+    */
+  private def dataEntries(
+      prefix: String,
+      element: Element,
+      propertyContextById: mutable.Map[String, PropertyContext],
+      discardedListPropertyCount: AtomicInteger
+  ): String = {
+    element.propertiesMap.asScala
+      .map { case (propertyName, propertyValue) =>
+        if (isList(propertyValue.getClass)) {
+          discardedListPropertyCount.incrementAndGet()
+          "" // discard list properties
+        } else { // scalar value
+          val encodedPropertyName = s"${prefix}__${element.label}__$propertyName"
+          val graphMLTpe = Type.fromRuntimeClass(propertyValue.getClass)
 
-        /* update type information based on runtime instances */
+          /* update type information based on runtime instances */
           if (!propertyContextById.contains(encodedPropertyName)) {
             propertyContextById.update(encodedPropertyName, PropertyContext(propertyName, graphMLTpe))
           }
-        val xmlEncoded = xml.Utility.escape(propertyValue.toString)
-        s"""<data key="$encodedPropertyName">$xmlEncoded</data>"""
+          val xmlEncoded = xml.Utility.escape(propertyValue.toString)
+          s"""<data key="$encodedPropertyName">$xmlEncoded</data>"""
+        }
       }
-    }.mkString(lineSeparator)
+      .mkString(lineSeparator)
   }
 
   private def xmlFormatInPlace(xmlFile: Path): Unit = {

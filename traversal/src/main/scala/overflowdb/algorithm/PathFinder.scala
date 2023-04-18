@@ -9,11 +9,11 @@ object PathFinder {
   def apply(nodeA: Node, nodeB: Node, maxDepth: Int = -1): Seq[Path] = {
     if (nodeA == nodeB) Seq(Path(Seq(nodeA)))
     else {
-      Traversal.fromSingle(nodeA)
+      Traversal
+        .fromSingle(nodeA)
         .enablePathTracking
         .repeat(_.both) { initialBehaviour =>
-          val behaviour = initialBehaviour
-            .dedup // no cycles
+          val behaviour = initialBehaviour.dedup // no cycles
             .until(_.is(nodeB)) // don't continue on a given path if we've reached our destination
           if (maxDepth > -1) behaviour.maxDepth(maxDepth)
           else behaviour
@@ -37,9 +37,12 @@ object PathFinder {
         case Seq(nodeA, nodeB) <- nodes.sliding(2)
         edgesBetweenAsPathEntry: PathEntry =
           edgesBetween(nodeA, nodeB) match {
-            case Nil => throw new AssertionError(s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder")
+            case Nil =>
+              throw new AssertionError(
+                s"no edges between nodes $nodeA and $nodeB - this looks like a bug in PathFinder"
+              )
             case Seq(edgeEntry) => edgeEntry
-            case multipleEdges => EdgeEntries(multipleEdges)
+            case multipleEdges  => EdgeEntries(multipleEdges)
           }
       } {
         elements.addOne(edgesBetweenAsPathEntry)
@@ -52,7 +55,7 @@ object PathFinder {
 
   private def edgesBetween(nodeA: Node, nodeB: Node): Seq[EdgeEntry] = {
     val outEdges = nodeA.outE.asScala.filter(_.inNode == nodeB).map(edge => EdgeEntry(Direction.OUT, edge.label))
-    val inEdges  = nodeA.inE.asScala.filter(_.outNode == nodeB).map(edge => EdgeEntry(Direction.IN, edge.label))
+    val inEdges = nodeA.inE.asScala.filter(_.outNode == nodeB).map(edge => EdgeEntry(Direction.IN, edge.label))
     outEdges.to(Seq) ++ inEdges.to(Seq)
   }
 
@@ -64,9 +67,10 @@ object PathFinder {
   }
   case class EdgeEntries(edgeEntries: Seq[EdgeEntry]) extends PathEntry
   case class EdgeEntry(direction: Direction, label: String) extends PathEntry {
-    assert(direction == Direction.IN || direction == Direction.OUT,
-      s"direction must be either IN or OUT, but was $direction")
+    assert(
+      direction == Direction.IN || direction == Direction.OUT,
+      s"direction must be either IN or OUT, but was $direction"
+    )
   }
-
 
 }

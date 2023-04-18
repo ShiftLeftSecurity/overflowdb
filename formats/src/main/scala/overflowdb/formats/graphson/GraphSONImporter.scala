@@ -9,8 +9,7 @@ import java.nio.file.Path
 import scala.io.Source.fromFile
 import scala.util.Using
 
-/**
-  * Imports OverflowDB graph to GraphSON 3.0
+/** Imports OverflowDB graph to GraphSON 3.0
   *
   * https://tinkerpop.apache.org/docs/3.4.1/dev/io/#graphson-3d0
   */
