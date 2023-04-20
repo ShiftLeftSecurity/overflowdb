@@ -601,6 +601,20 @@ public abstract class NodeDb extends Node {
     }
   }
 
+  /* Simplify hoisting of string lookups.
+   * n.b. `final` so that the JIT compiler can inline it */
+  public final <A extends Node> scala.collection.Iterator<A> createAdjacentNodeScalaIteratorByOffSet(int offsetPos) {
+    AdjacentNodes adjacentNodesTmp = this.adjacentNodes;
+    if (offsetPos != -1) {
+      int start = startIndex(adjacentNodesTmp, offsetPos);
+      int length = blockLength(adjacentNodesTmp, offsetPos);
+      int strideSize = layoutInformation().getEdgePropertyCountByOffsetPos(offsetPos) + 1;
+      return new overflowdb.misc.ArrayIter<A>(adjacentNodesTmp.nodesWithEdgeProperties, start, start + length, strideSize);
+    } else {
+      return scala.collection.Iterator.empty();
+    }
+  }
+
   private final String[] allowedLabelsByDirection(Direction direction) {
     if (direction.equals(Direction.OUT))
       return layoutInformation().allowedOutEdgeLabels();
