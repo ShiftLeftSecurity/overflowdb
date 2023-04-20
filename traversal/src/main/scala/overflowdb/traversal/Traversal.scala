@@ -289,7 +289,7 @@ class TraversalTrackingExt[A](val iterator: Iterator[A]) extends AnyVal {
   @Doc(info = "enable path tracking - prerequisite for path/simplePath steps")
   def discardPathTracking: Traversal[A] =
     iterator match {
-      case pathAwareTraversal: PathAwareTraversal[_] => pathAwareTraversal.wrapped.map { _._1 }
+      case pathAwareTraversal: PathAwareTraversal[A] => pathAwareTraversal.wrapped.map { _._1 }
       case _                                         => iterator
     }
 
