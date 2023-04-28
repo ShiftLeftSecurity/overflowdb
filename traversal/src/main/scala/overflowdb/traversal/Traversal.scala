@@ -34,8 +34,12 @@ class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
   def iterate(): Unit =
     while (iterator.hasNext) iterator.next()
 
-  def count: Traversal[Int] =
+  def countTrav: Traversal[Int] =
     Iterator.single(iterator.size)
+
+  def head: A = iterator.next()
+
+  def headOption: Option[A] = iterator.nextOption()
 
   /** casts all elements to given type note: this can lead to casting errors
     *

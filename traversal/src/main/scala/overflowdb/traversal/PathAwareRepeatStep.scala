@@ -1,6 +1,5 @@
 package overflowdb.traversal
 
-import overflowdb.traversal.RepeatStep._
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
 
 import scala.collection.{mutable, Iterator}

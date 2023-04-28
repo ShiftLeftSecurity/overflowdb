@@ -5,7 +5,6 @@ import overflowdb.traversal.RepeatStep.{FifoWorklist, LifoWorklist, Worklist, Wo
 
 import scala.collection.{mutable, Iterator}
 object RepeatStep {
-  type Traversal[A] = Iterator[A]
 
   /** @see
     *   [[Traversal.repeat]] for a detailed overview
