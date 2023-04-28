@@ -48,7 +48,7 @@ class DependencySequencerTests extends AnyWordSpec {
   }
 
   "larger graph 1" in {
-
+    // format: off
     /** \+-------------------+
       * \| v
       * \+---+ +---+ +---+ +---+
@@ -59,6 +59,7 @@ class DependencySequencerTests extends AnyWordSpec {
       * \| D | ----------------+
       * \+---+
       */
+    // format: on
     val A = new Node("A")
     val B = new Node("B", Set(A))
     val C = new Node("C", Set(B))
@@ -68,7 +69,7 @@ class DependencySequencerTests extends AnyWordSpec {
   }
 
   "larger graph 2" in {
-
+    // format: off
     /** \+-----------------------------+
       * \| v
       * \+---+ +---+ +---+ +---+ +---+
@@ -79,6 +80,7 @@ class DependencySequencerTests extends AnyWordSpec {
       * \| C | --------------------------+
       * \+---+
       */
+    // format: on
     val A = new Node("A")
     val B = new Node("B", Set(A))
     val C = new Node("C", Set(B))
