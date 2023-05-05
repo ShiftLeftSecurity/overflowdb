@@ -41,6 +41,16 @@ class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
 
   def headOption: Option[A] = iterator.nextOption()
 
+  def last: A = {
+    iterator.hasNext
+    var res = iterator.next()
+    while (iterator.hasNext) res = iterator.next()
+    res
+  }
+
+  def lastOption: Option[A] =
+    if (iterator.hasNext) Some(last) else None
+
   /** casts all elements to given type note: this can lead to casting errors
     *
     * @see
