@@ -3,14 +3,6 @@ package overflowdb
 import overflowdb.util.JIteratorCastingWrapper
 
 package object traversal extends Implicits {
-
-  implicit class NodeOps[N <: Node](val node: N) extends AnyVal {
-
-    /** start a new Traversal with this Node, i.e. lift it into a Traversal */
-    def start: Traversal[N] =
-      Traversal.fromSingle(node)
-  }
-
   implicit class JIterableOps[A](val jIterator: java.util.Iterator[A]) extends AnyVal {
 
     /** Wraps a java iterator into a scala iterator, and casts it's elements. This is faster than

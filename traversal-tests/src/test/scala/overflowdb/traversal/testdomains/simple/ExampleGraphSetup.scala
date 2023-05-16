@@ -31,7 +31,7 @@ trait ExampleGraphSetup {
   r4 --- (Connection.Label, Connection.Properties.Distance.of(14)) --> r5
 
   def simpleDomain: SimpleDomainTraversalSource = SimpleDomain.traversal(graph)
-  def centerTrav = Traversal.fromSingle(center)
+  def centerTrav = Iterator.single(center)
 
   private def addThing(name: String): Thing = {
     val node = graph + (Thing.Label, Thing.Properties.Name.of(name))

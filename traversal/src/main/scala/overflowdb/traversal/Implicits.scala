@@ -4,23 +4,27 @@ import overflowdb.{Edge, Element, Node}
 import scala.jdk.CollectionConverters._
 
 trait Implicits {
-  implicit def jIteratortoTraversal[A](jiterator: java.util.Iterator[A]): Traversal[A] =
-    iteratorToTraversal(jiterator.asScala)
+  type Traversal[+A] = Iterator[A]
+  implicit def jIteratortoTraversal[A](jiterator: java.util.Iterator[A]): Iterator[A] = jiterator.asScala
 
-  implicit def iteratorToTraversal[A](iterator: Iterator[A]): Traversal[A] =
-    iterator.to(Traversal)
+  implicit def toTraversalSugarExt[A](iter: Iterator[A]): TraversalSugarExt[A] = new TraversalSugarExt(iter)
+  implicit def toTraversalLogicExt[A](iter: Iterator[A]): TraversalLogicExt[A] = new TraversalLogicExt(iter)
+  implicit def toTraversalFilterExt[A](iter: Iterator[A]): TraversalFilterExt[A] = new TraversalFilterExt(iter)
 
-  implicit def iterableToTraversal[A](iterable: IterableOnce[A]): Traversal[A] =
-    Traversal.from(iterable)
+  implicit def toTraversalTrackingExt[A](iter: Iterator[A]): TraversalTrackingExt[A] = new TraversalTrackingExt(iter)
+  implicit def toRepeatTraversalExt[A](iter: Iterator[A]): TraversalRepeatExt[A] = new TraversalRepeatExt(iter)
 
-  implicit def toNodeTraversal[A <: Node](traversal: Traversal[A]): NodeTraversal[A] =
+  implicit def iterableToTraversal[A](iterable: IterableOnce[A]): Iterator[A] = iterable.iterator
+  implicit def toNodeTraversal[A <: Node](traversal: Iterator[A]): NodeTraversal[A] =
     new NodeTraversal[A](traversal)
 
-  implicit def toEdgeTraversal[A <: Edge](traversal: Traversal[A]): EdgeTraversal[A] =
+  implicit def toEdgeTraversal[A <: Edge](traversal: Iterator[A]): EdgeTraversal[A] =
     new EdgeTraversal[A](traversal)
 
-  implicit def toElementTraversal[A <: Element](traversal: Traversal[A]): ElementTraversal[A] =
+  implicit def toElementTraversal[A <: Element](traversal: Iterator[A]): ElementTraversal[A] =
     new ElementTraversal[A](traversal)
+
+  implicit def toNodeOps[N <: Node](node: N): NodeOps[N] = new NodeOps(node)
 
   // TODO make available again once we're on Scala 3.2.2
   // context: these break REPL autocompletion, e.g. in joern for `cpg.<tab>`
@@ -39,3 +43,17 @@ trait Implicits {
   //   new NumericTraversal[A](traversal)
 
 }
+
+class NodeOps[N <: Node](val node: N) extends AnyVal {
+
+  /** start a new Traversal with this Node, i.e. lift it into a Traversal. Will hopefully be deprecated in favor of
+    * "iterator"
+    */
+  def start: Iterator[N] =
+    Iterator.single(node)
+
+  /** start a new Traversal with this Node, i.e. lift it into a Traversal */
+  def iterator: Iterator[N] = Iterator.single(node)
+}
+
+object ImplicitsTmp extends Implicits

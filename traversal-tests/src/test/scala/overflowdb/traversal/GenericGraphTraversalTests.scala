@@ -9,16 +9,16 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{Connection, ExampleGraphSetup, Thing}
 import ChainedImplicitsTemp._
 
+import scala.jdk.CollectionConverters.IteratorHasAsScala
+
 /** generic graph traversals, i.e. domain independent */
 class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
   "V for all nodes" in {
-    graph.V.count.head shouldBe 9
     graph.V.size shouldBe 9
   }
 
   "E for all edges" in {
-    graph.E.count.head shouldBe 8
-    graph.E.size shouldBe 8
+    graph.E.asScala.size shouldBe 8
   }
 
   "label lookup" in {
@@ -97,12 +97,20 @@ class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
     "`where` step taking a traversal" in {
       // find all nodes that _do_ have an OUT neighbor, i.e. find the inner nodes
-      graph.V.where(_.out).property(Name).toSetMutable shouldBe Set("L2", "L1", "Center", "R1", "R2", "R3", "R4")
+      graph.V.asScala.where(_.out).property(Name).toSetMutable shouldBe Set(
+        "L2",
+        "L1",
+        "Center",
+        "R1",
+        "R2",
+        "R3",
+        "R4"
+      )
     }
 
     "`not` step taking a traversal" in {
       // find all nodes that do _not_ have an OUT neighbor, i.e. find the outermost nodes
-      graph.V.not(_.out).property(Name).toSetMutable shouldBe Set("L3", "R5")
+      graph.V.asScala.not(_.out).property(Name).toSetMutable shouldBe Set("L3", "R5")
     }
   }
 

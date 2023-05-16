@@ -1,11 +1,12 @@
 package overflowdb.traversal
 
-import overflowdb.traversal.RepeatStep._
 import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
 
 import scala.collection.{mutable, Iterator}
 
 object PathAwareRepeatStep {
+  import RepeatStep._
+
   case class WorklistItem[A](traversal: Traversal[A], depth: Int)
 
   /** @see
@@ -27,7 +28,7 @@ object PathAwareRepeatStep {
         case SearchAlgorithm.BreadthFirst => new FifoWorklist()
       }
 
-      worklist.addItem(WorklistItem(PathAwareTraversal.fromSingle(element), 0))
+      worklist.addItem(WorklistItem(new PathAwareTraversal(Iterator.single((element, Vector.empty))), 0))
 
       def hasNext: Boolean = {
         if (emitSack.isEmpty) {
@@ -41,14 +42,13 @@ object PathAwareRepeatStep {
         var stop = false
         while (worklist.nonEmpty && !stop) {
           val WorklistItem(trav0, depth) = worklist.head
-          val trav = trav0.path
+          val trav = trav0.asInstanceOf[PathAwareTraversal[A]].wrapped
           if (trav.isEmpty) worklist.removeHead()
           else if (behaviour.maxDepthReached(depth)) stop = true
           else {
-            val path0 = trav.next()
-            val (path1, elementInSeq) = path0.splitAt(path0.size - 1)
-            val element = elementInSeq.head.asInstanceOf[A]
+            val (element, path1) = trav.next()
             if (behaviour.dedupEnabled) visited.addOne(element)
+
             if ( // `while/repeat` behaviour, i.e. check every time
               behaviour.whileConditionIsDefinedAndEmpty(element) ||
               // `repeat/until` behaviour, i.e. only checking the `until` condition from depth 1
@@ -83,9 +83,7 @@ object PathAwareRepeatStep {
         val result = {
           if (emitSack.nonEmpty) emitSack.dequeue()
           else if (worklistTopHasNext) {
-            val entirePath = worklist.head.traversal.path.next()
-            val (path, lastElement) = entirePath.splitAt(entirePath.size - 1)
-            (lastElement.head.asInstanceOf[A], path)
+            worklist.head.traversal.asInstanceOf[PathAwareTraversal[A]].wrapped.next()
           } else throw new NoSuchElementException("next on empty iterator")
         }
         if (behaviour.dedupEnabled) visited.addOne(result._1)

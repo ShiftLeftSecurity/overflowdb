@@ -1,6 +1,6 @@
 package overflowdb.traversal.testdomains.gratefuldead
 
-import overflowdb.traversal.Traversal
+import overflowdb.traversal._
 import overflowdb.{NodeFactory, NodeLayoutInformation, NodeRef, Graph, PropertyKey}
 
 import scala.jdk.CollectionConverters._

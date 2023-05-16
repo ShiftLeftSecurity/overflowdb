@@ -6,7 +6,7 @@ import overflowdb.traversal.help
 import overflowdb.traversal.help.Doc
 
 package object simple {
-
+  type Traversal[+A] = Iterator[A]
   @help.Traversal(elementType = classOf[Thing])
   implicit class ThingTraversal(val trav: Traversal[Thing]) extends AnyVal {
     def followedBy: Traversal[Thing] = trav.flatMap(_.followedBy)

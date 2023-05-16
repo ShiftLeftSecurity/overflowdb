@@ -7,6 +7,7 @@ import overflowdb.traversal.testdomains.simple.Thing.Properties.Name
 import overflowdb.traversal.testdomains.simple.{ExampleGraphSetup, Thing, ThingTraversal}
 
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
@@ -89,7 +90,7 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
       }
 
       "cast" in {
-        val traversal: Traversal[Node] = center.start.enablePathTracking.out.out
+        val traversal: Iterator[Node] = center.start.enablePathTracking.out.out
         val results: Seq[Thing] = traversal.cast[Thing].l
         results shouldBe Seq(l2, r2)
       }
@@ -164,6 +165,7 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
       "choose" in {
         graph
           .nodes(Thing.Label)
+          .asScala
           .enablePathTracking
           .choose(_.property(Name)) {
             case "L1" => _.out // -> L2
@@ -200,7 +202,7 @@ class PathTraversalTests extends AnyWordSpec with ExampleGraphSetup {
           Seq(center, r1, r2)
         )
         // we can hide internal steps from path-tracking
-        centerTrav.enablePathTracking.union(t => Traversal.from(t.out.out).iterator).path.toSetMutable shouldBe Set(
+        centerTrav.enablePathTracking.union(t => (t.out.out.l).iterator).path.toSetMutable shouldBe Set(
           Seq(center, l2),
           Seq(center, r2)
         )

@@ -380,8 +380,8 @@ class RepeatTraversalTests extends AnyWordSpec with ExampleGraphSetup {
     c --- Connection.Label --> a
 
     val repeatCount = 100000
-    Traversal.fromSingle(a).repeat(_.out)(_.maxDepth(repeatCount)).property(Name).l shouldBe List("b")
-    Traversal.fromSingle(a).repeat(_.out)(_.maxDepth(repeatCount).breadthFirstSearch).property(Name).l shouldBe List(
+    Iterator.single(a).repeat(_.out)(_.maxDepth(repeatCount)).property(Name).l shouldBe List("b")
+    Iterator.single(a).repeat(_.out)(_.maxDepth(repeatCount).breadthFirstSearch).property(Name).l shouldBe List(
       "b"
     )
 
@@ -441,7 +441,7 @@ class RepeatTraversalTests extends AnyWordSpec with ExampleGraphSetup {
         .toSetMutable shouldBe Set(Seq(r1, r2, r3, r4))
 
       r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).l shouldBe Seq(r5)
-      r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).path.head shouldBe List(r1, r2, r3, r4, r5)
+      r1.start.enablePathTracking.repeat(_.out.out)(_.maxDepth(2)).path.next() shouldBe List(r1, r2, r3, r4, r5)
     }
     "should not forget steps preceding the repeat" in {
       centerTrav.enablePathTracking.followedBy

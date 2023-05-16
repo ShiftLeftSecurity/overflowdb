@@ -16,8 +16,8 @@ class GratefulDeadTests extends AnyWordSpec {
       gratefulDead.all.label.toSetMutable shouldBe Set(Artist.Label, Song.Label)
 
       gratefulDead.label(Artist.Label).size shouldBe 224
-      gratefulDead.id(1).label.head shouldBe Song.Label
-      gratefulDead.id(2).property(Song.Properties.Name).head shouldBe "IM A MAN"
+      gratefulDead.id(1).label.next() shouldBe Song.Label
+      gratefulDead.id(2).property(Song.Properties.Name).next() shouldBe "IM A MAN"
       gratefulDead.ids(3, 4).property[String]("name").toSetMutable shouldBe Set("BERTHA", "NOT FADE AWAY")
       gratefulDead.all.has(Song.Properties.SongType).size shouldBe 584
       gratefulDead.all.has(Song.Properties.Performances, 2).size shouldBe 36
@@ -85,18 +85,18 @@ class GratefulDeadTests extends AnyWordSpec {
 
   "lifting elements into a Traversal".can {
     "lift a single element with `Traversal.fromSingle`" in {
-      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").head
-      Traversal.fromSingle(dylan).sangSongs.size shouldBe 22
+      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").next()
+      Iterator.single(dylan).sangSongs.size shouldBe 22
     }
 
     "lift a single element with `.start`" in {
-      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").head
+      val dylan = gratefulDead.artists.nameExact("Bob_Dylan").next()
       dylan.start.sangSongs.size shouldBe 22
     }
 
     "lift multiple elements with `Traversal.from`" in {
       val artists = gratefulDead.artists.nameExact("Bob_Dylan", "All").toList
-      Traversal.from(artists).sangSongs.size shouldBe 31
+      artists.iterator.sangSongs.size shouldBe 31
     }
   }
 

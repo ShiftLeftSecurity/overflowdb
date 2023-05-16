@@ -1,6 +1,6 @@
 package overflowdb.traversal.testdomains.simple
 
-import overflowdb.traversal.{Traversal, TraversalSource, help}
+import overflowdb.traversal.{TraversalSource, help}
 import overflowdb.{Config, Graph}
 
 import java.util
@@ -24,6 +24,7 @@ object SimpleDomain {
 
 @help.TraversalSource
 class SimpleDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
+  import overflowdb.traversal._
 
   @Doc(info = "all things")
   def things: Traversal[Thing] = label(Thing.Label).cast[Thing]

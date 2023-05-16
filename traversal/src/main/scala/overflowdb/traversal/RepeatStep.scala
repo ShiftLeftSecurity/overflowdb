@@ -4,7 +4,6 @@ import overflowdb.traversal.RepeatBehaviour.SearchAlgorithm
 import overflowdb.traversal.RepeatStep.{FifoWorklist, LifoWorklist, Worklist, WorklistItem}
 
 import scala.collection.{mutable, Iterator}
-
 object RepeatStep {
 
   /** @see
@@ -16,9 +15,7 @@ object RepeatStep {
     */
   def apply[A](repeatTraversal: Traversal[A] => Traversal[A], behaviour: RepeatBehaviour[A]): A => Traversal[A] = {
     (element: A) =>
-      Traversal(
-        new RepeatStepIterator[A](element, elem => repeatTraversal(Traversal.fromSingle(elem)).iterator, behaviour)
-      )
+      new RepeatStepIterator[A](element, elem => repeatTraversal(Iterator.single(elem)), behaviour)
   }
 
   /** stores work still to do. depending on the underlying collection type, the behaviour of the repeat step changes */
@@ -52,6 +49,7 @@ object RepeatStep {
 
 class RepeatStepIterator[A](element: A, repeatTraversal: A => Iterator[A], behaviour: RepeatBehaviour[A])
     extends Iterator[A] {
+  import RepeatStep._
   val visited = mutable.Set.empty[A] // only used if dedup enabled
   val emitSack: mutable.Queue[A] = mutable.Queue.empty
   val worklist: Worklist[WorklistItem[A]] = behaviour.searchAlgorithm match {

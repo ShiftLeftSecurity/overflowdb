@@ -1,13 +1,11 @@
 package overflowdb.traversal.filter
 
-import overflowdb.traversal.Traversal
-
 import java.util.regex.PatternSyntaxException
 import scala.collection.mutable
 import scala.util.matching.Regex
 
 object StringPropertyFilter {
-
+  type Traversal[+A] = Iterator[A]
   def regexp[NodeType](trav: Traversal[NodeType])(accessor: NodeType => String, regexp: String): Traversal[NodeType] = {
     val valueRegex = regexpCompile(regexp)
     trav.filter(node => valueRegex.matches(accessor(node)))
@@ -77,12 +75,11 @@ object StringPropertyFilter {
       indexName: String
   ): Traversal[NodeType] = {
     if (needles.isEmpty)
-      return Traversal.empty
+      return Iterator.empty
 
     traversal match {
       case init: overflowdb.traversal.InitialTraversal[NodeType] if init.canUseIndex(indexName) =>
-        needles
-          .to(Traversal)
+        needles.iterator
           .flatMap(needle => init.getByIndex(indexName, needle).get)
       case _ =>
         var iteration = 0

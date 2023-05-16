@@ -30,7 +30,7 @@ trait RepeatBehaviour[A] {
 }
 
 object RepeatBehaviour {
-
+  type Traversal[T] = Iterator[T]
   object SearchAlgorithm extends Enumeration {
     type SearchAlgorithm = Value
     val DepthFirst, BreadthFirst = Value
@@ -71,7 +71,7 @@ object RepeatBehaviour {
       * filter on the final elements of the traversal.
       */
     def emit(condition: Traversal[A] => Traversal[_]): Builder[A] = {
-      _shouldEmit = (element, _) => condition(Traversal.fromSingle(element)).hasNext
+      _shouldEmit = (element, _) => condition(Iterator.single(element)).hasNext
       this
     }
 
@@ -117,13 +117,12 @@ object RepeatBehaviour {
     private[traversal] def build: RepeatBehaviour[A] = {
       new RepeatBehaviour[A] {
         override val searchAlgorithm: SearchAlgorithm.Value = _searchAlgorithm
-        override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
-        override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Traversal.fromSingle))
+        override val untilCondition = _untilCondition.map(_.andThen(_.iterator).compose(Iterator.single))
+        override val whileCondition = _whileCondition.map(_.andThen(_.iterator).compose(Iterator.single))
         final override val maxDepth: Option[Int] = _maxDepth
         final override val dedupEnabled = _dedupEnabled
         override def shouldEmit(element: A, currentDepth: Int): Boolean = _shouldEmit(element, currentDepth)
       }
     }
   }
-
 }

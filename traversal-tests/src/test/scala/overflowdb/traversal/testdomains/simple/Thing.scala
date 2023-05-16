@@ -12,7 +12,7 @@ class Thing(graph: Graph, _id: Long) extends NodeRef[ThingDb](graph, _id) {
   def size: Integer = get.size
 
   /* Thing --- followedBy --- Thing */
-  def followedBy: Traversal[Thing] = get.followedBy
+  def followedBy: Iterator[Thing] = get.followedBy
 
   override def toString = s"Thing(id=$id;name=$name)"
 }

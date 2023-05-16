@@ -2,16 +2,16 @@ package overflowdb.traversal
 
 import overflowdb.{Node, Edge}
 
-class EdgeTraversal[E <: Edge](val traversal: Traversal[E]) extends AnyVal {
+class EdgeTraversal[E <: Edge](val traversal: Iterator[E]) extends AnyVal {
 
   /** traverse to outgoing node A ---edge--> [B]
     */
-  def outV: Traversal[Node] =
+  def outV: Iterator[Node] =
     traversal.map(_.outNode)
 
   /** traverse to incoming node [A] ---edge--> B
     */
-  def inV: Traversal[Node] =
+  def inV: Iterator[Node] =
     traversal.map(_.inNode)
 
 }
