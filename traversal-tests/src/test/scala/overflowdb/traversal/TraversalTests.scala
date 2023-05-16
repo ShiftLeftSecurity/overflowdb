@@ -80,16 +80,6 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
       0.to(128).foreach { i =>
         traversal.next()
       }
-
-      /** This is a copy of the above, but using the default dedup comparison style (hashAndEquals). To be able to
-        * compare objects via `.equals` it has to hold onto already consumed objects, making it run out of memory
-        * eventually. When run with -Xmx128m this happens after ~5 iterations.
-        */
-//      val traversal2 = infiniteTraversalWithLargeElements.dedup
-//      0.to(128).foreach { i =>
-//        println(i)
-//        traversal2.next
-//      }
     }
   }
 
@@ -138,43 +128,12 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
     val verifyIsNodeTraversal: Traversal[Node] = unionTrav
     val verifyIsThingTraversal: Traversal[Thing] = Iterator.single(center).union(_.followedBy, _.followedBy)
   }
-  /*
-  ".aggregate step stores all objects at this point into a given collection" in {
-    val buffer = mutable.ArrayBuffer.empty[Thing]
-    center.start.followedBy.aggregate(buffer).followedBy.iterate()
-    buffer.toSet shouldBe Set(l1, r1)
-  }
-   */
 
   ".sort steps should order" in {
     Iterator(1, 3, 2).sorted shouldBe Seq(1, 2, 3)
     Iterator("aa", "aaa", "a").sortBy(_.length) shouldBe Seq("a", "aa", "aaa")
   }
-  /*
-  ".groupCount step" in {
-    Iterator("b", "a", "b").groupCount shouldBe
-      Map("a" -> 1, "b" -> 2)
 
-    Iterator("aaa", "bbb", "cc").groupCount(_.length) shouldBe
-      Map(2 -> 1, 3 -> 2)
-  }
-
-  ".groupBy step" in {
-    val traversal: Traversal[(Int, Traversal[String])] =
-      Iterator("aaa", "bbb", "cc").groupBy(_.length)
-
-    val results = traversal.map { case (length, valueTrav) => (length, valueTrav.toSetMutable) }.toSetMutable
-    results shouldBe Set(2 -> Set("cc"), 3 -> Set("aaa", "bbb"))
-  }
-
-  ".groupMap step" in {
-    val traversal = Iterator(("a", 1), ("a", 2)).groupMap(_._1)(_._2)
-
-    val Seq(keys -> values) = traversal.l
-    keys shouldBe "a"
-    values.toSetMutable shouldBe (Set(1, 2))
-  }
-   */
   "string filter steps" in {
     val graph = SimpleDomain.newGraph
     val Name = Thing.PropertyNames.Name

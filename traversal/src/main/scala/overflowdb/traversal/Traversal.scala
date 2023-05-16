@@ -255,39 +255,6 @@ class TraversalLogicExt[A](val iterator: Iterator[A]) extends AnyVal {
           .getOrElse(Iterator.empty)
       }
   }
-
-  /*
-  /** aggregate all objects at this point into the given collection (side effect)
-   *
-   * @example
-   *   {{{
-   *  val xs = mutable.ArrayBuffer.empty[A]
-   *  myTraversal.aggregate(xs).foo.bar
-   *  // xs will be filled once `myTraversal` is executed
-   *   }}}
-   */
-  @Doc(info = "aggregate all objects at this point into the given collection (side effect)")
-  def aggregate(into: mutable.Growable[A]): Traversal[A] =
-    sideEffect(into.addOne(_))
-
-  /** group elements and count how often they appear */
-  @Doc(info = "group elements and count how often they appear")
-  def groupCount[B >: A]: Map[B, Int] =
-    groupCount(identity[A])
-
-  /** group elements by a given transformation function and count how often the results appear */
-  @Doc(info = "group elements by a given transformation function and count how often the results appear")
-  def groupCount[B](by: A => B): Map[B, Int] = {
-    val counts = mutable.Map.empty[B, Int].withDefaultValue(0)
-    iterator.foreach { a =>
-      val b = by(a)
-      val newValue = counts(b) + 1
-      counts.update(b, newValue)
-    }
-    counts.to(Map)
-  }
-
-   */
 }
 
 class TraversalTrackingExt[A](val iterator: Iterator[A]) extends AnyVal {

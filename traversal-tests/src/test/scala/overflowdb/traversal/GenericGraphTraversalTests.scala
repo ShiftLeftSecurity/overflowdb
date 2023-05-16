@@ -14,12 +14,10 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 /** generic graph traversals, i.e. domain independent */
 class GenericGraphTraversalTests extends AnyWordSpec with ExampleGraphSetup {
   "V for all nodes" in {
-    //  graph.V.asScala.count.next() shouldBe 9
     graph.V.size shouldBe 9
   }
 
   "E for all edges" in {
-//    graph.E.asScala.count.next() shouldBe 8
     graph.E.asScala.size shouldBe 8
   }
 

@@ -6,7 +6,3 @@ libraryDependencies ++= Seq(
   "com.h2database" % "h2-mvstore" % "1.4.200",
   "org.slf4j" % "slf4j-api" % "2.0.7"
 )
-
-/* it's a java-only build */
-//autoScalaLibrary := false
-//crossPaths := false
