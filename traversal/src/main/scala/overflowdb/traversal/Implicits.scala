@@ -56,5 +56,4 @@ class NodeOps[N <: Node](val node: N) extends AnyVal {
   def iterator: Iterator[N] = Iterator.single(node)
 }
 
-
 object ImplicitsTmp extends Implicits
