@@ -144,6 +144,10 @@ never hold a (strong) reference onto them in your main application: it would inh
 `overflowdb.util.DiffTool.compare(graph1, graph2)` allows you to do some very basic comparison of two graphs. It identifies nodes by their ids, and compares their existence, properties, adjacent edges and properties of those edges. 
 
 ### FAQ
+1. **What JDK does OverflowDB support?**
+The build targets JDK8, so that's the minimum version. However it is highly encouraged to use a modern JVM, such as JDK20. 
+The build itself requires JDK11+ though. 
+
 1. **Why not just use a simple cache instead of the overflow mechanism?**  
 Regular caches require you have to specify a fixed size. OverflowDB is designed to run in the same JVM as your main application, and since 
 most applications have varying memory needs over time, it would be hard/impossible to achieve our goal *use your entire heap and prevent OutOfMemoryError* 
