@@ -18,18 +18,15 @@ ThisBuild/libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.15" % Test,
 )
 
-ThisBuild/scalacOptions ++= Seq("-deprecation", "-feature") ++ (
-  CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((3, _)) =>
-      Seq("-Xtarget:8")
-    case _ =>
-      Seq("-target:jvm-1.8", "--release", "8")
-  }
+ThisBuild/scalacOptions ++= Seq(
+  "-release", "8",
+  "-deprecation",
+  "-feature"
 )
 
 ThisBuild / compile / javacOptions ++= Seq(
   "-g", //debug symbols
-  "--release=8"
+  "--release", "8"
 )
 
 ThisBuild/Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
