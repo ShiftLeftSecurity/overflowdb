@@ -10,7 +10,7 @@ package object traversal extends Implicits {
       * method calls and a `match` without @switch 2) no additional `map` step that iterates and creates yet another
       * iterator
       */
-    def toScalaAs[B]: IterableOnce[B] =
+    def toScalaAs[B]: Iterator[B] =
       new JIteratorCastingWrapper[B](jIterator)
   }
 

@@ -17,13 +17,13 @@ class TraversalSource(graph: Graph) {
     graph.nodes(ids: _*).asScala.asInstanceOf[Traversal[NodeType]]
 
   def label(label: String): Traversal[Node] =
-    graph.nodes(label).asScala
+    this.labelTyped[Node](label)
 
   def hasLabel(label: String): Traversal[Node] =
-    this.label(label)
+    this.labelTyped[Node](label)
 
   def labelTyped[A <: Node](label: String): Traversal[A] =
-    this.label(label).asInstanceOf[Traversal[A]]
+    InitialTraversal.from[A](graph, label)
 
   /** Start traversal with all nodes that have given property value */
   def has(property: Property[_]): Traversal[Node] = {

@@ -16,40 +16,47 @@ import scala.collection.immutable.ArraySeq
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
 
-class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
+class TraversalSugarExt[A](val iter: Iterator[A]) extends AnyVal {
   type Traversal[A] = Iterator[A]
 
   /** Execute the traversal and convert the result to a list - shorthand for `toList` */
   @Doc(info = "Execute the traversal and convert the result to a list - shorthand for `toList`")
-  def l: List[A] = iterator.toList
+  def l: List[A] = iter.toList
 
-  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet`) */
-  def toSetMutable[B >: A]: mutable.Set[B] = mutable.Set.from(iterator)
+  def groupBy[K](f: A => K): Map[K, List[A]] = l.groupBy(f)
+  def groupMap[K, B](key: A => K)(f: A => B): Map[K, List[B]] = l.groupMap(key)(f)
+  def groupMapReduce[K, B](key: A => K)(f: A => B)(reduce: (B, B) => B): Map[K, B] = l.groupMapReduce(key)(f)(reduce)
 
-  /** Execute the traversal and convert the result to an immutable Set */
-  def toSetImmutable[B >: A]: Set[B] = iterator.toSet
+  /** Execute the traversal and return a mutable.Set (better performance than `immutableSet` and has stable iterator
+    * order)
+    */
+  def toSetMutable[B >: A]: mutable.LinkedHashSet[B] = mutable.LinkedHashSet.from(iter)
+
+  /** Execute the traversal and convert the result to an immutable Set. */
+
+  def toSetImmutable[B >: A]: Set[B] = iter.toSet
 
   /** Execute the traversal without returning anything */
   @Doc(info = "Execute the traversal without returning anything")
   def iterate(): Unit =
-    while (iterator.hasNext) iterator.next()
+    while (iter.hasNext) iter.next()
 
   def countTrav: Traversal[Int] =
-    Iterator.single(iterator.size)
+    Iterator.single(iter.size)
 
-  def head: A = iterator.next()
+  def head: A = iter.next()
 
-  def headOption: Option[A] = iterator.nextOption()
+  def headOption: Option[A] = iter.nextOption()
 
   def last: A = {
-    iterator.hasNext
-    var res = iterator.next()
-    while (iterator.hasNext) res = iterator.next()
+    iter.hasNext
+    var res = iter.next()
+    while (iter.hasNext) res = iter.next()
     res
   }
 
   def lastOption: Option[A] =
-    if (iterator.hasNext) Some(last) else None
+    if (iter.hasNext) Some(last) else None
 
   /** casts all elements to given type note: this can lead to casting errors
     *
@@ -58,33 +65,33 @@ class TraversalSugarExt[A](val iterator: Iterator[A]) extends AnyVal {
     */
   @Doc(info = "casts all elements to given type")
   def cast[B]: Traversal[B] =
-    iterator.asInstanceOf[Traversal[B]]
+    iter.asInstanceOf[Traversal[B]]
 
   /** collects all elements of the given class (beware of type-erasure) */
   @Doc(info = "collects all elements of the provided class (beware of type-erasure)")
   def collectAll[B](implicit ev: ClassTag[B]): Traversal[B] =
-    iterator.filter(ev.runtimeClass.isInstance).asInstanceOf[Traversal[B]]
+    iter.filter(ev.runtimeClass.isInstance).asInstanceOf[Traversal[B]]
 
   /** Deduplicate elements of this traversal - a.k.a. distinct, unique, ... */
   @Doc(info = "deduplicate elements of this traversal - a.k.a. distinct, unique, ...")
   def dedup: Traversal[A] =
-    iterator.distinct
+    iter.distinct
 
   /** deduplicate elements of this traversal by a given function */
   @Doc(info = "deduplicate elements of this traversal by a given function")
   def dedupBy(fun: A => Any): Traversal[A] =
-    iterator.distinctBy(fun)
+    iter.distinctBy(fun)
 
   /** sort elements by their natural order */
   @Doc(info = "sort elements by their natural order")
   def sorted[B >: A](implicit ord: Ordering[B]): Seq[B] = {
-    (iterator.to(ArraySeq.untagged): ArraySeq[B]).sorted
+    (iter.to(ArraySeq.untagged): ArraySeq[B]).sorted
   }
 
   /** sort elements by the value of the given transformation function */
   @Doc(info = "sort elements by the value of the given transformation function")
   def sortBy[B](f: A => B)(implicit ord: Ordering[B]): Seq[A] =
-    iterator.to(ArraySeq.untagged).sortBy(f)
+    iter.to(ArraySeq.untagged).sortBy(f)
 
   /** Print help/documentation based on the current elementType `A`. Relies on all step extensions being annotated with
     * \@Traversal / @Doc Note that this works independently of tab completion and implicit conversions in scope - it
