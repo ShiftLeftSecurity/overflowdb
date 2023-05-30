@@ -23,6 +23,23 @@ class TraversalSugarExt[A](val iter: Iterator[A]) extends AnyVal {
   @Doc(info = "Execute the traversal and convert the result to a list - shorthand for `toList`")
   def l: List[A] = iter.toList
 
+  /** group elements and count how often they appear */
+  @Doc(info = "group elements and count how often they appear")
+  def groupCount[B >: A]: Map[B, Int] =
+    groupCount(identity[A])
+
+  /** group elements by a given transformation function and count how often the results appear */
+  @Doc(info = "group elements by a given transformation function and count how often the results appear")
+  def groupCount[B](by: A => B): Map[B, Int] = {
+    val counts = mutable.Map.empty[B, Int].withDefaultValue(0)
+    iter.foreach { a =>
+      val b = by(a)
+      val newValue = counts(b) + 1
+      counts.update(b, newValue)
+    }
+    counts.to(Map)
+  }
+
   def groupBy[K](f: A => K): Map[K, List[A]] = l.groupBy(f)
   def groupMap[K, B](key: A => K)(f: A => B): Map[K, List[B]] = l.groupMap(key)(f)
   def groupMapReduce[K, B](key: A => K)(f: A => B)(reduce: (B, B) => B): Map[K, B] = l.groupMapReduce(key)(f)(reduce)
