@@ -7,22 +7,31 @@ trait Implicits {
   type Traversal[+A] = Iterator[A]
   implicit def jIteratortoTraversal[A](jiterator: java.util.Iterator[A]): Iterator[A] = jiterator.asScala
 
-  implicit def toTraversalSugarExt[A](iter: Iterator[A]): TraversalSugarExt[A] = new TraversalSugarExt(iter)
-  implicit def toTraversalLogicExt[A](iter: Iterator[A]): TraversalLogicExt[A] = new TraversalLogicExt(iter)
-  implicit def toTraversalFilterExt[A](iter: Iterator[A]): TraversalFilterExt[A] = new TraversalFilterExt(iter)
+  implicit def toTraversalSugarExt[A](iter: IterableOnce[A]): TraversalSugarExt[A] = new TraversalSugarExt(
+    iter.iterator
+  )
+  implicit def toTraversalLogicExt[A](iter: IterableOnce[A]): TraversalLogicExt[A] = new TraversalLogicExt(
+    iter.iterator
+  )
+  implicit def toTraversalFilterExt[A](iter: IterableOnce[A]): TraversalFilterExt[A] = new TraversalFilterExt(
+    iter.iterator
+  )
 
-  implicit def toTraversalTrackingExt[A](iter: Iterator[A]): TraversalTrackingExt[A] = new TraversalTrackingExt(iter)
-  implicit def toRepeatTraversalExt[A](iter: Iterator[A]): TraversalRepeatExt[A] = new TraversalRepeatExt(iter)
+  implicit def toTraversalTrackingExt[A](iter: IterableOnce[A]): TraversalTrackingExt[A] = new TraversalTrackingExt(
+    iter.iterator
+  )
+  implicit def toRepeatTraversalExt[A](iter: IterableOnce[A]): TraversalRepeatExt[A] = new TraversalRepeatExt(
+    iter.iterator
+  )
 
-  implicit def iterableToTraversal[A](iterable: IterableOnce[A]): Iterator[A] = iterable.iterator
-  implicit def toNodeTraversal[A <: Node](traversal: Iterator[A]): NodeTraversal[A] =
-    new NodeTraversal[A](traversal)
+  implicit def toNodeTraversal[A <: Node](traversal: IterableOnce[A]): NodeTraversal[A] =
+    new NodeTraversal[A](traversal.iterator)
 
-  implicit def toEdgeTraversal[A <: Edge](traversal: Iterator[A]): EdgeTraversal[A] =
-    new EdgeTraversal[A](traversal)
+  implicit def toEdgeTraversal[A <: Edge](traversal: IterableOnce[A]): EdgeTraversal[A] =
+    new EdgeTraversal[A](traversal.iterator)
 
-  implicit def toElementTraversal[A <: Element](traversal: Iterator[A]): ElementTraversal[A] =
-    new ElementTraversal[A](traversal)
+  implicit def toElementTraversal[A <: Element](traversal: IterableOnce[A]): ElementTraversal[A] =
+    new ElementTraversal[A](traversal.iterator)
 
   implicit def toNodeOps[N <: Node](node: N): NodeOps[N] = new NodeOps(node)
 
