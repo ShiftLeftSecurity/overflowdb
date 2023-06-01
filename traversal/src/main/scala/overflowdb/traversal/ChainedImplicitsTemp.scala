@@ -2,7 +2,7 @@ package overflowdb.traversal
 
 import overflowdb.{Edge, Element, Node}
 
-// TODO drop this temporary helper once we're on Scala 3.2.2
+// TODO drop this temporary helper once we're on Scala 3.3.0
 object ChainedImplicitsTemp {
   implicit def toNodeTraversalViaAdditionalImplicit[A <: Node, Trav](traversable: Trav)(implicit
       toTraversal: Trav => Iterator[A]

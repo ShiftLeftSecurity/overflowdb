@@ -26,7 +26,7 @@ trait Implicits {
 
   implicit def toNodeOps[N <: Node](node: N): NodeOps[N] = new NodeOps(node)
 
-  // TODO make available again once we're on Scala 3.2.2
+  // TODO make available again once we're on Scala 3.3.0
   // context: these break REPL autocompletion, e.g. in joern for `cpg.<tab>`
   // fixed via https://github.com/lampepfl/dotty/issues/16360#issuecomment-1324857836
 

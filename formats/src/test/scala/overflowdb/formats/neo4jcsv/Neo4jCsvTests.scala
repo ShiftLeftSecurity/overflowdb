@@ -214,7 +214,7 @@ class Neo4jCsvTests extends AnyWordSpec {
         SimpleDomain.newGraph(overflowdb.Config.withoutOverflow().withStorageLocation(reimportPath.toJava.toPath))
       graphReimported.nodeCount shouldBe 2
 
-      // TODO change back once we're on Scala 3.2.2
+      // TODO change back once we're on Scala 3.3.0
       // graphReimported.node(2).out(TestEdge.LABEL).property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
       graphReimported.node(2).out(TestEdge.LABEL).asScala.property(TestNode.INT_PROPERTY).l shouldBe Seq(13)
     }
