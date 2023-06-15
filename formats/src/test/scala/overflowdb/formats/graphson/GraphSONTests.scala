@@ -116,8 +116,7 @@ class GraphSONTests extends AnyWordSpec {
       val graph = SimpleDomain.newGraph()
 
       val node1 = graph.addNode(1, TestNode.LABEL)
-      graph.addNode( 2, TestNode.LABEL, TestNode.CONTAINED_TESTNODE_PROPERTY, node1,
-        TestNode.INT_PROPERTY, 11)
+      graph.addNode(2, TestNode.LABEL, TestNode.CONTAINED_TESTNODE_PROPERTY, node1, TestNode.INT_PROPERTY, 11)
 
       File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
         val exportResult = GraphSONExporter.runExport(graph, exportRootDirectory.pathAsString)

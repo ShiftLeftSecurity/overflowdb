@@ -32,9 +32,9 @@ object GraphSONImporter extends Importer {
     m.view
       .mapValues { v =>
         v.`@value` match {
-          case ListValue(value, _) => value.map(_.`@value`)
+          case ListValue(value, _)   => value.map(_.`@value`)
           case NodeIdValue(value, _) => graph.node(value)
-          case x => x.`@value`
+          case x                     => x.`@value`
         }
       }
       .flatMap { case (k, v) => Seq(k, v) }
