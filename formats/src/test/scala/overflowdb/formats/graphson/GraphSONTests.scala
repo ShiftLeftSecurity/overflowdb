@@ -111,6 +111,30 @@ class GraphSONTests extends AnyWordSpec {
         }
       }
     }
+
+    "using 'contained node' property" in {
+      val graph = SimpleDomain.newGraph()
+
+      val node1 = graph.addNode(1, TestNode.LABEL)
+      graph.addNode(2, TestNode.LABEL, TestNode.CONTAINED_TESTNODE_PROPERTY, node1, TestNode.INT_PROPERTY, 11)
+
+      File.usingTemporaryDirectory(getClass.getName) { exportRootDirectory =>
+        val exportResult = GraphSONExporter.runExport(graph, exportRootDirectory.pathAsString)
+        exportResult.nodeCount shouldBe 2
+        val Seq(graphJsonFile) = exportResult.files
+
+        // import graphml into new graph, use difftool for round trip of conversion
+        val reimported = SimpleDomain.newGraph()
+        GraphSONImporter.runImport(reimported, graphJsonFile)
+        val diff = DiffTool.compare(graph, reimported)
+        val diffString = diff.asScala.mkString(lineSeparator)
+        withClue(
+          s"original graph contained two list properties, these should also be present in reimported graph $diffString $lineSeparator"
+        ) {
+          diff.size shouldBe 0
+        }
+      }
+    }
   }
 
 }

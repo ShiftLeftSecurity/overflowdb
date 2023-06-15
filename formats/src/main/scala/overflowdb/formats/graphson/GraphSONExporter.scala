@@ -87,6 +87,7 @@ object GraphSONExporter extends Exporter {
       case x: Float                 => FloatValue(x)
       case x: Int                   => IntValue(x)
       case x: Long                  => LongValue(x)
+      case x: Node                  => NodeIdValue(x.id())
     }
   }
 

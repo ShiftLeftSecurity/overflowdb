@@ -131,14 +131,14 @@ class Neo4jCsvTests extends AnyWordSpec {
       // assert csv file contents
       val nodeHeaderFile = fuzzyFindFile(exportedFiles, TestNode.LABEL, HeaderFileSuffix)
       nodeHeaderFile.contentAsString.trim shouldBe
-        ":ID,:LABEL,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty:string"
+        ":ID,:LABEL,ContainedTestNodeProperty,FunkyListProperty:string[],IntListProperty:int[],IntProperty:int,StringListProperty:string[],StringProperty:string"
 
       val nodeDataFileLines = fuzzyFindFile(exportedFiles, TestNode.LABEL, DataFileSuffix).lines.toSeq
       nodeDataFileLines.size shouldBe 3
-      nodeDataFileLines should contain("2,testNode,,,,,stringProp2")
-      nodeDataFileLines should contain("3,testNode,,,13,,DEFAULT_STRING_VALUE")
+      nodeDataFileLines should contain("2,testNode,,,,,,stringProp2")
+      nodeDataFileLines should contain("3,testNode,,,,13,,DEFAULT_STRING_VALUE")
       nodeDataFileLines should contain(
-        "1,testNode,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1"
+        "1,testNode,,apoplectic;bucolic,21;31;41,11,stringListProp1a;stringListProp1b,stringProp1"
       )
 
       val edgeHeaderFile = fuzzyFindFile(exportedFiles, TestEdge.LABEL, HeaderFileSuffix)
@@ -153,11 +153,12 @@ class Neo4jCsvTests extends AnyWordSpec {
         """LOAD CSV FROM 'file:/nodes_testNode_data.csv' AS line
           |CREATE (:testNode {
           |id: toInteger(line[0]),
-          |FunkyListProperty: toStringList(split(line[2], ";")),
-          |IntListProperty: toIntegerList(split(line[3], ";")),
-          |IntProperty: toInteger(line[4]),
-          |StringListProperty: toStringList(split(line[5], ";")),
-          |StringProperty: line[6]
+          |ContainedTestNodeProperty: line[2],
+          |FunkyListProperty: toStringList(split(line[3], ";")),
+          |IntListProperty: toIntegerList(split(line[4], ";")),
+          |IntProperty: toInteger(line[5]),
+          |StringListProperty: toStringList(split(line[6], ";")),
+          |StringProperty: line[7]
           |});
           |""".stripMargin
 

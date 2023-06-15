@@ -25,15 +25,16 @@ object GraphSONImporter extends Importer {
   }
 
   private def addNode(n: Vertex, graph: Graph): Unit = {
-    graph.addNode(n.id.`@value`, n.label, flattenProperties(n.properties): _*)
+    graph.addNode(n.id.`@value`, n.label, flattenProperties(n.properties, graph): _*)
   }
 
-  private def flattenProperties(m: Map[String, Property]): Array[_] = {
+  private def flattenProperties(m: Map[String, Property], graph: Graph): Array[_] = {
     m.view
       .mapValues { v =>
         v.`@value` match {
-          case x: ListValue => x.`@value`.map(_.`@value`)
-          case x            => x.`@value`
+          case ListValue(value, _)   => value.map(_.`@value`)
+          case NodeIdValue(value, _) => graph.node(value)
+          case x                     => x.`@value`
         }
       }
       .flatMap { case (k, v) => Seq(k, v) }
@@ -43,6 +44,6 @@ object GraphSONImporter extends Importer {
   private def addEdge(e: Edge, graph: Graph): Unit = {
     val src = graph.node(e.outV.`@value`)
     val tgt = graph.node(e.inV.`@value`)
-    src.addEdge(e.label, tgt, flattenProperties(e.properties): _*)
+    src.addEdge(e.label, tgt, flattenProperties(e.properties, graph): _*)
   }
 }

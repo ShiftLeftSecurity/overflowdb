@@ -33,7 +33,12 @@ object GraphSONProtocol extends DefaultJsonProtocol {
             "@value" -> JsNumber(x.`@value`),
             "@type" -> JsString(x.`@type`)
           )
-        case _ => serializationError("PropertyValue expected")
+        case x: NodeIdValue =>
+          JsObject(
+            "@value" -> JsNumber(x.`@value`),
+            "@type" -> JsString(x.`@type`)
+          )
+        case x => serializationError(s"unsupported propertyValue: $x")
       }
     }
 
@@ -56,6 +61,7 @@ object GraphSONProtocol extends DefaultJsonProtocol {
         else if (typ.equals(Type.Int.typ)) IntValue(v.toIntExact)
         else if (typ.equals(Type.Float.typ)) FloatValue(v.toFloat)
         else if (typ.equals(Type.Double.typ)) DoubleValue(v.toDouble)
+        else if (typ.equals(Type.NodeId.typ)) NodeIdValue(v.toLongExact)
         else deserializationError("Valid number type or list expected")
       case _ => deserializationError("PropertyValue expected")
     }

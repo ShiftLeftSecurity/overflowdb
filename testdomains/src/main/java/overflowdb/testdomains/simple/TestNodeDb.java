@@ -17,6 +17,7 @@ public class TestNodeDb extends NodeDb {
   private List<String> _stringListProperty;
   private int[] _intListProperty; // to test primitive arrays serialization
   private FunkyList _funkyList;
+  private TestNode _containedTestNode;
 
   public String stringProperty() {
     if (_stringProperty != null)
@@ -41,6 +42,10 @@ public class TestNodeDb extends NodeDb {
     return _funkyList;
   }
 
+  public TestNode containedTestNode() {
+    return _containedTestNode;
+  }
+
   @Override
   public NodeLayoutInformation layoutInformation() {
     return layoutInformation;
@@ -59,6 +64,8 @@ public class TestNodeDb extends NodeDb {
       return _intListProperty;
     } else if (key == TestNode.FUNKY_LIST_PROPERTY) {
       return funkyList();
+    } else if (key == TestNode.CONTAINED_TESTNODE_PROPERTY) {
+      return containedTestNode();
     } else {
       return propertyDefaultValue(key);
     }
@@ -111,6 +118,8 @@ public class TestNodeDb extends NodeDb {
       } else {
         this._funkyList = (FunkyList) value;
       }
+    } else if (TestNode.CONTAINED_TESTNODE_PROPERTY.equals(key)) {
+      this._containedTestNode = (TestNode) value;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
@@ -128,6 +137,8 @@ public class TestNodeDb extends NodeDb {
       this._intListProperty = null;
     } else if (TestNode.FUNKY_LIST_PROPERTY.equals(key)) {
       this._funkyList = null;
+    } else if (TestNode.CONTAINED_TESTNODE_PROPERTY.equals(key)) {
+      this._containedTestNode = null;
     } else {
       throw new RuntimeException("property with key=" + key + " not (yet) supported by " + this.getClass().getName());
     }
@@ -135,7 +146,7 @@ public class TestNodeDb extends NodeDb {
 
   public static NodeLayoutInformation layoutInformation = new NodeLayoutInformation(
       TestNode.LABEL,
-      new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY, TestNode.FUNKY_LIST_PROPERTY)),
+      new HashSet<>(Arrays.asList(TestNode.STRING_PROPERTY, TestNode.INT_PROPERTY, TestNode.STRING_LIST_PROPERTY, TestNode.INT_LIST_PROPERTY, TestNode.FUNKY_LIST_PROPERTY, TestNode.CONTAINED_TESTNODE_PROPERTY)),
       Arrays.asList(TestEdge.layoutInformation),
       Arrays.asList(TestEdge.layoutInformation));
 
