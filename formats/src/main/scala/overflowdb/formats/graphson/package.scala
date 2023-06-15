@@ -15,6 +15,7 @@ package object graphson {
     val Float = GraphSONVal(5, "g:Float")
     val Double = GraphSONVal(6, "g:Double")
     val List = GraphSONVal(7, "g:List")
+    val NodeId = GraphSONVal(8, "g:VertexId")
 
     def fromRuntimeClass(clazz: Class[_]): Type.Value = {
       if (clazz.isAssignableFrom(classOf[Boolean]) || clazz.isAssignableFrom(classOf[java.lang.Boolean]))
@@ -77,6 +78,8 @@ package object graphson {
 
   case class ListValue(override val `@value`: Array[PropertyValue], `@type`: String = Type.List.typ)
       extends PropertyValue
+
+  case class NodeIdValue(override val `@value`: Long, `@type`: String = Type.NodeId.typ) extends PropertyValue
 
   case class Property(id: LongValue, `@value`: PropertyValue, `@type`: String = "g:Property")
 
