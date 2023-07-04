@@ -1,3 +1,3 @@
 name := "testdomains"
 
-publish/skip := true
+publish / skip := true
