@@ -1,9 +1,9 @@
 name := "overflowdb-core-tests"
 
-publish/skip := true
+publish / skip := true
 
 libraryDependencies ++= Seq(
-  "com.github.sbt" % "junit-interface" % "0.13.3" % Test,
+  "com.github.sbt" % "junit-interface" % "0.13.3" % Test
 )
 
-Test/testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")
+Test / testOptions += Tests.Argument(TestFrameworks.JUnit, "-a", "-v")

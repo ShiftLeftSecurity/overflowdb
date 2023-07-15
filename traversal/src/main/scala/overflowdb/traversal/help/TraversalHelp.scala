@@ -14,9 +14,9 @@ import scala.jdk.CollectionConverters._
   * There are two use cases for this, which require slightly different implementations 1) `myDomain.help` - for the node
   * starter steps 2) `myDomain.someNodeType.help` - for steps that are available a specific node type
   *
-  * For use case 2, we also take into account all parent traits of a node type, recursively.
-  * I.e. if `SomeNodeType` has a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`, we
-  * will include those in the results.
+  * For use case 2, we also take into account all parent traits of a node type, recursively. I.e. if `SomeNodeType` has
+  * a base type `SomeBaseType`, and there are steps defined for `Traversal[SomeBaseType]`, we will include those in the
+  * results.
   *
   * @param searchPackages:
   *   The base packages that we scan for - we're not scanning the entire classpath
