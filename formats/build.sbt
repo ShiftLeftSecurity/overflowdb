@@ -8,4 +8,4 @@ libraryDependencies ++= Seq(
   "io.spray" %% "spray-json" % "1.3.6"
 )
 
-Test/console/scalacOptions -= "-Xlint"
+Test / console / scalacOptions -= "-Xlint"

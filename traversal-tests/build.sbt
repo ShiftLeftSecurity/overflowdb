@@ -1,5 +1,5 @@
 name := "overflowdb-traversal-tests"
 
-publish/skip := true
+publish / skip := true
 
-Test/console/scalacOptions -= "-Xlint"
+Test / console / scalacOptions -= "-Xlint"
