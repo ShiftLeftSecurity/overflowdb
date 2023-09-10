@@ -14,7 +14,7 @@ lazy val coreTests = project.in(file("core-tests")).dependsOn(formats, testdomai
 lazy val traversalTests = project.in(file("traversal-tests")).dependsOn(formats)
 
 ThisBuild / libraryDependencies ++= Seq(
-  "org.slf4j" % "slf4j-simple" % "2.0.7" % Test,
+  "org.slf4j" % "slf4j-simple" % "2.0.9" % Test,
   "org.scalatest" %% "scalatest" % "3.2.16" % Test
 )
 
