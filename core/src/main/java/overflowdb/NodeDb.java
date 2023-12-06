@@ -118,6 +118,7 @@ public abstract class NodeDb extends Node {
 
     for (String propertyKey : propertyKeys()) {
       final Object value = property(propertyKey);
+      /** note: not differentiating `null` and `default value` is a bug - we won't fix it for now, but want to state that as a fact here... */
       if (value != null && !value.equals(propertyDefaultValue(propertyKey))) results.put(propertyKey, value);
     }
 
