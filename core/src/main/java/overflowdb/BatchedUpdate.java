@@ -2,8 +2,7 @@ package overflowdb;
 
 import overflowdb.util.IteratorUtils;
 
-import java.util.ArrayDeque;
-import java.util.Iterator;
+import java.util.*;
 
 public class BatchedUpdate {
 
@@ -199,6 +198,16 @@ public class BatchedUpdate {
         public RemoveNode(Node node) {
             this.node = node;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof RemoveNode) && ((RemoveNode) obj).node.id() == node.id();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(node.id());
+        }
     }
 
     public static class CreateEdge implements Change {
@@ -234,6 +243,10 @@ public class BatchedUpdate {
         private final ArrayDeque<DetachedNodeData> deferredInitializers = new ArrayDeque<>();
         private final Graph graph;
         private int nChanges = 0;
+
+        /** We keep track of already removed nodes to ensure we don't fail to load them from storage when they are
+         * removed multiple times in the same Diff. */
+        private Set<RemoveNode> removedNodes = new HashSet<>();
 
         DiffGraphApplier(Graph graph, DiffOrBuilder diff, KeyPool keyPool, ModificationListener listener) {
             this.diff = diff;
@@ -311,11 +324,13 @@ public class BatchedUpdate {
                 remove.edge.removeInternal();
             } else if (change instanceof RemoveNode) {
                 nChanges += 1;
-                RemoveNode remove = (RemoveNode) change;
-                if (listener != null)
-                    listener.onBeforeRemoveNode(remove.node);
-                remove.node.removeInternal();
-
+                if (!removedNodes.contains(change)) {
+                    RemoveNode remove = (RemoveNode) change;
+                    if (listener != null)
+                        listener.onBeforeRemoveNode(remove.node);
+                    remove.node.removeInternal();
+                    removedNodes.add(remove);
+                }
             } else if (change instanceof SetNodeProperty) {
                 nChanges += 1;
                 SetNodeProperty setProp = (SetNodeProperty) change;
