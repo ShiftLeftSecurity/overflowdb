@@ -240,12 +240,14 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
 object TableStyleTester {
   def main(args: Array[String]): Unit = {
-    println(Table(
-      Seq("column a", "column b"),
-      Seq(
-        Seq("abc 1", "bde 1"),
-        Seq("abc 2", "bde 2"),
-      )
-    ).render())
+    println(
+      Table(
+        Seq("column a", "column b"),
+        Seq(
+          Seq("abc 1", "bde 1"),
+          Seq("abc 2", "bde 2")
+        )
+      ).render()
+    )
   }
 }
