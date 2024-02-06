@@ -1,21 +1,29 @@
 package overflowdb.traversal.help
 
-import dnl.utils.text.table.TextTable
-import java.io.{ByteArrayOutputStream, PrintStream}
-import java.nio.charset.StandardCharsets
-import scala.util.Using
+import de.vandermeer.asciitable.AsciiTable
+import de.vandermeer.asciithemes.TA_GridThemes
+import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment
 
-case class Table(columnNames: Iterable[String], rows: Iterable[Iterable[String]]) {
+import scala.jdk.CollectionConverters.SeqHasAsJava
 
-  lazy val render: String = {
-    Using.Manager { use =>
-      val charset = StandardCharsets.UTF_8
-      val baos = use(new ByteArrayOutputStream)
-      val ps = use(new PrintStream(baos, true, charset.name))
-      val rowsAsArray = rows.map(_.map(_ + " ").toArray.asInstanceOf[Array[Object]]).toArray
-      new TextTable(columnNames.toArray, rowsAsArray).printTable(ps, 0)
-      new String(baos.toByteArray, charset)
-    }.get
+case class Table(columnNames: Seq[String], rows: Seq[Seq[String]]) {
+
+  def render(width: Int = 120): String = {
+    if (columnNames.isEmpty && rows.isEmpty) {
+      ""
+    } else {
+      val table = new AsciiTable()
+      table.addRule()
+      table.addRow(columnNames.asJava)
+      table.addRule()
+      if (rows.nonEmpty) {
+        rows.map(_.asJava).foreach(table.addRow)
+      }
+      table.addRule()
+      table.getContext.setGridTheme(TA_GridThemes.FULL)
+      table.setTextAlignment(TextAlignment.LEFT)
+      table.render(width)
+    }
   }
 
 }
