@@ -199,7 +199,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
         thingTraversalHelpVerbose should include(".label") // step from ElementTraversal
         thingTraversalHelpVerbose should include(".out") // step from NodeTraversal
         thingTraversalHelpVerbose should include(
-          "just like name, but in a different package"
+          "name2 (just like name"
         ) // step from helptest.SimpleDomainTraversal
       }
 

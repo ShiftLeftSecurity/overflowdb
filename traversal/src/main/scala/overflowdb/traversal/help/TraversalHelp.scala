@@ -54,7 +54,7 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     )
 
     s"""Available steps for ${elementClass.getSimpleName}:
-         |${table.render}
+         |${table.render()}
          |""".stripMargin
   }
 
@@ -73,7 +73,7 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     )
 
     s"""Available starter steps:
-       |${table.render}
+       |${table.render()}
        |""".stripMargin
   }
 
