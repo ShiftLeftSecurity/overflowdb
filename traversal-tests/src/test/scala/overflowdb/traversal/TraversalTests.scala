@@ -10,6 +10,7 @@ import overflowdb.{Node, toPropertyKeyOps}
 
 import scala.collection.mutable
 import overflowdb.traversal._
+import overflowdb.traversal.help.Table
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
@@ -235,4 +236,16 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
     }
   }
 
+}
+
+object TableStyleTester {
+  def main(args: Array[String]): Unit = {
+    println(Table(
+      Seq("column a", "column b"),
+      Seq(
+        Seq("abc 1", "bde 1"),
+        Seq("abc 2", "bde 2"),
+      )
+    ).render())
+  }
 }

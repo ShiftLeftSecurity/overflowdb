@@ -1,6 +1,7 @@
 package overflowdb.traversal.help
 
 import de.vandermeer.asciitable.AsciiTable
+import de.vandermeer.asciithemes.TA_GridThemes
 import de.vandermeer.skb.interfaces.transformers.textformat.TextAlignment
 
 import scala.jdk.CollectionConverters.SeqHasAsJava
@@ -16,11 +17,10 @@ case class Table(columnNames: Seq[String], rows: Seq[Seq[String]]) {
       table.addRow(columnNames.asJava)
       table.addRule()
       if (rows.nonEmpty) {
-        rows.foreach { row =>
-          table.addRow(row.asJava)
-          table.addRule()
-        }
+        rows.map(_.asJava).foreach(table.addRow)
       }
+      table.addRule()
+      table.getContext.setGridTheme(TA_GridThemes.FULL)
       table.setTextAlignment(TextAlignment.LEFT)
       table.render(width)
     }
