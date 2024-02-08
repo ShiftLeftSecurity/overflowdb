@@ -16,17 +16,24 @@ case class Table(columnNames: Seq[String], rows: Seq[Seq[String]]) {
       val table = new AsciiTable()
       table.addRule()
       table.addRow(columnNames.asJava)
+      var maxRowWidth = idealRenderingWidth(columnNames)
       table.addRule()
       if (rows.nonEmpty) {
-        rows.map(_.asJava).foreach(table.addRow)
+        rows.foreach { row =>
+          table.addRow(row.asJava)
+          maxRowWidth = math.max(maxRowWidth, idealRenderingWidth(row))
+        }
       }
       table.addRule()
       table.getContext.setGridTheme(TA_GridThemes.FULL)
       table.setTextAlignment(TextAlignment.LEFT)
-      table.render(availableWidthProvider.apply())
+      val renderingWidth = math.min(maxRowWidth, availableWidthProvider.apply())
+      table.render(renderingWidth)
     }
   }
 
+  private def idealRenderingWidth(cells: Seq[String]): Int =
+    cells.map(_.size).sum + cells.size + 1
 }
 
 object Table {
