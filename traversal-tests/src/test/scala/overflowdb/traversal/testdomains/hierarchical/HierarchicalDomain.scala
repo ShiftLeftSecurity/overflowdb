@@ -3,6 +3,7 @@ package overflowdb.traversal.testdomains.hierarchical
 import overflowdb.traversal.{TraversalSource, help}
 import overflowdb.{Config, Graph}
 import overflowdb.traversal._
+import overflowdb.traversal.help.Table.AvailableWidthProvider
 
 import java.util
 import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
@@ -37,5 +38,6 @@ class HierarchicalDomainTraversalSource(graph: Graph) extends TraversalSource(gr
   @Doc(info = "all animals")
   def animal: Traversal[Animal] = all.collect { case node: Animal => node }
 
-  lazy val help: String = HierarchicalDomain.help.forTraversalSources
+  def help(implicit availableWidthProvider: AvailableWidthProvider): String =
+    HierarchicalDomain.help.forTraversalSources
 }

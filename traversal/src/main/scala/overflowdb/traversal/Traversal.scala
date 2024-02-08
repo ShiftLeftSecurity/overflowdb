@@ -1,6 +1,7 @@
 package overflowdb.traversal
 
 import org.slf4j.LoggerFactory
+import overflowdb.traversal.help.Table.AvailableWidthProvider
 import overflowdb.traversal.help.{Doc, DocSearchPackages, TraversalHelp}
 
 import scala.collection.{
@@ -115,11 +116,19 @@ class TraversalSugarExt[A](val iter: Iterator[A]) extends AnyVal {
     * will simply list all documented steps in the classpath
     */
   @Doc(info = "print help/documentation based on the current elementType `A`.")
-  def help[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
+  def help[B >: A](implicit
+      elementType: ClassTag[B],
+      searchPackages: DocSearchPackages,
+      availableWidthProvider: AvailableWidthProvider
+  ): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = false)
 
   @Doc(info = "print verbose help/documentation based on the current elementType `A`.")
-  def helpVerbose[B >: A](implicit elementType: ClassTag[B], searchPackages: DocSearchPackages): String =
+  def helpVerbose[B >: A](implicit
+      elementType: ClassTag[B],
+      searchPackages: DocSearchPackages,
+      availableWidthProvider: AvailableWidthProvider
+  ): String =
     new TraversalHelp(searchPackages).forElementSpecificSteps(elementType.runtimeClass, verbose = true)
 }
 class TraversalFilterExt[A](val iterator: Iterator[A]) extends AnyVal {

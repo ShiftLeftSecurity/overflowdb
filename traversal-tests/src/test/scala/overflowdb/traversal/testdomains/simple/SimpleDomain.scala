@@ -1,5 +1,6 @@
 package overflowdb.traversal.testdomains.simple
 
+import overflowdb.traversal.help.Table.AvailableWidthProvider
 import overflowdb.traversal.{TraversalSource, help}
 import overflowdb.{Config, Graph}
 
@@ -29,5 +30,6 @@ class SimpleDomainTraversalSource(graph: Graph) extends TraversalSource(graph) {
   @Doc(info = "all things")
   def things: Traversal[Thing] = label(Thing.Label).cast[Thing]
 
-  lazy val help: String = SimpleDomain.help.forTraversalSources
+  def help(implicit availableWidthProvider: AvailableWidthProvider): String =
+    SimpleDomain.help.forTraversalSources
 }

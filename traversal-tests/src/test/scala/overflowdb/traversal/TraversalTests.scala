@@ -9,8 +9,8 @@ import overflowdb.traversal.testdomains.gratefuldead._
 import overflowdb.{Node, toPropertyKeyOps}
 
 import scala.collection.mutable
-import overflowdb.traversal._
 import overflowdb.traversal.help.Table
+import overflowdb.traversal.help.Table.AvailableWidthProvider
 
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
@@ -179,6 +179,7 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
 
   ".help step" should {
     import SimpleDomain._ // for domain specific `DocSearchPackages`
+    implicit val availableWidthProvider: AvailableWidthProvider = new Table.ConstantWidth(100)
 
     "give a domain overview" in {
       val helpText = simpleDomain.help
@@ -236,18 +237,4 @@ class TraversalTests extends AnyWordSpec with ExampleGraphSetup {
     }
   }
 
-}
-
-object TableStyleTester {
-  def main(args: Array[String]): Unit = {
-    println(
-      Table(
-        Seq("column a", "column b"),
-        Seq(
-          Seq("abc 1", "bde 1"),
-          Seq("abc 2", "bde 2")
-        )
-      ).render()
-    )
-  }
 }

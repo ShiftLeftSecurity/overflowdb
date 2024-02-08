@@ -4,10 +4,10 @@ import org.reflections8.Reflections
 import overflowdb.traversal.help.DocFinder.StepDoc
 import overflowdb.traversal.{ElementTraversal, NodeTraversal, help}
 import overflowdb.traversal
+import overflowdb.traversal.help.Table.AvailableWidthProvider
 import overflowdb.{NodeDb, NodeRef}
 
 import java.lang.annotation.{Annotation => JAnnotation}
-import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 /** Searches classpath for @Traversal|@TraversalSource and @Doc annotations (via reflection). Used for `.help` step.
@@ -24,7 +24,9 @@ import scala.jdk.CollectionConverters._
 class TraversalHelp(searchPackages: DocSearchPackages) {
   import TraversalHelp._
 
-  def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean): String = {
+  def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean)(implicit
+      availableWidthProvider: AvailableWidthProvider
+  ): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 
@@ -54,11 +56,11 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     )
 
     s"""Available steps for ${elementClass.getSimpleName}:
-         |${table.render()}
+         |${table.render}
          |""".stripMargin
   }
 
-  lazy val forTraversalSources: String = {
+  def forTraversalSources(implicit availableWidthProvider: AvailableWidthProvider): String = {
     val stepDocs = for {
       packageName <- packageNamesToSearch
       traversal <- findClassesAnnotatedWith(packageName, classOf[help.TraversalSource])
@@ -73,7 +75,7 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
     )
 
     s"""Available starter steps:
-       |${table.render()}
+       |${table.render}
        |""".stripMargin
   }
 
