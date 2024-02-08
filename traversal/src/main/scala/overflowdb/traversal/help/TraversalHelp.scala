@@ -24,7 +24,9 @@ import scala.jdk.CollectionConverters._
 class TraversalHelp(searchPackages: DocSearchPackages) {
   import TraversalHelp._
 
-  def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean)(implicit availableWidthProvider: AvailableWidthProvider): String = {
+  def forElementSpecificSteps(elementClass: Class[_], verbose: Boolean)(implicit
+      availableWidthProvider: AvailableWidthProvider
+  ): String = {
     val isNode = classOf[NodeDb].isAssignableFrom(elementClass)
     val isNodeRef = classOf[NodeRef[_]].isAssignableFrom(elementClass)
 

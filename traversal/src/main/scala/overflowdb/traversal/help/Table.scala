@@ -36,5 +36,4 @@ object Table {
     override def apply() = width
   }
 
-
 }

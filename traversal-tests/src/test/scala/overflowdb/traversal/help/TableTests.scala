@@ -8,12 +8,12 @@ class TableTests extends AnyWordSpec {
 
   "render a nice generic table" in {
     val table = Table(
-        Seq("column a", "column b"),
-        Seq(
-          Seq("abc 1", "bde 1"),
-          Seq("abc 2", "bde 2")
-        )
+      Seq("column a", "column b"),
+      Seq(
+        Seq("abc 1", "bde 1"),
+        Seq("abc 2", "bde 2")
       )
+    )
 
     implicit val availableWidthProvider: AvailableWidthProvider = new Table.ConstantWidth(100)
     table.render.trim shouldBe
@@ -30,9 +30,11 @@ class TableTests extends AnyWordSpec {
     val table = Table(
       Seq("lorem ipsum"),
       Seq(
-        Seq("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et" +
-          " dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip " +
-          "ex ea commodo consequat."),
+        Seq(
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et" +
+            " dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip " +
+            "ex ea commodo consequat."
+        )
       )
     )
 
