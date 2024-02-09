@@ -23,7 +23,11 @@ case class Table(columnNames: Seq[String], rows: Seq[Seq[String]]) {
       table.addRule()
       table.getContext.setGridTheme(TA_GridThemes.FULL)
       table.setTextAlignment(TextAlignment.LEFT)
-      table.render(availableWidthProvider.apply())
+
+      // some terminal emulators (e.g. on github actions CI) report to have a width of 0...
+      // that doesn't work for rendering a table, so we compensate by using a minimum width
+      val renderingWidth = math.max(availableWidthProvider.apply(), 60)
+      table.render(renderingWidth)
     }
   }
 
