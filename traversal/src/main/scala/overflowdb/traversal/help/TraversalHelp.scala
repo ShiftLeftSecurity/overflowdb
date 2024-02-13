@@ -119,6 +119,6 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
 }
 
 object TraversalHelp {
-  private val ColumnNames = Array("step", "description")
+  private val ColumnNames = Seq("step", "description")
   private val ColumnNamesVerbose = ColumnNames :+ "traversal name"
 }

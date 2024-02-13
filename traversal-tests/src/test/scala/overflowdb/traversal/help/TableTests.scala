@@ -11,18 +11,18 @@ class TableTests extends AnyWordSpec {
       Seq("column a", "column b"),
       Seq(
         Seq("abc 1", "bde 1"),
-        Seq("abc 2", "bde 2")
+        Seq("abc 2", "bde 2 - little more content here")
       )
     )
 
-    implicit val availableWidthProvider: AvailableWidthProvider = new Table.ConstantWidth(100)
+    implicit val availableWidthProvider: AvailableWidthProvider = new Table.ConstantWidth(50)
     table.render.trim shouldBe
-      """┌─────────────────────────────────────────────────┬────────────────────────────────────────────────┐
-        |│column a                                         │column b                                        │
-        |├─────────────────────────────────────────────────┼────────────────────────────────────────────────┤
-        |│abc 1                                            │bde 1                                           │
-        |│abc 2                                            │bde 2                                           │
-        |└─────────────────────────────────────────────────┴────────────────────────────────────────────────┘
+      """┌────────┬────────────────────────────────┐
+        |│column a│column b                        │
+        |├────────┼────────────────────────────────┤
+        |│abc 1   │bde 1                           │
+        |│abc 2   │bde 2 - little more content here│
+        |└────────┴────────────────────────────────┘
         |""".stripMargin.trim
   }
 
@@ -32,34 +32,34 @@ class TableTests extends AnyWordSpec {
       Seq(
         Seq(
           "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et" +
-            " dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip " +
-            "ex ea commodo consequat."
+            " dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip"
         )
       )
     )
 
-    var currentTerminalWidth = 80 // think "looking up current value from an actual terminal"
+    var currentTerminalWidth = 50 // think "looking up current value from an actual terminal"
     implicit val availableWidthProvider: AvailableWidthProvider = () => currentTerminalWidth
 
     table.render.trim shouldBe
-      """┌──────────────────────────────────────────────────────────────────────────────┐
-        |│lorem ipsum                                                                   │
-        |├──────────────────────────────────────────────────────────────────────────────┤
-        |│Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor│
-        |│incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis    │
-        |│nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. │
-        |└──────────────────────────────────────────────────────────────────────────────┘
+      """┌───────────────────────────────────────────────────────┐
+        |│lorem ipsum                                            │
+        |├───────────────────────────────────────────────────────┤
+        |│Lorem ipsum dolor sit amet, consectetur adipiscing     │
+        |│elit, sed do eiusmod tempor incididunt ut labore et    │
+        |│dolore magna aliqua. Ut enim ad minim veniam, quis     │
+        |│nostrud exercitation ullamco laboris nisi ut aliquip   │
+        |└───────────────────────────────────────────────────────┘
         |""".stripMargin.trim
 
     currentTerminalWidth = 100 // emulating: terminal size has changed
     table.render.trim shouldBe
-      """┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-        |│lorem ipsum                                                                                       │
-        |├──────────────────────────────────────────────────────────────────────────────────────────────────┤
-        |│Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut      │
-        |│labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris │
-        |│nisi ut aliquip ex ea commodo consequat.                                                          │
-        |└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+      """┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+        |│lorem ipsum                                                                                    │
+        |├───────────────────────────────────────────────────────────────────────────────────────────────┤
+        |│Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut   │
+        |│labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco      │
+        |│laboris nisi ut aliquip                                                                        │
+        |└───────────────────────────────────────────────────────────────────────────────────────────────┘
         |""".stripMargin.trim
   }
 
