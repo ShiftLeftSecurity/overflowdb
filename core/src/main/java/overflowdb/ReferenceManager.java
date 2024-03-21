@@ -152,8 +152,10 @@ public class ReferenceManager implements AutoCloseable, HeapUsageMonitor.HeapNot
    * useful when saving the graph
    */
   public void clearAllReferences() {
-    nodesWriter.writeAndClearBatched(clearableRefs.spliterator(), clearableRefs.size());
-    logger.debug("cleared all clearable references");
+    synchronized (clearableRefs){
+      nodesWriter.writeAndClearBatched(clearableRefs.spliterator(), clearableRefs.size());
+      logger.debug("cleared all clearable references");
+    }
   }
 
   @Override
