@@ -38,7 +38,6 @@ public class ElementTest {
               TestNode.LABEL,
               TestNode.STRING_PROPERTY, "node 2",
               TestNode.INT_PROPERTY, 52,
-              TestNode.STRING_LIST_PROPERTY, Arrays.asList("stringThree", "stringFour"),
               TestNode.INT_LIST_PROPERTY, Arrays.asList(52, 53));
 
       builder.addEdge(n1D, n2D,TestEdge.LABEL, TestEdge.LONG_PROPERTY, 99L);
@@ -51,11 +50,18 @@ public class ElementTest {
 
       //  verify that we can cast to our domain-specific nodes/edges
       TestNode node1 = (TestNode) n1;
+      TestNode node2 = (TestNode) n2;
       assertEquals("node 1", node1.stringProperty());
       assertEquals("node 1", node1.property(TestNode.STRING_PROPERTY));
       assertEquals("node 1", node1.property(new PropertyKey<>(TestNode.STRING_PROPERTY)));
       assertEquals(Optional.of("node 1"), node1.propertyOption(TestNode.STRING_PROPERTY));
       assertEquals(Optional.of("node 1"), node1.propertyOption(new PropertyKey<>(TestNode.STRING_PROPERTY)));
+      assertEquals(Optional.of(Arrays.asList("stringOne", "stringTwo")), node1.propertyOption(TestNode.STRING_LIST_PROPERTY));
+      assertEquals(Optional.of(Arrays.asList("stringOne", "stringTwo")), node1.propertyOption(new PropertyKey<>(TestNode.STRING_LIST_PROPERTY)));
+      assertEquals(Optional.empty(), node1.propertyOption("UNKNOWN_PROPERTY"));
+      assertEquals(Optional.empty(), node1.propertyOption(new PropertyKey<>("UNKNOWN_PROPERTY")));
+      assertEquals(Optional.empty(), node2.propertyOption(TestNode.STRING_LIST_PROPERTY));
+      assertEquals(Optional.empty(), node2.propertyOption(new PropertyKey<>(TestNode.STRING_LIST_PROPERTY)));
       assertEquals(Integer.valueOf(42), node1.intProperty());
       assertEquals(Arrays.asList("stringOne", "stringTwo"), node1.stringListProperty());
       assertEquals(Arrays.asList(42, 43), node1.intListProperty());
