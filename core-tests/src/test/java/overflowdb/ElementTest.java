@@ -48,7 +48,10 @@ public class ElementTest {
       Node n2 = (Node)n2D.getRefOrId();
       Edge e = n1.outE().next();
 
-      //  verify that we can cast to our domain-specific nodes/edges
+      // verify that we can cast to our domain-specific nodes/edges
+      // n.b. the results of `property` and `propertyOption` accessors depend on the domain class implementations
+      // and might therefor be misleading - see e.g. https://github.com/joernio/joern/pull/4382: our codegen generates domain
+      // classes that return `Some(Seq.empty)` for an undefined list property...
       TestNode node1 = (TestNode) n1;
       TestNode node2 = (TestNode) n2;
       assertEquals("node 1", node1.stringProperty());
