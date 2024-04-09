@@ -48,7 +48,7 @@ class TraversalHelp(searchPackages: DocSearchPackages) {
 
     val table = Table(
       columnNames = if (verbose) ColumnNamesVerbose else ColumnNames,
-      rows = stepDocs.sortBy(_.methodName).map { stepDoc =>
+      rows = stepDocs.distinct.sortBy(_.methodName).map { stepDoc =>
         val baseColumns = List(s".${stepDoc.methodName}", stepDoc.doc.info)
         if (verbose) baseColumns :+ stepDoc.traversalClassName
         else baseColumns
