@@ -1,7 +1,7 @@
 name := "overflowdb"
 ThisBuild / organization := "io.shiftleft"
-ThisBuild / scalaVersion := "2.13.13"
-ThisBuild / crossScalaVersions := Seq("2.13.13", "3.4.1")
+ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / crossScalaVersions := Seq("2.13.14", "3.4.1")
 // TODO once we're on Scala 3.2.2: make chained implicits in `Implicits.scala` available again
 // also, change other places that have temporarily been adapted - search for `TODO Scala 3.2.2`
 publish / skip := true
