@@ -11,7 +11,6 @@ import overflowdb.NodeDb;
 import overflowdb.NodeFactory;
 import overflowdb.NodeRef;
 import overflowdb.util.PropertyHelper;
-import overflowdb.util.StringInterner;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,12 +22,10 @@ public class NodeDeserializer extends BookKeeper {
   protected final Graph graph;
   private final Map<String, NodeFactory> nodeFactoryByLabel;
   private final OdbStorage storage;
-  private final StringInterner stringInterner;
 
   public NodeDeserializer(Graph graph, Map<String, NodeFactory> nodeFactoryByLabel, boolean statsEnabled, OdbStorage storage) {
     super(statsEnabled);
     this.graph = graph;
-    this.stringInterner = graph.getStringInterner();
     this.nodeFactoryByLabel = nodeFactoryByLabel;
     this.storage = storage;
   }
@@ -116,7 +113,7 @@ public class NodeDeserializer extends BookKeeper {
       case BOOLEAN:
         return value.asBooleanValue().getBoolean();
       case STRING:
-        return stringInterner.intern(value.asStringValue().asString());
+        return value.asStringValue().asString().intern();
       case BYTE:
         return value.asIntegerValue().asByte();
       case SHORT:

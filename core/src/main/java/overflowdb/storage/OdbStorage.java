@@ -5,7 +5,6 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import overflowdb.util.StringInterner;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +30,6 @@ public class OdbStorage implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final File mvstoreFile;
-  private final StringInterner stringInterner;
   private FileStore mvstoreFileStore;
   protected MVStore mvstore;
   private MVMap<Long, byte[]> nodesMVMap;
@@ -42,20 +40,19 @@ public class OdbStorage implements AutoCloseable {
   private ArrayList<String> stringToIntReverseMappings;
   private int libraryVersionsIdCurrentRun;
 
-  public static OdbStorage createWithTempFile(StringInterner stringInterner) {
-    return new OdbStorage(Optional.empty(), stringInterner);
+  public static OdbStorage createWithTempFile() {
+    return new OdbStorage(Optional.empty());
   }
 
   /**
    * create with specific mvstore file - which may or may not yet exist.
    * mvstoreFile won't be deleted at the end (unlike temp file constructors above)
    */
-  public static OdbStorage createWithSpecificLocation(final File mvstoreFile, StringInterner stringInterner) {
-    return new OdbStorage(Optional.ofNullable(mvstoreFile), stringInterner);
+  public static OdbStorage createWithSpecificLocation(final File mvstoreFile) {
+    return new OdbStorage(Optional.ofNullable(mvstoreFile));
   }
 
-  private OdbStorage(final Optional<File> mvstoreFileMaybe, StringInterner stringInterner) {
-    this.stringInterner = stringInterner;
+  private OdbStorage(final Optional<File> mvstoreFileMaybe) {
     if (mvstoreFileMaybe.isPresent()) {
       mvstoreFile = mvstoreFileMaybe.get();
       if (mvstoreFile.exists() && mvstoreFile.length() > 0) {
@@ -206,7 +203,7 @@ public class OdbStorage implements AutoCloseable {
   public String reverseLookupStringToIntMapping(int stringId) {
     getStringToIntMappings(); //ensure everything is initialized
     String string = stringToIntReverseMappings.get(stringId);
-    return stringInterner.intern(string);
+    return string.intern();
   }
 
   private void ensureMVStoreAvailable() {
