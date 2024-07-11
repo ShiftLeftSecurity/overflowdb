@@ -14,12 +14,10 @@ import overflowdb.util.PropertyHelper;
 import overflowdb.util.StringInterner;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class NodeDeserializer extends BookKeeper {
+  public static final String FLATGRAPH_DEFAULT_EDGE_PROPERTY_NAME = "EDGE_PROPERTY";
   protected final Graph graph;
   private final Map<String, NodeFactory> nodeFactoryByLabel;
   private final OdbStorage storage;
@@ -68,7 +66,9 @@ public class NodeDeserializer extends BookKeeper {
       for (int edgeIdx = 0; edgeIdx < edgeCount; edgeIdx++) {
         long adjacentNodeId = unpacker.unpackLong();
         NodeRef adjacentNode = (NodeRef) graph.node(adjacentNodeId);
-        Object[] edgeProperties = unpackProperties(unpacker);
+        // hack for flatgraph->odb converter, see `maybeReviseKeyForFlatgraph` below
+        Set<String> allowedEdgePropertyKeys = node.layoutInformation().edgePropertyKeys(edgeLabel);
+        Object[] edgeProperties = unpackProperties(unpacker, allowedEdgePropertyKeys);
         node.storeAdjacentNode(direction, edgeLabel, adjacentNode, edgeProperties);
       }
     }
@@ -88,6 +88,10 @@ public class NodeDeserializer extends BookKeeper {
   }
 
   private final Object[] unpackProperties(MessageUnpacker unpacker) throws IOException {
+    return unpackProperties(unpacker, new HashSet<>());
+  }
+
+  private final Object[] unpackProperties(MessageUnpacker unpacker, Set<String> allowedEdgePropertyKeys) throws IOException {
     int propertyCount = unpacker.unpackMapHeader();
     Object[] res = new Object[propertyCount * 2];
     int resIdx = 0;
@@ -96,10 +100,24 @@ public class NodeDeserializer extends BookKeeper {
       final String key = storage.reverseLookupStringToIntMapping(keyId);
       final ImmutableValue unpackedValue = unpacker.unpackValue();
       final Object unpackedProperty = unpackValue(unpackedValue.asArrayValue());
-      res[resIdx++] = key;
+      final String keyRevised = maybeReviseKeyForFlatgraph(key, allowedEdgePropertyKeys);
+      res[resIdx++] = keyRevised;
       res[resIdx++] = unpackedProperty;
     }
     return res;
+  }
+
+  /** In order to prepare for a potential rollback to overflowdb in the future, we're creating a
+   * flatgraph->overflowdb converter. Since flatgraph supports exactly one edge property only,
+   * there are no edge property names. So when we deserialise and find exactly one edge property with
+   * the name `EDGE_PROPERTY`, and the schema defines exactly one edge property, then we assume that's the one.
+   * Let's be clear: this is a dirty hack, but since we're phasing out overflowdb in favor of flatgraph, it's
+   * arguably ok.
+   */
+  private String maybeReviseKeyForFlatgraph(String key, Set<String> allowedEdgePropertyKeys) {
+    if (FLATGRAPH_DEFAULT_EDGE_PROPERTY_NAME.equals(key) && allowedEdgePropertyKeys.size() == 1) {
+      return allowedEdgePropertyKeys.iterator().next();
+    } else return key;
   }
 
   private final Object unpackValue(final ArrayValue packedValueAndType) {
